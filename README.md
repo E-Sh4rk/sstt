@@ -19,6 +19,7 @@ The following operations are implemented:
 - Pretty printing (or more generally, extraction of an algebraic representation)
 
 It also provides a REPL ([web version](https://e-sh4rk.github.io/sstt/)) that allows performing common operations (subtyping, tallying, etc.) with a conveninent syntax.
+See [`REPL.md`](REPL.md) for examples and a description of the syntax.
 
 ## Installation
 
