@@ -1,0 +1,88 @@
+
+atom true, false, nil ;;
+type bool = true | false ;;
+
+"any1" bool <= any ;;
+"any2" any <= bool ;;
+"empty1" bool <= empty ;;
+"empty2" empty <= bool ;;
+"atom1" true <= false ;;
+"atom2" true <= bool ;;
+
+"tuple1" (bool,int) <= (int,bool) ;;
+"tuple2" (false,true) <= (bool,bool) ;;
+"tuple3" (bool,int) <= tuple ;;
+"tuple4" tuple <= (bool,int) ;;
+"tuple5" (bool,true) <= (true,true)|(false,true) ;;
+"tuple6" (bool,bool) <= (true,true)|(false,false) ;;
+
+"tuples1" (bool,true,int) <= tuple ;;
+"tuples2" tuple <= (int,bool,bool) ;;
+"tuples3" (int,bool,int) <= (int,true,int)|(int,false,int) ;;
+"tuples4" (int,bool,int) <= (int,true,int)|(int,true,int) ;;
+"tuples5" (bool,bool,int) <= (true,true,int)|(false,false,int) ;;
+"tuples6" (int,bool,bool,int) <= (int,true,true,int)|(int,false,false,int) ;;
+
+"record1" { } <= { ..} ;;
+"record2" { ..} <= { } ;;
+"record3" { l1 : any } & { l1 : any ; l2 : any ..} <= empty ;;
+"record4" { l1 : any ..} & { l1 : any ; l2 : any ..} <= empty ;;
+"record5" { l1 : bool ; l2 : true } <= { l1 : true ; l2 : true ..} | { l1 : false ; l2 : true } ;;
+"record5" { l1 : true ; l2 : true ..} | { l1 : false ; l2 : true } <= { l1 : bool ; l2 : true ..} ;;
+
+"arrow1" bool -> bool <= false -> false ;;
+"arrow2" bool -> true <= bool -> bool ;;
+"arrow3" bool -> false <= false -> false ;;
+"arrow_inter1" (true -> true) & (false -> false) <= bool -> bool ;;
+"arrow_inter2" (true -> true) & (false -> true) <= bool -> bool ;;
+"arrow_inter3" (true -> true) & (false -> true) <= bool -> false ;;
+"arrow_inter4" bool -> bool <= (true -> true) & (false -> false) ;;
+
+"rec1" X where X = (X -> any) | bool <= Y where Y = (Y -> any) | bool ;;
+"rec2" (bool -> any) <= Y where Y = (Y -> any) | bool ;;
+"rec3" (X -> any) | true where X = (X -> any) | bool <= Y where Y = (Y -> any) | true ;;
+"rec4" X where X = X -> any <= empty -> any ;;
+"rec5" empty -> any <= X where X = X -> any ;;
+
+"list1" X where X = (bool, X) | nil <= (true, (false, nil)) ;;
+"list2" (true, (false, nil)) <= X where X = (bool, X) | nil ;;
+"list3" (true, (int, nil)) <= X where X = (bool, X) | nil ;;
+"list4" (true, (false, true)) <= X where X = (bool, X) | nil ;;
+
+"var1" 'x & 'y <= 'x ;;
+"var2" 'z & 'y <= 'x ;;
+"var3" 'x & ~'x <= empty ;;
+"var4" any <= 'x | ~'x ;;
+
+"print1" (int -> bool -> true) & (empty -> any) | (any -> any) ;;
+"print2" (true,true) | (false, false) ;;
+"print3" { l1 : true ; l2 : true ..} | { l1 : false ; l2 : true } ;;
+"print4" list | int where list=(any,list)|nil ;;
+"print5" (int -> int) -> (bool -> bool) ;;
+"print6" 'a | 'b & ('a,'b) ;;
+"print7" ~true ;;
+"print8" ~(any -> bool) ;;
+"print9" ~((any -> bool) & (true -> false)) ;;
+"print10" ~((true, false) | (false, true)) ;;
+"print11" 'x [ 'x: bool ; 'y: nil ] ;;
+"print13" 'x [ 'x: 'y ; 'y: nil ] ;;
+"print13" ('y, ('x, lst)) where lst=('x,lst)|nil [ 'x : bool ; 'y : nil ] ;;
+
+"tally1" [ 'x <= 'y ] ;;
+"tally2" [ 'X <= 'y ] ;;
+"tally3" [ 'x <= 'Y ] ;;
+"tally4" [ 'X <= 'Y ] ;;
+"tally5" [ 'X -> 'Y <= 'x -> 'y ] ;;
+"tally6" [ 'X -> 'Y <= 'Z -> bool ] ;;
+"tally7" [ ('X, 'Y) <= ('x, 'y) ] ;;
+"tally8" [ ('X, 'Y, 'Z) <= ('x, 'y, 'z) ] ;;
+"tally9" [ ('A -> 'B, 'Y) <= ('x, 'y) ] ;;
+"tally10" [ ('A -> 'B, 'Y) <= ('a -> 'b, 'y) ] ;;
+"tally11" [ ('X -> 'Y, 'X -> 'Y) <= ('a -> 'b, 'b -> 'a) ] ;;
+"tally12" [ ('X, ~'X) <= ('A, 'B) ] ;;
+"tally13" [ { l : 'X ..} <= { l : 'Y } ] ;;
+"tally14" [ { l : 'X } <= { l : 'Y ..} ] ;;
+"tally15" [ 'X, 'Y = int, bool ];;
+
+"app1" int -> bool -> int int bool ;;
+"app2" int -> bool -> int bool int ;;

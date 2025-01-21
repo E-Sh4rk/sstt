@@ -1,0 +1,14 @@
+{
+  "name": "web",
+  "version": "1.0.0",
+  "description": "A web REPL for set-theoretic type operations",
+  "main": "main.js",
+  "type": "module",
+  "directories": {},
+  "author": "",
+  "license": "",
+  "dependencies": {
+    "jquery": "^3.7.1",
+    "jquery.terminal": "^2.44.1"
+  }
+}

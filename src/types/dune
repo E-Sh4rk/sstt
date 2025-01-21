@@ -1,0 +1,10 @@
+(library
+ (name types)
+ ; (public_name sstt.types)
+ (package sstt)
+ (libraries utils zarith core)
+ (modules (:standard)))
+
+; (env
+;   (dev
+;     (flags (:standard -warn-error -A))))

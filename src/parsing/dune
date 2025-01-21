@@ -1,0 +1,18 @@
+(ocamllex lexer)
+
+(menhir
+ (modules parser)
+  (explain true)
+  ; (flags --table)
+  )
+
+(library
+ (name parsing)
+;  (public_name sstt-repl.parsing)
+ (package sstt-repl)
+ (libraries utils zarith types)
+ (modules (:standard)))
+
+; (env
+;   (dev
+;     (flags (:standard -warn-error -A))))

@@ -1,0 +1,19 @@
+(library
+ (name main)
+;  (public_name sstt-repl.main)
+ (package sstt-repl)
+ (inline_tests (deps tests.txt))
+ (libraries parsing utils types)
+ (preprocess (pps ppx_expect))
+ (modules (:standard)))
+
+(rule
+ (target version.ml)
+ (action
+  (write-file
+   %{target}
+   "let version = \"%{version:sstt}\"\nlet compiler = \"%{ocaml_version}\"\nlet commit = \"%{env:COMMIT=N/A}\"\n")))
+
+; (env
+;  (dev
+;    (flags (:standard -warn-error -A))))

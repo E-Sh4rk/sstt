@@ -1,0 +1,40 @@
+(library
+ (name sstt)
+ (public_name sstt)
+ (wrapped false)
+ (libraries types)
+ (modules sstt))
+
+(library
+ (name repl)
+ (public_name sstt-repl)
+ (wrapped false)
+ (libraries sstt parsing main)
+ (modules repl))
+
+(executable
+ (name native)
+ (public_name sstt)
+ (package sstt-bin)
+ (libraries repl unix)
+ (modes (best exe))
+ (modules native))
+
+(executable
+ (name js)
+;  (public_name sstt)
+;  (package sstt-js)
+ (libraries repl zarith_stubs_js)
+ (modes js)
+ (preprocess (pps js_of_ocaml-ppx))
+ (modules js))
+
+ (env
+ (_
+  (js_of_ocaml
+   (flags (:standard --enable effects))
+   (build_runtime_flags (:standard --enable effects)))))
+
+; (env
+;  (dev
+;    (flags (:standard -warn-error -A))))
