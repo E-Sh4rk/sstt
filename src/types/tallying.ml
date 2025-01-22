@@ -124,9 +124,7 @@ module Summand = struct
       assert false
 end
 
-module VD = VDescr
-module D = Descr
-module VDSet = Set.Make(VD)
+module VDSet = Set.Make(VDescr)
 
 let norm delta t =
   let rec aux m t =
@@ -134,7 +132,7 @@ let norm delta t =
     if VDSet.mem vd m then NCSS.any
     else
       let m = VDSet.add vd m in
-      let summands = vd |> VD.dnf |> VD.Dnf.simplify |> List.map Summand.of_line in
+      let summands = vd |> VDescr.dnf |> VDescr.Dnf.simplify |> List.map Summand.of_line in
       summands |> List.map (aux_summand m) |> NCSS.conj
   and aux_summand m summand =
     match VarSet.diff (Summand.vars summand) delta |> VarSet.elements with
@@ -143,35 +141,36 @@ let norm delta t =
       aux_descr m d
     | v::_ -> Summand.single v summand |> NCSS.singleton
   and aux_descr m d =
-    D.components d |> List.map (aux_comp m) |> NCSS.conj
+    Descr.components d |> List.map (aux_comp m) |> NCSS.conj
   and aux_comp m c =
+    let open Descr in
     match c with
-    | D.Atoms c -> aux_atoms m c
-    | D.Arrows c -> aux_arrows m c
-    | D.Intervals c -> aux_intervals m c
-    | D.Tuples c -> aux_tuples m c
-    | D.Records c -> aux_records m c
+    | Atoms c -> aux_atoms m c
+    | Arrows c -> aux_arrows m c
+    | Intervals c -> aux_intervals m c
+    | Tuples c -> aux_tuples m c
+    | Records c -> aux_records m c
   and aux_atoms _ d =
-    match D.Atoms.get d with
+    match Atoms.get d with
     | true, [] -> NCSS.any
     | _, _ -> NCSS.empty
   and aux_intervals _ d =
-    match D.Intervals.get d with
+    match Intervals.get d with
     | [] -> NCSS.any
     | _ -> NCSS.empty
   and aux_arrows m arr =
-    arr |> D.Arrows.dnf |> D.Arrows.Dnf.simplify
+    arr |> Arrows.dnf |> Arrows.Dnf.simplify
     |> List.map (aux_arrow m) |> NCSS.conj
   and aux_tuples m tup =
-    let (prods, others) = tup |> D.Tuples.get in
+    let (prods, others) = tup |> Tuples.get in
     if others then NCSS.empty
     else prods |> List.map (aux_products m) |> NCSS.conj
   and aux_products m prod =
-    let n = D.Tuples.Products.len prod in
-    prod |> D.Tuples.Products.dnf |> D.Tuples.Products.Dnf.simplify
+    let n = Tuples.Products.len prod in
+    prod |> Tuples.Products.dnf |> Tuples.Products.Dnf.simplify
     |> List.map (aux_product m n) |> NCSS.conj
   and aux_records m r =
-    r |> D.Records.dnf |> D.Records.Dnf.simplify
+    r |> Records.dnf |> Records.Dnf.simplify
     |> List.map (aux_record m) |> NCSS.conj
   and aux_arrow m (ps, ns, _) =
     let pt, _ = List.split ps in
@@ -204,7 +203,7 @@ let norm delta t =
     in
     ns |> Utils.partitions n |> List.map aux_n |> NCSS.conj
   and aux_record m (ps, ns, _) =
-    let open D.Records in
+    let open Records in
     let open Atom in
     let dom = List.fold_left
       (fun acc a -> LabelSet.union acc (dom a))

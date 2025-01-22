@@ -1,7 +1,7 @@
 open Core
 
 module Arrows : sig
-    type t = Descr.Arrows.t
+    type t = Arrows.t
 
     val dom : t -> Ty.t
     val apply : t -> Ty.t -> Ty.t
@@ -9,13 +9,13 @@ module Arrows : sig
 end
 
 module Products : sig
-    type t = Descr.Tuples.Products.t
+    type t = Tuples.Products.t
 
     val proj : int -> t -> Ty.t
 end
 
 module Records : sig
-    type t = Descr.Records.t
+    type t = Records.t
 
     val proj : Label.t -> t -> Ty.t * bool
 end

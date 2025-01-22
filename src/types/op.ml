@@ -1,15 +1,14 @@
 open Core
-module D = Descr
 
 module Arrows = struct
-  type t = D.Arrows.t
+  type t = Arrows.t
 
   let dom t =
     let summand_dom (ps,_,_) = ps |> List.map fst |> Ty.disj in
-    D.Arrows.dnf t |> D.Arrows.Dnf.simplify |> List.map summand_dom |> Ty.conj
+    Arrows.dnf t |> Arrows.Dnf.simplify |> List.map summand_dom |> Ty.conj
 
   let apply t s =
-    let dnf = D.Arrows.dnf t |> D.Arrows.Dnf.simplify in
+    let dnf = Arrows.dnf t |> Arrows.Dnf.simplify in
     dnf |> List.map begin
       fun (ps,_,_) ->
         let rec possible_outputs current_set ps =
@@ -24,7 +23,7 @@ module Arrows = struct
     end |> Ty.disj
 
   let worra t out =
-    let dnf = D.Arrows.dnf t |> D.Arrows.Dnf.simplify in
+    let dnf = Arrows.dnf t |> Arrows.Dnf.simplify in
     dnf |> List.map begin
       fun (ps,_,_) ->
         let rec impossible_inputs current_set ps =
@@ -40,18 +39,18 @@ module Arrows = struct
 end
 
 module Products = struct
-  type t = D.Tuples.Products.t
+  type t = Tuples.Products.t
 
   let proj i t =
-    let union = D.Tuples.Products.dnf t |> D.Tuples.Products.Dnf.combine in
+    let union = Tuples.Products.dnf t |> Tuples.Products.Dnf.combine in
     union |> List.map fst |> List.map (fun lst -> List.nth lst i) |> Ty.disj
 end
 
 module Records = struct
-  type t = D.Records.t
+  type t = Records.t
 
   let proj label t =
-    let union = D.Records.dnf t |> D.Records.Dnf.combine in
-    union |> List.map fst |> List.map (D.Records.Atom'.find label)
-    |> D.Records.Atom'.OTy.disj
+    let union = Records.dnf t |> Records.Dnf.combine in
+    union |> List.map fst |> List.map (Records.Atom'.find label)
+    |> Records.Atom'.OTy.disj
 end

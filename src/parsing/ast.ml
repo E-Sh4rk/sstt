@@ -42,7 +42,7 @@ type command = Elt of elt | End
 
 module StrMap = Map.Make(String)
 
-type env = { aenv : Descr.Atoms.Atom.t StrMap.t ;
+type env = { aenv : Atoms.Atom.t StrMap.t ;
              tenv : Ty.t StrMap.t ;
              venv : Var.t StrMap.t ;
              mvenv : Var.t StrMap.t ;
@@ -59,13 +59,13 @@ let empty_env = {
 let builtin t =
   match t with
   | TEmpty -> Ty.empty | TAny -> Ty.any
-  | TAnyAtom -> Descr.mk_atoms (Descr.Atoms.any ()) |> Ty.mk_descr
-  | TAnyInt -> Descr.mk_intervals (Descr.Intervals.any ()) |> Ty.mk_descr
-  | TAnyTuple -> Descr.mk_tuples (Descr.Tuples.any ()) |> Ty.mk_descr
-  | TAnyArrow -> Descr.mk_arrows (Descr.Arrows.any ()) |> Ty.mk_descr
-  | TAnyRecord -> Descr.mk_records (Descr.Records.any ()) |> Ty.mk_descr
+  | TAnyAtom -> Descr.mk_atoms (Atoms.any ()) |> Ty.mk_descr
+  | TAnyInt -> Descr.mk_intervals (Intervals.any ()) |> Ty.mk_descr
+  | TAnyTuple -> Descr.mk_tuples (Tuples.any ()) |> Ty.mk_descr
+  | TAnyArrow -> Descr.mk_arrows (Arrows.any ()) |> Ty.mk_descr
+  | TAnyRecord -> Descr.mk_records (Records.any ()) |> Ty.mk_descr
   | TAnyProduct n ->
-    Descr.Tuples.Products.any n |> Descr.Tuples.mk_products |> Descr.mk_tuples |> Ty.mk_descr
+    Tuples.Products.any n |> Tuples.mk_products |> Descr.mk_tuples |> Ty.mk_descr
 
 let tvar env str =
   begin match StrMap.find_opt str env.venv with
@@ -108,7 +108,7 @@ let build_ty env t =
     | None -> StrMap.find str env.tenv, env
     end
   | TInterval (lb, ub) ->
-    Descr.Intervals.Atom.mk' lb ub |> Descr.mk_interval |> Ty.mk_descr, env
+    Intervals.Atom.mk' lb ub |> Descr.mk_interval |> Ty.mk_descr, env
   | TVar str ->
     let v, env = tvar env str in
     Ty.mk_var v, env

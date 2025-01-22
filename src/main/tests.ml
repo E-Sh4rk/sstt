@@ -89,7 +89,6 @@ let%expect_test "test file" =
               'Y: 'Y & bool
             ]
            [
-             'X: 'X ;
              'Z: empty
            ]
     tally7: [

@@ -30,7 +30,7 @@ and op =
 | PNode of NodeId.t
 | PBuiltin of builtin
 | PVar of Var.t
-| PAtom of Descr.Atoms.Atom.t
+| PAtom of Atoms.Atom.t
 | PInterval of Z.t option * Z.t option
 | PRecord of (Label.t * descr * bool) list * bool
 | PVarop of varop * descr list

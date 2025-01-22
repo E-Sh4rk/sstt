@@ -36,7 +36,7 @@ and op =
 | PNode of NodeId.t
 | PBuiltin of builtin
 | PVar of Var.t
-| PAtom of Descr.Atoms.Atom.t
+| PAtom of Atoms.Atom.t
 | PInterval of Z.t option * Z.t option
 | PRecord of (Label.t * descr * bool) list * bool
 | PVarop of varop * descr list
@@ -153,7 +153,7 @@ let atom a =
   PAtom a, D.mk_atom a |> Ty.mk_descr
 
 let interval (o1, o2) =
-  PInterval (o1, o2), D.Intervals.Atom.mk' o1 o2 |> D.mk_interval |> Ty.mk_descr
+  PInterval (o1, o2), Intervals.Atom.mk' o1 o2 |> D.mk_interval |> Ty.mk_descr
 
 let node map n =
   PNode (TyMap.find n map), n
@@ -196,7 +196,7 @@ let fold_inter inter =
   | d::inter -> List.fold_left cap d inter
 
 let resolve_arrows map _ a =
-  let dnf = D.Arrows.dnf a |> D.Arrows.Dnf.simplify in
+  let dnf = Arrows.dnf a |> Arrows.Dnf.simplify in
   let resolve_arr (n1, n2) =
     let d1, d2 = node map n1, node map n2 in
     arrow d1 d2
@@ -209,20 +209,20 @@ let resolve_arrows map _ a =
   dnf |> List.map resolve_dnf |> fold_union
 
 let resolve_atoms _ _ a =
-  let (pos, atoms) = D.Atoms.get a in
+  let (pos, atoms) = Atoms.get a in
   let atoms = atoms |> List.map atom |> fold_union in
   if pos then atoms else neg atoms
 
 let resolve_intervals _ _ a =
-  D.Intervals.get a |> List.map D.Intervals.Atom.get
+  Intervals.get a |> List.map Intervals.Atom.get
   |> List.map interval |> fold_union
 
 let resolve_products map customs a =
-  let n = D.Tuples.mk_products a |> D.mk_tuples |> Ty.mk_descr in
+  let n = Tuples.mk_products a |> D.mk_tuples |> Ty.mk_descr in
   match resolve_alias customs n with
   | Some d -> d
   | None ->
-    let dnf = D.Tuples.Products.dnf a |> D.Tuples.Products.Dnf.simplify in
+    let dnf = Tuples.Products.dnf a |> Tuples.Products.Dnf.simplify in
     let resolve_tup lst =
       tuple (lst |> List.map (node map))
     in
@@ -234,19 +234,19 @@ let resolve_products map customs a =
     dnf |> List.map resolve_dnf |> fold_union
 
 let resolve_tuples map customs a =
-  let (products, others) = D.Tuples.get a in
+  let (products, others) = Tuples.get a in
   let d = products |> List.map (fun p ->
-    let len = D.Tuples.Products.len p in
+    let len = Tuples.Products.len p in
     let elt = resolve_products map customs p in
     let elt = if others then neg elt else elt in
     cap (PBuiltin (PAnyProduct len),
-        D.Tuples.Products.any len |> D.Tuples.mk_products |> D.mk_tuples |> Ty.mk_descr) elt
+        Tuples.Products.any len |> Tuples.mk_products |> D.mk_tuples |> Ty.mk_descr) elt
   ) |> fold_union in
   if others then neg d else d
 
 let resolve_records map _ a =
-  let open D.Records.Atom in
-  let dnf = D.Records.dnf a |> D.Records.Dnf.simplify in
+  let open Records.Atom in
+  let dnf = Records.dnf a |> Records.Dnf.simplify in
   let resolve_rec r =
     let bindings = r.bindings |> LabelMap.bindings |> List.map (fun (l,(n,b)) ->
       (l, node map n, b)
@@ -271,19 +271,19 @@ let resolve_comp map customs c =
   match c with
   | D.Atoms c ->
     alias_or resolve_atoms c,
-    (PBuiltin PAnyAtom, D.Atoms.any () |> D.mk_atoms |> Ty.mk_descr)
+    (PBuiltin PAnyAtom, Atoms.any () |> D.mk_atoms |> Ty.mk_descr)
   | D.Arrows c ->
     alias_or resolve_arrows c,
-    (PBuiltin PAnyArrow, D.Arrows.any () |> D.mk_arrows |> Ty.mk_descr)
+    (PBuiltin PAnyArrow, Arrows.any () |> D.mk_arrows |> Ty.mk_descr)
   | D.Intervals c ->
     alias_or resolve_intervals c,
-    (PBuiltin PAnyInt, D.Intervals.any () |> D.mk_intervals |> Ty.mk_descr)
+    (PBuiltin PAnyInt, Intervals.any () |> D.mk_intervals |> Ty.mk_descr)
   | D.Tuples c ->
     alias_or resolve_tuples c,
-    (PBuiltin PAnyTuple, D.Tuples.any () |> D.mk_tuples |> Ty.mk_descr)
+    (PBuiltin PAnyTuple, Tuples.any () |> D.mk_tuples |> Ty.mk_descr)
   | D.Records c ->
     alias_or resolve_records c,
-    (PBuiltin PAnyRecord, D.Records.any () |> D.mk_records |> Ty.mk_descr)
+    (PBuiltin PAnyRecord, Records.any () |> D.mk_records |> Ty.mk_descr)
 
 let resolve_descr map customs d =
   let n = VD.mk_descr d |> Ty.of_def in
@@ -430,7 +430,7 @@ let rec print_descr prec assoc fmt (d,_) =
   | PNode n -> Format.fprintf fmt "%a" NodeId.pp n
   | PBuiltin b -> print_builtin fmt b
   | PVar v -> Format.fprintf fmt "%a" Var.pp v
-  | PAtom a -> Format.fprintf fmt "%a" D.Atoms.Atom.pp a
+  | PAtom a -> Format.fprintf fmt "%a" Atoms.Atom.pp a
   | PInterval (lb,ub) -> Format.fprintf fmt "%a" print_interval (lb,ub)
   | PRecord (bindings,opened) ->
     let print_binding fmt (l,d,b) =

@@ -86,7 +86,7 @@ let treat_elt env elt =
   | DefineAtoms lst ->
     let aenv =
       List.fold_left (fun aenv str ->
-          let atom = Descr.Atoms.Atom.mk str in
+          let atom = Atoms.Atom.mk str in
           StrMap.add str atom aenv
         ) env.aenv lst
     in

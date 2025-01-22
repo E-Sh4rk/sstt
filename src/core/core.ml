@@ -40,3 +40,8 @@ end
 
 module VDescr = Ty.VDescr
 module Descr = VDescr.Descr
+module Arrows = Descr.Arrows
+module Atoms = Descr.Atoms
+module Intervals = Descr.Intervals
+module Records = Descr.Records
+module Tuples = Descr.Tuples
