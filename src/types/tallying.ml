@@ -271,7 +271,7 @@ let merge delta cs =
   merge (VDSet.empty) cs |> NCSS.to_list |> List.map regroup |> MCSS.disj
 
 let solve cs =
-  let renaming = ref Subst.empty in
+  let renaming = ref Subst.identity in
   let to_eq (ty1, v, ty2) =
     let v' = Var.mk (Var.name v) in
     renaming := Subst.add v' (Ty.mk_var v) !renaming ;
@@ -279,15 +279,15 @@ let solve cs =
   in
   let rec unify eqs =
     match eqs with
-    | [] -> Subst.empty
+    | [] -> Subst.identity
     | (v,ty)::eqs ->
       let ty' = Ty.from_eqs [v, ty] |> List.hd in
       let s = Subst.singleton v ty' in
-      let eqs' = eqs |> List.map (fun (v,eq) -> (v, Ty.substitute s eq)) in
+      let eqs' = eqs |> List.map (fun (v,eq) -> (v, Subst.apply s eq)) in
       let res = unify eqs' in
-      Subst.add v (Ty.substitute res ty') res
+      Subst.add v (Subst.apply res ty') res
   in
-  cs |> MCS.to_list |> List.map to_eq |> unify |> Subst.map (Ty.substitute !renaming)
+  cs |> MCS.to_list |> List.map to_eq |> unify |> Subst.map (Subst.apply !renaming)
 
 let tally delta cs =
   let ncss = cs

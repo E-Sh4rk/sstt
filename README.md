@@ -1,6 +1,7 @@
 # Simple Set-Theoretic Types (SSTT) library
 
-SSTT is an OCaml library for manipulating set-theoretic types ([documentation](https://e-sh4rk.github.io/sstt/doc/)).
+SSTT is an OCaml library for manipulating set-theoretic types ([documentation](https://e-sh4rk.github.io/sstt/doc/)).  
+**Disclaimer: this library is a work in progress and is subject to breaking change.**
 
 Currently, it supports the following type constructors:
 - Atoms
@@ -32,8 +33,7 @@ eval $(opam env --switch=sstt)
 
 ### Using OPAM
 
-The easiest way to install this library is through [opam](https://opam.ocaml.org/), the OCaml Package Manager.
-
+The easiest way to install this library is through [opam](https://opam.ocaml.org/), the OCaml Package Manager.  
 The SSTT library can be installed as follows:
 
 ```
@@ -49,6 +49,5 @@ opam pin sstt-bin https://github.com/E-Sh4rk/sstt.git#main
 ## License
 
 This software is distributed under the MIT license.
-See [`LICENSE`](LICENSE) for more info.
-
+See [`LICENSE`](LICENSE) for more info.  
 *This work is funded by the ERC CZ LL2325 grant.*

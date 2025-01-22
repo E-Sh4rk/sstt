@@ -183,7 +183,7 @@ let build_subst env s =
       if b then tvar_mono !env v else tvar !env v in
     let ty, env' = build_ty env' ty in
     env := env' ; (v,ty)
-  ) |> Subst.of_list
+  ) |> Subst.mk
   in
   s, !env
 

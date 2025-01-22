@@ -46,7 +46,7 @@ let rec compute_expr env e =
     | RSubst s1, RSubst s2 ->
       RSubst (carthesian_product s1 s2 |> List.map (fun (s1, s2) -> Subst.compose s2 s1))
     | RTy ty, RSubst s ->
-      RTy (carthesian_product ty s |> List.map (fun (ty, s) -> Ty.substitute s ty))
+      RTy (carthesian_product ty s |> List.map (fun (ty, s) -> Subst.apply s ty))
     | _, _ -> failwith "Invalid application."
     in
     r, env
