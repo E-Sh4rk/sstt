@@ -88,3 +88,4 @@ type bool = true | false ;;
 "app1" int -> bool -> int 42 bool ;;
 "app2" int -> bool -> int bool 42 ;;
 "app3" (int -> true -> (..5)) & ((0..) -> bool -> (-5..)) 42 true ;;
+"app4" (any -> any) empty ;;

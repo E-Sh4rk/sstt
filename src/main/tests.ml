@@ -154,4 +154,5 @@ let%expect_test "test file" =
     app1: int
     app2: any
     app3: (-5..5)
+    app4: empty
     |}]

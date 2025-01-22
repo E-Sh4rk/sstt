@@ -10,7 +10,7 @@ module type Atom = sig
   val undesirable_leaf : leaf -> bool
   val leq : dnf -> dnf -> bool
   val to_s : t * bool -> t' list
-  val combine : t' -> t' -> t' option
+  val combine : t' -> t' -> t' option (* MUST return None if the result is empty *)
 end
 
 module Make(A:Atom)(N:Node) = struct
