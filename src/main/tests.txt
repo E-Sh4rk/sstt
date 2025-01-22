@@ -51,8 +51,9 @@ type bool = true | false ;;
 
 "var1" 'x & 'y <= 'x ;;
 "var2" 'z & 'y <= 'x ;;
-"var3" 'x & ~'x <= empty ;;
-"var4" any <= 'x | ~'x ;;
+"var3" 'x & ~'x ;;
+"var4" 'x | ~'x ;;
+"var5" 'x & int | 'x \ int ;;
 
 "print1" (int -> bool -> true) & (empty -> any) | (any -> any) ;;
 "print2" (true,true) | (false, false) ;;
@@ -84,5 +85,6 @@ type bool = true | false ;;
 "tally14" [ { l : 'X } <= { l : 'Y ..} ] ;;
 "tally15" [ 'X, 'Y = int, bool ];;
 
-"app1" int -> bool -> int int bool ;;
-"app2" int -> bool -> int bool int ;;
+"app1" int -> bool -> int 42 bool ;;
+"app2" int -> bool -> int bool 42 ;;
+"app3" (int -> true -> (..5)) & ((0..) -> bool -> (-5..)) 42 true ;;

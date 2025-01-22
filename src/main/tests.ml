@@ -55,8 +55,9 @@ let%expect_test "test file" =
     list4: false
     var1: true
     var2: false
-    var3: true
-    var4: true
+    var3: empty
+    var4: any
+    var5: 'x
     print1: (int -> bool -> true) | (any -> any)
     print2: (false, false) | (true, true)
     print3: { l1 : true ; l2 : true ..} | { l1 : false ; l2 : true }
@@ -152,4 +153,5 @@ let%expect_test "test file" =
              ]
     app1: int
     app2: any
+    app3: (-5..5)
     |}]
