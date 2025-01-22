@@ -29,6 +29,7 @@ module type SetTheoretic = sig
   val is_any : t -> bool
   val leq : t -> t -> bool
   val equiv : t -> t -> bool
+  val disjoint : t -> t -> bool
 end
 
 (* DNF *)

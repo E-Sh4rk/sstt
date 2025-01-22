@@ -29,6 +29,7 @@ module OTy(N:Node) = struct
   let is_absent (n,b) = b && N.is_empty n
   let leq (n1,b1) (n2,b2) = (not b1 || b2) && N.leq n1 n2
   let equiv (n1,b1) (n2,b2) = b1 = b2 && N.equiv n1 n2
+  let disjoint (n1,b1) (n2,b2) = not (b1 && b2) && N.disjoint n1 n2
 
   let equal (n1,b1) (n2,b2) = b1 = b2 && N.equal n1 n2
   let compare (n1,b1) (n2,b2) = compare b1 b2 |> ccmp N.compare n1 n2

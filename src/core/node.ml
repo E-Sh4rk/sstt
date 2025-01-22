@@ -94,7 +94,8 @@ module rec Node : Node = struct
       end
   let leq t1 t2 = diff t1 t2 |> is_empty
   let equiv t1 t2 = leq t1 t2 && leq t2 t1
-  let is_any t = neg t |> is_empty    
+  let is_any t = neg t |> is_empty
+  let disjoint t1 t2 = cap t1 t2 |> is_empty
   let with_own_cache f t =
     let cache = ref VDMap.empty in
     match f t with

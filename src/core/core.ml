@@ -33,6 +33,7 @@ module Ty : Ty = struct
   let is_empty t = N.with_own_cache N.is_empty t
   let leq t1 t2 = N.equal t1 t2 || N.with_own_cache (N.leq t1) t2
   let equiv t1 t2 = N.equal t1 t2 || N.with_own_cache (N.equiv t1) t2
+  let disjoint t1 t2 = N.with_own_cache (N.disjoint t1) t2
   let is_any t = N.with_own_cache N.is_any t
 
   let compare, equal, hash = N.compare, N.equal, N.hash
