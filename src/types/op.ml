@@ -46,6 +46,8 @@ module Products = struct
   let proj i t =
     let union = Tuples.Products.dnf t |> Tuples.Products.Dnf.combine in
     union |> List.map fst |> List.map (fun lst -> List.nth lst i) |> Ty.disj
+
+  let merge _ _ = failwith "TODO"
 end
 
 module Records = struct
@@ -55,4 +57,6 @@ module Records = struct
     let union = Records.dnf t |> Records.Dnf.combine in
     union |> List.map fst |> List.map (Records.Atom'.find label)
     |> Records.Atom'.OTy.disj
+
+  let merge _ _ = failwith "TODO"
 end

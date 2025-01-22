@@ -105,6 +105,7 @@ module Make(N:Node) = struct
     in
     t |> ISet.elements |> try_combine [] |> ISet.of_list
   let of_list lst = lst |> ISet.of_list |> normalize
+  let mk' = of_list
 
   let cup t1 t2 = ISet.union t1 t2 |> normalize
   let cap t1 t2 =

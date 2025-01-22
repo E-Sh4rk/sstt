@@ -12,10 +12,12 @@ module Products : sig
     type t = Tuples.Products.t
 
     val proj : int -> t -> Ty.t
+    val merge : t -> t -> t
 end
 
 module Records : sig
     type t = Records.t
 
     val proj : Label.t -> t -> Ty.t * bool
+    val merge : t -> t -> t
 end

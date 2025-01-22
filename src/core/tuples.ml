@@ -122,12 +122,15 @@ module Make(N:Node) = struct
   type node = N.t
   type t = { map : T.t IMap.t ; others : bool }
 
-  let mk a =
+  let mk_product a =
     let n = List.length a in
     { map = IMap.singleton n (T.mk a) ; others = false }
   let mk_products p =
     let n = T.len p in
     { map = IMap.singleton n p ; others = false }
+  let mk (ps, others) =
+    let map = ps |> List.map (fun p -> (T.len p, p)) |> IMap.of_list in
+    { map ; others }
   let any () = { map = IMap.empty ; others = true }
   let empty () = { map = IMap.empty ; others = false }
 
@@ -189,6 +192,10 @@ module Make(N:Node) = struct
   let get t =
     let prods = IMap.bindings t.map |> List.map snd in
     (prods, t.others)
+
+  let map f t =
+    let map = IMap.map f t.map in
+    { t with map }
 
   let equal t1 t2 =
     t1.others = t2.others &&

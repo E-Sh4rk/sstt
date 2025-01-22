@@ -33,8 +33,11 @@ module Make(N:Node) = struct
   let direct_nodes t =
     Bdd.leaves t |> List.map Descr.direct_nodes |> List.concat
 
-  let map_nodes f t =
-    Bdd.map_leaves (Descr.map_nodes f) t
+  let map_descr f t =
+    Bdd.map_leaves f t
+  
+  let map_nodes f =
+    map_descr (Descr.map_nodes f)
 
   let substitute s t =
     let f v =

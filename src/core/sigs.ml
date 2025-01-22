@@ -64,6 +64,7 @@ module type Atoms = sig
   module Atom : AtomAtom
   val mk : Atom.t -> t
   val get : t -> bool * Atom.t list
+  val mk' : bool * Atom.t list -> t
   val pp : Format.formatter -> t -> unit
 end
 
@@ -84,6 +85,7 @@ module type Intervals = sig
   module Atom : IntervalAtom
   val mk : Atom.t -> t
   val get : t -> Atom.t list
+  val mk' : Atom.t list -> t
 end
 
 (* Arrows *)
@@ -166,9 +168,11 @@ end
 module type Tuples = sig
   include TyBase
   module Products : Products with type node := node
-  val mk : Products.Atom.t -> t
+  val mk_product : Products.Atom.t -> t
   val mk_products : Products.t -> t
   val get : t -> Products.t list * bool
+  val mk : Products.t list * bool -> t
+  val map : (Products.t -> Products.t) -> t -> t
 end
 
 (* Descr *)
@@ -207,7 +211,9 @@ module type Descr = sig
   val get_intervals : t -> Intervals.t
 
   val components : t -> component list
+  val set_component : t -> component -> t
   val of_component : component -> t
+  val of_components : component list -> t
 end
 
 (* VDescr *)
@@ -221,6 +227,7 @@ module type VDescr = sig
   val mk_var : Var.t -> t
   val mk_descr : Descr.t -> t
   val get_descr : t -> Descr.t
+  val map_descr : (Descr.t -> Descr.t) -> t -> t
 
   val dnf : t -> Dnf.t
   val of_dnf : Dnf.t -> t

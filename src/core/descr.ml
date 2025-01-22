@@ -48,7 +48,7 @@ module Make(N:Node) = struct
 
   let mk_atom a = Atoms.mk a |> mk_atoms
   let mk_arrow a = Arrows.mk a |> mk_arrows
-  let mk_tuple a = Tuples.mk a |> mk_tuples
+  let mk_tuple a = Tuples.mk_product a |> mk_tuples
   let mk_record a = Records.mk a |> mk_records
   let mk_interval a = Intervals.mk a |> mk_intervals
 
@@ -61,13 +61,15 @@ module Make(N:Node) = struct
   let components t =
     [ Atoms t.atoms ; Arrows t.arrows ; Intervals t.intervals ;
       Tuples t.tuples ; Records t.records ]
-  let of_component comp =
+  let set_component t comp =
     match comp with
-    | Atoms c -> mk_atoms c
-    | Arrows c -> mk_arrows c
-    | Intervals c -> mk_intervals c
-    | Tuples c -> mk_tuples c
-    | Records c -> mk_records c
+    | Atoms atoms -> { t with atoms }
+    | Arrows arrows -> { t with arrows }
+    | Intervals intervals -> { t with intervals }
+    | Tuples tuples -> { t with tuples }
+    | Records records -> { t with records }
+  let of_component = set_component (empty ())
+  let of_components = List.fold_left set_component (empty ())
 
   let unop fato ftup farr frec fint t = {
     atoms = fato t.atoms ;

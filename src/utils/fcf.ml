@@ -21,6 +21,7 @@ module type S = sig
   val mk : e list -> t
   val mk_singl : e -> t
   val get : t -> bool * e list
+  val mk' : bool * e list -> t
 
   val compare : t -> t -> int
   val equal : t -> t -> bool
@@ -56,6 +57,9 @@ module Make(E:E) : S with type e = E.t = struct
   | Pos s -> Neg s
   | Neg s -> Pos s
   let diff t1 t2 = cap t1 (neg t2)
+
+  let mk' (n,es) =
+    if n then mk es else mk es |> neg
 
   let is_any = function
   | Pos _ -> false
