@@ -43,6 +43,7 @@ opam pin sstt https://github.com/E-Sh4rk/sstt.git#main
 The REPL binary `sstt` can also be installed this way:
 
 ```
+opam pin sstt-repl https://github.com/E-Sh4rk/sstt.git#main
 opam pin sstt-bin https://github.com/E-Sh4rk/sstt.git#main
 ```
 
