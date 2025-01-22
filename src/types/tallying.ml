@@ -192,7 +192,7 @@ let norm delta t =
     in
     ns |> List.map aux_n |> NCSS.disj
   and aux_product m n (ps, ns, _) =
-    let ps = Utils.mapn (List.init n (fun _ -> Ty.any)) Ty.conj ps in
+    let ps = Utils.mapn (fun () -> List.init n (fun _ -> Ty.any)) Ty.conj ps in
     let aux_n nss =
       let csss = nss |> List.mapi (fun i ns ->
         let pcomp = List.nth ps i in
@@ -213,7 +213,7 @@ let norm delta t =
       ns |> List.map (to_tuple dom) in
     let n = List.length dom + 1 in
   (* We reuse the same algorithm as for tuples *)
-    let ps = Utils.mapn (List.init n (fun _ -> OTy.any ())) OTy.conj ps in
+    let ps = Utils.mapn (fun () -> List.init n (fun _ -> OTy.any ())) OTy.conj ps in
     let aux_n nss =
       let csss = nss |> List.mapi (fun i ns ->
         let pcomp = List.nth ps i in

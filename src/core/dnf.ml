@@ -9,7 +9,7 @@ module type Atom = sig
   
   val undesirable_leaf : leaf -> bool
   val leq : dnf -> dnf -> bool
-  val to_s : t * bool -> t' list
+  val to_s : t * bool -> t' list (* Result MUST NOT contain empty atoms *)
   val combine : t' -> t' -> t' option (* MUST return None if the result is empty *)
 end
 

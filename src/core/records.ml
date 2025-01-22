@@ -135,10 +135,10 @@ module Make(N:Node) = struct
   let diff = Bdd.diff
 
   let conj n ps =
-    let init = List.init n (fun _ -> ON.any ()) in
+    let init = fun () -> List.init n (fun _ -> ON.any ()) in
     Utils.mapn init ON.conj ps
   let disj n ps =
-    let init = List.init n (fun _ -> ON.empty ()) in
+    let init = fun () -> List.init n (fun _ -> ON.empty ()) in
     Utils.mapn init ON.disj ps
 
   let rec distribute_diff ss tt =
@@ -199,6 +199,7 @@ module Make(N:Node) = struct
         if a.Atom.opened then res
         else
           { bindings = a.Atom.bindings ; kind=OpenedStrict (Atom.dom a) }::res
+    let to_s (a,b) = to_s (a,b) |> List.filter (fun a -> Atom'.is_empty a |> not)
     let combine s1 s2 =
       let open Atom' in
       let bindings = LabelMap.merge (fun _ b1 b2 ->

@@ -1,5 +1,7 @@
 open Core
 
+exception EmptyAtom
+
 module Arrows : sig
     type t = Arrows.t
 
@@ -11,6 +13,7 @@ end
 module Products : sig
     type t = Tuples.Products.t
 
+    val approx : t -> Tuples.Products.Atom.t (* Can raise EmptyAtom *)
     val proj : int -> t -> Ty.t
     val merge : t -> t -> t
 end
@@ -18,6 +21,8 @@ end
 module Records : sig
     type t = Records.t
 
+    val approx : t -> Records.Atom.t (* Can raise EmptyAtom *)
     val proj : Label.t -> t -> Ty.t * bool
     val merge : t -> t -> t
+    val remove : t -> Label.t -> t
 end

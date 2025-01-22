@@ -62,7 +62,7 @@ let mapn default f lst =
       let tls = List.map List.tl lst in
       (f hds)::(aux f tls)
   in
-  if lst = [] then default else aux f lst
+  if lst = [] then default () else aux f lst
 
 let subsets lst =
   let rec aux s1 s2 lst =

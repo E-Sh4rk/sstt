@@ -37,10 +37,10 @@ module MakeT(N:Node) = struct
   let diff (n, t1) (n', t2) = check_len n n' ; n, Bdd.diff t1 t2
 
   let conj n ps =
-    let init = List.init n (fun _ -> N.any ()) in
+    let init = fun () -> List.init n (fun _ -> N.any ()) in
     Utils.mapn init N.conj ps
   let disj n ps =
-    let init = List.init n (fun _ -> N.empty ()) in
+    let init = fun () -> List.init n (fun _ -> N.empty ()) in
     Utils.mapn init N.disj ps
 
   let rec distribute_diff ss tt =
@@ -91,6 +91,7 @@ module MakeT(N:Node) = struct
           ((N.neg n)::ns)::(aux ns |> List.map (fun s -> n::s))
       in
       if b then [ns] else aux ns
+    let to_s (a,b) = to_s (a,b) |> List.filter (fun a -> Atom.is_empty a |> not)
     let combine ns1 ns2 =
       let res = List.map2 N.cap ns1 ns2 in
       if Atom.is_empty res then None else Some res

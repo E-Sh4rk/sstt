@@ -14,7 +14,7 @@ Currently, it supports the following type constructors:
 The following operations are implemented:
 - Semantic subtyping
 - DNF extraction and simplification
-- Projections, application
+- Projections, application, record merging
 - Substitution
 - Tallying (= unification but with subtyping constraints)
 - Pretty printing (or more generally, extraction of an algebraic representation)
