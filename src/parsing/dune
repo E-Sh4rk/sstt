@@ -8,8 +8,8 @@
 
 (library
  (name parsing)
-;  (public_name sstt-repl.parsing)
- (package sstt-repl)
+ (public_name sstt-repl.parsing)
+;  (package sstt-repl)
  (libraries utils zarith types)
  (modules (:standard)))
 

@@ -31,7 +31,7 @@ let () =
     with
     | Parsing.IO.LexicalError (p, msg)
     | Parsing.IO.SyntaxError (p, msg) ->
-        Format.printf "@.%s: %s@." (Position.string_of_pos p) msg
+        Format.printf "@.%s: %s@." (Parsing.Position.string_of_pos p) msg
     | e ->
         let msg = Printexc.to_string e
         and stack = Printexc.get_backtrace () in

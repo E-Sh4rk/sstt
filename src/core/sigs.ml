@@ -57,7 +57,7 @@ end
 
 (* Atoms *)
 
-module type AtomAtom = Id.NamedIdentifier
+module type AtomAtom = NamedIdentifier
 
 module type Atoms = sig
   include TyBase

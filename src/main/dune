@@ -1,7 +1,7 @@
 (library
  (name main)
-;  (public_name sstt-repl.main)
- (package sstt-repl)
+ (public_name sstt-repl.main)
+;  (package sstt-repl)
  (inline_tests (deps tests.txt))
  (libraries parsing utils types)
  (preprocess (pps ppx_expect))
