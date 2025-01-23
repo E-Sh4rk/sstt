@@ -48,7 +48,8 @@ module Make(N:Node) = struct
 
   let mk_atom a = Atoms.mk a |> mk_atoms
   let mk_arrow a = Arrows.mk a |> mk_arrows
-  let mk_tuple a = Tuples.mk_product a |> mk_tuples
+  let mk_products a = Tuples.mk_products a |> mk_tuples
+  let mk_product a = Tuples.mk_product a |> mk_tuples
   let mk_record a = Records.mk a |> mk_records
   let mk_interval a = Intervals.mk a |> mk_intervals
 

@@ -196,7 +196,8 @@ module type Descr = sig
 
   val mk_atom : Atoms.Atom.t -> t
   val mk_atoms : Atoms.t -> t
-  val mk_tuple : Tuples.Products.Atom.t -> t
+  val mk_product : Tuples.Products.Atom.t -> t
+  val mk_products : Tuples.Products.t -> t
   val mk_tuples : Tuples.t -> t
   val mk_arrow : Arrows.Atom.t -> t
   val mk_arrows : Arrows.t -> t

@@ -65,7 +65,7 @@ let builtin t =
   | TAnyArrow -> Descr.mk_arrows (Arrows.any ()) |> Ty.mk_descr
   | TAnyRecord -> Descr.mk_records (Records.any ()) |> Ty.mk_descr
   | TAnyProduct n ->
-    Tuples.Products.any n |> Tuples.mk_products |> Descr.mk_tuples |> Ty.mk_descr
+    Tuples.Products.any n |> Descr.mk_products |> Ty.mk_descr
 
 let tvar env str =
   begin match StrMap.find_opt str env.venv with
@@ -132,7 +132,7 @@ let build_ty env t =
       ) ([], env) tys in
     let tys = List.rev tys in
     begin match v with
-    | TTuple -> Descr.mk_tuple tys |> Ty.mk_descr, env
+    | TTuple -> Descr.mk_product tys |> Ty.mk_descr, env
     end
   | TBinop (b, ty1, ty2) ->
     let ty1, env = aux env ty1 in

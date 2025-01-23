@@ -141,7 +141,7 @@ let arrow (d1,n1) (d2,n2) =
 
 let tuple lst =
   let (_,ns) = List.split lst in
-  PVarop (PTuple, lst), D.mk_tuple ns |> Ty.mk_descr
+  PVarop (PTuple, lst), D.mk_product ns |> Ty.mk_descr
 
 let record bindings opened =
   let nbindings = bindings |> List.map (fun (l, (_,n), b) ->
@@ -240,7 +240,7 @@ let resolve_tuples map customs a =
     let elt = resolve_products map customs p in
     let elt = if others then neg elt else elt in
     cap (PBuiltin (PAnyProduct len),
-        Tuples.Products.any len |> Tuples.mk_products |> D.mk_tuples |> Ty.mk_descr) elt
+        Tuples.Products.any len |> D.mk_products |> Ty.mk_descr) elt
   ) |> fold_union in
   if others then neg d else d
 
