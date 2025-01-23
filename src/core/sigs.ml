@@ -86,6 +86,7 @@ module type Intervals = sig
   module Atom : IntervalAtom
   val mk : Atom.t -> t
   val get : t -> Atom.t list
+  val get_neg : t -> Atom.t list
   val mk' : Atom.t list -> t
 end
 

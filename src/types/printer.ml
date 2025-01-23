@@ -214,8 +214,15 @@ let resolve_atoms _ _ a =
   if pos then atoms else neg atoms
 
 let resolve_intervals _ _ a =
-  Intervals.get a |> List.map Intervals.Atom.get
-  |> List.map interval |> fold_union
+  let pos =
+    Intervals.get a |> List.map Intervals.Atom.get
+    |> List.map interval |> fold_union
+  in
+  let neg =
+    Intervals.get_neg a |> List.map Intervals.Atom.get
+    |> List.map interval |> fold_union |> neg
+  in
+  if size_of_descr neg < size_of_descr pos then neg else pos
 
 let resolve_products map customs a =
   let n = Tuples.mk_products a |> D.mk_tuples |> Ty.mk_descr in

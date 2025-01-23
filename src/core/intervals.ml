@@ -84,7 +84,6 @@ module Make(N:Node) = struct
   let empty () = ISet.empty
   let any () = ISet.singleton Interval.any
   let mk i = ISet.singleton i
-  let get t = ISet.elements t
 
   let normalize t =
     let rec try_combine acc lst =
@@ -135,6 +134,9 @@ module Make(N:Node) = struct
   let direct_nodes _ = []
   let map_nodes _ t = t
   let simplify t = t
+
+  let get t = ISet.elements t
+  let get_neg t = neg t |> ISet.elements
 
   let compare = ISet.compare
   let equal = ISet.equal
