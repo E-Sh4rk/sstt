@@ -53,14 +53,8 @@ module Interval = struct
     | Some lb1, Some lb2 when Z.compare lb1 lb2 <= 0 -> Some lb1
     | Some _, Some lb2 -> Some lb2
   let inter (lb1,ub1) (lb2,ub2) =
-    try [mk' (max_lb lb1 lb2) (min_ub ub1 ub2)]
-    with Invalid_argument _ -> []
-  let neg (lb,ub) =
-    match lb, ub with
-    | None, None -> []
-    | Some lb, None -> [None, Some (Z.pred lb)]
-    | None, Some ub -> [Some (Z.succ ub), None]
-    | Some lb, Some ub -> [None, Some (Z.pred lb) ; Some (Z.succ ub), None]
+    try Some (mk' (max_lb lb1 lb2) (min_ub ub1 ub2))
+    with Invalid_argument _ -> None
   let combine (lb1, ub1) (lb2, ub2) =
     let inter_lb = max_lb lb1 lb2 in
     let inter_ub = min_ub ub1 ub2 in
@@ -107,13 +101,33 @@ module Make(N:Node) = struct
   let of_list lst = lst |> ISet.of_list |> normalize
   let mk' = of_list
 
+  let neg t =
+    let exception Empty in
+    let ub next =
+      match next with
+      | [] -> None
+      | (Some lb,_)::_ -> Some (Z.pred lb)
+      | (None, _)::_ -> raise Empty
+    in
+    let lb prev =
+      match prev with
+      | [] -> None
+      | (_,Some ub)::_ -> Some (Z.succ ub)
+      | (_, None)::_ -> raise Empty
+    in
+    let rec aux prev next =
+      let cur =
+        try [lb prev, ub next] with Empty -> []
+      in
+      match next with
+      | [] -> cur
+      | hd::next -> cur@(aux (hd::prev) next)
+    in
+    aux [] (ISet.elements t) |> ISet.of_list
   let cup t1 t2 = ISet.union t1 t2 |> normalize
   let cap t1 t2 =
     Utils.carthesian_product (ISet.elements t1) (ISet.elements t2)
-    |> List.map (fun (i1, i2) -> Interval.inter i1 i2) |> List.concat |> of_list
-  let neg t =
-    t |> ISet.elements |> List.map Interval.neg |> List.map of_list |>
-    List.fold_left cap (any ())
+    |> List.filter_map (fun (i1, i2) -> Interval.inter i1 i2) |> of_list
   let diff t1 t2 = cap t1 (neg t2)
 
   let is_empty = ISet.is_empty
