@@ -1,7 +1,6 @@
-open Base
 open Sigs
 
-module Atom = NamedIdentifier()
+module Atom = Id.NamedIdentifier()
 
 module Make(N:Node) = struct
   module Atom = Atom
