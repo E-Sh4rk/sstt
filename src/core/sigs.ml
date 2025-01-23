@@ -133,6 +133,7 @@ module type RecordAtom' = sig
   type t = { bindings : OTy.t LabelMap.t ; kind : kind }
   val dom : t -> LabelSet.t
   val find : Label.t -> t -> OTy.t
+  val opened : t -> bool
   include Comparable with type t := t
 end
 

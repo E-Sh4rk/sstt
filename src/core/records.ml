@@ -77,18 +77,22 @@ module Atom'(N:Node) = struct
   type kind = Opened | Closed | OpenedStrict of LabelSet.t
   type t = { bindings : OTy.t LabelMap.t ; kind : kind }
   let dom t = LabelMap.bindings t.bindings |> List.map fst |> LabelSet.of_list
+  let opened t =
+    match t.kind with
+    | Closed -> false
+    | Opened | OpenedStrict _ -> true
   let find lbl t =
-    match LabelMap.find_opt lbl t.bindings, t.kind with
-    | Some on, _ -> on
-    | None, Opened | None, OpenedStrict _ -> OTy.any ()
-    | None, Closed -> OTy.absent ()
+    match LabelMap.find_opt lbl t.bindings with
+    | Some on -> on
+    | None when opened t -> OTy.any ()
+    | None -> OTy.absent ()
   let simplify_bindings t =
     let not_any _ on = OTy.is_any on |> not in
     let not_absent _ on = OTy.is_absent on |> not in
-    match t.kind with
-    | Opened | OpenedStrict _ ->
+    if opened t then
       { t with bindings = LabelMap.filter not_any t.bindings }
-    | Closed -> { t with bindings = LabelMap.filter not_absent t.bindings }
+    else
+      { t with bindings = LabelMap.filter not_absent t.bindings }
   let simplify_kind t =
     match t.kind with
     | Opened | Closed -> t

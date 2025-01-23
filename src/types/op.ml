@@ -67,12 +67,8 @@ module Records = struct
   let approx t =
     let open Records.Atom in
     let union = Records.dnf t |> Records.Dnf.combine in
-    let union = union |> List.map fst |> List.map (function
-      | { Records.Atom'.bindings ; Records.Atom'.kind=Opened }
-      | { Records.Atom'.bindings ; Records.Atom'.kind=OpenedStrict _ } ->
-        { bindings ; opened=true }
-      | { Records.Atom'.bindings ; Records.Atom'.kind=Closed } ->
-        { bindings ; opened=false }
+    let union = union |> List.map fst |> List.map (fun t ->
+        { bindings=t.Records.Atom'.bindings ; opened=Records.Atom'.opened t }
       ) in
     let union_a a1 a2 =
       let dom = LabelSet.union (dom a1) (dom a2) in
