@@ -12,6 +12,7 @@ let singleton v ty = mk [v, ty]
 let bindings = VarMap.bindings
 let add v ty s =
   if not_id v ty then VarMap.add v ty s else s
+let remove v s = VarMap.remove v s
 let map f s = VarMap.map f s |> norm
 let filter = VarMap.filter
 
@@ -27,5 +28,7 @@ let compose s2 s1 =
   let bindings2 =
     bindings s2 |> List.filter (fun (v, _) -> VarSet.mem v dom1 |> not) in
   bindings1@bindings2 |> mk
+
+let equiv s1 s2 = VarMap.equal Ty.equiv s1 s2
 
 let apply s ty = Ty.substitute s ty

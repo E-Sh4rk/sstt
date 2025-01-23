@@ -12,8 +12,11 @@ val bindings : t -> (Var.t * Ty.t) list
 val find : t -> Var.t -> Ty.t
 
 val add : Var.t -> Ty.t -> t -> t
+val remove : Var.t -> t -> t
 val filter : (Var.t -> Ty.t -> bool) -> t -> t
 val map : (Ty.t -> Ty.t) -> t -> t
 val compose : t -> t -> t
+
+val equiv : t -> t -> bool
 
 val apply : t -> Ty.t -> Ty.t
