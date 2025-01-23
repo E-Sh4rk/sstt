@@ -162,7 +162,7 @@ let norm delta t =
     arr |> Arrows.dnf |> Arrows.Dnf.simplify
     |> List.map (aux_arrow m) |> NCSS.conj
   and aux_tuples m tup =
-    let (prods, others) = tup |> Tuples.get in
+    let (prods, others) = tup |> Tuples.components in
     if others then NCSS.empty
     else prods |> List.map (aux_products m) |> NCSS.conj
   and aux_products m prod =

@@ -190,9 +190,15 @@ module Make(N:Node) = struct
     let map = IMap.filter (fun _ t -> p t |> not) map in
     { map ; others = t.others }
 
-  let get t =
+  let components t =
     let prods = IMap.bindings t.map |> List.map snd in
     (prods, t.others)
+
+  let get i t =
+    match IMap.find_opt i t.map with
+    | Some prod -> prod
+    | None when t.others -> Products.any i
+    | None -> Products.empty i
 
   let map f t =
     let map = IMap.map f t.map in

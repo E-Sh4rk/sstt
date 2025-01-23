@@ -234,7 +234,7 @@ let resolve_products map customs a =
     dnf |> List.map resolve_dnf |> fold_union
 
 let resolve_tuples map customs a =
-  let (products, others) = Tuples.get a in
+  let (products, others) = Tuples.components a in
   let d = products |> List.map (fun p ->
     let len = Tuples.Products.len p in
     let elt = resolve_products map customs p in
