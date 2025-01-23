@@ -165,7 +165,7 @@ module Make(N:Node) = struct
       match o1, o2 with
       | None, None -> None
       | Some t1, None -> if not t2.others then Some t1 else None
-      | None, Some t2 -> if t1.others then Some t2 else None
+      | None, Some t2 -> if t1.others then Some (T.neg t2) else None
       | Some t1, Some t2 -> Some (T.diff t1 t2)
     ) t1.map t2.map in
     { map ; others }
