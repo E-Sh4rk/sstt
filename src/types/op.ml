@@ -43,22 +43,22 @@ module Arrows = struct
 end
 
 module Products = struct
-  type t = Tuples.Products.t
+  type t = Products.t
 
   let approx t =
-    let union = Tuples.Products.dnf t |> Tuples.Products.Dnf.combine in
+    let union = Products.dnf t |> Products.Dnf.combine in
     Utils.mapn (fun _ -> raise EmptyAtom) Ty.disj (List.map fst union)
 
   let proj i t =
-    let union = Tuples.Products.dnf t |> Tuples.Products.Dnf.combine in
+    let union = Products.dnf t |> Products.Dnf.combine in
     union |> List.map fst |> List.map (fun lst -> List.nth lst i) |> Ty.disj
 
   let merge t1 t2 =
-    let n = (Tuples.Products.len t1) + (Tuples.Products.len t2) in
+    let n = (Products.len t1) + (Products.len t2) in
     try
       let a1, a2 = approx t1, approx t2 in
-      a1@a2 |> Tuples.Products.mk
-    with EmptyAtom -> Tuples.Products.empty n
+      a1@a2 |> Products.mk
+    with EmptyAtom -> Products.empty n
 end
 
 module Records = struct

@@ -46,3 +46,4 @@ module Atoms = Descr.Atoms
 module Intervals = Descr.Intervals
 module Records = Descr.Records
 module Tuples = Descr.Tuples
+module Products = Tuples.Products

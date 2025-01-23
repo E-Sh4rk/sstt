@@ -11,9 +11,9 @@ module Arrows : sig
 end
 
 module Products : sig
-    type t = Tuples.Products.t
+    type t = Products.t
 
-    val approx : t -> Tuples.Products.Atom.t (* Can raise EmptyAtom *)
+    val approx : t -> Products.Atom.t (* Can raise EmptyAtom *)
     val proj : int -> t -> Ty.t
     val merge : t -> t -> t
 end

@@ -64,8 +64,7 @@ let builtin t =
   | TAnyTuple -> Descr.mk_tuples (Tuples.any ()) |> Ty.mk_descr
   | TAnyArrow -> Descr.mk_arrows (Arrows.any ()) |> Ty.mk_descr
   | TAnyRecord -> Descr.mk_records (Records.any ()) |> Ty.mk_descr
-  | TAnyProduct n ->
-    Tuples.Products.any n |> Descr.mk_products |> Ty.mk_descr
+  | TAnyProduct n -> Products.any n |> Descr.mk_products |> Ty.mk_descr
 
 let tvar env str =
   begin match StrMap.find_opt str env.venv with

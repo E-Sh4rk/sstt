@@ -166,8 +166,8 @@ let norm delta t =
     if others then NCSS.empty
     else prods |> List.map (aux_products m) |> NCSS.conj
   and aux_products m prod =
-    let n = Tuples.Products.len prod in
-    prod |> Tuples.Products.dnf |> Tuples.Products.Dnf.simplify
+    let n = Products.len prod in
+    prod |> Products.dnf |> Products.Dnf.simplify
     |> List.map (aux_product m n) |> NCSS.conj
   and aux_records m r =
     r |> Records.dnf |> Records.Dnf.simplify

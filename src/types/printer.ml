@@ -222,7 +222,7 @@ let resolve_products map customs a =
   match resolve_alias customs n with
   | Some d -> d
   | None ->
-    let dnf = Tuples.Products.dnf a |> Tuples.Products.Dnf.simplify in
+    let dnf = Products.dnf a |> Products.Dnf.simplify in
     let resolve_tup lst =
       tuple (lst |> List.map (node map))
     in
@@ -236,11 +236,11 @@ let resolve_products map customs a =
 let resolve_tuples map customs a =
   let (products, others) = Tuples.components a in
   let d = products |> List.map (fun p ->
-    let len = Tuples.Products.len p in
+    let len = Products.len p in
     let elt = resolve_products map customs p in
     let elt = if others then neg elt else elt in
     cap (PBuiltin (PAnyProduct len),
-        Tuples.Products.any len |> D.mk_products |> Ty.mk_descr) elt
+        Products.any len |> D.mk_products |> Ty.mk_descr) elt
   ) |> fold_union in
   if others then neg d else d
 
