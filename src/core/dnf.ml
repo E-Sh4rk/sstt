@@ -1,5 +1,5 @@
 open Sigs
-open Sstt_utils.Utils
+open Sstt_utils
 
 module type Atom = sig
   type leaf

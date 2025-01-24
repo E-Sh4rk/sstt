@@ -1,5 +1,5 @@
 open Sigs
-open Sstt_utils.Utils
+open Sstt_utils
 
 module Interval = struct
   type t = Z.t option * Z.t option

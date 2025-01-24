@@ -1,5 +1,5 @@
 open Sstt_core
-open Sstt_utils.Utils
+open Sstt_utils
 
 module NodeId = struct
   type t = { id : int ; mutable name : string option }

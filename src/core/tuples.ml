@@ -1,5 +1,5 @@
 open Sigs
-open Sstt_utils.Utils
+open Sstt_utils
 
 module Atom(N:Node) = struct
   type node = N.t

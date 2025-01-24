@@ -1,6 +1,6 @@
 open Base
 open Sigs
-open Sstt_utils.Utils
+open Sstt_utils
 
 module OTy(N:Node) = struct
   type node = N.t

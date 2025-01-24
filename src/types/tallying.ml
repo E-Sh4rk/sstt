@@ -1,5 +1,5 @@
 open Sstt_core
-open Sstt_utils.Utils
+open Sstt_utils
 
 type constr = Ty.t * Ty.t
 type norm_constr = Left of Var.t * Ty.t | Right of Ty.t * Var.t

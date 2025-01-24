@@ -1,5 +1,5 @@
 open Sstt_core
-open Sstt_utils.Utils
+open Sstt_utils
 
 exception EmptyAtom
 

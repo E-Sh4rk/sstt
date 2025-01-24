@@ -1,6 +1,6 @@
 open Sstt_parsing.Ast
 open Sstt_types
-open Sstt_utils.Utils
+open Sstt_utils
 open Output
 
 type res = RBool of bool list | RTy of Ty.t list | RSubst of Subst.t list
