@@ -2,6 +2,6 @@
  (name sstt_utils)
  ; (public_name sstt.utils)
  (package sstt)
- (wrapped false)
+ ; (wrapped false)
  (libraries str)
  (modules (:standard)))

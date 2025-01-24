@@ -1,6 +1,6 @@
 open Base
 open Sigs
-open Utils
+open Sstt_utils.Utils
 
 module OTy(N:Node) = struct
   type node = N.t
@@ -141,10 +141,10 @@ module Make(N:Node) = struct
 
   let conj n ps =
     let init = fun () -> List.init n (fun _ -> ON.any ()) in
-    Utils.mapn init ON.conj ps
+    mapn init ON.conj ps
   let disj n ps =
     let init = fun () -> List.init n (fun _ -> ON.empty ()) in
-    Utils.mapn init ON.disj ps
+    mapn init ON.disj ps
 
   let rec distribute_diff ss tt =
     match ss, tt with

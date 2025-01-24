@@ -1,4 +1,5 @@
 open Sstt_core
+open Sstt_utils.Utils
 
 type constr = Ty.t * Ty.t
 type norm_constr = Left of Var.t * Ty.t | Right of Ty.t * Var.t
@@ -27,8 +28,8 @@ module NormConstr = struct
       | Left _, Right _ -> -1
       | Right _, Left _ -> 1
     in
-    Var.compare (var c1) (var c2) |> Utils.ccmp
-    cmp_constructor c1 c2 |> Utils.ccmp
+    Var.compare (var c1) (var c2) |> ccmp
+    cmp_constructor c1 c2 |> ccmp
     Ty.compare (ty c1) (ty c2)
   let pp fmt t =
     match t with
@@ -42,8 +43,8 @@ module MergedConstr = struct
     Var.equal v1 v2 &&
       Ty.leq t2 t1 && Ty.leq t1' t2'
   let compare (t1,v1,t1') (t2,v2,t2')=
-    Var.compare v1 v2 |> Utils.ccmp
-    Ty.compare t1 t2 |> Utils.ccmp
+    Var.compare v1 v2 |> ccmp
+    Ty.compare t1 t2 |> ccmp
     Ty.compare t1' t2'
   let pp fmt (ty,v,ty') =
     Format.fprintf fmt "%a <= %a <= %a"
@@ -57,7 +58,7 @@ module ConstrSet(C:Constr) = struct
   let singleton = CS.singleton
   let normalize t =
     let cs = CS.to_list t in
-    let cs = cs |> Utils.filter_among_others (fun c cs ->
+    let cs = cs |> filter_among_others (fun c cs ->
       cs |> List.exists (fun c' -> C.leq c' c) |> not
       ) in
     CS.of_list cs
@@ -69,7 +70,7 @@ module ConstrSet(C:Constr) = struct
     t1 |> CS.exists (fun cs1 -> C.leq cs1 cs2)
     )
   let compare = CS.compare
-  (* let pp fmt t = Format.fprintf fmt "%a" (Utils.print_seq C.pp " ; ") (CS.to_list t) *)
+  (* let pp fmt t = Format.fprintf fmt "%a" (print_seq C.pp " ; ") (CS.to_list t) *)
 end
 
 module ConstrSets(C:Constr) = struct
@@ -81,20 +82,20 @@ module ConstrSets(C:Constr) = struct
   let singleton = CSS.singleton
   let normalize t =
     let css = CSS.to_list t in
-    let css = css |> Utils.filter_among_others (fun cs css ->
+    let css = css |> filter_among_others (fun cs css ->
       css |> List.exists (fun cs' -> CS.leq cs cs') |> not
       ) in
     CSS.of_list css
   let cup t1 t2 = CSS.union t1 t2 |> normalize
   let cap t1 t2 =
     let t1, t2 = CSS.elements t1, CSS.elements t2 in
-    Utils.carthesian_product t1 t2 |> List.map (fun (cs1,cs2) -> CS.cap cs1 cs2)
+    carthesian_product t1 t2 |> List.map (fun (cs1,cs2) -> CS.cap cs1 cs2)
     |> CSS.of_list |> normalize
   let disj t = List.fold_left cup empty t |> normalize
   let conj t = List.fold_left cap any t |> normalize
   let to_list = CSS.to_list
   (* let pp fmt t =
-    Format.fprintf fmt "%a" (Utils.print_seq_cut CS.pp) (CSS.to_list t) *)
+    Format.fprintf fmt "%a" (print_seq_cut CS.pp) (CSS.to_list t) *)
 end
 
 module NCSS = ConstrSets(NormConstr)
@@ -187,12 +188,12 @@ let norm delta t =
           let css2 = Ty.cap codom2 (Ty.neg nt') |> aux m in
           NCSS.cup css1 css2
       in
-      let css2 = Utils.subsets ps |> List.map aux_p |> NCSS.conj in
+      let css2 = subsets ps |> List.map aux_p |> NCSS.conj in
       NCSS.cap css1 css2
     in
     ns |> List.map aux_n |> NCSS.disj
   and aux_product m n (ps, ns, _) =
-    let ps = Utils.mapn (fun () -> List.init n (fun _ -> Ty.any)) Ty.conj ps in
+    let ps = mapn (fun () -> List.init n (fun _ -> Ty.any)) Ty.conj ps in
     let aux_n nss =
       let csss = nss |> List.mapi (fun i ns ->
         let pcomp = List.nth ps i in
@@ -201,7 +202,7 @@ let norm delta t =
       ) in
       NCSS.disj csss
     in
-    ns |> Utils.partitions n |> List.map aux_n |> NCSS.conj
+    ns |> partitions n |> List.map aux_n |> NCSS.conj
   and aux_record m (ps, ns, _) =
     let open Records in
     let open Atom in
@@ -213,7 +214,7 @@ let norm delta t =
       ns |> List.map (to_tuple dom) in
     let n = List.length dom + 1 in
   (* We reuse the same algorithm as for tuples *)
-    let ps = Utils.mapn (fun () -> List.init n (fun _ -> OTy.any ())) OTy.conj ps in
+    let ps = mapn (fun () -> List.init n (fun _ -> OTy.any ())) OTy.conj ps in
     let aux_n nss =
       let csss = nss |> List.mapi (fun i ns ->
         let pcomp = List.nth ps i in
@@ -222,7 +223,7 @@ let norm delta t =
       ) in
       NCSS.disj csss
     in
-    ns |> Utils.partitions n |> List.map aux_n |> NCSS.conj
+    ns |> partitions n |> List.map aux_n |> NCSS.conj
   and aux_oty m (n,o) =
     if o then NCSS.empty else aux m n
   in

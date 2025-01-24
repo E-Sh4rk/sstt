@@ -1,4 +1,4 @@
-open Utils
+open Sstt_utils.Utils
 
 module type Leaf = sig
   type t

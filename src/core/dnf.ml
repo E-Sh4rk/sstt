@@ -1,4 +1,5 @@
 open Sigs
+open Sstt_utils.Utils
 
 module type Atom = sig
   type leaf
@@ -24,15 +25,15 @@ module Make(A:Atom)(N:Node) = struct
 
   let simplify dnf =
     (* Remove useless summands (useless if the BDD is simplified...) *)
-    dnf |> Utils.filter_among_others (fun (cp, cn, l) c_others ->
+    dnf |> filter_among_others (fun (cp, cn, l) c_others ->
       A.leq ((cp, cn, l)::c_others) c_others |> not
     )
     (* Remove useless clauses that may be generated from the BDD *)
-    |> Utils.map_among_others (fun (cp, cn, l) c_others ->
-      let cp = cp |> Utils.filter_among_others (fun _ cp_others ->
+    |> map_among_others (fun (cp, cn, l) c_others ->
+      let cp = cp |> filter_among_others (fun _ cp_others ->
         A.leq ((cp_others, cn, l)::c_others) dnf |> not
       ) in
-      let cn = cn |> Utils.filter_among_others (fun _ cn_others ->
+      let cn = cn |> filter_among_others (fun _ cn_others ->
         A.leq ((cp, cn_others, l)::c_others) dnf |> not
       ) in
       (cp, cn, l)
@@ -45,7 +46,7 @@ module Make(A:Atom)(N:Node) = struct
       | (a, b)::c ->
         let a' = A.to_s (a, b) in
         let c' = aux c in
-        Utils.carthesian_product a' c' |> List.filter_map (fun (a, a') -> A.combine a a')
+        carthesian_product a' c' |> List.filter_map (fun (a, a') -> A.combine a a')
     in
     let dnf = dnf |> List.map (fun (cp, cn, l) ->
       let cp = cp |> List.map (fun a -> (a, true)) in

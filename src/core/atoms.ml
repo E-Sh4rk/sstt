@@ -1,4 +1,5 @@
 open Sigs
+open Sstt_utils.Utils
 
 module Atom = Id.NamedIdentifier()
 
@@ -60,8 +61,8 @@ module Make(N:Node) = struct
     then Format.fprintf fmt "⊥"
     else
       match t with
-      | Pos p -> Format.fprintf fmt "(%a)" (Utils.print_seq Atom.pp "|") (ASet.elements p)
-      | Neg n -> Format.fprintf fmt "~(%a)" (Utils.print_seq Atom.pp "|") (ASet.elements n)
+      | Pos p -> Format.fprintf fmt "(%a)" (print_seq Atom.pp "|") (ASet.elements p)
+      | Neg n -> Format.fprintf fmt "~(%a)" (print_seq Atom.pp "|") (ASet.elements n)
 
   let direct_nodes _ = []
   let map_nodes _ t = t

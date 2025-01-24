@@ -1,5 +1,5 @@
 open Sigs
-open Utils
+open Sstt_utils.Utils
 
 module Atom(N:Node) = struct
   type node = N.t
@@ -38,10 +38,10 @@ module MakeT(N:Node) = struct
 
   let conj n ps =
     let init = fun () -> List.init n (fun _ -> N.any ()) in
-    Utils.mapn init N.conj ps
+    mapn init N.conj ps
   let disj n ps =
     let init = fun () -> List.init n (fun _ -> N.empty ()) in
-    Utils.mapn init N.disj ps
+    mapn init N.disj ps
 
   let rec distribute_diff ss tt =
     match ss, tt with

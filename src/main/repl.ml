@@ -1,6 +1,6 @@
 open Sstt_parsing.Ast
 open Sstt_types
-open Utils
+open Sstt_utils.Utils
 open Output
 
 type res = RBool of bool list | RTy of Ty.t list | RSubst of Subst.t list
@@ -73,13 +73,13 @@ let print_res env fmt res =
   match res with
   | RBool bs ->
     let print_bool fmt b = Format.fprintf fmt "%b" b in
-    Format.fprintf fmt "%a" (Utils.print_seq_space print_bool) bs
+    Format.fprintf fmt "%a" (print_seq_space print_bool) bs
   | RTy tys ->
     Format.fprintf fmt "%a"
-      (Utils.print_seq_cut (Printer.print_ty (customs env))) tys
+      (print_seq_cut (Printer.print_ty (customs env))) tys
   | RSubst ss ->
     Format.fprintf fmt "%a"
-      (Utils.print_seq_cut (Printer.print_subst (customs env))) ss
+      (print_seq_cut (Printer.print_subst (customs env))) ss
 
 let treat_elt env elt =
   match elt with

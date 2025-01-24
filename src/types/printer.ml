@@ -1,4 +1,5 @@
 open Sstt_core
+open Sstt_utils.Utils
 
 module NodeId = struct
   type t = { id : int ; mutable name : string option }
@@ -440,13 +441,13 @@ let rec print_descr prec assoc fmt (d,_) =
         (print_descr (-1) NoAssoc) d
     in
     Format.fprintf fmt "{ %a %s}"
-      (Utils.print_seq print_binding " ; ")
+      (print_seq print_binding " ; ")
       bindings
       (if opened then ".." else "")
   | PVarop (v,ds) ->
     let sym,prec',assoc' = varop_info v in
     Format.fprintf fmt "(%a)"
-      (Utils.print_seq (print_descr prec' assoc') sym)
+      (print_seq (print_descr prec' assoc') sym)
       ds
   | PBinop (b,d1,d2) ->
     let sym,prec',assoc' = binop_info b in
@@ -472,7 +473,7 @@ let print_t fmt (d,defs) =
   | [] -> ()
   | def::defs ->
     Format.fprintf fmt " where %a%a" print_def def
-      (Utils.print_seq print_def " and ") defs
+      (print_seq print_def " and ") defs
 
 (* MAIN *)
 
@@ -496,7 +497,7 @@ let print_subst customs fmt s =
     Format.fprintf fmt "@,%a: %a" Var.pp v print_ty ty
   in
   Format.fprintf fmt "@[<v 0>[@[<v 1>%a@]@,]@]"
-    (Utils.print_seq pp_binding " ;") (Subst.bindings s)
+    (print_seq pp_binding " ;") (Subst.bindings s)
 
 let print_ty' = print_ty []
 let print_subst' = print_subst []

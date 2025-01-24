@@ -1,4 +1,5 @@
 open Sigs
+open Sstt_utils.Utils
 
 module Interval = struct
   type t = Z.t option * Z.t option
@@ -28,7 +29,7 @@ module Interval = struct
     | Some _, None -> -1
     | Some lb1, Some lb2 -> Z.compare lb1 lb2
   let compare (lb1, ub1) (lb2,ub2) =
-    cmp_lb lb1 lb2 |> Utils.ccmp
+    cmp_lb lb1 lb2 |> ccmp
     cmp_ub ub1 ub2
   let equal t1 t2 = compare t1 t2 = 0
 
@@ -125,7 +126,7 @@ module Make(N:Node) = struct
     aux [] (ISet.elements t) |> ISet.of_list
   let cup t1 t2 = ISet.union t1 t2 |> normalize
   let cap t1 t2 =
-    Utils.carthesian_product (ISet.elements t1) (ISet.elements t2)
+    carthesian_product (ISet.elements t1) (ISet.elements t2)
     |> List.filter_map (fun (i1, i2) -> Interval.inter i1 i2) |> of_list
   let diff t1 t2 = cap t1 (neg t2)
 
