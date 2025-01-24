@@ -258,6 +258,7 @@ module type Node = sig
 
   val vars : t -> VarSet.t
   val vars_toplevel : t -> VarSet.t
+  val nodes : t -> t list
 
   val of_eqs : (Var.t * t) list -> (Var.t * t) list
   val substitute : t VarMap.t -> t -> t
@@ -288,6 +289,7 @@ module type Ty = sig
 
   val vars : t -> VarSet.t
   val vars_toplevel : t -> VarSet.t
+  val nodes : t -> t list
 
   val of_eqs : (Var.t * t) list -> (Var.t * t) list
   val substitute : t VarMap.t -> t -> t

@@ -27,7 +27,7 @@ module Ty : Ty = struct
   let conj ts = List.fold_left N.cap any ts |> simpl
   let disj ts = List.fold_left N.cup empty ts |> simpl
 
-  let vars, vars_toplevel = N.vars, N.vars_toplevel
+  let vars, vars_toplevel, nodes = N.vars, N.vars_toplevel, N.nodes
   let of_eqs eqs = N.of_eqs eqs |> List.map (fun (v,ty) -> v, simpl ty)
   let substitute s t = N.substitute s t |> simpl
 
