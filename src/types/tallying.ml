@@ -280,7 +280,7 @@ let solve cs =
     match eqs with
     | [] -> Subst.identity
     | (v,ty)::eqs ->
-      let ty' = Ty.from_eqs [v, ty] |> List.hd in
+      let (_,ty') = Ty.of_eqs [v, ty] |> List.hd in
       let s = Subst.singleton v ty' in
       let eqs' = eqs |> List.map (fun (v,eq) -> (v, Subst.apply s eq)) in
       let res = unify eqs' in

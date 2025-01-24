@@ -160,11 +160,12 @@ let build_ty env t =
       env := env' ;
       (StrMap.find name vars, ty)
     ) in
-    let tys = Ty.from_eqs eqs in
-    List.iter2 (fun (name, _) ty ->
+    let tys = Ty.of_eqs eqs |> VarMap.of_list in
+    List.iter (fun (name, _) ->
+      let ty = VarMap.find (StrMap.find name vars) tys in
       let tenv = StrMap.add name ty !env.tenv in
       env := {(!env) with tenv}
-    ) defs tys ;
+    ) defs ;
     let (ty, env') = aux !env ty in
     env := env' ;
     List.iter (fun (name, _) ->

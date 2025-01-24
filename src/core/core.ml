@@ -28,7 +28,7 @@ module Ty : Ty = struct
   let disj ts = List.fold_left N.cup empty ts |> simpl
 
   let vars, vars_toplevel = N.vars, N.vars_toplevel
-  let from_eqs eqs = N.from_eqs eqs |> List.map simpl
+  let of_eqs eqs = N.of_eqs eqs |> List.map (fun (v,ty) -> v, simpl ty)
   let substitute s t = N.substitute s t |> simpl
 
   let is_empty t = N.with_own_cache N.is_empty t

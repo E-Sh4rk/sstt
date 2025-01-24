@@ -126,7 +126,7 @@ module rec Node : Node = struct
     dependencies t |> NSet.to_list |> List.map vars_toplevel
     |> List.fold_left VarSet.union VarSet.empty
 
-  let from_eqs eqs =
+  let of_eqs eqs =
     let deps = List.map snd eqs |> List.map dependencies
     |> List.fold_left NSet.union NSet.empty in
     let copies = NSet.to_list deps |>
@@ -160,7 +160,7 @@ module rec Node : Node = struct
           define_all (NSet.remove n deps)
     in
     define_all deps ;
-    eqs |> List.map (fun (_,n) -> new_node n)
+    eqs |> List.map (fun (v,n) -> v,new_node n)
 
   let substitute s t =
     let s = s |> VarMap.map (fun n -> def n) in
