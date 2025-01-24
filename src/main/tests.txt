@@ -69,6 +69,7 @@ type bool = true | false ;;
 "print13" 'x [ 'x: 'y ; 'y: nil ] ;;
 "print14" ('y, ('x, lst)) where lst=('x,lst)|nil [ 'x : bool ; 'y : nil ] ;;
 "print15" tuple\(any,any) ;;
+"print16" ~(40..44) ;;
 
 "tally1" [ 'x <= 'y ] ;;
 "tally2" [ 'X <= 'y ] ;;

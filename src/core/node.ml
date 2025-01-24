@@ -176,6 +176,4 @@ module rec Node : Node = struct
   let mk_var v = VDescr.mk_var v |> cons
   let mk_descr d = VDescr.mk_descr d |> cons
   let get_descr t = def t |> VDescr.get_descr
-
-  let dependencies t = dependencies t |> NSet.to_list
 end

@@ -72,6 +72,7 @@ let%expect_test "test file" =
     print13: 'y
     print14: (nil, (bool, x1)) where x1 = nil | (bool, x1)
     print15: tuple \ tuple2
+    print16: ~(40..44)
     tally1:
     tally2: [
               'X: 'X & 'y

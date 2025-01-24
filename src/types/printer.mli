@@ -25,7 +25,6 @@ type t = descr * defs list
 and defs = NodeId.t * descr
 and descr = op * Ty.t
 and op =
-| PUnavailable
 | PNamed of string
 | PNode of NodeId.t
 | PBuiltin of builtin

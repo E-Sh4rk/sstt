@@ -256,7 +256,6 @@ module type Node = sig
   include SetTheoretic with type t := t
   val with_own_cache : ('a -> 'b) -> 'a -> 'b
 
-  val dependencies : t -> t list
   val vars : t -> VarSet.t
   val vars_toplevel : t -> VarSet.t
 
@@ -287,7 +286,6 @@ module type Ty = sig
 
   include SetTheoretic with type t := t
 
-  val dependencies : t -> t list
   val vars : t -> VarSet.t
   val vars_toplevel : t -> VarSet.t
 

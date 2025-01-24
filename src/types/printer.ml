@@ -31,7 +31,6 @@ type t = descr * defs list
 and defs = NodeId.t * descr
 and descr = op * Ty.t
 and op =
-| PUnavailable
 | PNamed of string
 | PNode of NodeId.t
 | PBuiltin of builtin
@@ -53,7 +52,6 @@ module D = Descr
 let map_descr f d = (* Assumes f preserves semantic equivalence *)
   let rec aux (d,n) =
     let d = match d with
-    | PUnavailable -> PUnavailable
     | PNamed str -> PNamed str
     | PNode n -> PNode n
     | PBuiltin b -> PBuiltin b
@@ -101,24 +99,6 @@ let subst n (d,_) t =
   in
   map_t subst t
 
-let used_nodes (descr, defs) =
-  let res = nodes_in_descr descr in
-  let rec aux nodes =
-    let add_nodes nodes (n, d) =
-      if NISet.mem n nodes
-      then NISet.union nodes (nodes_in_descr d)
-      else nodes
-    in
-    let nodes' = List.fold_left add_nodes nodes defs in
-    if NISet.equal nodes nodes' then nodes' else aux nodes'
-  in
-  aux res
-
-let remove_unused_nodes (descr, defs) =
-  let used = used_nodes (descr, defs) in
-  let defs = defs |> List.filter (fun (n,_) -> NISet.mem n used) in
-  (descr, defs)
-
 let neg (d,n) =
   match d with
   | PUnop (PNeg, (d,n)) -> d, n
@@ -135,6 +115,16 @@ let cup (d1,n1) (d2,n2) =
   if Ty.leq n2 n1 then d1,n1
   else if Ty.leq n1 n2 then d2,n2
   else PBinop (PCup, (d1,n1), (d2,n2)), Ty.cup n1 n2
+
+let union union =
+  match union with
+  | [] -> PBuiltin PEmpty, Ty.empty
+  | d::union -> List.fold_left cup d union
+
+let inter inter =
+  match inter with
+  | [] -> PBuiltin PAny, Ty.any
+  | d::inter -> List.fold_left cap d inter
 
 let arrow (d1,n1) (d2,n2) =
   PBinop (PArrow, (d1,n1), (d2,n2)), D.mk_arrow (n1,n2) |> Ty.mk_descr
@@ -155,124 +145,116 @@ let atom a =
 let interval (o1, o2) =
   PInterval (o1, o2), Intervals.Atom.mk' o1 o2 |> D.mk_interval |> Ty.mk_descr
 
-let node map n =
-  PNode (TyMap.find n map), n
+(* Step 1 : Build the initial ctx and AST *)
 
-(* Step 1 : Build the ast with PUnavailable descriptors *)
+type ctx = {
+  mutable nmap : NodeId.t TyMap.t ;
+  customs : (Ty.t * op) list
+}
 
-let build_t n =
-  let deps = Ty.dependencies n in
-  let map = deps |>
-    List.map (fun n -> (n, NodeId.mk ())) |>
-    TyMap.of_list in
-  let defs = deps |> List.map (fun n ->
-    (TyMap.find n map, (PUnavailable, n))
-  ) in
-  let t = (node map n), defs in
-  map, t
-
-(* Step 2 : Resolve PUnavailable definitions (and recognize custom and builtins) *)
-
-let builtin () = [ ]
-
-let resolve_alias customs n =
-  begin match List.find_opt (fun (n',_) -> Ty.equiv n n') customs with
+let node ctx n =
+  match TyMap.find_opt n ctx.nmap with
+  | Some nid -> PNode nid, n
   | None ->
-    begin match List.find_opt (fun (n',_) -> Ty.equiv n (Ty.neg n')) customs with
+    let nid = NodeId.mk () in
+    ctx.nmap <- TyMap.add n nid ctx.nmap ;
+    PNode nid, n
+
+let build_t customs n =
+  let customs = customs |> List.map (fun (n, s) -> (n, PNamed s)) in
+  let ctx = { nmap=TyMap.empty ; customs } in
+  ctx, (node ctx n, [])
+
+(* Step 2 : Resolve missing definitions (and recognize custom type aliases) *)
+
+let resolve_alias ctx n =
+  begin match List.find_opt (fun (n',_) -> Ty.equiv n n') ctx.customs with
+  | None ->
+    begin match List.find_opt (fun (n',_) -> Ty.equiv n (Ty.neg n')) ctx.customs with
     | None -> None
     | Some (n, d) -> Some (neg (d, n))
     end
   | Some (n, d) -> Some (d, n)
   end
 
-let fold_union union =
-  match union with
-  | [] -> PBuiltin PEmpty, Ty.empty
-  | d::union -> List.fold_left cup d union
-
-let fold_inter inter =
-  match inter with
-  | [] -> PBuiltin PAny, Ty.any
-  | d::inter -> List.fold_left cap d inter
-
-let resolve_arrows map _ a =
+let resolve_arrows ctx a =
   let dnf = Arrows.dnf a |> Arrows.Dnf.simplify in
   let resolve_arr (n1, n2) =
-    let d1, d2 = node map n1, node map n2 in
+    let d1, d2 = node ctx n1, node ctx n2 in
     arrow d1 d2
   in
   let resolve_dnf (ps, ns, _) =
     let ps = ps |> List.map resolve_arr in
     let ns = ns |> List.map resolve_arr |> List.map neg in
-    ps@ns |> fold_inter
+    ps@ns |> inter
   in
-  dnf |> List.map resolve_dnf |> fold_union
+  dnf |> List.map resolve_dnf |> union
 
-let resolve_atoms _ _ a =
+let resolve_atoms _ a =
   let (pos, atoms) = Atoms.get a in
-  let atoms = atoms |> List.map atom |> fold_union in
+  let atoms = atoms |> List.map atom |> union in
   if pos then atoms else neg atoms
 
-let resolve_intervals _ _ a =
+let resolve_intervals _ a =
   let pos =
     Intervals.get a |> List.map Intervals.Atom.get
-    |> List.map interval |> fold_union
+    |> List.map interval |> union
   in
   let neg =
     Intervals.get_neg a |> List.map Intervals.Atom.get
-    |> List.map interval |> fold_union |> neg
+    |> List.map interval |> union |> neg
   in
   if size_of_descr neg < size_of_descr pos then neg else pos
 
-let resolve_products map customs a =
+let resolve_products ctx a =
   let n = Tuples.mk_products a |> D.mk_tuples |> Ty.mk_descr in
-  match resolve_alias customs n with
+  match resolve_alias ctx n with
   | Some d -> d
   | None ->
     let dnf = Products.dnf a |> Products.Dnf.simplify in
     let resolve_tup lst =
-      tuple (lst |> List.map (node map))
+      tuple (lst |> List.map (node ctx))
     in
     let resolve_dnf (ps, ns, _) =
       let ps = ps |> List.map resolve_tup in
       let ns = ns |> List.map resolve_tup |> List.map neg in
-      ps@ns |> fold_inter
+      ps@ns |> inter
     in
-    dnf |> List.map resolve_dnf |> fold_union
+    dnf |> List.map resolve_dnf |> union
 
-let resolve_tuples map customs a =
+let resolve_tuples ctx a =
   let (products, others) = Tuples.components a in
   let d = products |> List.map (fun p ->
     let len = Products.len p in
-    let elt = resolve_products map customs p in
+    let elt = resolve_products ctx p in
     let elt = if others then neg elt else elt in
     cap (PBuiltin (PAnyProduct len),
         Products.any len |> D.mk_products |> Ty.mk_descr) elt
-  ) |> fold_union in
+  ) |> union in
   if others then neg d else d
 
-let resolve_records map _ a =
+let resolve_records ctx a =
   let open Records.Atom in
   let dnf = Records.dnf a |> Records.Dnf.simplify in
   let resolve_rec r =
     let bindings = r.bindings |> LabelMap.bindings |> List.map (fun (l,(n,b)) ->
-      (l, node map n, b)
+      (l, node ctx n, b)
     ) in
     record bindings r.opened
   in
   let resolve_dnf (ps, ns, _) =
     let ps = ps |> List.map resolve_rec in
     let ns = ns |> List.map resolve_rec |> List.map neg in
-    ps@ns |> fold_inter
+    ps@ns |> inter
   in
-  dnf |> List.map resolve_dnf |> fold_union
+  dnf |> List.map resolve_dnf |> union
 
-let resolve_comp map customs c =
+let resolve_comp ctx c =
   let n = D.of_component c |> Ty.mk_descr in
-  let alias = resolve_alias customs n in
+  let alias = resolve_alias ctx n in
   let alias_or f c =
     match alias with
-    | None -> f map customs c
+    | None -> f ctx c
     | Some d -> d
   in
   match c with
@@ -292,52 +274,64 @@ let resolve_comp map customs c =
     alias_or resolve_records c,
     (PBuiltin PAnyRecord, Records.any () |> D.mk_records |> Ty.mk_descr)
 
-let resolve_descr map customs d =
+let resolve_descr ctx d =
   let n = VD.mk_descr d |> Ty.of_def in
-  match resolve_alias customs n with
+  match resolve_alias ctx n with
   | None ->
-    let ds = D.components d |> List.map (resolve_comp map customs) in
+    let ds = D.components d |> List.map (resolve_comp ctx) in
     let combine ds =
-      ds |> List.map (fun (d,any_d) -> cap any_d d) |> fold_union
+      ds |> List.map (fun (d,any_d) -> cap any_d d) |> union
     in
     let pd = ds |> combine in
     let nd = ds |> List.map (fun (d, any_d) -> (neg d, any_d)) |> combine |> neg in
     if size_of_descr nd < size_of_descr pd then nd else pd
   | Some d -> d
 
-let resolve_node map customs n =
-  let customs = customs |> List.map (fun (n, s) -> (n, PNamed s)) in
-  let builtins = builtin () |> List.map (fun (n, b) -> n, (PBuiltin b)) in
-  let customs = builtins@customs in
-  match resolve_alias customs n with
+let resolve_node ctx n =
+  match resolve_alias ctx n with
   | None ->
     let dnf = Ty.def n |> VD.dnf |> VD.Dnf.simplify in
     let resolve_var v = PVar v, Ty.mk_var v in
     let resolve_dnf (ps, ns, d) =
       let ps = ps |> List.map resolve_var in
       let ns = ns |> List.map resolve_var |> List.map neg in
-      let d = resolve_descr map customs d in
-      ps@ns@[d] |> fold_inter
+      let d = resolve_descr ctx d in
+      ps@ns@[d] |> inter
     in
-    dnf |> List.map resolve_dnf |> fold_union
+    dnf |> List.map resolve_dnf |> union
   | Some d -> d
 
-let rec resolve_defs map customs t =
-  let used = used_nodes t in
-  let (descr,defs) = t in
-  let changes = ref false in
-  let defs = defs |> List.map (fun (ni,(o,n)) ->
-    let descr = match o with
-    | PUnavailable when NISet.mem ni used ->
-      changes := true ; resolve_node map customs n
-    | _ -> (o,n)
-    in
-    (ni,descr)
+let rec resolve_missing_defs ctx t =
+  let used_nodes = ctx.nmap |> TyMap.bindings in
+  let (main_descr,defs) = t in
+  let to_define = used_nodes |> List.find_opt (fun (_,nid) ->
+    defs |> List.exists (fun (nid',_) -> NodeId.equal nid nid') |> not
   ) in
-  let t = (descr,defs) in
-  if !changes then resolve_defs map customs t else t
+  match to_define with
+  | None -> t
+  | Some (n,nid) ->
+    let descr = resolve_node ctx n in
+    resolve_missing_defs ctx (main_descr, (nid,descr)::defs)
 
 (* Step 3 : Inline nodes when relevant, remove unused nodes *)
+
+let used_nodes (descr, defs) =
+  let res = nodes_in_descr descr in
+  let rec aux nodes =
+    let add_nodes nodes (n, d) =
+      if NISet.mem n nodes
+      then NISet.union nodes (nodes_in_descr d)
+      else nodes
+    in
+    let nodes' = List.fold_left add_nodes nodes defs in
+    if NISet.equal nodes nodes' then nodes' else aux nodes'
+  in
+  aux res
+
+let remove_unused_nodes (descr, defs) =
+  let used = used_nodes (descr, defs) in
+  let defs = defs |> List.filter (fun (n,_) -> NISet.mem n used) in
+  (descr, defs)
 
 let inline t =
   let t = remove_unused_nodes t in
@@ -432,7 +426,6 @@ let rec print_descr prec assoc fmt (d,_) =
     end
   in
   let () = match d with
-  | PUnavailable -> Format.fprintf fmt "(?)"
   | PNamed str -> Format.fprintf fmt "%s" str
   | PNode n -> Format.fprintf fmt "%a" NodeId.pp n
   | PBuiltin b -> print_builtin fmt b
@@ -484,8 +477,8 @@ let print_t fmt (d,defs) =
 (* MAIN *)
 
 let get customs ty =
-  let (map, t) = build_t ty in
-  let t = resolve_defs map customs t in
+  let (ctx, t) = build_t customs ty in
+  let t = resolve_missing_defs ctx t in
   let t = inline t in
   let t = simplify t in
   rename_nodes t ;
