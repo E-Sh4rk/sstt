@@ -1,4 +1,4 @@
 
-module Types = Types
-module Parsing = Parsing
-module Main = Main
+module Types = Sstt_types
+module Parsing = Sstt_parsing
+module Main = Sstt_main

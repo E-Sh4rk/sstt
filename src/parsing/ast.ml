@@ -1,5 +1,5 @@
 
-open Types
+open Sstt_types
 
 type builtin =
   | TEmpty | TAny | TAnyTuple | TAnyAtom | TAnyInt

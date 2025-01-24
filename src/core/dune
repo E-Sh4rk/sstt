@@ -1,8 +1,8 @@
 (library
- (name core)
+ (name sstt_core)
  (public_name sstt.core)
  ; (package sstt)
- (libraries utils zarith)
+ (libraries sstt_utils zarith)
  (modules (:standard)))
 
 ; (env

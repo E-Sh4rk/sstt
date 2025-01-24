@@ -1,4 +1,4 @@
-open Core
+open Sstt_core
 
 type t = Ty.t VarMap.t
 let identity = VarMap.empty

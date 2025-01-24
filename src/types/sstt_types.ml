@@ -1,5 +1,5 @@
 
-include Core
+include Sstt_core
 
 module Printer = Printer
 module Tallying = Tallying

@@ -1,4 +1,4 @@
-open Core
+open Sstt_core
 
 module NodeId = struct
   type t = { id : int ; mutable name : string option }

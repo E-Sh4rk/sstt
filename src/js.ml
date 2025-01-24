@@ -1,5 +1,6 @@
 open Js_of_ocaml
-open Main
+open Sstt_main
+open Sstt_parsing
 open Output
 
 module Html = Dom_html
@@ -11,7 +12,7 @@ let treat_elt elt =
   let env' = Repl.treat_elt !env elt in
   env := env'
 let treat str =
-  try Parsing.IO.parse_program str |> List.iter treat_elt
+  try IO.parse_program str |> List.iter treat_elt
   with e -> print Error "%s" (Printexc.to_string e)
 
 let send line =

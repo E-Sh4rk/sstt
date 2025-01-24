@@ -7,10 +7,10 @@
   )
 
 (library
- (name parsing)
+ (name sstt_parsing)
  (public_name sstt-repl.parsing)
 ;  (package sstt-repl)
- (libraries utils zarith types)
+ (libraries sstt_utils zarith sstt_types)
  (modules (:standard)))
 
 ; (env

@@ -1,10 +1,11 @@
+open Sstt_parsing
 
 let%expect_test "test file" =
   let fn = "tests.txt" in
   let cin = open_in fn in
   let buf = Lexing.from_channel cin in
   let rec test env =
-    match Parsing.IO.parse_command buf with
+    match IO.parse_command buf with
     | End -> ()
     | Elt elt ->
       let env = Repl.treat_elt env elt in

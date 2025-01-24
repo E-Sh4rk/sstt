@@ -1,4 +1,5 @@
-open Main
+open Sstt_main
+open Sstt_parsing
 open Output
 
 let () =
@@ -8,7 +9,7 @@ let () =
         let fn = if Array.length Sys.argv > 1 then Some Sys.argv.(1) else None in      
         let run () =
             match fn with
-            | Some fn -> Parsing.IO.parse_program_file fn |>
+            | Some fn -> IO.parse_program_file fn |>
                 List.fold_left Repl.treat_elt Repl.empty_env |> ignore
             | None ->
                 Format.fprintf Format.std_formatter "Simple Set-Theoretic Types (SSTT) - REPL@." ;
@@ -18,7 +19,7 @@ let () =
                 let rec repl env =
                     begin try
                         Format.fprintf Format.std_formatter "> @?" ;
-                        match Parsing.IO.parse_command buf with
+                        match IO.parse_command buf with
                         | End -> ()
                         | Elt elt -> Repl.treat_elt env elt |> repl
                     with
@@ -29,9 +30,9 @@ let () =
         in
         with_rich_output Format.std_formatter run ()
     with
-    | Parsing.IO.LexicalError (p, msg)
-    | Parsing.IO.SyntaxError (p, msg) ->
-        Format.printf "@.%s: %s@." (Parsing.Position.string_of_pos p) msg
+    | IO.LexicalError (p, msg)
+    | IO.SyntaxError (p, msg) ->
+        Format.printf "@.%s: %s@." (Position.string_of_pos p) msg
     | e ->
         let msg = Printexc.to_string e
         and stack = Printexc.get_backtrace () in

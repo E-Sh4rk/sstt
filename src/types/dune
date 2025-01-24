@@ -1,8 +1,8 @@
 (library
- (name types)
+ (name sstt_types)
  (public_name sstt.types)
  ; (package sstt)
- (libraries utils zarith core)
+ (libraries sstt_utils zarith sstt_core)
  (modules (:standard)))
 
 ; (env

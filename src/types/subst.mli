@@ -1,4 +1,4 @@
-open Core
+open Sstt_core
 
 type t
 

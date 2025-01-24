@@ -1,4 +1,4 @@
-open Core
+open Sstt_core
 
 type constr = Ty.t * Ty.t
 type norm_constr = Left of Var.t * Ty.t | Right of Ty.t * Var.t

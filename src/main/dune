@@ -1,9 +1,9 @@
 (library
- (name main)
+ (name sstt_main)
  (public_name sstt-repl.main)
 ;  (package sstt-repl)
  (inline_tests (deps tests.txt))
- (libraries parsing utils types)
+ (libraries sstt_parsing sstt_utils sstt_types)
  (preprocess (pps ppx_expect))
  (modules (:standard)))
 

@@ -1,4 +1,4 @@
-open Core
+open Sstt_core
 
 module NodeId : sig
     type t
