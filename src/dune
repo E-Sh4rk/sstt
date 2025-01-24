@@ -1,14 +1,12 @@
 (library
  (name sstt)
  (public_name sstt)
- (wrapped false)
  (libraries sstt_types)
  (modules sstt))
 
 (library
  (name repl)
  (public_name sstt-repl)
- (wrapped false)
  (libraries sstt sstt_parsing sstt_main)
  (modules repl))
 
