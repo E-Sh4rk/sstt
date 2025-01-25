@@ -54,8 +54,7 @@ module Products = struct
     mapn (fun _ -> raise EmptyAtom) Ty.disj (as_union t)
 
   let proj i t =
-    let union = Products.dnf t |> Products.Dnf.combine in
-    union |> List.map fst |> List.map (fun lst -> List.nth lst i) |> Ty.disj
+    as_union t |> List.map (fun lst -> List.nth lst i) |> Ty.disj
 
   let merge a1 a2 = a1@a2
 end
@@ -85,9 +84,7 @@ module Records = struct
     | hd::tl -> List.fold_left union_a hd tl
 
   let proj label t =
-    let union = Records.dnf t |> Records.Dnf.combine in
-    union |> List.map fst |> List.map (Records.Atom'.find label)
-    |> Records.Atom'.OTy.disj
+    as_union t |> List.map (Records.Atom.find label) |> Records.Atom'.OTy.disj
 
   let merge a1 a2 =
     let open Records.Atom in
