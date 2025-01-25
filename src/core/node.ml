@@ -145,7 +145,7 @@ module rec Node : Node = struct
             VarSet.mem v vs |> not || new_node n |> has_def
           )
         in
-        match NSet.find_first_opt deps_ok deps with
+        match NSet.elements deps |> List.find_opt deps_ok with
         | None -> raise (Invalid_argument "Set of equations is not well-founded.")
         | Some n ->
           let nn = new_node n in
