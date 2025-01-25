@@ -74,6 +74,7 @@ module Atom'(N:Node) = struct
   module OTy = OTy(N)
 
   type node = N.t
+  (* TODO: combine is not correct... The labelset should be present for closed records too *)
   type kind = Opened | Closed | OpenedStrict of LabelSet.t
   type t = { bindings : OTy.t LabelMap.t ; kind : kind }
   let dom t = LabelMap.bindings t.bindings |> List.map fst |> LabelSet.of_list

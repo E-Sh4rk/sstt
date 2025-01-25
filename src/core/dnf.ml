@@ -15,9 +15,8 @@ module type Atom' = sig
   type t'
   
   val to_t : t' -> t list * t list
-  (* TODO: Relax the 'must not be empty' requirements below? *)
-  val to_t' : t * bool -> t' list (* Result MUST NOT contain empty atoms *)
-  val combine : t' -> t' -> t' option (* MUST return None if the result is empty *)
+  val to_t' : t * bool -> t' list
+  val combine : t' -> t' -> t' option
 end
 
 module Make(A:Atom)(N:Node) = struct
