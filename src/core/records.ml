@@ -74,49 +74,49 @@ module Atom'(N:Node) = struct
   module OTy = OTy(N)
 
   type node = N.t
-  (* TODO: combine is not correct... The labelset should be present for closed records too *)
-  type kind = Opened | Closed | OpenedStrict of LabelSet.t
-  type t = { bindings : OTy.t LabelMap.t ; kind : kind }
+  type t = { bindings : OTy.t LabelMap.t ; opened : bool ; required : LabelSet.t option }
   let dom t = LabelMap.bindings t.bindings |> List.map fst |> LabelSet.of_list
-  let opened t =
-    match t.kind with
-    | Closed -> false
-    | Opened | OpenedStrict _ -> true
   let find lbl t =
     match LabelMap.find_opt lbl t.bindings with
     | Some on -> on
-    | None when opened t -> OTy.any ()
+    | None when t.opened -> OTy.any ()
     | None -> OTy.absent ()
-  let simplify_bindings t =
-    let not_any _ on = OTy.is_any on |> not in
-    let not_absent _ on = OTy.is_absent on |> not in
-    if opened t then
-      { t with bindings = LabelMap.filter not_any t.bindings }
-    else
-      { t with bindings = LabelMap.filter not_absent t.bindings }
-  let simplify_kind t =
-    match t.kind with
-    | Opened | Closed -> t
-    | OpenedStrict lbls ->
-      if t.bindings |> LabelMap.exists
-        (fun l (_,b) -> LabelSet.mem l lbls |> not && not b)
-      then
-        { t with kind = Opened }
-      else
-        let lbls = lbls |> LabelSet.filter (fun l ->
-          match LabelMap.find_opt l t.bindings with
-          | None -> true
-          | Some on -> OTy.is_absent on |> not
-        ) in
-        { t with kind = OpenedStrict lbls }      
+  let simplify t =
+    let bindings =
+      let not_any _ on = OTy.is_any on |> not in
+      let not_absent _ on = OTy.is_absent on |> not in
+      if t.opened
+      then LabelMap.filter not_any t.bindings
+      else LabelMap.filter not_absent t.bindings
+    in
+    let required =
+      match t.required with
+      | None -> None
+      | Some lbls ->
+        if bindings |> LabelMap.exists (fun l (_,b) -> LabelSet.mem l lbls |> not && not b)
+        then None
+        else Some (lbls |> LabelSet.filter (fun l -> find l t |> OTy.is_absent |> not))
+    in
+    { t with bindings ; required }
   let is_empty t =
     let is_empty_binding (_,on) = OTy.is_empty on in
-    List.exists is_empty_binding (LabelMap.bindings t.bindings)      
+    let required_ok =
+      match t.required with
+      | None -> true
+      | Some _ when t.opened -> true
+      | Some req ->
+        t.bindings |> LabelMap.exists
+          (fun l o -> LabelSet.mem l req |> not && OTy.is_absent o |> not)
+    in
+    not required_ok ||
+    LabelMap.bindings t.bindings |> List.exists is_empty_binding
   let equal t1 t2 =
-    t1.kind = t2.kind &&
+    t1.opened = t2.opened &&
+    Option.equal LabelSet.equal t1.required t2.required &&
     LabelMap.equal OTy.equal t1.bindings t2.bindings
   let compare t1 t2 =
-    compare t1.kind t2.kind |> ccmp
+    compare t1.opened t2.opened |> ccmp
+    (Option.compare LabelSet.compare) t1.required t2.required |> ccmp
     (LabelMap.compare OTy.compare) t1.bindings t2.bindings
 end
 
@@ -198,60 +198,59 @@ module Make(N:Node) = struct
 
     let to_t a' =
       let open Atom' in
-      match a'.kind with
-      | Opened -> [{Atom.bindings=a'.bindings ; Atom.opened=true}],[]
-      | Closed -> [{Atom.bindings=a'.bindings ; Atom.opened=false}],[]
-      | OpenedStrict lbls ->
-        let bindings =
-          lbls |> LabelSet.elements |> List.map (fun l -> (l,OTy.any ()))
-          |> LabelMap.of_list
-        in
-        [{Atom.bindings=a'.bindings ; Atom.opened=true}],
-        [{Atom.bindings=bindings ; Atom.opened=false}]
+      let ns =
+        match a'.required with
+        | None -> []
+        | Some lbls ->
+          let bindings =
+            lbls |> LabelSet.elements |> List.map (fun l -> (l,OTy.any ()))
+            |> LabelMap.of_list
+          in
+          [{Atom.bindings=bindings ; Atom.opened=false}]
+      in
+      let ps = [{Atom.bindings=a'.bindings ; Atom.opened=a'.opened}] in
+      ps, ns
     let to_t' (a,b) =
       let open Atom' in
       let not_binding (l,on) =
-        { bindings = LabelMap.singleton l (ON.neg on) ; kind = Opened }
+        { bindings=LabelMap.singleton l (ON.neg on) ; opened=true ; required=None }
       in
       if b then
-        [ { bindings=a.Atom.bindings ; kind=(if a.Atom.opened then Opened else Closed) } ]
+        [ { bindings=a.Atom.bindings ; opened=a.Atom.opened ; required=None } ]
       else
         let res = a.Atom.bindings |> LabelMap.bindings |> List.map not_binding in
         if a.Atom.opened then res
-        else
-          { bindings = a.Atom.bindings ; kind=OpenedStrict (Atom.dom a) }::res
-    let to_t' (a,b) = to_t' (a,b) |> List.filter (fun a -> Atom'.is_empty a |> not)
+        else { bindings=a.Atom.bindings ; opened=true ; required=Some (Atom.dom a) }::res
+    let to_t' (a,b) =
+      to_t' (a,b) |> List.filter (fun a -> Atom'.is_empty a |> not)
+      |> List.map Atom'.simplify
     let combine s1 s2 =
       let open Atom' in
       let bindings = LabelMap.merge (fun _ b1 b2 ->
         match b1, b2 with
         | None, None -> None
-        | Some on, None when s2.kind = Closed -> Some (ON.cap on (ON.absent ()))
+        | Some on, None when not s2.opened -> Some (ON.cap on (ON.absent ()))
         | Some on, None -> Some on
-        | None, Some on when s1.kind = Closed -> Some (ON.cap on (ON.absent ()))
+        | None, Some on when not s1.opened -> Some (ON.cap on (ON.absent ()))
         | None, Some on -> Some on
         | Some on1, Some on2 -> Some (ON.cap on1 on2)
       ) s1.bindings s2.bindings in
-      let s1 = { s1 with bindings } |> Atom'.simplify_kind in
-      let s2 = { s2 with bindings } |> Atom'.simplify_kind in
-      let res = match s1.kind, s2.kind with
-      | Opened, k | k, Opened -> Some { bindings ; kind=k }
-      | Closed, Closed -> Some { bindings ; kind=Closed }
-      | Closed, OpenedStrict _ | OpenedStrict _, Closed -> None
-      | OpenedStrict ls1, OpenedStrict ls2 ->
-        Some { bindings ; kind=OpenedStrict (LabelSet.union ls1 ls2) }
+      let opened = s1.opened && s2.opened in
+      let required =
+        match s1.required, s2.required with
+        | None, None -> None
+        | Some r, None | None, Some r -> Some r
+        | Some r1, Some r2 -> Some (LabelSet.union r1 r2)
       in
-      match res with
-      | None -> None
-      | Some res when Atom'.is_empty res -> None
-      | Some res -> Some (Atom'.simplify_bindings res)
+      let res = { bindings ; opened ; required } in
+      if is_empty res then None else Some (simplify res)
   end
   module Dnf' = Dnf.Make'(DnfAtom)(DnfAtom')(N)
   module Dnf = Dnf.Make(DnfAtom)(N)
 
   let dnf t = Bdd.dnf t |> Dnf.mk
   let dnf' t = dnf t |> Dnf'.from_dnf
-    ({ Atom'.bindings=LabelMap.empty ; Atom'.kind=Opened })
+    ({ Atom'.bindings=LabelMap.empty ; opened=true ; required=None })
   let of_dnf dnf = Dnf.mk dnf |> Bdd.of_dnf
   let of_dnf' dnf' = of_dnf (Dnf'.to_dnf dnf')
 

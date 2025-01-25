@@ -122,11 +122,9 @@ end
 module type RecordAtom' = sig
   type node
   module OTy : OTy with type node := node
-  type kind = Opened | Closed | OpenedStrict of LabelSet.t
-  type t = { bindings : OTy.t LabelMap.t ; kind : kind }
+  type t = { bindings : OTy.t LabelMap.t ; opened : bool ; required : LabelSet.t option }
   val dom : t -> LabelSet.t
   val find : Label.t -> t -> OTy.t
-  val opened : t -> bool
   include Comparable with type t := t
 end
 

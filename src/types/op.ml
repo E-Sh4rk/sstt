@@ -67,7 +67,7 @@ module Records = struct
     let open Records.Atom in
     Records.dnf' t |> Records.Dnf'.simplify |> List.map fst |>
     List.map (fun t ->
-      { bindings=t.Records.Atom'.bindings ; opened=Records.Atom'.opened t }
+      { bindings=t.Records.Atom'.bindings ; opened=t.opened }
     )
 
   let approx t =

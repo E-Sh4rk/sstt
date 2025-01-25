@@ -91,8 +91,7 @@ module MakeT(N:Node) = struct
       let rec aux ns =
         match ns with
         | [] -> []
-        | n::ns ->
-          ((N.neg n)::ns)::(aux ns |> List.map (fun s -> n::s))
+        | n::ns -> ((N.neg n)::ns)::(aux ns |> List.map (fun s -> n::s))
       in
       if b then [ns] else aux ns
     let to_t' (a,b) = to_t' (a,b) |> List.filter (fun a -> Atom.is_empty a |> not)
