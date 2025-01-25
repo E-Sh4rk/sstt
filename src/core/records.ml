@@ -186,12 +186,27 @@ module Make(N:Node) = struct
   module DnfAtom = struct
     type leaf = bool
     type t = Atom.t
-    type t' = Atom'.t
-    type dnf = (t list * t list * leaf) list
-    type dnf' = (t' * leaf) list
 
     let undesirable_leaf = not
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
+  end
+  module DnfAtom' = struct
+    type leaf = bool
+    type t = Atom.t
+    type t' = Atom'.t
+
+    let to_t a' =
+      let open Atom' in
+      match a'.kind with
+      | Opened -> [{Atom.bindings=a'.bindings ; Atom.opened=true}],[]
+      | Closed -> [{Atom.bindings=a'.bindings ; Atom.opened=false}],[]
+      | OpenedStrict lbls ->
+        let bindings =
+          lbls |> LabelSet.elements |> List.map (fun l -> (l,OTy.any ()))
+          |> LabelMap.of_list
+        in
+        [{Atom.bindings=a'.bindings ; Atom.opened=true}],
+        [{Atom.bindings=bindings ; Atom.opened=false}]
     let to_t' (a,b) =
       let open Atom' in
       let not_binding (l,on) =
@@ -230,10 +245,14 @@ module Make(N:Node) = struct
       | Some res when Atom'.is_empty res -> None
       | Some res -> Some (Atom'.simplify_bindings res)
   end
+  module Dnf' = Dnf.Make'(DnfAtom)(DnfAtom')(N)
   module Dnf = Dnf.Make(DnfAtom)(N)
 
   let dnf t = Bdd.dnf t |> Dnf.mk
+  let dnf' t = dnf t |> Dnf'.from_dnf
+    ({ Atom'.bindings=LabelMap.empty ; Atom'.kind=Opened })
   let of_dnf dnf = Dnf.mk dnf |> Bdd.of_dnf
+  let of_dnf' dnf' = of_dnf (Dnf'.to_dnf dnf')
 
   let direct_nodes t = Bdd.atoms t |> List.map Atom.nodes |> List.concat
   let map_nodes f t = Bdd.map_nodes (Atom.map f) t

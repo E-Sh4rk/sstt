@@ -48,7 +48,7 @@ module Products = struct
   type atom = Products.Atom.t
 
   let as_union t =
-    Products.dnf t |> Products.Dnf.combine |> List.map fst
+    Products.dnf' t |> Products.Dnf'.simplify |> List.map fst
 
   let approx t =
     mapn (fun _ -> raise EmptyAtom) Ty.disj (as_union t)
@@ -65,7 +65,7 @@ module Records = struct
 
   let as_union t =
     let open Records.Atom in
-    Records.dnf t |> Records.Dnf.combine |> List.map fst |>
+    Records.dnf' t |> Records.Dnf'.simplify |> List.map fst |>
     List.map (fun t ->
       { bindings=t.Records.Atom'.bindings ; opened=Records.Atom'.opened t }
     )

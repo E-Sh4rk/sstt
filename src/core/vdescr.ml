@@ -53,14 +53,9 @@ module Make(N:Node) = struct
   module DnfAtom = struct
     type leaf = Descr.t
     type t = Var.t
-    type t' = NeverAtom.t
-    type dnf = (t list * t list * leaf) list
-    type dnf' = (t' * leaf) list
 
     let undesirable_leaf l = Descr.equal l (Descr.empty ())
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
-    let to_t' _ = raise (Invalid_argument "Vars cannot be combined.")
-    let combine t = match (t:NeverAtom.t) with _ -> .
   end
   module Dnf = Dnf.Make(DnfAtom)(N)
 

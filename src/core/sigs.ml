@@ -36,24 +36,16 @@ end
 
 module type Dnf = sig
   type atom
-  type atom'
   type leaf
   type t = (atom list * atom list * leaf) list
-  type t' = (atom' * leaf) list
-
   val simplify : t -> t
-  val combine : t -> t'
 end
 
-module type NeverAtom = sig
-  type t = |
-  include Comparable with type t := t
-end
-module NeverAtom : NeverAtom = struct
-  type t = |
-  let absurd x = match (x:t) with _ -> .
-  let equal = absurd
-  let compare = absurd
+module type Dnf' = sig
+  type atom
+  type leaf
+  type t = (atom * leaf) list
+  val simplify : t -> t
 end
 
 (* Atoms *)
@@ -101,7 +93,7 @@ end
 module type Arrows = sig
   include TyBase
   module Atom : ArrowAtom with type node := node
-  module Dnf : Dnf with type atom = Atom.t and type atom' = NeverAtom.t and type leaf = bool
+  module Dnf : Dnf with type atom = Atom.t and type leaf = bool
   val mk : Atom.t -> t
   val dnf : t -> Dnf.t
   val of_dnf : Dnf.t -> t
@@ -142,10 +134,13 @@ module type Records = sig
   include TyBase
   module Atom : RecordAtom with type node := node
   module Atom' : RecordAtom' with type node := node
-  module Dnf : Dnf with type atom = Atom.t and type atom' = Atom'.t and type leaf = bool
+  module Dnf : Dnf with type atom = Atom.t and type leaf = bool
+  module Dnf' : Dnf' with type atom = Atom'.t and type leaf = bool
   val mk : Atom.t -> t
   val dnf : t -> Dnf.t
+  val dnf' : t -> Dnf'.t
   val of_dnf : Dnf.t -> t
+  val of_dnf' : Dnf'.t -> t
 end
 
 (* Tuples *)
@@ -159,13 +154,16 @@ end
 module type Products = sig
   include TyBase
   module Atom : TupleAtom with type node := node
-  module Dnf : Dnf with type atom = Atom.t and type atom' = Atom.t and type leaf = bool
+  module Dnf : Dnf with type atom = Atom.t and type leaf = bool
+  module Dnf' : Dnf' with type atom = Atom.t and type leaf = bool
   val any : int -> t
   val empty : int -> t
   val mk : Atom.t -> t
   val len : t -> int
   val dnf : t -> Dnf.t
+  val dnf' : t -> Dnf'.t
   val of_dnf : int -> Dnf.t -> t
+  val of_dnf' : int -> Dnf'.t -> t
 end
 
 module type Tuples = sig
@@ -227,7 +225,7 @@ module type VDescr = sig
   include TyBase
 
   module Descr : Descr with type node := node
-  module Dnf : Dnf with type atom = Var.t and type atom' = NeverAtom.t and type leaf = Descr.t
+  module Dnf : Dnf with type atom = Var.t and type leaf = Descr.t
 
   val mk_var : Var.t -> t
   val mk_descr : Descr.t -> t

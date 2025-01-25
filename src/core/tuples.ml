@@ -77,12 +77,16 @@ module MakeT(N:Node) = struct
   module DnfAtom = struct
     type leaf = bool
     type t = Atom.t
-    type t' = Atom.t
-    type dnf = (t list * t list * leaf) list
-    type dnf' = (t' * leaf) list
 
     let undesirable_leaf = not
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
+  end
+  module DnfAtom' = struct
+    type leaf = bool
+    type t = Atom.t
+    type t' = Atom.t
+
+    let to_t a = [a], []
     let to_t' (ns,b) =
       let rec aux ns =
         match ns with
@@ -96,15 +100,18 @@ module MakeT(N:Node) = struct
       let res = List.map2 N.cap ns1 ns2 in
       if Atom.is_empty res then None else Some res
   end
+  module Dnf' = Dnf.Make'(DnfAtom)(DnfAtom')(N)
   module Dnf = Dnf.Make(DnfAtom)(N)
 
   let dnf (_,t) = Bdd.dnf t |> Dnf.mk
+  let dnf' (n,t) = dnf (n,t) |> Dnf'.from_dnf (List.init n (fun _ -> N.any ()))
   let of_dnf n dnf =
     dnf |> List.iter (fun (ps,ns,_) ->
       ps |> List.iter (fun a -> check_len n (List.length a)) ;
       ns |> List.iter (fun a -> check_len n (List.length a))
       ) ;
     n, Dnf.mk dnf |> Bdd.of_dnf
+  let of_dnf' n dnf' = of_dnf n (Dnf'.to_dnf dnf')
 
   let direct_nodes (_,t) = Bdd.atoms t |> List.map Atom.nodes |> List.concat
   let map_nodes f (n,t) = n, Bdd.map_nodes (Atom.map f) t
