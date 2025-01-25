@@ -61,7 +61,7 @@ module Make(N:Node) = struct
 
     let undesirable_leaf = not
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
-    let to_s _ = raise (Invalid_argument "Arrows cannot be combined.")
+    let to_t' _ = raise (Invalid_argument "Arrows cannot be combined.")
     let combine t = match (t:NeverAtom.t) with _ -> .
   end
   module Dnf = Dnf.Make(DnfAtom)(N)

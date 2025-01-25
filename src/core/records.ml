@@ -192,7 +192,7 @@ module Make(N:Node) = struct
 
     let undesirable_leaf = not
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
-    let to_s (a,b) =
+    let to_t' (a,b) =
       let open Atom' in
       let not_binding (l,on) =
         { bindings = LabelMap.singleton l (ON.neg on) ; kind = Opened }
@@ -204,7 +204,7 @@ module Make(N:Node) = struct
         if a.Atom.opened then res
         else
           { bindings = a.Atom.bindings ; kind=OpenedStrict (Atom.dom a) }::res
-    let to_s (a,b) = to_s (a,b) |> List.filter (fun a -> Atom'.is_empty a |> not)
+    let to_t' (a,b) = to_t' (a,b) |> List.filter (fun a -> Atom'.is_empty a |> not)
     let combine s1 s2 =
       let open Atom' in
       let bindings = LabelMap.merge (fun _ b1 b2 ->

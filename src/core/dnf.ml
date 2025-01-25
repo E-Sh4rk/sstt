@@ -10,7 +10,7 @@ module type Atom = sig
   
   val undesirable_leaf : leaf -> bool
   val leq : dnf -> dnf -> bool
-  val to_s : t * bool -> t' list (* Result MUST NOT contain empty atoms *)
+  val to_t' : t * bool -> t' list (* Result MUST NOT contain empty atoms *)
   val combine : t' -> t' -> t' option (* MUST return None if the result is empty *)
 end
 
@@ -42,9 +42,9 @@ module Make(A:Atom)(N:Node) = struct
   let combine dnf =
     let rec aux c =
       match c with
-      | [] -> []
+      | [] -> [(* TODO: Any *)]
       | (a, b)::c ->
-        let a' = A.to_s (a, b) in
+        let a' = A.to_t' (a, b) in
         let c' = aux c in
         carthesian_product a' c' |> List.filter_map (fun (a, a') -> A.combine a a')
     in

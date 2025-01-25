@@ -83,7 +83,7 @@ module MakeT(N:Node) = struct
 
     let undesirable_leaf = not
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
-    let to_s (ns,b) =
+    let to_t' (ns,b) =
       let rec aux ns =
         match ns with
         | [] -> []
@@ -91,7 +91,7 @@ module MakeT(N:Node) = struct
           ((N.neg n)::ns)::(aux ns |> List.map (fun s -> n::s))
       in
       if b then [ns] else aux ns
-    let to_s (a,b) = to_s (a,b) |> List.filter (fun a -> Atom.is_empty a |> not)
+    let to_t' (a,b) = to_t' (a,b) |> List.filter (fun a -> Atom.is_empty a |> not)
     let combine ns1 ns2 =
       let res = List.map2 N.cap ns1 ns2 in
       if Atom.is_empty res then None else Some res
