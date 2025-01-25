@@ -12,17 +12,21 @@ end
 
 module Products : sig
     type t = Products.t
+    type atom = Products.Atom.t
 
-    val approx : t -> Products.Atom.t (* Can raise EmptyAtom *)
+    val as_union : t -> atom list
+    val approx : t -> atom (* Can raise EmptyAtom *)
     val proj : int -> t -> Ty.t
-    val merge : t -> t -> t
+    val merge : atom -> atom -> atom
 end
 
 module Records : sig
     type t = Records.t
+    type atom = Records.Atom.t
 
-    val approx : t -> Records.Atom.t (* Can raise EmptyAtom *)
+    val as_union : t -> atom list
+    val approx : t -> atom (* Can raise EmptyAtom *)
     val proj : Label.t -> t -> Ty.t * bool
-    val merge : t -> t -> t
-    val remove : t -> Label.t -> t
+    val merge : atom -> atom -> t
+    val remove : atom -> Label.t -> t
 end

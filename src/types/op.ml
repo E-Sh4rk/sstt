@@ -45,32 +45,34 @@ end
 
 module Products = struct
   type t = Products.t
+  type atom = Products.Atom.t
+
+  let as_union t =
+    Products.dnf t |> Products.Dnf.combine |> List.map fst
 
   let approx t =
-    let union = Products.dnf t |> Products.Dnf.combine in
-    mapn (fun _ -> raise EmptyAtom) Ty.disj (List.map fst union)
+    mapn (fun _ -> raise EmptyAtom) Ty.disj (as_union t)
 
   let proj i t =
     let union = Products.dnf t |> Products.Dnf.combine in
     union |> List.map fst |> List.map (fun lst -> List.nth lst i) |> Ty.disj
 
-  let merge t1 t2 =
-    let n = (Products.len t1) + (Products.len t2) in
-    try
-      let a1, a2 = approx t1, approx t2 in
-      a1@a2 |> Products.mk
-    with EmptyAtom -> Products.empty n
+  let merge a1 a2 = a1@a2
 end
 
 module Records = struct
   type t = Records.t
+  type atom = Records.Atom.t
+
+  let as_union t =
+    let open Records.Atom in
+    Records.dnf t |> Records.Dnf.combine |> List.map fst |>
+    List.map (fun t ->
+      { bindings=t.Records.Atom'.bindings ; opened=Records.Atom'.opened t }
+    )
 
   let approx t =
     let open Records.Atom in
-    let union = Records.dnf t |> Records.Dnf.combine in
-    let union = union |> List.map fst |> List.map (fun t ->
-        { bindings=t.Records.Atom'.bindings ; opened=Records.Atom'.opened t }
-      ) in
     let union_a a1 a2 =
       let dom = LabelSet.union (dom a1) (dom a2) in
       let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
@@ -78,7 +80,7 @@ module Records = struct
       ) |> LabelMap.of_list in
       { bindings ; opened = a1.opened || a2.opened }
     in
-    match union with
+    match as_union t with
     | [] -> raise EmptyAtom
     | hd::tl -> List.fold_left union_a hd tl
 
@@ -87,25 +89,19 @@ module Records = struct
     union |> List.map fst |> List.map (Records.Atom'.find label)
     |> Records.Atom'.OTy.disj
 
-  let merge t1 t2 =
+  let merge a1 a2 =
     let open Records.Atom in
-    try
-      let a1, a2 = approx t1, approx t2 in
-      let dom = LabelSet.union (dom a1) (dom a2) in
-      let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
-        let oty1, oty2 = find lbl a1, find lbl a2 in
-        let oty = if snd oty2 then OTy.cup oty1 (fst oty2, false) else oty2 in
-        (lbl, oty)
-      ) |> LabelMap.of_list in
-      { bindings ; opened = a1.opened && a2.opened } |> Records.mk
-    with EmptyAtom -> Records.empty ()
+    let dom = LabelSet.union (dom a1) (dom a2) in
+    let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
+      let oty1, oty2 = find lbl a1, find lbl a2 in
+      let oty = if snd oty2 then OTy.cup oty1 (fst oty2, false) else oty2 in
+      (lbl, oty)
+    ) |> LabelMap.of_list in
+    { bindings ; opened = a1.opened && a2.opened } |> Records.mk
 
-  let remove t lbl =
+  let remove a lbl =
     let open Records.Atom in
-    try
-      let a = approx t in
-      let bindings = a.bindings |> LabelMap.add lbl (OTy.absent ()) in
-      { a with bindings } |> Records.mk
-    with EmptyAtom -> Records.empty ()
+    let bindings = a.bindings |> LabelMap.add lbl (OTy.absent ()) in
+    { a with bindings } |> Records.mk
 
 end
