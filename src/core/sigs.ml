@@ -130,8 +130,13 @@ module type Arrows = sig
   module Atom : ArrowAtom with type node := node
   module Dnf : Dnf with type atom = Atom.t and type leaf = bool
   val mk : Atom.t -> t
+
+  (** [dnf t] returns a disjunctive normal form of [t]. *)
   val dnf : t -> Dnf.t
+
   val of_dnf : Dnf.t -> t
+
+  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
   val map_nodes : (node -> node) -> t -> t
 end
 
@@ -149,8 +154,17 @@ module type RecordAtom = sig
   type node
   module OTy : OTy with type node := node
   type t = { bindings : OTy.t LabelMap.t ; opened : bool }
+
+  (** [dom t] returns the set of explicit labels in [t].
+  Note that this does not mean that labels in [dom t] are present in
+  the record values captured by [t]: even if a binding is present
+  in [t], it could be associated with a possibly absent type. *)
   val dom : t -> LabelSet.t
+
+  (** [find l t] returns the type associated with the label [l] in [t],
+  even if [t] does not have an explicit binding for [l]. *)
   val find : Label.t -> t -> OTy.t
+
   val to_tuple : Label.t list -> t -> OTy.t list
   val to_tuple_with_default : Label.t list -> t -> OTy.t list
   include Comparable with type t := t
@@ -160,9 +174,21 @@ end
 module type RecordAtom' = sig
   type node
   module OTy : OTy with type node := node
+
+  (** When the field [required] is equal to [Some labels],
+  it means that [t] requires at least one field not in [labels] to be present. *)
   type t = { bindings : OTy.t LabelMap.t ; opened : bool ; required : LabelSet.t option }
+
+  (** [dom t] returns the set of explicit labels in [t].
+  Note that this does not mean that labels in [dom t] are present in
+  the record values captured by [t]: even if a binding is present
+  in [t], it could be associated with a possibly absent type. *)
   val dom : t -> LabelSet.t
+
+  (** [find l t] returns the type associated with the label [l] in [t],
+  even if [t] does not have an explicit binding for [l]. *)
   val find : Label.t -> t -> OTy.t
+
   include Comparable with type t := t
 end
 
@@ -173,10 +199,18 @@ module type Records = sig
   module Dnf : Dnf with type atom = Atom.t and type leaf = bool
   module Dnf' : Dnf' with type atom = Atom'.t and type leaf = bool
   val mk : Atom.t -> t
+
+  (** [dnf t] returns a disjunctive normal form of [t]. *)
   val dnf : t -> Dnf.t
+
+  (** [dnf' t] returns a condensed disjunctive form of [t]
+  where each clause is a positive literal. *)
   val dnf' : t -> Dnf'.t
+
   val of_dnf : Dnf.t -> t
   val of_dnf' : Dnf'.t -> t
+
+  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
   val map_nodes : (node -> node) -> t -> t
 end
 
@@ -198,10 +232,18 @@ module type Products = sig
   val empty : int -> t
   val mk : Atom.t -> t
   val len : t -> int
+
+  (** [dnf t] returns a disjunctive normal form of [t]. *)
   val dnf : t -> Dnf.t
+
+  (** [dnf' t] returns a condensed disjunctive form of [t]
+  where each clause is a positive literal. *)
   val dnf' : t -> Dnf'.t
+
   val of_dnf : int -> Dnf.t -> t
   val of_dnf' : int -> Dnf'.t -> t
+
+  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
   val map_nodes : (node -> node) -> t -> t
 end
 
@@ -214,6 +256,8 @@ module type Tuples = sig
   val of_components : Products.t list * bool -> t
   val get : int -> t -> Products.t
   val map : (Products.t -> Products.t) -> t -> t
+
+  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
   val map_nodes : (node -> node) -> t -> t
 end
 
@@ -258,6 +302,7 @@ module type Descr = sig
   val of_component : component -> t
   val of_components : component list -> t
 
+  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
   val map_nodes : (node -> node) -> t -> t
 end
 
@@ -273,6 +318,8 @@ module type VDescr = sig
   val mk_descr : Descr.t -> t
   val get_descr : t -> Descr.t
   val map : (Descr.t -> Descr.t) -> t -> t
+
+  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
   val map_nodes : (node -> node) -> t -> t
 
   val dnf : t -> Dnf.t
