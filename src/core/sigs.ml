@@ -44,8 +44,8 @@ module type Dnf = sig
   type t = (atom list * atom list * leaf) list
 
   (** [simplify t] removes from [t] useless clauses and summands.
-  In particular, [simplify t] is ensured not to contain any "empty summand"
-  nor "any clause". *)
+  In particular, [simplify t] is ensured not to contain any [empty] summand
+  nor [any] clause. *)
   val simplify : t -> t
 end
 
@@ -59,7 +59,7 @@ module type Dnf' = sig
   type t = (atom * leaf) list
 
   (** [simplify t] removes from [t] useless summands.
-  In particular, [simplify t] is ensured not to contain any "empty summand". *)
+  In particular, [simplify t] is ensured not to contain any [empty] summand. *)
   val simplify : t -> t
 end
 
@@ -262,7 +262,7 @@ module type Tuples = sig
 
   (** [components t] returns a pair [(cs,b)] where [cs] are the products components
   explicitely present in [t], and [b] is a boolean indicating whether components
-  of other cardinalities are "any" (if [b] is [true]) or "empty" (if [b] is [false]). *)
+  of other cardinalities are [any] (if [b] is [true]) or [empty] (if [b] is [false]). *)
   val components : t -> Products.t list * bool
 
   val of_components : Products.t list * bool -> t
