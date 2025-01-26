@@ -76,9 +76,7 @@ let simpl t =
     Arrows.dnf a |> Arrows.Dnf.simplify |> List.map regroup_arrows |> Arrows.of_dnf
   and simpl_records r =
     Records.dnf r |> Records.Dnf.simplify |> List.map regroup_records |> Records.of_dnf
-  and simpl_tuples t =
-    let (comps, others) = Tuples.components t in
-    (List.map simpl_products comps, others) |> Tuples.of_components
+  and simpl_tuples t = Tuples.map simpl_products t
   and simpl_products p =
     Products.dnf p |> Products.Dnf.simplify |> List.map regroup_products
     |> Products.of_dnf (Products.len p)

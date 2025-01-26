@@ -163,10 +163,18 @@ module rec Node : Node = struct
     eqs |> List.map (fun (v,n) -> v,new_node n)
 
   let substitute s t =
+    let dom = VarMap.bindings s |> List.map fst |> VarSet.of_list in
     let s = s |> VarMap.map (fun n -> def n) in
-    let deps = dependencies t |> NSet.to_list in
+    (* Optimisation: reuse nodes if possible *)
+    let unchanged n = VarSet.disjoint (vars n) dom in
+    let deps = dependencies t |> NSet.to_list
+      |> List.filter (fun n -> unchanged n |> not) in
     let copies = List.fold_left (fun acc n -> NMap.add n (mk ()) acc) NMap.empty deps in
-    let new_node n = NMap.find n copies in
+    let new_node n =
+      match NMap.find_opt n copies with
+      | Some n -> n
+      | None -> n
+    in
     deps |> List.iter (fun n ->
       let d = def n |> VDescr.map_nodes new_node |> VDescr.substitute s in
       define (new_node n) d
