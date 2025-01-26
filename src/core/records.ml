@@ -51,9 +51,12 @@ module Atom(N:Node) = struct
     | Some on, _ -> on
     | None, true -> OTy.any ()
     | None, false -> OTy.absent ()
-  let to_tuple dom t =
-    let bindings = dom |> List.map (fun l -> find l t) in
-    if t.opened then (OTy.any ())::bindings else (OTy.absent ())::bindings
+  let to_tuple dom t = dom |> List.map (fun l -> find l t)
+  let to_tuple_with_default dom t =
+    if t.opened then
+      (OTy.any ())::(to_tuple dom t)
+    else
+      (OTy.absent ())::(to_tuple dom t)  
   let simplify t =
     let not_any _ on = OTy.is_any on |> not in
     let not_absent _ on = OTy.is_absent on |> not in
@@ -169,8 +172,8 @@ module Make(N:Node) = struct
         (fun acc a -> LabelSet.union acc (Atom.dom a))
         LabelSet.empty (ps@ns) |> LabelSet.to_list in
       let ps, ns =
-        ps |> List.map (Atom.to_tuple dom),
-        ns |> List.map (Atom.to_tuple dom) in
+        ps |> List.map (Atom.to_tuple_with_default dom),
+        ns |> List.map (Atom.to_tuple_with_default dom) in
       (* We reuse the same algorithm as for tuples *)
       match ps@ns with
       | [] -> false
@@ -226,15 +229,10 @@ module Make(N:Node) = struct
       |> List.map Atom'.simplify
     let combine s1 s2 =
       let open Atom' in
-      let bindings = LabelMap.merge (fun _ b1 b2 ->
-        match b1, b2 with
-        | None, None -> None
-        | Some on, None when not s2.opened -> Some (ON.cap on (ON.absent ()))
-        | Some on, None -> Some on
-        | None, Some on when not s1.opened -> Some (ON.cap on (ON.absent ()))
-        | None, Some on -> Some on
-        | Some on1, Some on2 -> Some (ON.cap on1 on2)
-      ) s1.bindings s2.bindings in
+      let dom = LabelSet.union (dom s1) (dom s2) in
+      let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
+        (lbl, OTy.cap (find lbl s1) (find lbl s2))
+      ) |> LabelMap.of_list in
       let opened = s1.opened && s2.opened in
       let required =
         match s1.required, s2.required with

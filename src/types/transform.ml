@@ -20,10 +20,10 @@ let transform f t =
     | None ->
       let v = Var.mk "" in
       ctx.cache <- VDMap.add vd v ctx.cache ;
-      let vd = f vd |> VDescr.map_nodes simpl_ty in
+      let vd = f vd |> VDescr.map_nodes aux_ty in
       ctx.eqs <- (v, Ty.of_def vd)::ctx.eqs ;
       v
-  and simpl_ty t = aux t |> Ty.mk_var in
+  and aux_ty t = aux t |> Ty.mk_var in
   let v = aux t in
   let res = Ty.of_eqs ctx.eqs |> VarMap.of_list in
   VarMap.find v res
@@ -49,8 +49,7 @@ let regroup_records conjuncts =
     LabelSet.to_list in
   let tuples = conjuncts |> List.map (Records.Atom.to_tuple dom) in
   try
-    let tuple =
-      mapn (fun () -> raise Exit) Records.Atom.OTy.conj tuples |> List.tl in
+    let tuple = mapn (fun () -> raise Exit) Records.Atom.OTy.conj tuples in
     let bindings = List.combine dom tuple |> LabelMap.of_list in
     let opened = List.for_all (fun a -> a.Records.Atom.opened) conjuncts in
     [{ Records.Atom.bindings ; opened }]

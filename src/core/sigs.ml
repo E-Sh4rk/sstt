@@ -118,6 +118,7 @@ module type RecordAtom = sig
   val dom : t -> LabelSet.t
   val find : Label.t -> t -> OTy.t
   val to_tuple : Label.t list -> t -> OTy.t list
+  val to_tuple_with_default : Label.t list -> t -> OTy.t list
   include Comparable with type t := t
   val map : (node -> node) -> t -> t
 end

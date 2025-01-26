@@ -210,8 +210,8 @@ let norm delta t =
       (fun acc a -> LabelSet.union acc (dom a))
       LabelSet.empty (ps@ns) |> LabelSet.to_list in
     let ps, ns =
-      ps |> List.map (to_tuple dom),
-      ns |> List.map (to_tuple dom) in
+      ps |> List.map (to_tuple_with_default dom),
+      ns |> List.map (to_tuple_with_default dom) in
     let n = List.length dom + 1 in
   (* We reuse the same algorithm as for tuples *)
     let ps = mapn (fun () -> List.init n (fun _ -> OTy.any ())) OTy.conj ps in
