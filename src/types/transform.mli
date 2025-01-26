@@ -1,3 +1,4 @@
 open Sstt_core
 
-val simpl : Ty.t -> Ty.t
+val transform : (VDescr.t -> VDescr.t) -> Ty.t -> Ty.t
+val simplify : Ty.t -> Ty.t
