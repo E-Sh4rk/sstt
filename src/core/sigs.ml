@@ -71,7 +71,12 @@ module type Atoms = sig
   include TyBase
   module Atom : AtomAtom
   val mk : Atom.t -> t
+
   val construct : bool * Atom.t list -> t
+
+  (** [destruct t] returns a pair [(b,atoms)] such that:
+  if [b] is true, then [t] contains exactly the atoms [atoms],
+  and if [b] is false, then [t] contains exactly the atoms not in [atoms]. *)
   val destruct : t -> bool * Atom.t list
 end
 
@@ -231,6 +236,8 @@ module type Products = sig
   val any : int -> t
   val empty : int -> t
   val mk : Atom.t -> t
+
+  (** [len t] returns the cardinality of products in [t]. *)
   val len : t -> int
 
   (** [dnf t] returns a disjunctive normal form of [t]. *)
@@ -252,9 +259,18 @@ module type Tuples = sig
   module Products : Products with type node := node
   val mk_product : Products.Atom.t -> t
   val mk_products : Products.t -> t
+
+  (** [components t] returns a pair [(cs,b)] where [cs] are the products components
+  explicitely present in [t], and [b] is a boolean indicating whether components
+  of other cardinalities are "any" (if [b] is [true]) or "empty" (if [b] is [false]). *)
   val components : t -> Products.t list * bool
+
   val of_components : Products.t list * bool -> t
+
+  (** [get n t] returns the products component of cardinality [n] in [t]. *)
   val get : int -> t -> Products.t
+
+  (** [map f t] replaces every products component [p] in [t] by [f p]. *)
   val map : (Products.t -> Products.t) -> t -> t
 
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
@@ -317,6 +333,8 @@ module type VDescr = sig
   val mk_var : Var.t -> t
   val mk_descr : Descr.t -> t
   val get_descr : t -> Descr.t
+
+  (** [map f t] replaces every descriptor [d] in [t] by the descriptor [f d]. *)
   val map : (Descr.t -> Descr.t) -> t -> t
 
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)

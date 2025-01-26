@@ -47,12 +47,10 @@ module rec Node : Node = struct
     t
 
   let define ?(simplified=false) t d =
-    if simplified then begin
-      t.simplified <- true ;
-      t.neg.simplified <- true ;
-    end ;
     t.def <- Some d ;
-    t.neg.def <- Some (VDescr.neg d)
+    if simplified then t.simplified <- true ;
+    t.neg.def <- Some (VDescr.neg d) ;
+    if simplified then t.neg.simplified <- true
 
   let cons d =
     let t = mk () in
