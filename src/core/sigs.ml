@@ -384,20 +384,37 @@ module type Ty = sig
   val any : t
   val empty : t
 
+  (** [def t] returns the full descriptor of [t]. For a given type [t],
+  [def t] is not necessarily constant: it may change over time, for instance
+  when the descriptor of [t] is simplified (even though in the current implementation
+  a type is simplified as soon as it is created). *)
   val def : t -> VDescr.t
+
+  (** [of_def d] creates a type from the full descriptor [d]. *)
   val of_def : VDescr.t -> t
 
   val mk_var : Var.t -> t
+
+  (** [mk_descr d] creates a type from the monomorphic descriptor [d]. *)
   val mk_descr : VDescr.Descr.t -> t
+
+  (** [get_descr t] extracts a monomorphic descriptor from [t],
+  which describes [t] by ignoring its top-level type variables. *)
   val get_descr : t -> VDescr.Descr.t
 
   include SetTheoretic with type t := t
 
   val vars : t -> VarSet.t
   val vars_toplevel : t -> VarSet.t
+
+  (** [nodes t] returns all the nodes appearing in [t] (including [t] itself). *)
   val nodes : t -> t list
 
+  (** [of_eqs [(x1,t1);...;(xn,tn)]] returns the types [x1], ..., [xn]
+  satisfying the system of equations [x1=t1], ..., [xn=tn]. *)
   val of_eqs : (Var.t * t) list -> (Var.t * t) list
+
+  (** [substitute s t] applies the type variable substitution [s] to [t]. *)
   val substitute : t VarMap.t -> t -> t
 
   val hash : t -> int

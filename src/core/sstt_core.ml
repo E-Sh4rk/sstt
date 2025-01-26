@@ -13,7 +13,7 @@ module Ty : Ty = struct
   let simpl t = N.with_own_cache N.simplify t ; t
 
   let any, empty = N.any () |> simpl, N.empty () |> simpl
-  let def = N.def (* Should be simplified already *)
+  let def = N.def
   let of_def t = N.of_def t |> simpl
 
   let s f t = f t |> simpl
