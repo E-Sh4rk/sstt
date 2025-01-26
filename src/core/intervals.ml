@@ -102,22 +102,21 @@ module Make(N:Node) = struct
   let mk' = of_list
 
   let neg t =
-    let exception Empty in
     let ub next =
       match next with
       | [] -> None
       | (Some lb,_)::_ -> Some (Z.pred lb)
-      | (None, _)::_ -> raise Empty
+      | (None, _)::_ -> raise Exit
     in
     let lb prev =
       match prev with
       | [] -> None
       | (_,Some ub)::_ -> Some (Z.succ ub)
-      | (_, None)::_ -> raise Empty
+      | (_, None)::_ -> raise Exit
     in
     let rec aux prev next =
       let cur =
-        try [lb prev, ub next] with Empty -> []
+        try [lb prev, ub next] with Exit -> []
       in
       match next with
       | [] -> cur

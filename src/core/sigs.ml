@@ -88,6 +88,7 @@ module type ArrowAtom = sig
   type node
   type t = node * node
   include Comparable with type t := t
+  val map : (node -> node) -> t -> t
 end
 
 module type Arrows = sig
@@ -97,6 +98,7 @@ module type Arrows = sig
   val mk : Atom.t -> t
   val dnf : t -> Dnf.t
   val of_dnf : Dnf.t -> t
+  val map_nodes : (node -> node) -> t -> t
 end
 
 (* Records *)
@@ -117,6 +119,7 @@ module type RecordAtom = sig
   val find : Label.t -> t -> OTy.t
   val to_tuple : Label.t list -> t -> OTy.t list
   include Comparable with type t := t
+  val map : (node -> node) -> t -> t
 end
 
 module type RecordAtom' = sig
@@ -139,6 +142,7 @@ module type Records = sig
   val dnf' : t -> Dnf'.t
   val of_dnf : Dnf.t -> t
   val of_dnf' : Dnf'.t -> t
+  val map_nodes : (node -> node) -> t -> t
 end
 
 (* Tuples *)
@@ -147,6 +151,7 @@ module type TupleAtom = sig
   type node
   type t = node list
   include Comparable with type t := t
+  val map : (node -> node) -> t -> t
 end
 
 module type Products = sig
@@ -162,6 +167,7 @@ module type Products = sig
   val dnf' : t -> Dnf'.t
   val of_dnf : int -> Dnf.t -> t
   val of_dnf' : int -> Dnf'.t -> t
+  val map_nodes : (node -> node) -> t -> t
 end
 
 module type Tuples = sig
@@ -173,6 +179,7 @@ module type Tuples = sig
   val of_components : Products.t list * bool -> t
   val get : int -> t -> Products.t
   val map : (Products.t -> Products.t) -> t -> t
+  val map_nodes : (node -> node) -> t -> t
 end
 
 (* Descr *)
@@ -215,6 +222,8 @@ module type Descr = sig
   val set_component : t -> component -> t
   val of_component : component -> t
   val of_components : component list -> t
+
+  val map_nodes : (node -> node) -> t -> t
 end
 
 (* VDescr *)
@@ -228,7 +237,8 @@ module type VDescr = sig
   val mk_var : Var.t -> t
   val mk_descr : Descr.t -> t
   val get_descr : t -> Descr.t
-  val map_descr : (Descr.t -> Descr.t) -> t -> t
+  val map : (Descr.t -> Descr.t) -> t -> t
+  val map_nodes : (node -> node) -> t -> t
 
   val dnf : t -> Dnf.t
   val of_dnf : Dnf.t -> t
