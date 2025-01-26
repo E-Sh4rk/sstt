@@ -46,9 +46,9 @@ and op =
 type aliases = (Ty.t * string) list
 
 module NISet = Set.Make(NodeId)
-module TyMap = Map.Make(Ty)
 module VD = VDescr
 module D = Descr
+module VDMap = Map.Make(VD)
 
 let map_descr f d = (* Assumes f preserves semantic equivalence *)
   let rec aux (d,n) =
@@ -149,21 +149,22 @@ let interval (o1, o2) =
 (* Step 1 : Build the initial ctx and AST *)
 
 type ctx = {
-  mutable nmap : NodeId.t TyMap.t ;
+  mutable nodes : NodeId.t VDMap.t ;
   customs : (Ty.t * op) list
 }
 
 let node ctx n =
-  match TyMap.find_opt n ctx.nmap with
+  let def = Ty.def n in
+  match VDMap.find_opt def ctx.nodes with
   | Some nid -> PNode nid, n
   | None ->
     let nid = NodeId.mk () in
-    ctx.nmap <- TyMap.add n nid ctx.nmap ;
+    ctx.nodes <- VDMap.add def nid ctx.nodes ;
     PNode nid, n
 
 let build_t customs n =
   let customs = customs |> List.map (fun (n, s) -> (n, PNamed s)) in
-  let ctx = { nmap=TyMap.empty ; customs } in
+  let ctx = { nodes=VDMap.empty ; customs } in
   ctx, (node ctx n, [])
 
 (* Step 2 : Resolve missing definitions (and recognize custom type aliases) *)
@@ -288,10 +289,11 @@ let resolve_descr ctx d =
     if size_of_descr nd < size_of_descr pd then nd else pd
   | Some d -> d
 
-let resolve_node ctx n =
+let resolve_def ctx def =
+  let n = Ty.of_def def in
   match resolve_alias ctx n with
   | None ->
-    let dnf = Ty.def n |> VD.dnf |> VD.Dnf.simplify in
+    let dnf = def |> VD.dnf |> VD.Dnf.simplify in
     let resolve_var v = PVar v, Ty.mk_var v in
     let resolve_dnf (ps, ns, d) =
       let ps = ps |> List.map resolve_var in
@@ -303,15 +305,15 @@ let resolve_node ctx n =
   | Some d -> d
 
 let rec resolve_missing_defs ctx t =
-  let used_nodes = ctx.nmap |> TyMap.bindings in
+  let used_defs = ctx.nodes |> VDMap.bindings in
   let (main_descr,defs) = t in
-  let to_define = used_nodes |> List.find_opt (fun (_,nid) ->
+  let to_define = used_defs |> List.find_opt (fun (_,nid) ->
     defs |> List.exists (fun (nid',_) -> NodeId.equal nid nid') |> not
   ) in
   match to_define with
   | None -> t
-  | Some (n,nid) ->
-    let descr = resolve_node ctx n in
+  | Some (def,nid) ->
+    let descr = resolve_def ctx def in
     resolve_missing_defs ctx (main_descr, (nid,descr)::defs)
 
 (* Step 3 : Inline nodes when relevant, remove unused nodes *)
