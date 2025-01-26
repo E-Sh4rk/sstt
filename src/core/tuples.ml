@@ -135,7 +135,7 @@ module Make(N:Node) = struct
   let mk_products p =
     let n = T.len p in
     { map = IMap.singleton n p ; others = false }
-  let mk (ps, others) =
+  let of_components (ps, others) =
     let map = ps |> List.map (fun p -> (T.len p, p)) |> IMap.of_list in
     { map ; others }
   let any () = { map = IMap.empty ; others = true }

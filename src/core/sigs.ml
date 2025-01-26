@@ -170,8 +170,8 @@ module type Tuples = sig
   val mk_product : Products.Atom.t -> t
   val mk_products : Products.t -> t
   val components : t -> Products.t list * bool
+  val of_components : Products.t list * bool -> t
   val get : int -> t -> Products.t
-  val mk : Products.t list * bool -> t
   val map : (Products.t -> Products.t) -> t -> t
 end
 

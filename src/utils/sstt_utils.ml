@@ -1,3 +1,6 @@
+
+(* PRINT *)
+
 let print_seq f sep fmt l =
   let fst = ref true in
   l |> List.iter
@@ -29,6 +32,8 @@ let print_corr f1 f2 fmt (a,b) =
 let print_map f1 f2 fmt s =
   Format.fprintf fmt "%a" (print_set (print_corr f1 f2)) s
 
+(* MISC *)
+
 let identity x = x
 
 let ccmp f e1 e2 r =
@@ -39,6 +44,8 @@ let ccmp f e1 e2 r =
 let unwrap_or default = function
 | None -> default
 | Some x -> x
+
+(* LISTS *)
 
 let rec take_one lst =
   match lst with
@@ -106,3 +113,34 @@ let filter_among_others pred =
 
 let map_among_others f =
   fold_acc_rem (fun c acc rem -> (f c (acc@rem))::acc)
+
+let add_others lst =
+  let rec aux treated lst =
+    match lst with
+    | [] -> []
+    | a::lst ->
+      let others = treated@lst in
+      (a,others)::(aux (treated@[a]) lst)
+  in
+  aux [] lst
+
+let find_among_others pred lst =
+  lst |> add_others |> List.find_opt (fun (a,o) -> pred a o)
+
+let find_map_among_others f lst =
+  lst |> add_others |> List.find_map (fun (a,o) -> f a o)  
+
+let merge_when_possible merge_opt lst =
+  let merge_opt a b others =
+    merge_opt a b |> Option.map (fun a -> (a, others))
+  in
+  let rec aux lst =
+    match lst with
+    | [] -> []
+    | e::lst ->
+      begin match find_map_among_others (fun e' lst -> merge_opt e e' lst) lst with
+      | None -> e::(aux lst)
+      | Some (e, lst) -> aux (e::lst)
+      end
+    in
+    aux lst

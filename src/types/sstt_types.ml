@@ -5,3 +5,4 @@ module Printer = Printer
 module Tallying = Tallying
 module Subst = Subst
 module Op = Op
+module Transform = Transform
