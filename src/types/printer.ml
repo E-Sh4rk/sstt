@@ -144,7 +144,7 @@ let atom a =
   PAtom a, D.mk_atom a |> Ty.mk_descr
 
 let interval (o1, o2) =
-  PInterval (o1, o2), Intervals.Atom.mk' o1 o2 |> D.mk_interval |> Ty.mk_descr
+  PInterval (o1, o2), Intervals.Atom.mk o1 o2 |> D.mk_interval |> Ty.mk_descr
 
 (* Step 1 : Build the initial ctx and AST *)
 
@@ -193,17 +193,17 @@ let resolve_arrows ctx a =
   dnf |> List.map resolve_dnf |> union
 
 let resolve_atoms _ a =
-  let (pos, atoms) = Atoms.get a in
+  let (pos, atoms) = Atoms.destruct a in
   let atoms = atoms |> List.map atom |> union in
   if pos then atoms else neg atoms
 
 let resolve_intervals _ a =
   let pos =
-    Intervals.get a |> List.map Intervals.Atom.get
+    Intervals.destruct a |> List.map Intervals.Atom.get
     |> List.map interval |> union
   in
   let neg =
-    Intervals.get_neg a |> List.map Intervals.Atom.get
+    Intervals.destruct_neg a |> List.map Intervals.Atom.get
     |> List.map interval |> union |> neg
   in
   if size_of_descr neg < size_of_descr pos then neg else pos

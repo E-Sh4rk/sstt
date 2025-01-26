@@ -3,16 +3,16 @@ open Sstt_utils
 
 module Interval = struct
   type t = Z.t option * Z.t option
-  let mk lb ub = 
+  let mk_bounded lb ub = 
     if Z.leq lb ub then Some lb, Some ub
     else raise (Invalid_argument "Lower bound is greater than upper bound")
-  let mk' lb ub =
+  let mk lb ub =
     match lb, ub with
     | None, None -> None, None
     | Some lb, None -> Some lb, None
     | None, Some ub -> None, Some ub
-    | Some lb, Some ub -> mk lb ub
-  let mk_singl i = mk i i
+    | Some lb, Some ub -> mk_bounded lb ub
+  let mk_singl i = mk_bounded i i
   let any = None, None
   let get t = t
 
@@ -54,7 +54,7 @@ module Interval = struct
     | Some lb1, Some lb2 when Z.compare lb1 lb2 <= 0 -> Some lb1
     | Some _, Some lb2 -> Some lb2
   let inter (lb1,ub1) (lb2,ub2) =
-    try Some (mk' (max_lb lb1 lb2) (min_ub ub1 ub2))
+    try Some (mk (max_lb lb1 lb2) (min_ub ub1 ub2))
     with Invalid_argument _ -> None
   let combine (lb1, ub1) (lb2, ub2) =
     let inter_lb = max_lb lb1 lb2 in
@@ -99,7 +99,7 @@ module Make(N:Node) = struct
     in
     t |> ISet.elements |> try_combine [] |> ISet.of_list
   let of_list lst = lst |> ISet.of_list |> normalize
-  let mk' = of_list
+  let construct = of_list
 
   let neg t =
     let ub next =
@@ -135,8 +135,8 @@ module Make(N:Node) = struct
   let map_nodes _ t = t
   let simplify t = t
 
-  let get t = ISet.elements t
-  let get_neg t = neg t |> ISet.elements
+  let destruct t = ISet.elements t
+  let destruct_neg t = neg t |> ISet.elements
 
   let compare = ISet.compare
   let equal = ISet.equal

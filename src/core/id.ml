@@ -1,12 +1,24 @@
 
 module type NamedIdentifier = sig
   type t
+
+  (** [mk name] makes a new identifier of name [name].
+  This will generate a fresh identifier even if another identifier
+  has name [name]. *)
   val mk : string -> t
+
+  (** [name t] returns the name of the identifier [t]. *)
   val name : t -> string
+
   val hash : t -> int
   val compare : t -> t -> int
   val equal : t -> t -> bool
+
+  (** [pp fmt t] prints the name of [t] using the formatter [fmt]. *)
   val pp : Format.formatter -> t -> unit
+
+  (** [pp_unique fmt t] prints the name of [t] followed by a unique
+  integer to disambiguate it from other identifiers with the same name. *)
   val pp_unique : Format.formatter -> t -> unit
 end
 

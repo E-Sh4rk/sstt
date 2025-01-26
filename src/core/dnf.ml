@@ -27,7 +27,7 @@ module Make(A:Atom)(N:Node) = struct
   let mk dnf = dnf |> List.filter (fun (_,_,d) -> A.undesirable_leaf d |> not)
 
   let simplify dnf =
-    (* Remove useless summands (useless if the BDD is simplified...) *)
+    (* Remove useless summands *)
     dnf |> filter_among_others (fun c c_others ->
       A.leq (c::c_others) c_others |> not
     )

@@ -1,5 +1,4 @@
 open Sigs
-open Sstt_utils
 
 module Atom = Id.NamedIdentifier()
 
@@ -14,10 +13,10 @@ module Make(N:Node) = struct
   let empty () = Pos ASet.empty
 
   let mk e = Pos (ASet.singleton e)
-  let mk' (n,es) =
+  let construct (n,es) =
     let es = ASet.of_list es in
     if n then Pos es else Neg es
-  let get t = match t with
+  let destruct t = match t with
   | Pos s -> true, ASet.elements s
   | Neg s -> false, ASet.elements s
 
@@ -53,16 +52,6 @@ module Make(N:Node) = struct
     match t1, t2 with
     | Pos _, Neg _ | Neg _, Pos _ -> false
     | Pos s1, Pos s2 | Neg s1, Neg s2 -> ASet.equal s1 s2
-
-  let pp fmt t =
-    if is_any t
-    then Format.fprintf fmt "⊤"
-    else if is_empty t
-    then Format.fprintf fmt "⊥"
-    else
-      match t with
-      | Pos p -> Format.fprintf fmt "(%a)" (print_seq Atom.pp "|") (ASet.elements p)
-      | Neg n -> Format.fprintf fmt "~(%a)" (print_seq Atom.pp "|") (ASet.elements n)
 
   let direct_nodes _ = []
   let map_nodes _ t = t

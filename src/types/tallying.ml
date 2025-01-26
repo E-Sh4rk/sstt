@@ -152,11 +152,11 @@ let norm delta t =
     | Tuples c -> aux_tuples m c
     | Records c -> aux_records m c
   and aux_atoms _ d =
-    match Atoms.get d with
+    match Atoms.destruct d with
     | true, [] -> NCSS.any
     | _, _ -> NCSS.empty
   and aux_intervals _ d =
-    match Intervals.get d with
+    match Intervals.destruct d with
     | [] -> NCSS.any
     | _ -> NCSS.empty
   and aux_arrows m arr =

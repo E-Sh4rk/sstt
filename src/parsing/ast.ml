@@ -107,7 +107,7 @@ let build_ty env t =
     | None -> StrMap.find str env.tenv, env
     end
   | TInterval (lb, ub) ->
-    Intervals.Atom.mk' lb ub |> Descr.mk_interval |> Ty.mk_descr, env
+    Intervals.Atom.mk lb ub |> Descr.mk_interval |> Ty.mk_descr, env
   | TVar str ->
     let v, env = tvar env str in
     Ty.mk_var v, env

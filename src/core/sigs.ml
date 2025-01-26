@@ -37,14 +37,29 @@ end
 module type Dnf = sig
   type atom
   type leaf
+
+  (** [t] represents a disjunctive normal form, that is, a disjunction of clauses.
+  For leaf components, [leaf] is a boolean that should be true.
+  If set to false, the corresponding clause will be ignored. *)
   type t = (atom list * atom list * leaf) list
+
+  (** [simplify t] removes from [t] useless clauses and summands.
+  In particular, [simplify t] is ensured not to contain any "empty summand"
+  nor "any clause". *)
   val simplify : t -> t
 end
 
 module type Dnf' = sig
   type atom
   type leaf
+
+  (** [t] represents a condensed disjunctive normal form, that is,
+  a disjunction of atoms. [leaf] is a boolean that should be true.
+  If set to false, the corresponding atom will be ignored. *)
   type t = (atom * leaf) list
+
+  (** [simplify t] removes from [t] useless summands.
+  In particular, [simplify t] is ensured not to contain any "empty summand". *)
   val simplify : t -> t
 end
 
@@ -56,19 +71,33 @@ module type Atoms = sig
   include TyBase
   module Atom : AtomAtom
   val mk : Atom.t -> t
-  val get : t -> bool * Atom.t list
-  val mk' : bool * Atom.t list -> t
-  val pp : Format.formatter -> t -> unit
+  val construct : bool * Atom.t list -> t
+  val destruct : t -> bool * Atom.t list
 end
 
 (* Intervals *)
 
 module type IntervalAtom = sig
+  (** [t] represents a non-empty integer interval. *)
   type t
-  val mk : Z.t -> Z.t -> t
-  val mk' : Z.t option -> Z.t option -> t
+
+  (** [mk b1 b2] creates an interval from bound [b1]
+  (inclusive, -infinity if [None]) to bound [b2]
+  (inclusive, +infinity if [None]).
+  Raises: [Invalid_argument] if the interval is empty. *)
+  val mk : Z.t option -> Z.t option -> t
+
+  (** [mk_bounded i1 i2] creates an interval from bound [i1]
+  (inclusive) to bound [i2] (inclusive).
+  Raises: [Invalid_argument] if the interval is empty. *)
+  val mk_bounded : Z.t -> Z.t -> t
+
+  (** [mk_singl i] creates an interval containing exactly [i]. *)
   val mk_singl : Z.t -> t
+
+  (** [get t] returns the boundaries (inclusive) of the interval [t]. *)
   val get : t -> Z.t option * Z.t option
+
   include Comparable with type t := t
   val pp : Format.formatter -> t -> unit
 end
@@ -77,9 +106,14 @@ module type Intervals = sig
   include TyBase
   module Atom : IntervalAtom
   val mk : Atom.t -> t
-  val get : t -> Atom.t list
-  val get_neg : t -> Atom.t list
-  val mk' : Atom.t list -> t
+  val construct : Atom.t list -> t
+  val destruct : t -> Atom.t list
+
+  (** [destruct_neg t] destructs the negation of [t].
+  The negation of [t] is sometimes simpler than [t] itself,
+  which may justify working on this negative form
+  (for instance when pretty-printing). *)
+  val destruct_neg : t -> Atom.t list
 end
 
 (* Arrows *)
