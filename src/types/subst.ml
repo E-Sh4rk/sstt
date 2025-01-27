@@ -5,8 +5,8 @@ let identity = VarMap.empty
 
 let not_id v ty = Ty.equiv ty (Ty.mk_var v) |> not
 let norm s = VarMap.filter not_id s
-let mk lst = lst |> VarMap.of_list |> norm
-let renaming ?names vs =
+let of_list lst = lst |> VarMap.of_list |> norm
+let refresh ?names vs =
   let new_name =
     match names with None -> Var.name | Some f -> f
   in
@@ -17,7 +17,7 @@ let renaming ?names vs =
     ) |> List.split in
   VarMap.of_list bindings, VarMap.of_list bindings'
 
-let singleton v ty = mk [v, ty]
+let singleton v ty = VarMap.singleton v ty |> norm
 let bindings = VarMap.bindings
 let add v ty s =
   if not_id v ty then VarMap.add v ty s else s
@@ -36,7 +36,7 @@ let compose s2 s1 =
   let bindings1 = bindings s1 |> List.map (fun (v,t) -> (v, Ty.substitute s2 t)) in
   let bindings2 =
     bindings s2 |> List.filter (fun (v, _) -> VarSet.mem v dom1 |> not) in
-  bindings1@bindings2 |> mk
+  bindings1@bindings2 |> of_list
 
 let equiv s1 s2 = VarMap.equal Ty.equiv s1 s2
 let is_identity s = VarMap.is_empty s

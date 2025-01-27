@@ -38,10 +38,25 @@ and op =
 
 type aliases = (Ty.t * string) list
 
+(** [get aliases ty] transforms the type [ty] into an algebraic form,
+recognizing type aliases [aliases]. *)
 val get : aliases -> Ty.t -> t
+
+(** [print fmt t] prints the algebraic form [t] using formatter [fmt]. *)
 val print : Format.formatter -> t -> unit
+
+(** [print_ty aliases fmt ty] prints the type [ty] using formatter [fmt],
+recognizing type aliases [aliases]. Same as [print fmt (get aliases ty)]. *)
 val print_ty : aliases -> Format.formatter -> Ty.t -> unit
+
+(** [print_subst aliases fmt s] prints the substitution [s] using formatter [fmt],
+recognizing type aliases [aliases]. *)
 val print_subst : aliases -> Format.formatter -> Subst.t -> unit
 
+(** [print_ty' fmt ty] prints the type [ty] using formatter [fmt].
+Same as [print_ty [] fmt ty]. *)
 val print_ty' : Format.formatter -> Ty.t -> unit
+
+(** [print_subst' fmt s] prints the substitution [s] using formatter [fmt].
+Same as [print_subst [] fmt s]. *)
 val print_subst' : Format.formatter -> Subst.t -> unit

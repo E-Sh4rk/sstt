@@ -331,7 +331,12 @@ module type VDescr = sig
   module Dnf : Dnf with type atom = Var.t and type leaf = Descr.t
 
   val mk_var : Var.t -> t
+
+  (** [mk_descr d] creates a full descriptor from the monomorphic descriptor [d]. *)
   val mk_descr : Descr.t -> t
+
+  (** [get_descr t] extracts a monomorphic descriptor from [t],
+  which describes [t] by ignoring its top-level type variables. *)
   val get_descr : t -> Descr.t
 
   (** [map f t] replaces every descriptor [d] in [t] by the descriptor [f d]. *)
