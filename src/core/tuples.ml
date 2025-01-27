@@ -17,6 +17,7 @@ end
 module MakeT(N:Node) = struct
   module Atom = Atom(N)
   module Bdd = Bdd.Make(Atom)(Bdd.BoolLeaf)
+  module Tag = Int
 
   type t = int * Bdd.t
   type node = N.t
@@ -26,7 +27,8 @@ module MakeT(N:Node) = struct
 
   let mk a = List.length a, Bdd.singleton a
 
-  let len (n,_) = n
+  let tag (n,_) = n
+  let len = tag
 
   let check_len n n' =
     if n <> n' then raise (Invalid_argument "Heterogeneous product lengths.")
@@ -122,98 +124,9 @@ module MakeT(N:Node) = struct
 end
 
 module Make(N:Node) = struct
-  module T = MakeT(N)
-  module Products = T
-  module IMap = Map.Make(Int)
+  module Products = MakeT(N)
+  include Tagcomp.Make(N)(Products)
 
-  type node = N.t
-  type t = { map : T.t IMap.t ; others : bool }
-
-  let mk_product a =
-    let n = List.length a in
-    { map = IMap.singleton n (T.mk a) ; others = false }
-  let mk_products p =
-    let n = T.len p in
-    { map = IMap.singleton n p ; others = false }
-  let of_components (ps, others) =
-    let map = ps |> List.map (fun p -> (T.len p, p)) |> IMap.of_list in
-    { map ; others }
-  let any () = { map = IMap.empty ; others = true }
-  let empty () = { map = IMap.empty ; others = false }
-
-  let cap t1 t2 =
-    let others = t1.others && t2.others in
-    let map = IMap.merge (fun _ o1 o2 ->
-      match o1, o2 with
-      | None, None -> None
-      | Some t1, None -> if t2.others then Some t1 else None
-      | None, Some t2 -> if t1.others then Some t2 else None
-      | Some t1, Some t2 -> Some (T.cap t1 t2)
-    ) t1.map t2.map in
-    { map ; others }
-  let cup t1 t2 =
-    let others = t1.others || t2.others in
-    let map = IMap.merge (fun _ o1 o2 ->
-      match o1, o2 with
-      | None, None -> None
-      | Some t1, None -> if t2.others then None else Some t1
-      | None, Some t2 -> if t1.others then None else Some t2
-      | Some t1, Some t2 -> Some (T.cup t1 t2)
-    ) t1.map t2.map in
-    { map ; others }
-  let neg t =
-    let others = not t.others in
-    let map = IMap.map T.neg t.map in
-    { map ; others }
-  let diff t1 t2 =
-    let others = t1.others && not t2.others in
-    let map = IMap.merge (fun _ o1 o2 ->
-      match o1, o2 with
-      | None, None -> None
-      | Some t1, None -> if not t2.others then Some t1 else None
-      | None, Some t2 -> if t1.others then Some (T.neg t2) else None
-      | Some t1, Some t2 -> Some (T.diff t1 t2)
-    ) t1.map t2.map in
-    { map ; others }
-
-  let is_empty t =
-    not t.others &&
-    IMap.for_all (fun _ a -> T.is_empty a) t.map
-
-  let direct_nodes t = t.map |> IMap.bindings |>
-    List.map (fun (_,t) -> T.direct_nodes t) |>
-    List.concat
-
-  let map_nodes f t =
-    let map = IMap.map (Products.map_nodes f) t.map in
-    { map ; others=t.others }
-
-  let simplify t =
-    let t_is_empty t = T.is_empty t in
-    let t_is_any t = T.neg t |> T.is_empty in
-    let map = IMap.map T.simplify t.map in
-    let p = if t.others then t_is_any else t_is_empty in
-    let map = IMap.filter (fun _ t -> p t |> not) map in
-    { map ; others = t.others }
-
-  let components t =
-    let prods = IMap.bindings t.map |> List.map snd in
-    (prods, t.others)
-
-  let get i t =
-    match IMap.find_opt i t.map with
-    | Some prod -> prod
-    | None when t.others -> Products.any i
-    | None -> Products.empty i
-
-  let map f t =
-    let map = IMap.map f t.map in
-    { t with map }
-
-  let equal t1 t2 =
-    t1.others = t2.others &&
-    IMap.equal T.equal t1.map t2.map
-  let compare t1 t2 =
-    compare t1.others t2.others |> ccmp
-    (IMap.compare T.compare) t1.map t2.map
+  let mk_product a = mk (Products.mk a)
+  let mk_products p = mk p
 end
