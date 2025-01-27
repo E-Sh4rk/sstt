@@ -77,6 +77,7 @@ let simpl_descr d =
   d |> components |> List.map (function
     | Intervals i -> Intervals i
     | Atoms a -> Atoms a
+    | Tags t -> Tags t
     | Arrows a -> Arrows (simpl_arrows a)
     | Tuples t -> Tuples (simpl_tuples t)
     | Records r -> Records (simpl_records r)

@@ -26,7 +26,7 @@ type binop =
 type varop =
 | PTuple
 type builtin =
-| PEmpty | PAny | PAnyTuple | PAnyAtom | PAnyInt
+| PEmpty | PAny | PAnyTuple | PAnyAtom | PAnyTag | PAnyInt
 | PAnyArrow | PAnyRecord | PAnyProduct of int
 type t = descr * defs list
 and defs = NodeId.t * descr
@@ -251,6 +251,12 @@ let resolve_records ctx a =
   in
   dnf |> List.map resolve_dnf |> union
 
+let resolve_tags _ a =
+  (* TODO *)
+  if Descr.mk_tags a |> Ty.mk_descr |> Ty.is_empty
+  then (PBuiltin PAny, Ty.empty)
+  else (PBuiltin PAny, Ty.any)
+
 let resolve_comp ctx c =
   let n = D.of_component c |> Ty.mk_descr in
   let alias = resolve_alias ctx n in
@@ -269,6 +275,9 @@ let resolve_comp ctx c =
   | D.Intervals c ->
     alias_or resolve_intervals c,
     (PBuiltin PAnyInt, Intervals.any () |> D.mk_intervals |> Ty.mk_descr)
+  | D.Tags c ->
+    alias_or resolve_tags c,
+    (PBuiltin PAnyTag, Tags.any () |> D.mk_tags |> Ty.mk_descr)
   | D.Tuples c ->
     alias_or resolve_tuples c,
     (PBuiltin PAnyTuple, Tuples.any () |> D.mk_tuples |> Ty.mk_descr)
@@ -385,6 +394,7 @@ let print_builtin fmt b =
     | PAny -> "any"
     | PAnyTuple -> "tuple"
     | PAnyAtom -> "atom"
+    | PAnyTag -> "tag"
     | PAnyInt -> "int"
     | PAnyArrow -> "arrow"
     | PAnyRecord -> "record"

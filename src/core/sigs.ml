@@ -121,6 +121,35 @@ module type Intervals = sig
   val destruct_neg : t -> Atom.t list
 end
 
+(* Tags *)
+
+module type TagAtom = sig
+  type node
+  module Tag : Id.NamedIdentifier
+  type t = Tag.t * node
+  include Comparable with type t := t
+  val map_nodes : (node -> node) -> t -> t
+end
+
+module type Tags = sig
+  include TyBase
+  module Atom : TagAtom with type node := node
+  val mk : Atom.t -> t
+
+  (** [components t] returns a pair [(cs,b)] where [cs] are the tag components
+  explicitely present in [t], and [b] is a boolean indicating whether components
+  of other tags are [any] (if [b] is [true]) or [empty] (if [b] is [false]). *)
+  val components : t -> Atom.t list * bool
+
+  val of_components : Atom.t list * bool -> t
+
+  (** [get tag t] returns the tag component [tag] in [t]. *)
+  val get : Atom.Tag.t -> t -> Atom.t
+
+  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
+  val map_nodes : (node -> node) -> t -> t
+end
+
 (* Arrows *)
 
 module type ArrowAtom = sig
@@ -286,6 +315,7 @@ module type Descr = sig
   module Atoms : Atoms with type node := node
   module Intervals : Intervals with type node := node
   module Records : Records with type node := node
+  module Tags : Tags with type node := node
   module Tuples : Tuples with type node := node
 
   type component =
@@ -293,10 +323,13 @@ module type Descr = sig
   | Arrows of Arrows.t
   | Intervals of Intervals.t
   | Records of Records.t
+  | Tags of Tags.t
   | Tuples of Tuples.t
 
   val mk_atom : Atoms.Atom.t -> t
   val mk_atoms : Atoms.t -> t
+  val mk_tag : Tags.Atom.t -> t
+  val mk_tags : Tags.t -> t
   val mk_product : Tuples.Products.Atom.t -> t
   val mk_products : Tuples.Products.t -> t
   val mk_tuples : Tuples.t -> t
@@ -308,6 +341,7 @@ module type Descr = sig
   val mk_intervals : Intervals.t -> t
 
   val get_atoms : t -> Atoms.t
+  val get_tags : t -> Tags.t
   val get_tuples : t -> Tuples.t
   val get_arrows : t -> Arrows.t
   val get_records : t -> Records.t

@@ -19,7 +19,7 @@ type binop =
 type varop =
 | PTuple
 type builtin =
-| PEmpty | PAny | PAnyTuple | PAnyAtom | PAnyInt
+| PEmpty | PAny | PAnyTuple | PAnyAtom | PAnyTag | PAnyInt
 | PAnyArrow | PAnyRecord | PAnyProduct of int
 type t = descr * defs list
 and defs = NodeId.t * descr

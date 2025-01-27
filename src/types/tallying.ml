@@ -149,6 +149,7 @@ let norm delta t =
     | Atoms c -> aux_atoms m c
     | Arrows c -> aux_arrows m c
     | Intervals c -> aux_intervals m c
+    | Tags c -> aux_tags m c
     | Tuples c -> aux_tuples m c
     | Records c -> aux_records m c
   and aux_atoms _ d =
@@ -159,6 +160,10 @@ let norm delta t =
     match Intervals.destruct d with
     | [] -> NCSS.any
     | _ -> NCSS.empty
+  and aux_tags m tag =
+    let (cs, others) = tag |> Tags.components in
+    if others then NCSS.empty
+    else cs |> List.map snd |> List.map (aux m) |> NCSS.conj
   and aux_arrows m arr =
     arr |> Arrows.dnf |> Arrows.Dnf.simplify
     |> List.map (aux_arrow m) |> NCSS.conj
