@@ -127,7 +127,7 @@ module type ArrowAtom = sig
   type node
   type t = node * node
   include Comparable with type t := t
-  val map : (node -> node) -> t -> t
+  val map_nodes : (node -> node) -> t -> t
 end
 
 module type Arrows = sig
@@ -173,7 +173,7 @@ module type RecordAtom = sig
   val to_tuple : Label.t list -> t -> OTy.t list
   val to_tuple_with_default : Label.t list -> t -> OTy.t list
   include Comparable with type t := t
-  val map : (node -> node) -> t -> t
+  val map_nodes : (node -> node) -> t -> t
 end
 
 module type RecordAtom' = sig
@@ -225,7 +225,7 @@ module type TupleAtom = sig
   type node
   type t = node list
   include Comparable with type t := t
-  val map : (node -> node) -> t -> t
+  val map_nodes : (node -> node) -> t -> t
 end
 
 module type Products = sig

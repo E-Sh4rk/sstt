@@ -41,7 +41,7 @@ module Atom(N:Node) = struct
 
   type node = N.t
   type t = { bindings : OTy.t LabelMap.t ; opened : bool }
-  let map f t =
+  let map_nodes f t =
     { t with bindings = LabelMap.map (fun (n,b) -> (f n, b)) t.bindings }
   let nodes t =
     t.bindings |> LabelMap.bindings |> List.map (fun (_,(n,_)) -> n)
@@ -253,7 +253,7 @@ module Make(N:Node) = struct
   let of_dnf' dnf' = of_dnf (Dnf'.to_dnf dnf')
 
   let direct_nodes t = Bdd.atoms t |> List.map Atom.nodes |> List.concat
-  let map_nodes f t = Bdd.map_nodes (Atom.map f) t
+  let map_nodes f t = Bdd.map_nodes (Atom.map_nodes f) t
 
   let simplify t = Bdd.simplify equiv t
 

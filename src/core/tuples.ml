@@ -4,7 +4,7 @@ open Sstt_utils
 module Atom(N:Node) = struct
   type node = N.t
   type t = node list
-  let map = List.map
+  let map_nodes f t = List.map f t
   let nodes t = t
   let simplify t = t
   let is_empty t = List.exists N.is_empty t
@@ -113,7 +113,7 @@ module MakeT(N:Node) = struct
   let of_dnf' n dnf' = of_dnf n (Dnf'.to_dnf dnf')
 
   let direct_nodes (_,t) = Bdd.atoms t |> List.map Atom.nodes |> List.concat
-  let map_nodes f (n,t) = n, Bdd.map_nodes (Atom.map f) t
+  let map_nodes f (n,t) = n, Bdd.map_nodes (Atom.map_nodes f) t
 
   let simplify (n,t) = (n,Bdd.simplify equiv t)
 
