@@ -416,7 +416,8 @@ module type Ty = sig
   val nodes : t -> t list
 
   (** [of_eqs [(x1,t1);...;(xn,tn)]] returns the types [x1], ..., [xn]
-  satisfying the system of equations [x1=t1], ..., [xn=tn]. *)
+  satisfying the system of equations [x1=t1], ..., [xn=tn].
+  Raises: [Invalid_argument] if the set of equations is not contractive. *)
   val of_eqs : (Var.t * t) list -> (Var.t * t) list
 
   (** [substitute s t] applies the type variable substitution [s] to [t]. *)

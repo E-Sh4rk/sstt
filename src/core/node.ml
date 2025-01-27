@@ -144,7 +144,7 @@ module rec Node : Node = struct
           )
         in
         match NSet.elements deps |> List.find_opt deps_ok with
-        | None -> raise (Invalid_argument "Set of equations is not well-founded.")
+        | None -> raise (Invalid_argument "Set of equations is not contractive.")
         | Some n ->
           let nn = new_node n in
           if has_def nn |> not then begin
