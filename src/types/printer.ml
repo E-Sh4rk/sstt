@@ -38,6 +38,7 @@ and op =
 | PVar of Var.t
 | PAtom of Atoms.Atom.t
 | PTag of TagComp.Tag.t * descr
+| PCustomTag of TagComp.Tag.t * descr list
 | PInterval of Z.t option * Z.t option
 | PRecord of (Label.t * descr * bool) list * bool
 | PVarop of varop * descr list
@@ -45,11 +46,16 @@ and op =
 | PUnop of unop * descr
 
 type aliases = (Ty.t * string) list
+type custom_tags = (TagComp.Tag.t * (TagComp.t -> Ty.t list option)) list
+type params = { aliases : aliases ; tags : custom_tags }
 
-module NISet = Set.Make(NodeId)
 module VD = VDescr
 module D = Descr
 module VDMap = Map.Make(VD)
+
+module NIMap = Map.Make(NodeId)
+module NISet = Set.Make(NodeId)
+module TagMap = Map.Make(TagComp.Tag)
 
 let map_descr f d = (* Assumes f preserves semantic equivalence *)
   let rec aux (d,n) =
@@ -60,10 +66,11 @@ let map_descr f d = (* Assumes f preserves semantic equivalence *)
     | PVar v -> PVar v
     | PAtom atom -> PAtom atom
     | PTag (tag, d) -> PTag (tag, aux d)
+    | PCustomTag (tag, ds) -> PCustomTag (tag, List.map aux ds)
     | PInterval (lb, ub) -> PInterval (lb, ub)
     | PRecord (bindings, b) ->
       PRecord (List.map (fun (l,d,b) -> l, aux d, b) bindings, b)
-    | PVarop (v, lst) -> PVarop (v, List.map aux lst)
+    | PVarop (v, ds) -> PVarop (v, List.map aux ds)
     | PBinop (b, d1, d2) -> PBinop (b, aux d1, aux d2)
     | PUnop (u, d) -> PUnop (u, aux d)
     in (f (d,n), n)
@@ -158,7 +165,8 @@ let interval (o1, o2) =
 
 type ctx = {
   mutable nodes : NodeId.t VDMap.t ;
-  customs : (Ty.t * op) list
+  aliases : (Ty.t * op) list ;
+  tags : (TagComp.t -> Ty.t list option) TagMap.t
 }
 
 let node ctx n =
@@ -170,17 +178,18 @@ let node ctx n =
     ctx.nodes <- VDMap.add def nid ctx.nodes ;
     PNode nid, n
 
-let build_t customs n =
-  let customs = customs |> List.map (fun (n, s) -> (n, PNamed s)) in
-  let ctx = { nodes=VDMap.empty ; customs } in
+let build_t (params:params) n =
+  let aliases = params.aliases |> List.map (fun (n, s) -> (n, PNamed s)) in
+  let tags = params.tags |> TagMap.of_list in
+  let ctx = { nodes=VDMap.empty ; aliases ; tags } in
   ctx, (node ctx n, [])
 
 (* Step 2 : Resolve missing definitions (and recognize custom type aliases) *)
 
 let resolve_alias ctx n =
-  begin match List.find_opt (fun (n',_) -> Ty.equiv n n') ctx.customs with
+  begin match List.find_opt (fun (n',_) -> Ty.equiv n n') ctx.aliases with
   | None ->
-    begin match List.find_opt (fun (n',_) -> Ty.equiv n (Ty.neg n')) ctx.customs with
+    begin match List.find_opt (fun (n',_) -> Ty.equiv n (Ty.neg n')) ctx.aliases with
     | None -> None
     | Some (n, d) -> Some (neg (d, n))
     end
@@ -263,14 +272,21 @@ let resolve_tagcomp ctx a =
   match resolve_alias ctx n with
   | Some d -> d
   | None ->
-    let dnf = TagComp.dnf a |> TagComp.Dnf.simplify in
-    let resolve_tag (t, n) = tag t (node ctx n) in
-    let resolve_dnf (ps, ns, _) =
-      let ps = ps |> List.map resolve_tag in
-      let ns = ns |> List.map resolve_tag |> List.map neg in
-      ps@ns |> inter
-    in
-    dnf |> List.map resolve_dnf |> union
+    let t = TagComp.tag a in
+    let custom_nodes = TagMap.find_opt t ctx.tags
+      |> Option.fold ~none:None ~some:(fun f -> f a) in
+    begin match custom_nodes with
+    | Some lst -> (PCustomTag (t, List.map (node ctx) lst), n)
+    | None ->
+      let dnf = TagComp.dnf a |> TagComp.Dnf.simplify in
+      let resolve_tag (t, n) = tag t (node ctx n) in
+      let resolve_dnf (ps, ns, _) =
+        let ps = ps |> List.map resolve_tag in
+        let ns = ns |> List.map resolve_tag |> List.map neg in
+        ps@ns |> inter
+      in
+      dnf |> List.map resolve_dnf |> union
+    end
 
 let resolve_tags ctx a =
   let (pos, components) = Tags.destruct a in
@@ -412,6 +428,10 @@ let rename_nodes (_, defs) =
 
 (* Step 6 : Print *)
 
+type tags_printer =
+  (TagComp.Tag.t * descr list * (NodeId.t * descr) list ->
+    Format.formatter -> unit) list
+
 let print_builtin fmt b =
   let str =
     match b with
@@ -473,6 +493,7 @@ let rec print_descr prec assoc fmt (d,_) =
   | PTag (t,d) ->
     Format.fprintf fmt "%a(%a)"
       TagComp.Tag.pp t (print_descr (-1) NoAssoc) d
+  | PCustomTag _ -> failwith "TODO"
   | PInterval (lb,ub) -> Format.fprintf fmt "%a" print_interval (lb,ub)
   | PRecord (bindings,opened) ->
     let print_binding fmt (l,d,b) =
@@ -541,5 +562,6 @@ let print_subst customs fmt s =
   Format.fprintf fmt "@[<v 0>[@[<v 1>%a@]@,]@]"
     (print_seq pp_binding " ;") (Subst.bindings s)
 
-let print_ty' = print_ty []
-let print_subst' = print_subst []
+let empty_params : params = { aliases = [] ; tags = [] }
+let print_ty' = print_ty empty_params
+let print_subst' = print_subst empty_params

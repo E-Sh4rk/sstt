@@ -66,8 +66,11 @@ let rec compute_expr env e =
     in
     RBool (carthesian_product tys1 tys2 |> List.map aux), env
   
-let customs env =
-  StrMap.bindings env.tenv |> List.map (fun (str, ty) -> (ty, str))
+let params env =
+  let aliases =
+    StrMap.bindings env.tenv |> List.map (fun (str, ty) -> (ty, str))
+  in
+  { Printer.empty_params with aliases }
 
 let print_res env fmt res =
   match res with
@@ -76,10 +79,10 @@ let print_res env fmt res =
     Format.fprintf fmt "%a" (print_seq_space print_bool) bs
   | RTy tys ->
     Format.fprintf fmt "%a"
-      (print_seq_cut (Printer.print_ty (customs env))) tys
+      (print_seq_cut (Printer.print_ty (params env))) tys
   | RSubst ss ->
     Format.fprintf fmt "%a"
-      (print_seq_cut (Printer.print_subst (customs env))) ss
+      (print_seq_cut (Printer.print_subst (params env))) ss
 
 let treat_elt env elt =
   match elt with

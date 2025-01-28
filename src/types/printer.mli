@@ -31,6 +31,7 @@ and op =
 | PVar of Var.t
 | PAtom of Atoms.Atom.t
 | PTag of TagComp.Tag.t * descr
+| PCustomTag of TagComp.Tag.t * descr list
 | PInterval of Z.t option * Z.t option
 | PRecord of (Label.t * descr * bool) list * bool
 | PVarop of varop * descr list
@@ -38,21 +39,29 @@ and op =
 | PUnop of unop * descr
 
 type aliases = (Ty.t * string) list
+type custom_tags = (TagComp.Tag.t * (TagComp.t -> Ty.t list option)) list
+type params = { aliases : aliases ; tags : custom_tags }
+
+val empty_params : params
 
 (** [get aliases ty] transforms the type [ty] into an algebraic form,
 recognizing type aliases [aliases]. *)
-val get : aliases -> Ty.t -> t
+val get : params -> Ty.t -> t
+
+type tags_printer =
+  (TagComp.Tag.t * descr list * (NodeId.t * descr) list ->
+    Format.formatter -> unit) list
 
 (** [print fmt t] prints the algebraic form [t] using formatter [fmt]. *)
 val print : Format.formatter -> t -> unit
 
 (** [print_ty aliases fmt ty] prints the type [ty] using formatter [fmt],
 recognizing type aliases [aliases]. Same as [print fmt (get aliases ty)]. *)
-val print_ty : aliases -> Format.formatter -> Ty.t -> unit
+val print_ty : params -> Format.formatter -> Ty.t -> unit
 
 (** [print_subst aliases fmt s] prints the substitution [s] using formatter [fmt],
 recognizing type aliases [aliases]. *)
-val print_subst : aliases -> Format.formatter -> Subst.t -> unit
+val print_subst : params -> Format.formatter -> Subst.t -> unit
 
 (** [print_ty' fmt ty] prints the type [ty] using formatter [fmt].
 Same as [print_ty [] fmt ty]. *)
