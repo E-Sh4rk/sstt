@@ -11,23 +11,22 @@ module Ty : Ty = struct
   module VDescr = N.VDescr
 
   let simpl t = N.with_own_cache N.simplify t ; t
+  let s f t = f t |> simpl
+  let s' f t = simpl t |> f
 
   let any, empty = N.any () |> simpl, N.empty () |> simpl
-  let def = N.def
-  let of_def t = N.of_def t |> simpl
+  let def, of_def = s' N.def, s N.of_def
 
-  let s f t = f t |> simpl
-  let mk_var, mk_descr = s N.mk_var, s N.mk_descr
-  let get_descr = N.get_descr
+  let mk_var, mk_descr, get_descr = s N.mk_var, s N.mk_descr, s' N.get_descr
 
   let cap t1 t2 = N.cap t1 t2 |> simpl
   let cup t1 t2 = N.cup t1 t2 |> simpl
   let neg t = N.neg t |> simpl
   let diff t1 t2 = N.diff t1 t2 |> simpl
-  let conj ts = List.fold_left N.cap any ts |> simpl
-  let disj ts = List.fold_left N.cup empty ts |> simpl
+  let conj ts = N.conj ts |> simpl
+  let disj ts = N.disj ts |> simpl
 
-  let vars, vars_toplevel, nodes = N.vars, N.vars_toplevel, N.nodes
+  let vars, vars_toplevel, nodes = s' N.vars, s' N.vars_toplevel, s' N.nodes
   let of_eqs eqs = N.of_eqs eqs |> List.map (fun (v,ty) -> v, simpl ty)
   let substitute s t = N.substitute s t |> simpl
 

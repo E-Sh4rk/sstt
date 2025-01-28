@@ -71,10 +71,7 @@ let simpl_tuples p =
   TupleComp.dnf p |> TupleComp.Dnf.simplify |> List.map regroup_tuples
   |> TupleComp.of_dnf (TupleComp.len p)
 let simpl_tuples t = Tuples.map simpl_tuples t
-let simpl_tagcomp p =
-  try Op.TagComp.as_atom p |> TagComp.mk
-  with Op.EmptyAtom -> TagComp.empty (TagComp.tag p)
-let simpl_tags t = Tags.map simpl_tagcomp t
+let simpl_tags t = Tags.map (fun c -> TagComp.as_atom c |> TagComp.mk) t
 
 let simpl_descr d =
   let open Descr in

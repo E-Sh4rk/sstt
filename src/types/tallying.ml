@@ -163,9 +163,9 @@ let norm delta t =
   and aux_tags m tag =
     let (cs, others) = tag |> Tags.components in
     if others then NCSS.empty
-    else cs |> List.map
-      (fun c -> Op.TagComp.as_atom c |> snd |> aux m)
-    |> NCSS.conj
+    else cs |>
+      List.map (fun c -> TagComp.as_atom c |> snd |> aux m)
+      |> NCSS.conj
   and aux_arrows m arr =
     arr |> Arrows.dnf |> Arrows.Dnf.simplify
     |> List.map (aux_arrow m) |> NCSS.conj

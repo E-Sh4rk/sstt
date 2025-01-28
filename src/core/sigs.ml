@@ -300,7 +300,6 @@ module type TagComp = sig
   module Atom : TagAtom with type node := node
   module Tag = Atom.Tag
   module Dnf : Dnf with type atom = Atom.t and type leaf = bool
-  module Dnf' : Dnf' with type atom = Atom.t and type leaf = bool
   val any : Tag.t -> t
   val empty : Tag.t -> t
   val mk : Atom.t -> t
@@ -311,12 +310,10 @@ module type TagComp = sig
   (** [dnf t] returns a disjunctive normal form of [t]. *)
   val dnf : t -> Dnf.t
 
-  (** [dnf' t] returns a condensed disjunctive form of [t]
-  where each clause is a positive literal. *)
-  val dnf' : t -> Dnf'.t
-
   val of_dnf : Tag.t -> Dnf.t -> t
-  val of_dnf' : Tag.t -> Dnf'.t -> t
+
+  (** [as_atom t] returns an atom equivalent to [t]. *)
+  val as_atom : t -> Atom.t
 
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
   val map_nodes : (node -> node) -> t -> t
@@ -473,8 +470,7 @@ module type Ty = sig
 
   (** [def t] returns the full descriptor of [t]. For a given type [t],
   [def t] is not necessarily constant: it may change over time, for instance
-  when the descriptor of [t] is simplified (even though in the current implementation
-  a type is simplified as soon as it is created). *)
+  when the descriptor of [t] is simplified. *)
   val def : t -> VDescr.t
 
   (** [of_def d] creates a type from the full descriptor [d]. *)

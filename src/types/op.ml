@@ -43,19 +43,6 @@ module Arrows = struct
       end |> Ty.disj
 end
 
-module TagComp = struct
-  type t = TagComp.t
-  type atom = TagComp.Atom.t
-
-  let as_atom t =
-    let tag = TagComp.tag t in
-    let union = TagComp.dnf' t |> List.map fst in
-    match union with
-    |  [] -> raise EmptyAtom
-    | hd::tl ->
-      List.fold_left (fun (_,ty1) (_,ty2) -> (tag,Ty.cup ty1 ty2)) hd tl
-end
-
 module TupleComp = struct
   type t = TupleComp.t
   type atom = TupleComp.Atom.t

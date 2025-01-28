@@ -43,11 +43,12 @@ module MakeC(N:Node) = struct
   let neg (tag, t) = tag, Bdd.neg t
   let diff (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.diff t1 t2
 
+  let ty_of_clause (ps,ns) =
+    let p = ps |> List.map snd |> N.conj in
+    let n = ns |> List.map snd |> List.map N.neg |> N.conj in
+    N.cap p n
   let is_clause_empty (ps,ns,b) =
-    if b then
-      let p = ps |> List.map snd |> N.conj in
-      let n = ns |> List.map snd |> List.map N.neg |> N.conj in
-      N.cap p n |> N.is_empty
+    if b then ty_of_clause (ps,ns) |> N.is_empty
     else true
   let is_empty' t =
     Bdd.dnf t |> List.for_all is_clause_empty
@@ -63,32 +64,19 @@ module MakeC(N:Node) = struct
     let undesirable_leaf = not
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
   end
-  module DnfAtom' = struct
-    type leaf = bool
-    type t = Atom.t
-    type t' = Atom.t
-
-    let to_t a = [a], []
-    let to_t' ((tag,n),b) =
-      if b then [(tag,n)] else [(tag,N.neg n)]
-    let to_t' (a,b) = to_t' (a,b) |> List.filter (fun a -> Atom.is_empty a |> not)
-    let combine (tag1,n1) (tag2,n2) =
-      check_tag tag1 tag2 ;
-      let res = (tag1, N.cap n1 n2) in
-      if Atom.is_empty res then None else Some res
-  end
-  module Dnf' = Dnf.Make'(DnfAtom)(DnfAtom')(N)
   module Dnf = Dnf.Make(DnfAtom)(N)
 
   let dnf (_,t) = Bdd.dnf t |> Dnf.mk
-  let dnf' (tag,t) = dnf (tag,t) |> Dnf'.from_dnf (tag,N.any ())
   let of_dnf tag dnf =
     dnf |> List.iter (fun (ps,ns,_) ->
       ps |> List.iter (fun a -> check_tag tag (Atom.tag a)) ;
       ns |> List.iter (fun a -> check_tag tag (Atom.tag a))
       ) ;
     tag, Dnf.mk dnf |> Bdd.of_dnf
-  let of_dnf' tag dnf' = of_dnf tag (Dnf'.to_dnf dnf')
+
+  let as_atom (tag,t) =
+    let merge_line (ps,ns,_) = ty_of_clause (ps,ns) in
+    tag, dnf (tag,t) |> List.map merge_line |> N.disj
 
   let direct_nodes (_,t) = Bdd.atoms t |> List.map Atom.direct_nodes |> List.concat
   let map_nodes f (tag,t) = tag, Bdd.map_nodes (Atom.map_nodes f) t
