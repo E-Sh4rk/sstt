@@ -30,6 +30,7 @@ and op =
 | PBuiltin of builtin
 | PVar of Var.t
 | PAtom of Atoms.Atom.t
+| PTag of Tags.Atom.Tag.t * descr
 | PInterval of Z.t option * Z.t option
 | PRecord of (Label.t * descr * bool) list * bool
 | PVarop of varop * descr list

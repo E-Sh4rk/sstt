@@ -37,6 +37,7 @@ and op =
 | PBuiltin of builtin
 | PVar of Var.t
 | PAtom of Atoms.Atom.t
+| PTag of Tags.Atom.Tag.t * descr
 | PInterval of Z.t option * Z.t option
 | PRecord of (Label.t * descr * bool) list * bool
 | PVarop of varop * descr list
@@ -58,6 +59,7 @@ let map_descr f d = (* Assumes f preserves semantic equivalence *)
     | PBuiltin b -> PBuiltin b
     | PVar v -> PVar v
     | PAtom atom -> PAtom atom
+    | PTag (tag, d) -> PTag (tag, aux d)
     | PInterval (lb, ub) -> PInterval (lb, ub)
     | PRecord (bindings, b) ->
       PRecord (List.map (fun (l,d,b) -> l, aux d, b) bindings, b)
@@ -117,14 +119,17 @@ let cup (d1,n1) (d2,n2) =
   else if Ty.leq n1 n2 then d2,n2
   else PBinop (PCup, (d1,n1), (d2,n2)), Ty.cup n1 n2
 
+let any = PBuiltin PAny, Ty.any
+let empty = PBuiltin PEmpty, Ty.empty
+
 let union union =
   match union with
-  | [] -> PBuiltin PEmpty, Ty.empty
+  | [] -> empty
   | d::union -> List.fold_left cup d union
 
 let inter inter =
   match inter with
-  | [] -> PBuiltin PAny, Ty.any
+  | [] -> any
   | d::inter -> List.fold_left cap d inter
 
 let arrow (d1,n1) (d2,n2) =
@@ -139,6 +144,9 @@ let record bindings opened =
     (l,(n,b))
   ) |> LabelMap.of_list in
   PRecord (bindings, opened), D.mk_record { bindings=nbindings ; opened } |> Ty.mk_descr
+
+let tag tag (o,n) =
+  PTag (tag,(o,n)), D.mk_tag (tag,n) |> Ty.mk_descr
 
 let atom a =
   PAtom a, D.mk_atom a |> Ty.mk_descr
@@ -251,11 +259,14 @@ let resolve_records ctx a =
   in
   dnf |> List.map resolve_dnf |> union
 
-let resolve_tags _ a =
-  (* TODO *)
-  if Descr.mk_tags a |> Ty.mk_descr |> Ty.is_empty
-  then (PBuiltin PAny, Ty.empty)
-  else (PBuiltin PAny, Ty.any)
+let resolve_tags ctx a =
+  let (tags, others) = Tags.components a in
+  let d = tags |> List.map (fun (t,d) ->
+    let elt = node ctx d |> tag t in
+    let elt = if others then neg elt else elt in
+    cap (PTag (t, any), Tags.mk (t, Ty.any) |> D.mk_tags |> Ty.mk_descr) elt
+  ) |> union in
+  if others then neg d else d
 
 let resolve_comp ctx c =
   let n = D.of_component c |> Ty.mk_descr in
@@ -444,6 +455,9 @@ let rec print_descr prec assoc fmt (d,_) =
   | PBuiltin b -> print_builtin fmt b
   | PVar v -> Format.fprintf fmt "%a" Var.pp v
   | PAtom a -> Format.fprintf fmt "%a" Atoms.Atom.pp a
+  | PTag (t,d) ->
+    Format.fprintf fmt "%a(%a)"
+      Tags.Atom.Tag.pp t (print_descr (-1) NoAssoc) d
   | PInterval (lb,ub) -> Format.fprintf fmt "%a" print_interval (lb,ub)
   | PRecord (bindings,opened) ->
     let print_binding fmt (l,d,b) =
