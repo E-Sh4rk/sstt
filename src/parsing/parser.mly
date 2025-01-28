@@ -1,7 +1,7 @@
 %{
 open Ast
 
-let parse_atom str =
+let parse_atom_or_builtin str =
     match str with
     | "empty" -> TBuiltin TEmpty
     | "any" -> TBuiltin TAny
@@ -21,7 +21,7 @@ let parse_atom str =
 
 %token<string> STRING
 %token<Z.t> INT
-%token<string> ID, VARID, MVARID
+%token<string> ID, TAGID, VARID, MVARID
 %token TYPE WHERE AND
 %token BREAK COMMA EQUAL COLON SEMICOLON
 %token DPOINT OCOLON
@@ -107,7 +107,8 @@ simple_ty:
 | ty1=simple_ty TARROW ty2=simple_ty { TBinop (TArrow, ty1, ty2) }
 
 atomic_ty:
-| id=ID { parse_atom id }
+| id=ID { parse_atom_or_builtin id }
+| id=TAGID ty=ty RPAREN { TTag (id, ty) }
 | id=VARID { TVar id }
 | id=MVARID { TVarMono id }
 | i=INT { TInterval (Some i, Some i) }

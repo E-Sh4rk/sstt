@@ -20,6 +20,9 @@ let%expect_test "test file" =
     empty2: true
     atom1: false
     atom2: true
+    tags1: tag((false, true) | (true, false))
+    tags2: tag1(true, false) | tag2(false, true)
+    tags3: true
     tuple1: false
     tuple2: true
     tuple3: true
@@ -74,6 +77,7 @@ let%expect_test "test file" =
     print14: nil, (bool, x1) where x1 = nil | (bool, x1)
     print15: tuple \ tuple2
     print16: ~(40..44)
+    print17: ~(tag(any) \ tag(~42))
     tally1:
     tally2: [
               'X: 'X & 'y

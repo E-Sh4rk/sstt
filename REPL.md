@@ -9,6 +9,7 @@ Types are built with the following constructors:
 - Monomorphic type variable `'x` (lowercase)
 - Polymorphic type variables `'X` (uppercase)
 - Atom `id`, where `id` is the identifier of an atom (atoms are created on-the-fly and do not need to be declared)
+- Tag `id(t)`, where `id` is the identifier of a tag (tags are created on-the-fly and do not need to be declared)
 - Arrow `t -> t`
 - Tuple `(t, ..., t)`
 - Closed record `{ label : t ; ... }`
@@ -46,6 +47,12 @@ A command in the REPL ends with `;;`. It can be either:
 
 > (false,true) <= (bool,bool) ;;
 true
+
+> tag(true,false) | tag(false,true) ;;
+tag((false, true) | (true, false))
+
+> tag1(true,false) | tag2(false,true) ;;
+tag1(true, false) | tag2(false, true)
 
 > { l1 : any } & { l1 : any ; l2 : any ..} ;;
 empty

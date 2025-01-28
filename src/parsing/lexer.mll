@@ -20,6 +20,7 @@ let newline = ('\010' | '\013' | "\013\010")
 let blank   = [' ' '\009' '\012']
 
 let id = ['a'-'z''A'-'Z''_']['a'-'z''A'-'Z''0'-'9''_''\'']*
+let tagid = ['a'-'z''A'-'Z''_']['a'-'z''A'-'Z''0'-'9''_''\'']*'('
 
 let varid = '\''['A'-'Z']['a'-'z''A'-'Z''0'-'9''_']*
 let mvarid = '\''['a'-'z']['a'-'z''A'-'Z''0'-'9''_']*
@@ -31,6 +32,7 @@ rule token = parse
 | int as i { INT (Z.of_string i) }
 | '"'      { read_string (Buffer.create 17) lexbuf }
 | id as s  { ID s }
+| tagid as s  { TAGID (String.sub s 0 (String.length s - 1)) }
 | varid as s  { VARID s }
 | mvarid as s  { MVARID s }
 | newline  { Lexing.new_line lexbuf ; token lexbuf }

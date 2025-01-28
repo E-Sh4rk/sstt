@@ -8,6 +8,10 @@ type bool = true | false ;;
 "atom1" true <= false ;;
 "atom2" true <= bool ;;
 
+"tags1" tag(true,false) | tag(false,true) ;;
+"tags2" tag1(true,false) | tag2(false,true) ;;
+"tags3" tag(empty) <= empty ;;
+
 "tuple1" (bool,int) <= (int,bool) ;;
 "tuple2" (false,true) <= (bool,bool) ;;
 "tuple3" (bool,int) <= tuple ;;
@@ -69,6 +73,7 @@ type bool = true | false ;;
 "print14" ('y, ('x, lst)) where lst=('x,lst)|nil [ 'x : bool ; 'y : nil ] ;;
 "print15" tuple\(any,any) ;;
 "print16" ~(40..44) ;;
+"print17" ~tag(42) ;;
 
 "tally1" [ 'x <= 'y ] ;;
 "tally2" [ 'X <= 'y ] ;;

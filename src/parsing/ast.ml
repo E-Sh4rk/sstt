@@ -10,6 +10,7 @@ type unop = TNeg
 type ty =
   | TBuiltin of builtin
   | TNamed of string
+  | TTag of string * ty
   | TVar of string
   | TVarMono of string
   | TInterval of Z.t option * Z.t option
@@ -42,6 +43,7 @@ type command = Elt of elt | End
 module StrMap = Map.Make(String)
 
 type env = { aenv : Atoms.Atom.t StrMap.t ;
+             tagenv : Tags.Atom.Tag.t StrMap.t ;
              tenv : Ty.t StrMap.t ;
              venv : Var.t StrMap.t ;
              mvenv : Var.t StrMap.t ;
@@ -50,7 +52,8 @@ type env = { aenv : Atoms.Atom.t StrMap.t ;
 }
 
 let empty_env = {
-  aenv = StrMap.empty ; tenv = StrMap.empty ;
+  aenv = StrMap.empty ; tagenv = StrMap.empty ;
+  tenv = StrMap.empty ;
   venv = StrMap.empty ; mvenv = StrMap.empty ;
   mono = VarSet.empty ; lenv = StrMap.empty
 }
@@ -109,11 +112,23 @@ let type_or_atom env str =
       Descr.mk_atom a |> Ty.mk_descr, env  
     end
 
+let tag env str ty =
+  match StrMap.find_opt str env.tagenv with
+  | Some t -> Descr.mk_tag (t, ty) |> Ty.mk_descr, env
+  | None ->
+    let t = Tags.Atom.Tag.mk str in
+    let tagenv = StrMap.add str t env.tagenv in
+    let env = { env with tagenv } in
+    Descr.mk_tag (t, ty) |> Ty.mk_descr, env  
+
 let build_ty env t =
   let rec aux env t =
   match t with
   | TBuiltin b -> builtin b, env
   | TNamed str -> type_or_atom env str
+  | TTag (str, ty) ->
+    let ty, env = aux env ty in
+    tag env str ty
   | TInterval (lb, ub) ->
     Intervals.Atom.mk lb ub |> Descr.mk_interval |> Ty.mk_descr, env
   | TVar str ->

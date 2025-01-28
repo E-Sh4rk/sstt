@@ -5,6 +5,7 @@ SSTT is an OCaml library for manipulating set-theoretic types ([documentation](h
 
 Currently, it supports the following type constructors:
 - Atoms
+- Tags
 - Integer intervals
 - Arrows
 - Tuples of any arity

@@ -9,6 +9,7 @@ type unop = TNeg
 type ty =
   | TBuiltin of builtin
   | TNamed of string
+  | TTag of string * ty
   | TVar of string
   | TVarMono of string
   | TInterval of Z.t option * Z.t option
@@ -41,6 +42,7 @@ type command = Elt of elt | End
 module StrMap : Map.S with type key=string
 
 type env = { aenv : Atoms.Atom.t StrMap.t ;
+             tagenv : Tags.Atom.Tag.t StrMap.t ;
              tenv : Ty.t StrMap.t ;
              venv : Var.t StrMap.t ;
              mvenv : Var.t StrMap.t ;
