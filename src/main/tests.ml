@@ -71,13 +71,13 @@ let%expect_test "test file" =
     print7: ~true
     print8: ~(any -> bool)
     print9: ~(any -> bool) | ~(true -> false)
-    print10: ~(false, true) \ (true, false)
+    print10: ~((false, true) | (true, false))
     print11: bool
     print13: 'y
     print14: nil, (bool, x1) where x1 = nil | (bool, x1)
     print15: tuple \ tuple2
     print16: ~(40..44)
-    print17: ~(tag(any) \ tag(~42))
+    print17: ~tag(42)
     tally1:
     tally2: [
               'X: 'X & 'y

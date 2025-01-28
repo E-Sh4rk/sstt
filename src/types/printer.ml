@@ -233,15 +233,14 @@ let resolve_products ctx a =
     dnf |> List.map resolve_dnf |> union
 
 let resolve_tuples ctx a =
-  let (products, others) = Tuples.components a in
+  let (pos, products) = Tuples.destruct a in
   let d = products |> List.map (fun p ->
     let len = Products.len p in
     let elt = resolve_products ctx p in
-    let elt = if others then neg elt else elt in
     cap (PBuiltin (PAnyProduct len),
         Products.any len |> D.mk_products |> Ty.mk_descr) elt
   ) |> union in
-  if others then neg d else d
+  if pos then d else neg d
 
 let resolve_records ctx a =
   let open Records.Atom in
@@ -260,13 +259,12 @@ let resolve_records ctx a =
   dnf |> List.map resolve_dnf |> union
 
 let resolve_tags ctx a =
-  let (tags, others) = Tags.components a in
-  let d = tags |> List.map (fun (t,d) ->
+  let (pos, components) = Tags.destruct a in
+  let d = components |> List.map (fun (t,d) ->
     let elt = node ctx d |> tag t in
-    let elt = if others then neg elt else elt in
     cap (PTag (t, any), Tags.mk (t, Ty.any) |> D.mk_tags |> Ty.mk_descr) elt
   ) |> union in
-  if others then neg d else d
+  if pos then d else neg d
 
 let resolve_comp ctx c =
   let n = D.of_component c |> Ty.mk_descr in

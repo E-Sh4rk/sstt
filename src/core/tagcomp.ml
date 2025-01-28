@@ -5,6 +5,8 @@ module type Tag = sig
   include Comparable
 end
 
+(* TODO: Cannot neg/inter/union a node when building a tag component! *)
+
 module type TaggedAtom = sig
   type t
   type node
@@ -35,6 +37,14 @@ module Make(N:Node)(A:TaggedAtom with type node = N.t) = struct
   let of_components (ts, others) =
     let map = ts |> List.map (fun a -> (A.tag a, a)) |> TMap.of_list in
     { map ; others }
+  let construct (pos, cs) =
+    if pos then
+      let map = cs |> List.map (fun a -> (A.tag a, a)) |> TMap.of_list in
+      { map ; others=false }
+    else
+      let map = cs |> List.map (fun a -> (A.tag a, A.neg a)) |> TMap.of_list in
+      { map ; others=true }
+  
   let any () = { map = TMap.empty ; others = true }
   let empty () = { map = TMap.empty ; others = false }
 
@@ -96,6 +106,12 @@ module Make(N:Node)(A:TaggedAtom with type node = N.t) = struct
   let components t =
     let prods = TMap.bindings t.map |> List.map snd in
     (prods, t.others)
+
+  let destruct t =
+    if t.others then
+      (false, TMap.bindings t.map |> List.map snd |> List.map A.neg)
+    else
+      (true, TMap.bindings t.map |> List.map snd)
 
   let get tag t =
     match TMap.find_opt tag t.map with

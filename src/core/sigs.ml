@@ -146,6 +146,17 @@ module type Tags = sig
   (** [get tag t] returns the tag component [tag] in [t]. *)
   val get : Atom.Tag.t -> t -> Atom.t
 
+  (** [map f t] replaces every tags component [c] in [t] by [f c]. *)
+  val map : (Atom.t -> Atom.t) -> t -> t
+
+  val construct : bool * Atom.t list -> t
+
+  (** [destruct t] returns a pair [(b,cs)] such that:
+  if [b] is true, then [t] contains exactly the components [cs],
+  and if [b] is false, then the negation of [t] contains exactly
+  the atoms [cs]. *)
+  val destruct : t -> bool * Atom.t list
+
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
   val map_nodes : (node -> node) -> t -> t
 end
@@ -301,6 +312,15 @@ module type Tuples = sig
 
   (** [map f t] replaces every products component [p] in [t] by [f p]. *)
   val map : (Products.t -> Products.t) -> t -> t
+
+  val construct : bool * Products.t list -> t
+
+  (** [destruct t] returns a pair [(b,cs)] such that:
+  if [b] is true, then [t] contains exactly the products components [cs],
+  and if [b] is false, then the negation of [t] contains exactly
+  the products components [cs]. *)
+  val destruct : t -> bool * Products.t list
+
 
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
   val map_nodes : (node -> node) -> t -> t
