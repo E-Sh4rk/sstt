@@ -45,6 +45,7 @@ module Descr = VDescr.Descr
 module Arrows = Descr.Arrows
 module Atoms = Descr.Atoms
 module Tags = Descr.Tags
+module TagComp = Tags.TagComp
 module Intervals = Descr.Intervals
 module Records = Descr.Records
 module Tuples = Descr.Tuples

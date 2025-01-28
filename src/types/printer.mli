@@ -20,7 +20,7 @@ type varop =
 | PTuple
 type builtin =
 | PEmpty | PAny | PAnyTuple | PAnyAtom | PAnyTag | PAnyInt
-| PAnyArrow | PAnyRecord | PAnyProduct of int
+| PAnyArrow | PAnyRecord | PAnyProduct of int | PAnyTagComp of TagComp.Tag.t
 type t = descr * defs list
 and defs = NodeId.t * descr
 and descr = op * Ty.t
@@ -30,7 +30,7 @@ and op =
 | PBuiltin of builtin
 | PVar of Var.t
 | PAtom of Atoms.Atom.t
-| PTag of Tags.Atom.Tag.t * descr
+| PTag of TagComp.Tag.t * descr
 | PInterval of Z.t option * Z.t option
 | PRecord of (Label.t * descr * bool) list * bool
 | PVarop of varop * descr list

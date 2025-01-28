@@ -43,7 +43,7 @@ type command = Elt of elt | End
 module StrMap = Map.Make(String)
 
 type env = { aenv : Atoms.Atom.t StrMap.t ;
-             tagenv : Tags.Atom.Tag.t StrMap.t ;
+             tagenv : TagComp.Tag.t StrMap.t ;
              tenv : Ty.t StrMap.t ;
              venv : Var.t StrMap.t ;
              mvenv : Var.t StrMap.t ;
@@ -116,7 +116,7 @@ let tag env str ty =
   match StrMap.find_opt str env.tagenv with
   | Some t -> Descr.mk_tag (t, ty) |> Ty.mk_descr, env
   | None ->
-    let t = Tags.Atom.Tag.mk str in
+    let t = TagComp.Tag.mk str in
     let tagenv = StrMap.add str t env.tagenv in
     let env = { env with tagenv } in
     Descr.mk_tag (t, ty) |> Ty.mk_descr, env  

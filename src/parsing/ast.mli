@@ -42,7 +42,7 @@ type command = Elt of elt | End
 module StrMap : Map.S with type key=string
 
 type env = { aenv : Atoms.Atom.t StrMap.t ;
-             tagenv : Tags.Atom.Tag.t StrMap.t ;
+             tagenv : TagComp.Tag.t StrMap.t ;
              tenv : Ty.t StrMap.t ;
              venv : Var.t StrMap.t ;
              mvenv : Var.t StrMap.t ;

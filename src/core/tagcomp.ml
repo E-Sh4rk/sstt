@@ -5,8 +5,6 @@ module type Tag = sig
   include Comparable
 end
 
-(* TODO: Cannot neg/inter/union a node when building a tag component! *)
-
 module type TaggedAtom = sig
   type t
   type node

@@ -27,7 +27,7 @@ type varop =
 | PTuple
 type builtin =
 | PEmpty | PAny | PAnyTuple | PAnyAtom | PAnyTag | PAnyInt
-| PAnyArrow | PAnyRecord | PAnyProduct of int
+| PAnyArrow | PAnyRecord | PAnyProduct of int | PAnyTagComp of TagComp.Tag.t
 type t = descr * defs list
 and defs = NodeId.t * descr
 and descr = op * Ty.t
@@ -37,7 +37,7 @@ and op =
 | PBuiltin of builtin
 | PVar of Var.t
 | PAtom of Atoms.Atom.t
-| PTag of Tags.Atom.Tag.t * descr
+| PTag of TagComp.Tag.t * descr
 | PInterval of Z.t option * Z.t option
 | PRecord of (Label.t * descr * bool) list * bool
 | PVarop of varop * descr list
@@ -258,11 +258,27 @@ let resolve_records ctx a =
   in
   dnf |> List.map resolve_dnf |> union
 
+let resolve_tagcomp ctx a =
+  let n = Tags.mk_tagcomp a |> D.mk_tags |> Ty.mk_descr in
+  match resolve_alias ctx n with
+  | Some d -> d
+  | None ->
+    let dnf = TagComp.dnf a |> TagComp.Dnf.simplify in
+    let resolve_tag (t, n) = tag t (node ctx n) in
+    let resolve_dnf (ps, ns, _) =
+      let ps = ps |> List.map resolve_tag in
+      let ns = ns |> List.map resolve_tag |> List.map neg in
+      ps@ns |> inter
+    in
+    dnf |> List.map resolve_dnf |> union
+
 let resolve_tags ctx a =
   let (pos, components) = Tags.destruct a in
-  let d = components |> List.map (fun (t,d) ->
-    let elt = node ctx d |> tag t in
-    cap (PTag (t, any), Tags.mk (t, Ty.any) |> D.mk_tags |> Ty.mk_descr) elt
+  let d = components |> List.map (fun t ->
+    let tag = TagComp.tag t in
+    let elt = resolve_tagcomp ctx t in
+    cap (PBuiltin (PAnyTagComp tag),
+        TagComp.any tag |> D.mk_tagcomp |> Ty.mk_descr) elt
   ) |> union in
   if pos then d else neg d
 
@@ -408,6 +424,7 @@ let print_builtin fmt b =
     | PAnyArrow -> "arrow"
     | PAnyRecord -> "record"
     | PAnyProduct i -> "tuple"^(string_of_int i)
+    | PAnyTagComp t -> (TagComp.Tag.name t)^"(any)"
   in
   Format.fprintf fmt "%s" str
 
@@ -455,7 +472,7 @@ let rec print_descr prec assoc fmt (d,_) =
   | PAtom a -> Format.fprintf fmt "%a" Atoms.Atom.pp a
   | PTag (t,d) ->
     Format.fprintf fmt "%a(%a)"
-      Tags.Atom.Tag.pp t (print_descr (-1) NoAssoc) d
+      TagComp.Tag.pp t (print_descr (-1) NoAssoc) d
   | PInterval (lb,ub) -> Format.fprintf fmt "%a" print_interval (lb,ub)
   | PRecord (bindings,opened) ->
     let print_binding fmt (l,d,b) =

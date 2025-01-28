@@ -5,7 +5,7 @@ module Atom(N:Node) = struct
   type node = N.t
   type t = node * node
   let map_nodes f (n1,n2) = (f n1, f n2)
-  let nodes (n1,n2) = [n1;n2]
+  let direct_nodes (n1,n2) = [n1;n2]
   let simplify t = t
   let equal (s1,t1) (s2,t2) =
     N.equal s1 s2 && N.equal t1 t2
@@ -64,7 +64,7 @@ module Make(N:Node) = struct
   let dnf t = Bdd.dnf t |> Dnf.mk
   let of_dnf dnf = Dnf.mk dnf |> Bdd.of_dnf
 
-  let direct_nodes t = Bdd.atoms t |> List.map Atom.nodes |> List.concat
+  let direct_nodes t = Bdd.atoms t |> List.map Atom.direct_nodes |> List.concat
   let map_nodes f t = Bdd.map_nodes (Atom.map_nodes f) t
 
   let simplify t = Bdd.simplify equiv t

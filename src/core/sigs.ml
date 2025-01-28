@@ -121,46 +121,6 @@ module type Intervals = sig
   val destruct_neg : t -> Atom.t list
 end
 
-(* Tags *)
-
-module type TagAtom = sig
-  type node
-  module Tag : Id.NamedIdentifier
-  type t = Tag.t * node
-  include Comparable with type t := t
-  val map_nodes : (node -> node) -> t -> t
-end
-
-module type Tags = sig
-  include TyBase
-  module Atom : TagAtom with type node := node
-  val mk : Atom.t -> t
-
-  (** [components t] returns a pair [(cs,b)] where [cs] are the tag components
-  explicitely present in [t], and [b] is a boolean indicating whether components
-  of other tags are [any] (if [b] is [true]) or [empty] (if [b] is [false]). *)
-  val components : t -> Atom.t list * bool
-
-  val of_components : Atom.t list * bool -> t
-
-  (** [get tag t] returns the tag component [tag] in [t]. *)
-  val get : Atom.Tag.t -> t -> Atom.t
-
-  (** [map f t] replaces every tags component [c] in [t] by [f c]. *)
-  val map : (Atom.t -> Atom.t) -> t -> t
-
-  val construct : bool * Atom.t list -> t
-
-  (** [destruct t] returns a pair [(b,cs)] such that:
-  if [b] is true, then [t] contains exactly the components [cs],
-  and if [b] is false, then the negation of [t] contains exactly
-  the atoms [cs]. *)
-  val destruct : t -> bool * Atom.t list
-
-  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
-  val map_nodes : (node -> node) -> t -> t
-end
-
 (* Arrows *)
 
 module type ArrowAtom = sig
@@ -326,6 +286,74 @@ module type Tuples = sig
   val map_nodes : (node -> node) -> t -> t
 end
 
+(* Tags *)
+
+module type TagAtom = sig
+  type node
+  module Tag : Id.NamedIdentifier
+  type t = Tag.t * node
+  include Comparable with type t := t
+  val map_nodes : (node -> node) -> t -> t
+end
+
+module type TagComp = sig
+  include TyBase
+  module Atom : TagAtom with type node := node
+  module Tag = Atom.Tag
+  module Dnf : Dnf with type atom = Atom.t and type leaf = bool
+  module Dnf' : Dnf' with type atom = Atom.t and type leaf = bool
+  val any : Tag.t -> t
+  val empty : Tag.t -> t
+  val mk : Atom.t -> t
+
+  (** [tag t] returns the tag of the component [t]. *)
+  val tag : t -> Tag.t
+
+  (** [dnf t] returns a disjunctive normal form of [t]. *)
+  val dnf : t -> Dnf.t
+
+  (** [dnf' t] returns a condensed disjunctive form of [t]
+  where each clause is a positive literal. *)
+  val dnf' : t -> Dnf'.t
+
+  val of_dnf : Tag.t -> Dnf.t -> t
+  val of_dnf' : Tag.t -> Dnf'.t -> t
+
+  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
+  val map_nodes : (node -> node) -> t -> t
+end
+
+module type Tags = sig
+  include TyBase
+  module TagComp : TagComp with type node := node
+  val mk_tag : TagComp.Atom.t -> t
+  val mk_tagcomp : TagComp.t -> t
+
+  (** [components t] returns a pair [(cs,b)] where [cs] are the tag components
+  explicitely present in [t], and [b] is a boolean indicating whether components
+  of other tags are [any] (if [b] is [true]) or [empty] (if [b] is [false]). *)
+  val components : t -> TagComp.t list * bool
+
+  val of_components : TagComp.t list * bool -> t
+
+  (** [get tag t] returns the tag component [tag] in [t]. *)
+  val get : TagComp.Tag.t -> t -> TagComp.t
+
+  (** [map f t] replaces every tags component [c] in [t] by [f c]. *)
+  val map : (TagComp.t -> TagComp.t) -> t -> t
+
+  val construct : bool * TagComp.t list -> t
+
+  (** [destruct t] returns a pair [(b,cs)] such that:
+  if [b] is true, then [t] contains exactly the components [cs],
+  and if [b] is false, then the negation of [t] contains exactly
+  the components [cs]. *)
+  val destruct : t -> bool * TagComp.t list
+
+  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
+  val map_nodes : (node -> node) -> t -> t
+end
+
 (* Descr *)
 
 module type Descr = sig
@@ -348,7 +376,8 @@ module type Descr = sig
 
   val mk_atom : Atoms.Atom.t -> t
   val mk_atoms : Atoms.t -> t
-  val mk_tag : Tags.Atom.t -> t
+  val mk_tag : Tags.TagComp.Atom.t -> t
+  val mk_tagcomp : Tags.TagComp.t -> t
   val mk_tags : Tags.t -> t
   val mk_product : Tuples.Products.Atom.t -> t
   val mk_products : Tuples.Products.t -> t

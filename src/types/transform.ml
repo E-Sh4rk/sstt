@@ -71,13 +71,17 @@ let simpl_products p =
   Products.dnf p |> Products.Dnf.simplify |> List.map regroup_products
   |> Products.of_dnf (Products.len p)
 let simpl_tuples t = Tuples.map simpl_products t
+let simpl_tagcomp p =
+  try Op.TagComp.as_atom p |> TagComp.mk
+  with Op.EmptyAtom -> TagComp.empty (TagComp.tag p)
+let simpl_tags t = Tags.map simpl_tagcomp t
 
 let simpl_descr d =
   let open Descr in
   d |> components |> List.map (function
     | Intervals i -> Intervals i
     | Atoms a -> Atoms a
-    | Tags t -> Tags t
+    | Tags t -> Tags (simpl_tags t)
     | Arrows a -> Arrows (simpl_arrows a)
     | Tuples t -> Tuples (simpl_tuples t)
     | Records r -> Records (simpl_records r)

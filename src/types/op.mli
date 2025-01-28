@@ -19,6 +19,15 @@ module Arrows : sig
     val worra : t -> Ty.t -> Ty.t
 end
 
+module TagComp : sig
+    type t = TagComp.t
+    type atom = TagComp.Atom.t
+
+    (** [as_atom t] expresses [t] as a non-empty atom.
+    Raises: [EmptyAtom] if [t] is empty. *)
+    val as_atom : t -> atom
+end
+
 module Products : sig
     type t = Products.t
     type atom = Products.Atom.t

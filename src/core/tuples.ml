@@ -4,8 +4,9 @@ open Sstt_utils
 module Atom(N:Node) = struct
   type node = N.t
   type t = node list
+  let tag t = List.length t
   let map_nodes f t = List.map f t
-  let nodes t = t
+  let direct_nodes t = t
   let simplify t = t
   let is_empty t = List.exists N.is_empty t
   let equal t1 t2 =
@@ -14,7 +15,7 @@ module Atom(N:Node) = struct
     List.compare N.compare t1 t2
 end
 
-module MakeT(N:Node) = struct
+module MakeC(N:Node) = struct
   module Atom = Atom(N)
   module Bdd = Bdd.Make(Atom)(Bdd.BoolLeaf)
   module Tag = Int
@@ -25,18 +26,19 @@ module MakeT(N:Node) = struct
   let any n = n, Bdd.any ()
   let empty n = n, Bdd.empty ()
 
-  let mk a = List.length a, Bdd.singleton a
+  let mk a = Atom.tag a, Bdd.singleton a
 
   let tag (n,_) = n
   let len = tag
 
-  let check_len n n' =
-    if n <> n' then raise (Invalid_argument "Heterogeneous product lengths.")
+  let check_tag n n' =
+    if Tag.equal n n' |> not then
+      raise (Invalid_argument "Heterogeneous product lengths.")
 
-  let cap (n, t1) (n', t2) = check_len n n' ; n, Bdd.cap t1 t2
-  let cup (n, t1) (n', t2) = check_len n n' ; n, Bdd.cup t1 t2
+  let cap (n, t1) (n', t2) = check_tag n n' ; n, Bdd.cap t1 t2
+  let cup (n, t1) (n', t2) = check_tag n n' ; n, Bdd.cup t1 t2
   let neg (n, t) = n, Bdd.neg t
-  let diff (n, t1) (n', t2) = check_len n n' ; n, Bdd.diff t1 t2
+  let diff (n, t1) (n', t2) = check_tag n n' ; n, Bdd.diff t1 t2
 
   let conj n ps =
     let init = fun () -> List.init n (fun _ -> N.any ()) in
@@ -106,15 +108,15 @@ module MakeT(N:Node) = struct
 
   let dnf (_,t) = Bdd.dnf t |> Dnf.mk
   let dnf' (n,t) = dnf (n,t) |> Dnf'.from_dnf (List.init n (fun _ -> N.any ()))
-  let of_dnf n dnf =
+  let of_dnf tag dnf =
     dnf |> List.iter (fun (ps,ns,_) ->
-      ps |> List.iter (fun a -> check_len n (List.length a)) ;
-      ns |> List.iter (fun a -> check_len n (List.length a))
+      ps |> List.iter (fun a -> check_tag tag (Atom.tag a)) ;
+      ns |> List.iter (fun a -> check_tag tag (Atom.tag a))
       ) ;
-    n, Dnf.mk dnf |> Bdd.of_dnf
-  let of_dnf' n dnf' = of_dnf n (Dnf'.to_dnf dnf')
+    tag, Dnf.mk dnf |> Bdd.of_dnf
+  let of_dnf' tag dnf' = of_dnf tag (Dnf'.to_dnf dnf')
 
-  let direct_nodes (_,t) = Bdd.atoms t |> List.map Atom.nodes |> List.concat
+  let direct_nodes (_,t) = Bdd.atoms t |> List.map Atom.direct_nodes |> List.concat
   let map_nodes f (n,t) = n, Bdd.map_nodes (Atom.map_nodes f) t
 
   let simplify (n,t) = (n,Bdd.simplify equiv t)
@@ -124,7 +126,7 @@ module MakeT(N:Node) = struct
 end
 
 module Make(N:Node) = struct
-  module Products = MakeT(N)
+  module Products = MakeC(N)
   include Tagcomp.Make(N)(Products)
 
   let mk_product a = mk (Products.mk a)
