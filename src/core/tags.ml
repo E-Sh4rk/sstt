@@ -19,8 +19,6 @@ module Atom(N:Node) = struct
     N.compare n1 n2
 end
 
-(* TODO: factorize with Tuples.MakeC *)
-
 module MakeC(N:Node) = struct
   module Atom = Atom(N)
   module Bdd = Bdd.Make(Atom)(Bdd.BoolLeaf)
@@ -34,16 +32,16 @@ module MakeC(N:Node) = struct
 
   let mk a = Atom.tag a, Bdd.singleton a
 
-  let tag (n,_) = n
+  let tag (tag,_) = tag
 
-  let check_tag n n' =
-    if Tag.equal n n' |> not then
+  let check_tag tag tag' =
+    if Tag.equal tag tag' |> not then
       raise (Invalid_argument "Heterogeneous tags.")
 
-  let cap (n, t1) (n', t2) = check_tag n n' ; n, Bdd.cap t1 t2
-  let cup (n, t1) (n', t2) = check_tag n n' ; n, Bdd.cup t1 t2
-  let neg (n, t) = n, Bdd.neg t
-  let diff (n, t1) (n', t2) = check_tag n n' ; n, Bdd.diff t1 t2
+  let cap (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.cap t1 t2
+  let cup (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.cup t1 t2
+  let neg (tag, t) = tag, Bdd.neg t
+  let diff (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.diff t1 t2
 
   let is_clause_empty (ps,ns,b) =
     if b then
@@ -83,7 +81,7 @@ module MakeC(N:Node) = struct
   module Dnf = Dnf.Make(DnfAtom)(N)
 
   let dnf (_,t) = Bdd.dnf t |> Dnf.mk
-  let dnf' (n,t) = dnf (n,t) |> Dnf'.from_dnf (n,N.any ())
+  let dnf' (tag,t) = dnf (tag,t) |> Dnf'.from_dnf (tag,N.any ())
   let of_dnf tag dnf =
     dnf |> List.iter (fun (ps,ns,_) ->
       ps |> List.iter (fun a -> check_tag tag (Atom.tag a)) ;
@@ -93,9 +91,9 @@ module MakeC(N:Node) = struct
   let of_dnf' tag dnf' = of_dnf tag (Dnf'.to_dnf dnf')
 
   let direct_nodes (_,t) = Bdd.atoms t |> List.map Atom.direct_nodes |> List.concat
-  let map_nodes f (n,t) = n, Bdd.map_nodes (Atom.map_nodes f) t
+  let map_nodes f (tag,t) = tag, Bdd.map_nodes (Atom.map_nodes f) t
 
-  let simplify (n,t) = (n,Bdd.simplify equiv t)
+  let simplify (tag,t) = (tag,Bdd.simplify equiv t)
 
   let equal (_,t1) (_,t2) = Bdd.equal t1 t2
   let compare (_,t1) (_,t2) = Bdd.compare t1 t2
@@ -103,7 +101,7 @@ end
 
 module Make(N:Node) = struct
   module TagComp = MakeC(N)
-  include Tagcomp.Make(N)(TagComp)
+  include Tagged.Make(N)(TagComp)
 
   let mk_comp p = mk p
   let mk a = mk (TagComp.mk a)

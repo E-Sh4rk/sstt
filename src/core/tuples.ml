@@ -28,18 +28,18 @@ module MakeC(N:Node) = struct
 
   let mk a = Atom.tag a, Bdd.singleton a
 
-  let tag (n,_) = n
+  let tag (tag,_) = tag
   let len = tag
 
-  let check_tag n n' =
-    if Tag.equal n n' |> not then
+  let check_tag tag tag' =
+    if Tag.equal tag tag' |> not then
       raise (Invalid_argument "Heterogeneous tuple lengths.")
 
-  let cap (n, t1) (n', t2) = check_tag n n' ; n, Bdd.cap t1 t2
-  let cup (n, t1) (n', t2) = check_tag n n' ; n, Bdd.cup t1 t2
-  let neg (n, t) = n, Bdd.neg t
-  let diff (n, t1) (n', t2) = check_tag n n' ; n, Bdd.diff t1 t2
-
+  let cap (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.cap t1 t2
+  let cup (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.cup t1 t2
+  let neg (tag, t) = tag, Bdd.neg t
+  let diff (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.diff t1 t2
+    
   let conj n ps =
     let init = fun () -> List.init n (fun _ -> N.any ()) in
     mapn init N.conj ps
@@ -117,9 +117,9 @@ module MakeC(N:Node) = struct
   let of_dnf' tag dnf' = of_dnf tag (Dnf'.to_dnf dnf')
 
   let direct_nodes (_,t) = Bdd.atoms t |> List.map Atom.direct_nodes |> List.concat
-  let map_nodes f (n,t) = n, Bdd.map_nodes (Atom.map_nodes f) t
+  let map_nodes f (tag,t) = tag, Bdd.map_nodes (Atom.map_nodes f) t
 
-  let simplify (n,t) = (n,Bdd.simplify equiv t)
+  let simplify (tag,t) = (tag,Bdd.simplify equiv t)
 
   let equal (_,t1) (_,t2) = Bdd.equal t1 t2
   let compare (_,t1) (_,t2) = Bdd.compare t1 t2
@@ -127,7 +127,7 @@ end
 
 module Make(N:Node) = struct
   module TupleComp = MakeC(N)
-  include Tagcomp.Make(N)(TupleComp)
+  include Tagged.Make(N)(TupleComp)
 
   let mk_comp p = mk p
   let mk a = mk (TupleComp.mk a)
