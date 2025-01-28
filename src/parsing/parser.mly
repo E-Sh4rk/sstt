@@ -22,7 +22,7 @@ let parse_atom str =
 %token<string> STRING
 %token<Z.t> INT
 %token<string> ID, VARID, MVARID
-%token ATOM TYPE WHERE AND
+%token TYPE WHERE AND
 %token BREAK COMMA EQUAL COLON SEMICOLON
 %token DPOINT OCOLON
 %token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
@@ -50,7 +50,6 @@ command:
 | EOF { End }
 
 elt:
-| ATOM atoms=separated_nonempty_list(COMMA, ID) BREAK { DefineAtoms atoms }
 | TYPE str=ID EQUAL ty=ty BREAK { DefineType (str, ty) }
 | str=STRING? e=expr BREAK { Expr (str, e) }
 

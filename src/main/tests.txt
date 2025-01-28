@@ -1,5 +1,4 @@
 
-atom true, false, nil ;;
 type bool = true | false ;;
 
 "any1" bool <= any ;;

@@ -31,7 +31,6 @@ type expr =
   | CCmp of expr * op * expr
 
 type elt =
-  | DefineAtoms of string list
   | DefineType of string * ty
   | Expr of string option * expr
 

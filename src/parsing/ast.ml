@@ -32,7 +32,6 @@ type expr =
   | CCmp of expr * op * expr
 
 type elt =
-  | DefineAtoms of string list
   | DefineType of string * ty
   | Expr of string option * expr
 
@@ -95,17 +94,26 @@ let label env str =
     let lenv = StrMap.add str l env.lenv in
     let env = { env with lenv } in
     l, env
-  end  
+  end
+
+let type_or_atom env str =
+  match StrMap.find_opt str env.tenv with
+  | Some t -> t, env
+  | None ->
+    begin match StrMap.find_opt str env.aenv with
+    | Some a -> Descr.mk_atom a |> Ty.mk_descr, env
+    | None ->
+      let a = Atoms.Atom.mk str in
+      let aenv = StrMap.add str a env.aenv in
+      let env = { env with aenv } in
+      Descr.mk_atom a |> Ty.mk_descr, env  
+    end
 
 let build_ty env t =
   let rec aux env t =
   match t with
   | TBuiltin b -> builtin b, env
-  | TNamed str ->
-    begin match StrMap.find_opt str env.aenv with
-    | Some a -> Descr.mk_atom a |> Ty.mk_descr, env
-    | None -> StrMap.find str env.tenv, env
-    end
+  | TNamed str -> type_or_atom env str
   | TInterval (lb, ub) ->
     Intervals.Atom.mk lb ub |> Descr.mk_interval |> Ty.mk_descr, env
   | TVar str ->

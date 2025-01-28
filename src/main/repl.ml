@@ -83,14 +83,6 @@ let print_res env fmt res =
 
 let treat_elt env elt =
   match elt with
-  | DefineAtoms lst ->
-    let aenv =
-      List.fold_left (fun aenv str ->
-          let atom = Atoms.Atom.mk str in
-          StrMap.add str atom aenv
-        ) env.aenv lst
-    in
-    { env with aenv }
   | DefineType (str, ty) ->
     let ty,env = build_ty env ty in
     let tenv = StrMap.add str ty env.tenv in

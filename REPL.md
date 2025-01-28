@@ -8,7 +8,7 @@ Types are built with the following constructors:
 - `empty`, `any`, `tuple`, `arrow`, `record`, `int`
 - Monomorphic type variable `'x` (lowercase)
 - Polymorphic type variables `'X` (uppercase)
-- Atom `id`, where `id` is the identifier of an atom
+- Atom `id`, where `id` is the identifier of an atom (atoms are created on-the-fly and do not need to be declared)
 - Arrow `t -> t`
 - Tuple `(t, ..., t)`
 - Closed record `{ label : t ; ... }`
@@ -36,15 +36,12 @@ A type computation is either:
 ### Commands
 
 A command in the REPL ends with `;;`. It can be either:
-- Some atom definition(s) `atom id, ... ;;`, or
 - A type alias definition `type id = t ;;`, or
 - A type computation
 
 ## Examples
 
 ```
-> atom true, false, nil ;;
-
 > type bool = true | false ;;
 
 > (false,true) <= (bool,bool) ;;
@@ -66,7 +63,7 @@ empty
 int
 
 > ('x, 'y) [ 'x: bool ; 'y: int ] ;;
-(bool, int)
+bool, int
 
 > [ ('X, 'Y) <= ('x, 'y) ] ;;
 [
