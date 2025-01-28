@@ -105,6 +105,6 @@ module Make(N:Node) = struct
   module TagComp = MakeC(N)
   include Tagcomp.Make(N)(TagComp)
 
-  let mk_tag a = mk (TagComp.mk a)
-  let mk_tagcomp p = mk p
+  let mk_comp p = mk p
+  let mk a = mk (TagComp.mk a)
 end

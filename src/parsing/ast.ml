@@ -3,7 +3,7 @@ open Sstt_types
 
 type builtin =
   | TEmpty | TAny | TAnyTuple | TAnyAtom | TAnyInt
-  | TAnyArrow | TAnyRecord | TAnyProduct of int
+  | TAnyArrow | TAnyRecord | TAnyTupleComp of int
 type varop = TTuple
 type binop = TCap | TCup | TDiff | TArrow
 type unop = TNeg
@@ -66,7 +66,7 @@ let builtin t =
   | TAnyTuple -> Descr.mk_tuples (Tuples.any ()) |> Ty.mk_descr
   | TAnyArrow -> Descr.mk_arrows (Arrows.any ()) |> Ty.mk_descr
   | TAnyRecord -> Descr.mk_records (Records.any ()) |> Ty.mk_descr
-  | TAnyProduct n -> Products.any n |> Descr.mk_products |> Ty.mk_descr
+  | TAnyTupleComp n -> TupleComp.any n |> Descr.mk_tuplecomp |> Ty.mk_descr
 
 let tvar env str =
   begin match StrMap.find_opt str env.venv with
@@ -154,7 +154,7 @@ let build_ty env t =
       ) ([], env) tys in
     let tys = List.rev tys in
     begin match v with
-    | TTuple -> Descr.mk_product tys |> Ty.mk_descr, env
+    | TTuple -> Descr.mk_tuple tys |> Ty.mk_descr, env
     end
   | TBinop (b, ty1, ty2) ->
     let ty1, env = aux env ty1 in

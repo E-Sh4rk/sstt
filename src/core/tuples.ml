@@ -33,7 +33,7 @@ module MakeC(N:Node) = struct
 
   let check_tag n n' =
     if Tag.equal n n' |> not then
-      raise (Invalid_argument "Heterogeneous product lengths.")
+      raise (Invalid_argument "Heterogeneous tuple lengths.")
 
   let cap (n, t1) (n', t2) = check_tag n n' ; n, Bdd.cap t1 t2
   let cup (n, t1) (n', t2) = check_tag n n' ; n, Bdd.cup t1 t2
@@ -126,9 +126,9 @@ module MakeC(N:Node) = struct
 end
 
 module Make(N:Node) = struct
-  module Products = MakeC(N)
-  include Tagcomp.Make(N)(Products)
+  module TupleComp = MakeC(N)
+  include Tagcomp.Make(N)(TupleComp)
 
-  let mk_product a = mk (Products.mk a)
-  let mk_products p = mk p
+  let mk_comp p = mk p
+  let mk a = mk (TupleComp.mk a)
 end

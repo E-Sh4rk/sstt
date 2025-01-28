@@ -20,7 +20,7 @@ type varop =
 | PTuple
 type builtin =
 | PEmpty | PAny | PAnyTuple | PAnyAtom | PAnyTag | PAnyInt
-| PAnyArrow | PAnyRecord | PAnyProduct of int | PAnyTagComp of TagComp.Tag.t
+| PAnyArrow | PAnyRecord | PAnyTupleComp of int | PAnyTagComp of TagComp.Tag.t
 type t = descr * defs list
 and defs = NodeId.t * descr
 and descr = op * Ty.t

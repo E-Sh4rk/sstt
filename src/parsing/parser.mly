@@ -14,7 +14,7 @@ let parse_atom_or_builtin str =
       let regexp = Str.regexp {|^tuple\([0-9]*\)$|} in
       if Str.string_match regexp str 0 then
         let nb = Str.matched_group 1 str in
-        TBuiltin (TAnyProduct (int_of_string nb))
+        TBuiltin (TAnyTupleComp (int_of_string nb))
       else
         TNamed str
 %}

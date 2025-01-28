@@ -57,20 +57,20 @@ let regroup_records conjuncts =
 let regroup_records (ps,ns,b) =
   (regroup_records ps, ns, b)
 
-let regroup_products conjuncts =
+let regroup_tuples conjuncts =
   try [mapn (fun () -> raise Exit) Ty.conj conjuncts]
   with Exit -> []
-let regroup_products (ps,ns,b) =
-  (regroup_products ps, ns, b)
+let regroup_tuples (ps,ns,b) =
+  (regroup_tuples ps, ns, b)
 
 let simpl_arrows a =
   Arrows.dnf a |> Arrows.Dnf.simplify |> List.map regroup_arrows |> Arrows.of_dnf
 let simpl_records r =
   Records.dnf r |> Records.Dnf.simplify |> List.map regroup_records |> Records.of_dnf
-let simpl_products p =
-  Products.dnf p |> Products.Dnf.simplify |> List.map regroup_products
-  |> Products.of_dnf (Products.len p)
-let simpl_tuples t = Tuples.map simpl_products t
+let simpl_tuples p =
+  TupleComp.dnf p |> TupleComp.Dnf.simplify |> List.map regroup_tuples
+  |> TupleComp.of_dnf (TupleComp.len p)
+let simpl_tuples t = Tuples.map simpl_tuples t
 let simpl_tagcomp p =
   try Op.TagComp.as_atom p |> TagComp.mk
   with Op.EmptyAtom -> TagComp.empty (TagComp.tag p)

@@ -28,9 +28,9 @@ module TagComp : sig
     val as_atom : t -> atom
 end
 
-module Products : sig
-    type t = Products.t
-    type atom = Products.Atom.t
+module TupleComp : sig
+    type t = TupleComp.t
+    type atom = TupleComp.Atom.t
 
     (** [as_union t] expresses [t] as an union of non-empty atoms. *)
     val as_union : t -> atom list

@@ -102,8 +102,8 @@ module Make(N:Node)(A:TaggedAtom with type node = N.t) = struct
     { map ; others = t.others }
 
   let components t =
-    let prods = TMap.bindings t.map |> List.map snd in
-    (prods, t.others)
+    let cs = TMap.bindings t.map |> List.map snd in
+    (cs, t.others)
 
   let destruct t =
     if t.others then

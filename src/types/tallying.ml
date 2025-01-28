@@ -170,13 +170,13 @@ let norm delta t =
     arr |> Arrows.dnf |> Arrows.Dnf.simplify
     |> List.map (aux_arrow m) |> NCSS.conj
   and aux_tuples m tup =
-    let (prods, others) = tup |> Tuples.components in
+    let (comps, others) = tup |> Tuples.components in
     if others then NCSS.empty
-    else prods |> List.map (aux_products m) |> NCSS.conj
-  and aux_products m prod =
-    let n = Products.len prod in
-    prod |> Products.dnf |> Products.Dnf.simplify
-    |> List.map (aux_product m n) |> NCSS.conj
+    else comps |> List.map (aux_tuplecomp m) |> NCSS.conj
+  and aux_tuplecomp m tup =
+    let n = TupleComp.len tup in
+    tup |> TupleComp.dnf |> TupleComp.Dnf.simplify
+    |> List.map (aux_tuple m n) |> NCSS.conj
   and aux_records m r =
     r |> Records.dnf |> Records.Dnf.simplify
     |> List.map (aux_record m) |> NCSS.conj
@@ -199,7 +199,7 @@ let norm delta t =
       NCSS.cap css1 css2
     in
     ns |> List.map aux_n |> NCSS.disj
-  and aux_product m n (ps, ns, _) =
+  and aux_tuple m n (ps, ns, _) =
     let ps = mapn (fun () -> List.init n (fun _ -> Ty.any)) Ty.conj ps in
     let aux_n nss =
       let csss = nss |> List.mapi (fun i ns ->

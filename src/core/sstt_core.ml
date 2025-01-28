@@ -49,4 +49,4 @@ module TagComp = Tags.TagComp
 module Intervals = Descr.Intervals
 module Records = Descr.Records
 module Tuples = Descr.Tuples
-module Products = Tuples.Products
+module TupleComp = Tuples.TupleComp

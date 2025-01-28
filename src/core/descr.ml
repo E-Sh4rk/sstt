@@ -53,11 +53,11 @@ module Make(N:Node) = struct
   let mk_intervals a = { (empty ()) with intervals = a }
 
   let mk_atom a = Atoms.mk a |> mk_atoms
-  let mk_tagcomp a = Tags.mk_tagcomp a |> mk_tags
-  let mk_tag a = Tags.mk_tag a |> mk_tags
+  let mk_tagcomp a = Tags.mk_comp a |> mk_tags
+  let mk_tag a = Tags.mk a |> mk_tags
   let mk_arrow a = Arrows.mk a |> mk_arrows
-  let mk_products a = Tuples.mk_products a |> mk_tuples
-  let mk_product a = Tuples.mk_product a |> mk_tuples
+  let mk_tuplecomp a = Tuples.mk_comp a |> mk_tuples
+  let mk_tuple a = Tuples.mk a |> mk_tuples
   let mk_record a = Records.mk a |> mk_records
   let mk_interval a = Intervals.mk a |> mk_intervals
 

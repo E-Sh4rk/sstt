@@ -27,7 +27,7 @@ type varop =
 | PTuple
 type builtin =
 | PEmpty | PAny | PAnyTuple | PAnyAtom | PAnyTag | PAnyInt
-| PAnyArrow | PAnyRecord | PAnyProduct of int | PAnyTagComp of TagComp.Tag.t
+| PAnyArrow | PAnyRecord | PAnyTupleComp of int | PAnyTagComp of TagComp.Tag.t
 type t = descr * defs list
 and defs = NodeId.t * descr
 and descr = op * Ty.t
@@ -137,7 +137,7 @@ let arrow (d1,n1) (d2,n2) =
 
 let tuple lst =
   let (_,ns) = List.split lst in
-  PVarop (PTuple, lst), D.mk_product ns |> Ty.mk_descr
+  PVarop (PTuple, lst), D.mk_tuple ns |> Ty.mk_descr
 
 let record bindings opened =
   let nbindings = bindings |> List.map (fun (l, (_,n), b) ->
@@ -216,12 +216,12 @@ let resolve_intervals _ a =
   in
   if size_of_descr neg < size_of_descr pos then neg else pos
 
-let resolve_products ctx a =
-  let n = Tuples.mk_products a |> D.mk_tuples |> Ty.mk_descr in
+let resolve_tuplecomp ctx a =
+  let n = Tuples.mk_comp a |> D.mk_tuples |> Ty.mk_descr in
   match resolve_alias ctx n with
   | Some d -> d
   | None ->
-    let dnf = Products.dnf a |> Products.Dnf.simplify in
+    let dnf = TupleComp.dnf a |> TupleComp.Dnf.simplify in
     let resolve_tup lst =
       tuple (lst |> List.map (node ctx))
     in
@@ -233,12 +233,12 @@ let resolve_products ctx a =
     dnf |> List.map resolve_dnf |> union
 
 let resolve_tuples ctx a =
-  let (pos, products) = Tuples.destruct a in
-  let d = products |> List.map (fun p ->
-    let len = Products.len p in
-    let elt = resolve_products ctx p in
-    cap (PBuiltin (PAnyProduct len),
-        Products.any len |> D.mk_products |> Ty.mk_descr) elt
+  let (pos, components) = Tuples.destruct a in
+  let d = components |> List.map (fun p ->
+    let len = TupleComp.len p in
+    let elt = resolve_tuplecomp ctx p in
+    cap (PBuiltin (PAnyTupleComp len),
+        TupleComp.any len |> D.mk_tuplecomp |> Ty.mk_descr) elt
   ) |> union in
   if pos then d else neg d
 
@@ -259,7 +259,7 @@ let resolve_records ctx a =
   dnf |> List.map resolve_dnf |> union
 
 let resolve_tagcomp ctx a =
-  let n = Tags.mk_tagcomp a |> D.mk_tags |> Ty.mk_descr in
+  let n = Tags.mk_comp a |> D.mk_tags |> Ty.mk_descr in
   match resolve_alias ctx n with
   | Some d -> d
   | None ->
@@ -423,7 +423,7 @@ let print_builtin fmt b =
     | PAnyInt -> "int"
     | PAnyArrow -> "arrow"
     | PAnyRecord -> "record"
-    | PAnyProduct i -> "tuple"^(string_of_int i)
+    | PAnyTupleComp i -> "tuple"^(string_of_int i)
     | PAnyTagComp t -> (TagComp.Tag.name t)^"(any)"
   in
   Format.fprintf fmt "%s" str

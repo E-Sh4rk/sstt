@@ -56,12 +56,12 @@ module TagComp = struct
       List.fold_left (fun (_,ty1) (_,ty2) -> (tag,Ty.cup ty1 ty2)) hd tl
 end
 
-module Products = struct
-  type t = Products.t
-  type atom = Products.Atom.t
+module TupleComp = struct
+  type t = TupleComp.t
+  type atom = TupleComp.Atom.t
 
   let as_union t =
-    Products.dnf' t |> Products.Dnf'.simplify |> List.map fst
+    TupleComp.dnf' t |> TupleComp.Dnf'.simplify |> List.map fst
 
   let approx t =
     mapn (fun _ -> raise EmptyAtom) Ty.disj (as_union t)

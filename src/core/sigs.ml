@@ -228,7 +228,7 @@ module type TupleAtom = sig
   val map_nodes : (node -> node) -> t -> t
 end
 
-module type Products = sig
+module type TupleComp = sig
   include TyBase
   module Atom : TupleAtom with type node := node
   module Dnf : Dnf with type atom = Atom.t and type leaf = bool
@@ -237,7 +237,7 @@ module type Products = sig
   val empty : int -> t
   val mk : Atom.t -> t
 
-  (** [len t] returns the cardinality of products in [t]. *)
+  (** [len t] returns the cardinality of tuples in [t]. *)
   val len : t -> int
 
   (** [dnf t] returns a disjunctive normal form of [t]. *)
@@ -256,31 +256,30 @@ end
 
 module type Tuples = sig
   include TyBase
-  module Products : Products with type node := node
-  val mk_product : Products.Atom.t -> t
-  val mk_products : Products.t -> t
+  module TupleComp : TupleComp with type node := node
+  val mk : TupleComp.Atom.t -> t
+  val mk_comp : TupleComp.t -> t
 
-  (** [components t] returns a pair [(cs,b)] where [cs] are the products components
+  (** [components t] returns a pair [(cs,b)] where [cs] are the tuple components
   explicitely present in [t], and [b] is a boolean indicating whether components
   of other cardinalities are [any] (if [b] is [true]) or [empty] (if [b] is [false]). *)
-  val components : t -> Products.t list * bool
+  val components : t -> TupleComp.t list * bool
 
-  val of_components : Products.t list * bool -> t
+  val of_components : TupleComp.t list * bool -> t
 
-  (** [get n t] returns the products component of cardinality [n] in [t]. *)
-  val get : int -> t -> Products.t
+  (** [get n t] returns the tuple component of cardinality [n] in [t]. *)
+  val get : int -> t -> TupleComp.t
 
-  (** [map f t] replaces every products component [p] in [t] by [f p]. *)
-  val map : (Products.t -> Products.t) -> t -> t
+  (** [map f t] replaces every tuple component [p] in [t] by [f p]. *)
+  val map : (TupleComp.t -> TupleComp.t) -> t -> t
 
-  val construct : bool * Products.t list -> t
+  val construct : bool * TupleComp.t list -> t
 
   (** [destruct t] returns a pair [(b,cs)] such that:
-  if [b] is true, then [t] contains exactly the products components [cs],
+  if [b] is true, then [t] contains exactly the tuple components [cs],
   and if [b] is false, then the negation of [t] contains exactly
-  the products components [cs]. *)
-  val destruct : t -> bool * Products.t list
-
+  the tuple components [cs]. *)
+  val destruct : t -> bool * TupleComp.t list
 
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
   val map_nodes : (node -> node) -> t -> t
@@ -326,8 +325,8 @@ end
 module type Tags = sig
   include TyBase
   module TagComp : TagComp with type node := node
-  val mk_tag : TagComp.Atom.t -> t
-  val mk_tagcomp : TagComp.t -> t
+  val mk : TagComp.Atom.t -> t
+  val mk_comp : TagComp.t -> t
 
   (** [components t] returns a pair [(cs,b)] where [cs] are the tag components
   explicitely present in [t], and [b] is a boolean indicating whether components
@@ -379,8 +378,8 @@ module type Descr = sig
   val mk_tag : Tags.TagComp.Atom.t -> t
   val mk_tagcomp : Tags.TagComp.t -> t
   val mk_tags : Tags.t -> t
-  val mk_product : Tuples.Products.Atom.t -> t
-  val mk_products : Tuples.Products.t -> t
+  val mk_tuple : Tuples.TupleComp.Atom.t -> t
+  val mk_tuplecomp : Tuples.TupleComp.t -> t
   val mk_tuples : Tuples.t -> t
   val mk_arrow : Arrows.Atom.t -> t
   val mk_arrows : Arrows.t -> t
