@@ -472,8 +472,9 @@ let rec print_descr prec assoc fmt (d,_) =
       (if opened then ".." else "")
   | PVarop (v,ds) ->
     let sym,prec',assoc' = varop_info v in
-    Format.fprintf fmt "(%a)"
-      (print_seq (print_descr prec' assoc') sym)
+    paren prec' assoc' ;
+    Format.fprintf fmt "%a"
+      (print_seq (print_descr prec' NoAssoc) sym)
       ds
   | PBinop (b,d1,d2) ->
     let sym,prec',assoc' = binop_info b in

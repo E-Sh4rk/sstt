@@ -71,7 +71,7 @@ let%expect_test "test file" =
     print10: ~(false, true) \ (true, false)
     print11: bool
     print13: 'y
-    print14: (nil, (bool, x1)) where x1 = nil | (bool, x1)
+    print14: nil, (bool, x1) where x1 = nil | (bool, x1)
     print15: tuple \ tuple2
     print16: ~(40..44)
     tally1:
