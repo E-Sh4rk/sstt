@@ -20,7 +20,7 @@ let params_of_cons comp =
     let (_,param) = TagComp.as_atom comp in
     let pair_comp = Ty.get_descr param |> Descr.get_tuples
       |> Tuples.get 2 in
-    Some [ Op.TupleComp.proj 0 pair_comp ; Op.TupleComp.proj 1 pair_comp ]
+    Some ([ Op.TupleComp.proj 0 pair_comp ; Op.TupleComp.proj 1 pair_comp ])
   else
     None
 

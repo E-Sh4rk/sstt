@@ -40,7 +40,7 @@ and op =
 | PUnop of unop * descr
 
 type aliases = (Ty.t * string) list
-type custom_tags = (TagComp.Tag.t * (TagComp.t -> Ty.t list option)) list
+type custom_tags = (TagComp.Tag.t * (TagComp.t -> (Ty.t list) option)) list
 type post_process = t -> t
 type params = { aliases : aliases ; tags : custom_tags ; post : post_process }
 
