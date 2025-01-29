@@ -27,12 +27,8 @@ module Make(A:Atom)(N:Node) = struct
   let mk dnf = dnf |> List.filter (fun (_,_,d) -> A.undesirable_leaf d |> not)
 
   let simplify dnf =
-    (* Remove useless summands *)
-    dnf |> filter_among_others (fun c c_others ->
-      A.leq (c::c_others) c_others |> not
-    )
     (* Remove useless clauses that may be generated from the BDD *)
-    |> map_among_others (fun (cp, cn, l) c_others ->
+    let dnf = dnf |> map_among_others (fun (cp, cn, l) c_others ->
       let cp = cp |> filter_among_others (fun _ cp_others ->
         A.leq ((cp_others, cn, l)::c_others) dnf |> not
       ) in
@@ -40,6 +36,11 @@ module Make(A:Atom)(N:Node) = struct
         A.leq ((cp, cn_others, l)::c_others) dnf |> not
       ) in
       (cp, cn, l)
+    )
+    in
+    (* Remove useless summands (must be done AFTER clauses simplification) *)
+    dnf |> filter_among_others (fun c c_others ->
+      A.leq (c::c_others) c_others |> not
     )
 
   let mk t = N.with_own_cache mk t

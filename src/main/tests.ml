@@ -147,7 +147,7 @@ let%expect_test "test file" =
               'X: any
             ]
             [
-              'X: ~'B | ~'B | 'A & 'X ;
+              'X: ~'B | 'A & 'X ;
               'A: ~'B | 'A
             ]
     tally13: [
