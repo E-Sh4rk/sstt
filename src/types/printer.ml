@@ -525,7 +525,7 @@ let print_descr prec assoc fmt d =
     | PCustomTag (t,params) ->
       Format.fprintf fmt "%a(%a)"
         TagComp.Tag.pp t
-        (print_seq (aux (-1) NoAssoc) ", ") params
+        (print_seq (aux (-1) NoAssoc) " ; ") params
     | PInterval (lb,ub) -> Format.fprintf fmt "%a" print_interval (lb,ub)
     | PRecord (bindings,opened) ->
       let print_binding fmt (l,d,b) =
