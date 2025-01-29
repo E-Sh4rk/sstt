@@ -22,9 +22,9 @@ end
 type unop =
 | PNeg
 type binop =
-| PCup | PCap | PDiff | PArrow
+| PDiff | PArrow
 type varop =
-| PTuple
+| PTuple | PCup | PCap
 type builtin =
 | PEmpty | PAny | PAnyTuple | PAnyAtom | PAnyTag | PAnyInt
 | PAnyArrow | PAnyRecord | PAnyTupleComp of int | PAnyTagComp of TagComp.Tag.t
@@ -117,24 +117,44 @@ let neg (d,n) =
   | d -> PUnop (PNeg, (d,n)), Ty.neg n
 
 let cap (d1,n1) (d2,n2) =
-  if Ty.leq n1 n2 then d1,n1
-  else if Ty.leq n2 n1 then d2,n2
-  else PBinop (PCap, (d1,n1), (d2,n2)), Ty.cap n1 n2
+  let ty = Ty.cap n1 n2 in
+  match d1, d2 with
+  | PVarop (PCap, c1), PVarop (PCap, c2) ->
+    PVarop (PCap, c1@c2), ty
+  | PVarop (PCap, c1), d2 -> PVarop (PCap, c1@[d2,n2]), ty
+  | d1, PVarop (PCap, c2) -> PVarop (PCap, (d1,n1)::c2), ty
+  | d1, d2 -> PVarop (PCap, [d1,n1;d2,n2]), ty
 
 let cup (d1,n1) (d2,n2) =
+  let ty = Ty.cup n1 n2 in
+  match d1, d2 with
+  | PVarop (PCup, c1), PVarop (PCup, c2) ->
+    PVarop (PCup, c1@c2), ty
+  | PVarop (PCup, c1), d2 -> PVarop (PCup, c1@[d2,n2]), ty
+  | d1, PVarop (PCup, c2) -> PVarop (PCup, (d1,n1)::c2), ty
+  | d1, d2 -> PVarop (PCup, [d1,n1;d2,n2]), ty
+
+let cap' (d1,n1) (d2,n2) =
+  if Ty.leq n1 n2 then d1,n1
+  else if Ty.leq n2 n1 then d2,n2
+  else cap (d1,n1) (d2,n2)
+
+(* let cup' (d1,n1) (d2,n2) =
   if Ty.leq n2 n1 then d1,n1
   else if Ty.leq n1 n2 then d2,n2
-  else PBinop (PCup, (d1,n1), (d2,n2)), Ty.cup n1 n2
+  else cup (d1,n1) (d2,n2) *)
 
 let any = PBuiltin PAny, Ty.any
 let empty = PBuiltin PEmpty, Ty.empty
 
 let union union =
+  let union = union |> List.filter (fun (_,n) -> Ty.is_empty n |> not) in
   match union with
   | [] -> empty
   | d::union -> List.fold_left cup d union
 
 let inter inter =
+  let inter = inter |> List.filter (fun (_,n) -> Ty.is_any n |> not) in
   match inter with
   | [] -> any
   | d::inter -> List.fold_left cap d inter
@@ -246,7 +266,7 @@ let resolve_tuples ctx a =
   let d = components |> List.map (fun p ->
     let len = TupleComp.len p in
     let elt = resolve_tuplecomp ctx p in
-    cap (PBuiltin (PAnyTupleComp len),
+    cap' (PBuiltin (PAnyTupleComp len),
         TupleComp.any len |> D.mk_tuplecomp |> Ty.mk_descr) elt
   ) |> union in
   if pos then d else neg d
@@ -293,7 +313,7 @@ let resolve_tags ctx a =
   let d = components |> List.map (fun t ->
     let tag = TagComp.tag t in
     let elt = resolve_tagcomp ctx t in
-    cap (PBuiltin (PAnyTagComp tag),
+    cap' (PBuiltin (PAnyTagComp tag),
         TagComp.any tag |> D.mk_tagcomp |> Ty.mk_descr) elt
   ) |> union in
   if pos then d else neg d
@@ -332,7 +352,7 @@ let resolve_descr ctx d =
   | None ->
     let ds = D.components d |> List.map (resolve_comp ctx) in
     let combine ds =
-      ds |> List.map (fun (d,any_d) -> cap any_d d) |> union
+      ds |> List.map (fun (d,any_d) -> cap' any_d d) |> union
     in
     let pd = ds |> combine in
     let nd = ds |> List.map (fun (d, any_d) -> (neg d, any_d)) |> combine |> neg in
@@ -409,7 +429,7 @@ let inline t =
 
 let simplify t =
   let f (d,_) = match d with
-  | PBinop (PCap, d1, (PUnop (PNeg, d2), _)) -> PBinop (PDiff, d1, d2)
+  | PVarop (PCap, [ d ; (PUnop (PNeg, dn),_) ]) -> PBinop (PDiff, d, dn)
   | d -> d
   in
   map_t f t
@@ -465,12 +485,12 @@ type assoc = Left | Right | NoAssoc
 
 let varop_info v = match v with
 | PTuple -> ", ", 0, NoAssoc
+| PCup -> " | ", 2, NoAssoc
+| PCap -> " & ", 3, NoAssoc
 
 let binop_info b = match b with
-| PArrow -> "->", 1, Right
-| PCup -> "|", 2, Left
-| PCap -> "&", 3, Left
-| PDiff -> "\\", 4, Left
+| PArrow -> " -> ", 1, Right
+| PDiff -> " \\ ", 4, Left
 
 let unop_info u = match u with
 | PNeg -> "~", 5, NoAssoc
@@ -515,7 +535,7 @@ let rec print_descr prec assoc fmt (d,_) =
   | PBinop (b,d1,d2) ->
     let sym,prec',assoc' = binop_info b in
     paren prec' assoc' ;
-    Format.fprintf fmt "%a %s %a"
+    Format.fprintf fmt "%a%s%a"
       (print_descr prec' Left) d1 sym
       (print_descr prec' Right) d2
   | PUnop (u,d) ->

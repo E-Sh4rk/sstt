@@ -15,9 +15,9 @@ end
 type unop =
 | PNeg
 type binop =
-| PCup | PCap | PDiff | PArrow
+| PDiff | PArrow
 type varop =
-| PTuple
+| PTuple | PCup | PCap
 type builtin =
 | PEmpty | PAny | PAnyTuple | PAnyAtom | PAnyTag | PAnyInt
 | PAnyArrow | PAnyRecord | PAnyTupleComp of int | PAnyTagComp of TagComp.Tag.t

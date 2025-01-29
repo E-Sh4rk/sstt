@@ -79,6 +79,7 @@ let%expect_test "test file" =
     print15: tuple \ tuple2
     print16: ~(40..44)
     print17: ~tag(42)
+    print18: ('c -> 'd) & ('a -> 'b) & ~('g -> 'h) & ~('e -> 'f)
     tally1:
     tally2: [
               'X: 'X & 'y
@@ -146,7 +147,7 @@ let%expect_test "test file" =
               'X: any
             ]
             [
-              'X: ~'B | 'A & 'X ;
+              'X: ~'B | ~'B | 'A & 'X ;
               'A: ~'B | 'A
             ]
     tally13: [
