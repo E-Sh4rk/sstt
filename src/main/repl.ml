@@ -66,25 +66,25 @@ let rec compute_expr env e =
     in
     RBool (carthesian_product tys1 tys2 |> List.map aux), env
   
-let params env =
+let params pparams env =
   let aliases =
     StrMap.bindings env.tenv |> List.map (fun (str, ty) -> (ty, str))
   in
-  { Printer.empty_params with aliases }
+  Printer.merge_params pparams { Printer.empty_params with aliases }
 
-let print_res env fmt res =
+let print_res pparams env fmt res =
   match res with
   | RBool bs ->
     let print_bool fmt b = Format.fprintf fmt "%b" b in
     Format.fprintf fmt "%a" (print_seq_space print_bool) bs
   | RTy tys ->
     Format.fprintf fmt "%a"
-      (print_seq_cut (Printer.print_ty (params env))) tys
+      (print_seq_cut (Printer.print_ty (params pparams env))) tys
   | RSubst ss ->
     Format.fprintf fmt "%a"
-      (print_seq_cut (Printer.print_subst (params env))) ss
+      (print_seq_cut (Printer.print_subst (params pparams env))) ss
 
-let treat_elt env elt =
+let treat_elt ?(pparams=Printer.empty_params) env elt =
   match elt with
   | DefineType (str, ty) ->
     let ty,env = build_ty env ty in
@@ -93,7 +93,7 @@ let treat_elt env elt =
   | Expr (str, e) ->
     let r, env = compute_expr env e in
     begin match str with
-    | None -> print Msg "@[<v 0>%a@]" (print_res env) r
-    | Some str -> print Msg "%s:@[<v 0> %a@]" str (print_res env) r
+    | None -> print Msg "@[<v 0>%a@]" (print_res pparams env) r
+    | Some str -> print Msg "%s:@[<v 0> %a@]" str (print_res pparams env) r
     end ;
     env

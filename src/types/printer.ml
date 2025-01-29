@@ -37,6 +37,7 @@ and op =
 | PBuiltin of builtin
 | PVar of Var.t
 | PAtom of Atoms.Atom.t
+| PCustom of (Format.formatter -> unit)
 | PTag of TagComp.Tag.t * descr
 | PCustomTag of TagComp.Tag.t * descr list
 | PInterval of Z.t option * Z.t option
@@ -47,7 +48,8 @@ and op =
 
 type aliases = (Ty.t * string) list
 type custom_tags = (TagComp.Tag.t * (TagComp.t -> Ty.t list option)) list
-type params = { aliases : aliases ; tags : custom_tags }
+type post_process = t -> t
+type params = { aliases : aliases ; tags : custom_tags ; post : post_process }
 
 module VD = VDescr
 module D = Descr
@@ -65,6 +67,7 @@ let map_descr f d = (* Assumes f preserves semantic equivalence *)
     | PBuiltin b -> PBuiltin b
     | PVar v -> PVar v
     | PAtom atom -> PAtom atom
+    | PCustom printer -> PCustom printer
     | PTag (tag, d) -> PTag (tag, aux d)
     | PCustomTag (tag, ds) -> PCustomTag (tag, List.map aux ds)
     | PInterval (lb, ub) -> PInterval (lb, ub)
@@ -183,10 +186,17 @@ let interval (o1, o2) =
 
 (* Step 1 : Build the initial ctx and AST *)
 
+let empty_params : params = { aliases = [] ; tags = [] ; post = identity }
+
+let merge_params p1 p2 =
+  { aliases = p1.aliases@p2.aliases ; tags = p1.tags @ p2.tags ;
+    post = (fun x -> x |> p1.post |> p2.post) }
+
 type ctx = {
   mutable nodes : NodeId.t VDMap.t ;
   aliases : (Ty.t * op) list ;
-  tags : (TagComp.t -> Ty.t list option) TagMap.t
+  tags : (TagComp.t -> Ty.t list option) TagMap.t ;
+  post : post_process
 }
 
 let node ctx n =
@@ -201,7 +211,8 @@ let node ctx n =
 let build_t (params:params) n =
   let aliases = params.aliases |> List.map (fun (n, s) -> (n, PNamed s)) in
   let tags = params.tags |> TagMap.of_list in
-  let ctx = { nodes=VDMap.empty ; aliases ; tags } in
+  let post = params.post in
+  let ctx = { nodes=VDMap.empty ; aliases ; tags ; post } in
   ctx, (node ctx n, [])
 
 (* Step 2 : Resolve missing definitions (and recognize custom type aliases) *)
@@ -448,8 +459,6 @@ let rename_nodes (_, defs) =
 
 (* Step 6 : Print *)
 
-type _ Effect.t += PrintTag: (TagComp.Tag.t * descr list * (NodeId.t * descr) list * Format.formatter) -> unit Effect.t
-
 let print_builtin fmt b =
   let str =
     match b with
@@ -493,7 +502,7 @@ let binop_info b = match b with
 let unop_info u = match u with
 | PNeg -> "~", 5, NoAssoc
 
-let print_descr defs fmt d =
+let print_descr prec assoc fmt d =
   let rec aux prec assoc fmt (d,_) =
     let need_paren = ref false in
     let paren prec' assoc' =
@@ -509,10 +518,14 @@ let print_descr defs fmt d =
     | PBuiltin b -> print_builtin fmt b
     | PVar v -> Format.fprintf fmt "%a" Var.pp v
     | PAtom a -> Format.fprintf fmt "%a" Atoms.Atom.pp a
+    | PCustom printer -> printer fmt
     | PTag (t,d) ->
       Format.fprintf fmt "%a(%a)"
         TagComp.Tag.pp t (aux (-1) NoAssoc) d
-    | PCustomTag (t,ds) -> Effect.perform (PrintTag (t, ds, defs, fmt))
+    | PCustomTag (t,params) ->
+      Format.fprintf fmt "%a(%a)"
+        TagComp.Tag.pp t
+        (print_seq (aux (-1) NoAssoc) ", ") params
     | PInterval (lb,ub) -> Format.fprintf fmt "%a" print_interval (lb,ub)
     | PRecord (bindings,opened) ->
       let print_binding fmt (l,d,b) =
@@ -544,15 +557,15 @@ let print_descr defs fmt d =
     in
     if !need_paren then Format.fprintf fmt ")"
   in
-  aux (-1) NoAssoc fmt d
+  aux prec assoc fmt d
 
-let print_def defs fmt (n,d) =
-  Format.fprintf fmt "%a = %a" NodeId.pp n (print_descr defs) d
+let print_descr' fmt d = print_descr (-1) NoAssoc fmt d
+
+let print_def fmt (n,d) =
+  Format.fprintf fmt "%a = %a" NodeId.pp n print_descr' d
 
 let print_t fmt (d,defs) =
-  let print_descr = print_descr defs in
-  let print_def = print_def defs in
-  Format.fprintf fmt "%a" print_descr d ;
+  Format.fprintf fmt "%a" print_descr' d ;
   match defs with
   | [] -> ()
   | def::defs ->
@@ -566,6 +579,7 @@ let get customs ty =
   let t = resolve_missing_defs ctx t in
   let t = inline t in
   let t = simplify t in
+  let t = ctx.post t in
   rename_nodes t ;
   t
 
@@ -583,6 +597,5 @@ let print_subst customs fmt s =
   Format.fprintf fmt "@[<v 0>[@[<v 1>%a@]@,]@]"
     (print_seq pp_binding " ;") (Subst.bindings s)
 
-let empty_params : params = { aliases = [] ; tags = [] }
 let print_ty' = print_ty empty_params
 let print_subst' = print_subst empty_params

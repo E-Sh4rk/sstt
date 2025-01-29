@@ -1,6 +1,7 @@
 open Sstt_parsing
+open Sstt_types
 
-let%expect_test "test file" =
+let%expect_test "tests" =
   let fn = "tests.txt" in
   let cin = open_in fn in
   let buf = Lexing.from_channel cin in
@@ -165,3 +166,27 @@ let%expect_test "test file" =
     app3: (-5..5)
     app4: empty
     |}]
+
+open Extensions
+
+let%expect_test "tests_ext" =
+    let fn = "tests_ext.txt" in
+    let cin = open_in fn in
+    let buf = Lexing.from_channel cin in
+    let rec test env =
+      match IO.parse_command buf with
+      | End -> ()
+      | Elt elt ->
+        let env = Repl.treat_elt ~pparams:Lists.printer_params env elt in
+        test env
+    in
+    let env = Repl.empty_env in
+    let env = { env with Ast.aenv=Ast.StrMap.singleton "nil" Lists.nil_atom } in
+    let env = { env with Ast.tagenv=Ast.StrMap.singleton "cons" Lists.cons_tag } in
+    Output.with_basic_output Format.std_formatter
+      (fun () -> test env) () ;
+    [%expect {|
+      42_43: (42)::(43)::list
+      int_list: x1 where x1 = [] | (int)::x1
+      |}]
+  

@@ -6,3 +6,6 @@ module Tallying = Tallying
 module Subst = Subst
 module Op = Op
 module Transform = Transform
+module Extensions = struct
+  module Lists = Lists
+end

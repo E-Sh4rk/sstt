@@ -30,6 +30,7 @@ and op =
 | PBuiltin of builtin
 | PVar of Var.t
 | PAtom of Atoms.Atom.t
+| PCustom of (Format.formatter -> unit)
 | PTag of TagComp.Tag.t * descr
 | PCustomTag of TagComp.Tag.t * descr list
 | PInterval of Z.t option * Z.t option
@@ -40,15 +41,16 @@ and op =
 
 type aliases = (Ty.t * string) list
 type custom_tags = (TagComp.Tag.t * (TagComp.t -> Ty.t list option)) list
-type params = { aliases : aliases ; tags : custom_tags }
+type post_process = t -> t
+type params = { aliases : aliases ; tags : custom_tags ; post : post_process }
 
 val empty_params : params
+
+val merge_params : params -> params -> params
 
 (** [get aliases ty] transforms the type [ty] into an algebraic form,
 recognizing type aliases [aliases]. *)
 val get : params -> Ty.t -> t
-
-type _ Effect.t += PrintTag: (TagComp.Tag.t * descr list * (NodeId.t * descr) list * Format.formatter) -> unit Effect.t
 
 (** [print fmt t] prints the algebraic form [t] using formatter [fmt]. *)
 val print : Format.formatter -> t -> unit
@@ -68,3 +70,9 @@ val print_ty' : Format.formatter -> Ty.t -> unit
 (** [print_subst' fmt s] prints the substitution [s] using formatter [fmt].
 Same as [print_subst [] fmt s]. *)
 val print_subst' : Format.formatter -> Subst.t -> unit
+
+(* Utilities for post-processing the printer AST *)
+
+val map_t : (descr -> op) -> t -> t
+
+val print_descr' : Format.formatter -> descr -> unit

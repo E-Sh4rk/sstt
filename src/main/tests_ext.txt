@@ -1,0 +1,8 @@
+
+type list = x where x = nil | cons(any,x) ;;
+type fst42 = cons(42, list) ;;
+type snd43 = cons(any, cons(43,list)) ;;
+"42_43" fst42 & snd43 ;;
+
+type list_a = x where x = nil | cons('a,x) ;;
+"int_list" list_a ['a : int] ;;

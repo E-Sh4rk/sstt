@@ -2,7 +2,7 @@
  (name sstt_main)
  (public_name sstt-repl.main)
 ;  (package sstt-repl)
- (inline_tests (deps tests.txt))
+ (inline_tests (deps tests.txt tests_ext.txt))
  (libraries sstt_parsing sstt_utils sstt_types)
  (preprocess (pps ppx_expect))
  (modules (:standard)))
