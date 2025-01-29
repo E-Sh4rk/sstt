@@ -48,9 +48,7 @@ val empty_params : params
 recognizing type aliases [aliases]. *)
 val get : params -> Ty.t -> t
 
-type tags_printer =
-  (TagComp.Tag.t * descr list * (NodeId.t * descr) list ->
-    Format.formatter -> unit) list
+type _ Effect.t += PrintTag: (TagComp.Tag.t * descr list * (NodeId.t * descr) list * Format.formatter) -> unit Effect.t
 
 (** [print fmt t] prints the algebraic form [t] using formatter [fmt]. *)
 val print : Format.formatter -> t -> unit

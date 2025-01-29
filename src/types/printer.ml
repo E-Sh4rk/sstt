@@ -448,9 +448,7 @@ let rename_nodes (_, defs) =
 
 (* Step 6 : Print *)
 
-type tags_printer =
-  (TagComp.Tag.t * descr list * (NodeId.t * descr) list ->
-    Format.formatter -> unit) list
+type _ Effect.t += PrintTag: (TagComp.Tag.t * descr list * (NodeId.t * descr) list * Format.formatter) -> unit Effect.t
 
 let print_builtin fmt b =
   let str =
@@ -495,62 +493,65 @@ let binop_info b = match b with
 let unop_info u = match u with
 | PNeg -> "~", 5, NoAssoc
 
-let rec print_descr prec assoc fmt (d,_) =
-  let need_paren = ref false in
-  let paren prec' assoc' =
-    if prec' < prec || prec' = prec && (assoc' <> assoc || assoc' = NoAssoc)
-    then begin
-      need_paren := true ;
-      Format.fprintf fmt "("
-    end
-  in
-  let () = match d with
-  | PNamed str -> Format.fprintf fmt "%s" str
-  | PNode n -> Format.fprintf fmt "%a" NodeId.pp n
-  | PBuiltin b -> print_builtin fmt b
-  | PVar v -> Format.fprintf fmt "%a" Var.pp v
-  | PAtom a -> Format.fprintf fmt "%a" Atoms.Atom.pp a
-  | PTag (t,d) ->
-    Format.fprintf fmt "%a(%a)"
-      TagComp.Tag.pp t (print_descr (-1) NoAssoc) d
-  | PCustomTag _ -> failwith "TODO"
-  | PInterval (lb,ub) -> Format.fprintf fmt "%a" print_interval (lb,ub)
-  | PRecord (bindings,opened) ->
-    let print_binding fmt (l,d,b) =
-      Format.fprintf fmt "%a %s %a"
-        Label.pp l
-        (if b then ":?" else ":")
-        (print_descr (-1) NoAssoc) d
+let print_descr defs fmt d =
+  let rec aux prec assoc fmt (d,_) =
+    let need_paren = ref false in
+    let paren prec' assoc' =
+      if prec' < prec || prec' = prec && (assoc' <> assoc || assoc' = NoAssoc)
+      then begin
+        need_paren := true ;
+        Format.fprintf fmt "("
+      end
     in
-    Format.fprintf fmt "{ %a %s}"
-      (print_seq print_binding " ; ")
-      bindings
-      (if opened then ".." else "")
-  | PVarop (v,ds) ->
-    let sym,prec',assoc' = varop_info v in
-    paren prec' assoc' ;
-    Format.fprintf fmt "%a"
-      (print_seq (print_descr prec' NoAssoc) sym)
-      ds
-  | PBinop (b,d1,d2) ->
-    let sym,prec',assoc' = binop_info b in
-    paren prec' assoc' ;
-    Format.fprintf fmt "%a%s%a"
-      (print_descr prec' Left) d1 sym
-      (print_descr prec' Right) d2
-  | PUnop (u,d) ->
-    let sym,prec',assoc' = unop_info u in
-    paren prec' assoc' ;
-    Format.fprintf fmt "%s%a" sym (print_descr prec' NoAssoc) d
+    let () = match d with
+    | PNamed str -> Format.fprintf fmt "%s" str
+    | PNode n -> Format.fprintf fmt "%a" NodeId.pp n
+    | PBuiltin b -> print_builtin fmt b
+    | PVar v -> Format.fprintf fmt "%a" Var.pp v
+    | PAtom a -> Format.fprintf fmt "%a" Atoms.Atom.pp a
+    | PTag (t,d) ->
+      Format.fprintf fmt "%a(%a)"
+        TagComp.Tag.pp t (aux (-1) NoAssoc) d
+    | PCustomTag (t,ds) -> Effect.perform (PrintTag (t, ds, defs, fmt))
+    | PInterval (lb,ub) -> Format.fprintf fmt "%a" print_interval (lb,ub)
+    | PRecord (bindings,opened) ->
+      let print_binding fmt (l,d,b) =
+        Format.fprintf fmt "%a %s %a"
+          Label.pp l
+          (if b then ":?" else ":")
+          (aux (-1) NoAssoc) d
+      in
+      Format.fprintf fmt "{ %a %s}"
+        (print_seq print_binding " ; ")
+        bindings
+        (if opened then ".." else "")
+    | PVarop (v,ds) ->
+      let sym,prec',assoc' = varop_info v in
+      paren prec' assoc' ;
+      Format.fprintf fmt "%a"
+        (print_seq (aux prec' NoAssoc) sym)
+        ds
+    | PBinop (b,d1,d2) ->
+      let sym,prec',assoc' = binop_info b in
+      paren prec' assoc' ;
+      Format.fprintf fmt "%a%s%a"
+        (aux prec' Left) d1 sym
+        (aux prec' Right) d2
+    | PUnop (u,d) ->
+      let sym,prec',assoc' = unop_info u in
+      paren prec' assoc' ;
+      Format.fprintf fmt "%s%a" sym (aux prec' NoAssoc) d
+    in
+    if !need_paren then Format.fprintf fmt ")"
   in
-  if !need_paren then Format.fprintf fmt ")"
+  aux (-1) NoAssoc fmt d
 
-let print_descr = print_descr (-1) NoAssoc
-
-let print_def fmt (n,d) =
-  Format.fprintf fmt "%a = %a" NodeId.pp n print_descr d
+let print_def defs fmt (n,d) =
+  Format.fprintf fmt "%a = %a" NodeId.pp n (print_descr defs) d
 
 let print_t fmt (d,defs) =
+  let print_descr = print_descr defs in
+  let print_def = print_def defs in
   Format.fprintf fmt "%a" print_descr d ;
   match defs with
   | [] -> ()
