@@ -28,8 +28,8 @@ type varop =
 type builtin =
 | PEmpty | PAny | PAnyTuple | PAnyAtom | PAnyTag | PAnyInt
 | PAnyArrow | PAnyRecord | PAnyTupleComp of int | PAnyTagComp of TagComp.Tag.t
-type t = descr * defs list
-and defs = NodeId.t * descr
+type t = { main : descr ; defs : def list }
+and def = NodeId.t * descr
 and descr = { op : op ; ty : Ty.t }
 and op =
 | PNamed of string
@@ -95,9 +95,10 @@ let map_descr f d = (* Assumes f preserves semantic equivalence *)
     in { d with op = f { d with op } }
   in
   aux d
-let map_t f (d,defs) =
-  let defs = defs |> List.map (fun (id,d) -> (id,map_descr f d)) in
-  (map_descr f d, defs)
+let map_t f t =
+  let main = map_descr f t.main in
+  let defs = t.defs |> List.map (fun (id,d) -> (id,map_descr f d)) in
+  { main ; defs }
 
 let nodes_in_descr d =
   let res = ref NISet.empty in
@@ -114,10 +115,10 @@ let size_of_descr d =
   map_descr f d |> ignore ;
   !res
 
-let size_t (d,defs) =
+let size_t t =
   List.fold_left (fun n (_,d) ->
     n + 3 + size_of_descr d
-  ) (size_of_descr d) defs
+  ) (size_of_descr t.main) t.defs
 
 let subst n d t =
   let aux d' =
@@ -227,7 +228,7 @@ let build_t (params:params) ty =
   let tags = params.tags |> TagMap.of_list in
   let printers = params.printers |> TagMap.of_list in
   let ctx = { nodes=VDMap.empty ; aliases ; tags ; printers } in
-  ctx, (node ctx ty, [])
+  ctx, { main = node ctx ty ; defs = [] }
 
 (* Step 2 : Resolve missing definitions (and recognize custom type aliases) *)
 
@@ -413,35 +414,34 @@ let resolve_def ctx def =
 
 let rec resolve_missing_defs ctx t =
   let used_defs = ctx.nodes |> VDMap.bindings in
-  let (main_descr,defs) = t in
   let to_define = used_defs |> List.find_opt (fun (_,nid) ->
-    defs |> List.exists (fun (nid',_) -> NodeId.equal nid nid') |> not
+    t.defs |> List.exists (fun (nid',_) -> NodeId.equal nid nid') |> not
   ) in
   match to_define with
   | None -> t
   | Some (def,nid) ->
     let descr = resolve_def ctx def in
-    resolve_missing_defs ctx (main_descr, (nid,descr)::defs)
+    resolve_missing_defs ctx { t with defs = (nid,descr)::t.defs }
 
 (* Step 3 : Inline nodes when relevant, remove unused nodes *)
 
-let used_nodes (descr, defs) =
-  let res = nodes_in_descr descr in
+let used_nodes t =
+  let res = nodes_in_descr t.main in
   let rec aux nodes =
     let add_nodes nodes (n, d) =
       if NISet.mem n nodes
       then NISet.union nodes (nodes_in_descr d)
       else nodes
     in
-    let nodes' = List.fold_left add_nodes nodes defs in
+    let nodes' = List.fold_left add_nodes nodes t.defs in
     if NISet.equal nodes nodes' then nodes' else aux nodes'
   in
   aux res
 
-let remove_unused_nodes (descr, defs) =
-  let used = used_nodes (descr, defs) in
-  let defs = defs |> List.filter (fun (n,_) -> NISet.mem n used) in
-  (descr, defs)
+let remove_unused_nodes t =
+  let used = used_nodes t in
+  let defs = t.defs |> List.filter (fun (n,_) -> NISet.mem n used) in
+  { t with defs }
 
 let inline t =
   let t = remove_unused_nodes t in
@@ -456,7 +456,7 @@ let inline t =
         then Some t'
         else try_inline defs
     in
-    match try_inline (snd t) with
+    match try_inline t.defs with
     | None -> t
     | Some t' -> aux t'
   in
@@ -488,13 +488,13 @@ let transform_custom_tags ctx t =
 
 (* Step 6 : Rename nodes *)
 
-let rename_nodes (_, defs) =
+let rename_nodes t =
   let c = ref 0 in
   let next_name () =
     c := !c + 1 ;
     "x"^(string_of_int !c)
   in
-  defs |> List.iter (fun (n,_) ->
+  t.defs |> List.iter (fun (n,_) ->
     NodeId.rename n (next_name ())
     )
 
@@ -602,9 +602,9 @@ and print_descr' fmt d = print_descr (-1) NoAssoc fmt d
 and print_def fmt (n,d) =
   Format.fprintf fmt "%a = %a" NodeId.pp n print_descr' d
 
-and print_t fmt (d,defs) =
-  Format.fprintf fmt "%a" print_descr' d ;
-  match defs with
+and print_t fmt t =
+  Format.fprintf fmt "%a" print_descr' t.main ;
+  match t.defs with
   | [] -> ()
   | def::defs ->
     Format.fprintf fmt " where %a%a" print_def def

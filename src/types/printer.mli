@@ -21,8 +21,8 @@ type varop =
 type builtin =
 | PEmpty | PAny | PAnyTuple | PAnyAtom | PAnyTag | PAnyInt
 | PAnyArrow | PAnyRecord | PAnyTupleComp of int | PAnyTagComp of TagComp.Tag.t
-type t = descr * defs list
-and defs = NodeId.t * descr
+type t = { main : descr ; defs : def list }
+and def = NodeId.t * descr
 and descr = { op : op ; ty : Ty.t }
 and op =
 | PNamed of string
