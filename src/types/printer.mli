@@ -32,15 +32,19 @@ and op =
 | PAtom of Atoms.Atom.t
 | PCustom of (Format.formatter -> unit)
 | PTag of TagComp.Tag.t * descr
-| PCustomTag of TagComp.Tag.t * descr list list
+| PCustomTag of TagComp.Tag.t * tag_struct
 | PInterval of Z.t option * Z.t option
 | PRecord of (Label.t * descr * bool) list * bool
 | PVarop of varop * descr list
 | PBinop of binop * descr * descr
 | PUnop of unop * descr
+and tag_param = TPLeaf of descr | TPRec of tag_struct
+and tag_params = tag_param list
+and tag_struct = TSDef of NodeId.t * tag_params list | TSNode of NodeId.t
 
 type aliases = (Ty.t * string) list
-type custom_tags = (TagComp.Tag.t * (TagComp.t -> (Ty.t list list) option)) list
+type ctag_param = CTPLeaf of Ty.t | CTPRec of Ty.t
+type custom_tags = (TagComp.Tag.t * (Ty.t -> (ctag_param list) list option)) list
 type post_process = t -> t
 type params = { aliases : aliases ; tags : custom_tags ; post : post_process }
 

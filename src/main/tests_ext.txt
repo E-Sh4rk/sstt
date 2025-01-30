@@ -10,3 +10,5 @@ type list_a = x where x = nil | cons('a,x) ;;
 type a = cons(a,list) ;;
 type ba = cons(b,cons(a,list));;
 "union" a | ba ;;
+
+"invalid" cons(int,cons(int,int)) ;;

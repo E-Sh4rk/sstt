@@ -21,7 +21,7 @@ let%expect_test "tests" =
     empty2: true
     atom1: false
     atom2: true
-    tags1: tag(false, true) | tag(true, false)
+    tags1: tag((false, true) | (true, false))
     tags2: tag1(true, false) | tag2(false, true)
     tags3: true
     tags4: 42
@@ -189,5 +189,6 @@ let%expect_test "tests_ext" =
       42_43: (42::(43::list))
       int_list: x1 where x1 = ([] | int::x1)
       union: (b::(a::list) | a::list)
+      invalid: list(int, list(int, int))
       |}]
   

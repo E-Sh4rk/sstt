@@ -39,15 +39,19 @@ and op =
 | PAtom of Atoms.Atom.t
 | PCustom of (Format.formatter -> unit)
 | PTag of TagComp.Tag.t * descr
-| PCustomTag of TagComp.Tag.t * descr list list
+| PCustomTag of TagComp.Tag.t * tag_struct
 | PInterval of Z.t option * Z.t option
 | PRecord of (Label.t * descr * bool) list * bool
 | PVarop of varop * descr list
 | PBinop of binop * descr * descr
 | PUnop of unop * descr
+and tag_param = TPLeaf of descr | TPRec of tag_struct
+and tag_params = tag_param list
+and tag_struct = TSDef of NodeId.t * tag_params list | TSNode of NodeId.t
 
 type aliases = (Ty.t * string) list
-type custom_tags = (TagComp.Tag.t * (TagComp.t -> (Ty.t list list) option)) list
+type ctag_param = CTPLeaf of Ty.t | CTPRec of Ty.t
+type custom_tags = (TagComp.Tag.t * (Ty.t -> (ctag_param list) list option)) list
 type post_process = t -> t
 type params = { aliases : aliases ; tags : custom_tags ; post : post_process }
 
@@ -69,7 +73,19 @@ let map_descr f d = (* Assumes f preserves semantic equivalence *)
     | PAtom atom -> PAtom atom
     | PCustom printer -> PCustom printer
     | PTag (tag, d) -> PTag (tag, aux d)
-    | PCustomTag (tag, ds) -> PCustomTag (tag, List.map (List.map aux) ds)
+    | PCustomTag (tag, ts) ->
+      let rec map_ts ts =
+        match ts with
+        | TSDef (nid,params) ->
+          TSDef (nid, List.map map_params params)
+        | TSNode nid -> TSNode nid
+      and map_params params = List.map map_param params
+      and map_param p =
+        match p with
+        | TPLeaf d -> TPLeaf (aux d)
+        | TPRec ts -> TPRec (map_ts ts)
+      in
+      PCustomTag (tag, map_ts ts)
     | PInterval (lb, ub) -> PInterval (lb, ub)
     | PRecord (bindings, b) ->
       PRecord (List.map (fun (l,d,b) -> l, aux d, b) bindings, b)
@@ -194,7 +210,7 @@ let merge_params p1 p2 =
 type ctx = {
   mutable nodes : NodeId.t VDMap.t ;
   aliases : (Ty.t * op) list ;
-  tags : (TagComp.t -> (Ty.t list list) option) TagMap.t ;
+  tags : (Ty.t -> (ctag_param list) list option) TagMap.t ;
   post : post_process
 }
 
@@ -297,26 +313,37 @@ let resolve_records ctx a =
   in
   dnf |> List.map resolve_dnf |> union
 
+let rec resolve_custom_tagcomp f ctx env ty =
+  let vd = Ty.def ty in
+  match VDMap.find_opt vd env with
+  | Some nid -> TSNode nid
+  | None ->
+    begin match f ty with
+    | None -> raise Exit
+    | Some extracted ->
+      let nid = NodeId.mk () in
+      let env = VDMap.add vd nid env in
+      let treat_param param =
+        match param with
+        | CTPLeaf ty -> TPLeaf (node ctx ty)
+        | CTPRec ty -> TPRec (resolve_custom_tagcomp f ctx env ty)
+      in
+      let treat_params params = List.map treat_param params in
+      let union = List.map treat_params extracted in
+    TSDef (nid, union)
+    end
+
 let resolve_tagcomp ctx a =
   let n = Tags.mk_comp a |> D.mk_tags |> Ty.mk_descr in
   match resolve_alias ctx n with
   | Some d -> d
   | None ->
-    let t = TagComp.tag a in
-    let custom_nodes = TagMap.find_opt t ctx.tags
-      |> Option.fold ~none:None ~some:(fun f -> f a) in
-    begin match custom_nodes with
-    | Some ds -> PCustomTag (t, List.map (List.map (node ctx)) ds), n
-    | None ->
-      let dnf = TagComp.dnf a |> TagComp.Dnf.simplify in
-      let resolve_tag (t, n) = tag t (node ctx n) in
-      let resolve_dnf (ps, ns, _) =
-        let ps = ps |> List.map resolve_tag in
-        let ns = ns |> List.map resolve_tag |> List.map neg in
-        ps@ns |> inter
-      in
-      dnf |> List.map resolve_dnf |> union
-    end
+    let (t, ty) = TagComp.as_atom a in
+    match TagMap.find_opt t ctx.tags with
+    | None -> tag t (node ctx ty)
+    | Some f ->
+      try PCustomTag (t, resolve_custom_tagcomp f ctx VDMap.empty ty), n
+      with Exit -> tag t (node ctx ty)
 
 let resolve_tags ctx a =
   let (pos, components) = Tags.destruct a in
