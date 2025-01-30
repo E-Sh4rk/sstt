@@ -91,13 +91,14 @@ let rec to_t tstruct =
     Node (nid, List.map to_d union)
 
 module Lt = struct
-  type t = Printer.descr option
-  let equiv = Option.equal (fun (_,n1) (_,n2) -> Ty.equiv n1 n2)
-  let compare = Option.compare (fun (_,n1) (_,n2) -> Ty.compare n1 n2)
+  open Printer
+  type t = descr option
+  let equiv = Option.equal (fun d1 d2 -> Ty.equiv d1.ty d2.ty)
+  let compare = Option.compare (fun d1 d2 -> Ty.compare d1.ty d2.ty)
   let symbol d = Some d
   let epsilon = None
   let is_epsilon = Option.is_none
-  let pp fmt = Option.iter (Printer.print_descr' fmt)
+  let pp fmt = Option.iter (print_descr' fmt)
 end
 module Automaton = Automaton.Make(Lt)
 module NIMap = Map.Make(Printer.NodeId)

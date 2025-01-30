@@ -23,7 +23,7 @@ type builtin =
 | PAnyArrow | PAnyRecord | PAnyTupleComp of int | PAnyTagComp of TagComp.Tag.t
 type t = descr * defs list
 and defs = NodeId.t * descr
-and descr = op * Ty.t
+and descr = { op : op ; ty : Ty.t }
 and op =
 | PNamed of string
 | PNode of NodeId.t

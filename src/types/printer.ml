@@ -30,7 +30,7 @@ type builtin =
 | PAnyArrow | PAnyRecord | PAnyTupleComp of int | PAnyTagComp of TagComp.Tag.t
 type t = descr * defs list
 and defs = NodeId.t * descr
-and descr = op * Ty.t
+and descr = { op : op ; ty : Ty.t }
 and op =
 | PNamed of string
 | PNode of NodeId.t
@@ -64,8 +64,8 @@ module NISet = Set.Make(NodeId)
 module TagMap = Map.Make(TagComp.Tag)
 
 let map_descr f d = (* Assumes f preserves semantic equivalence *)
-  let rec aux (d,n) =
-    let d = match d with
+  let rec aux d =
+    let op = match d.op with
     | PNamed str -> PNamed str
     | PNode n -> PNode n
     | PBuiltin b -> PBuiltin b
@@ -92,7 +92,7 @@ let map_descr f d = (* Assumes f preserves semantic equivalence *)
     | PVarop (v, ds) -> PVarop (v, List.map aux ds)
     | PBinop (b, d1, d2) -> PBinop (b, aux d1, aux d2)
     | PUnop (u, d) -> PUnop (u, aux d)
-    in (f (d,n), n)
+    in { d with op = f { d with op } }
   in
   aux d
 let map_t f (d,defs) =
@@ -101,16 +101,16 @@ let map_t f (d,defs) =
 
 let nodes_in_descr d =
   let res = ref NISet.empty in
-  let f (d,_) = match d with
+  let f d = match d.op with
   | PNode n -> res := NISet.add n !res ; PNode n
-  | d -> d
+  | op -> op
   in
   map_descr f d |> ignore ;
   !res
 
 let size_of_descr d =
   let res = ref 0 in
-  let f (d,_) = res := !res + 1 ; d in
+  let f d = res := !res + 1 ; d.op in
   map_descr f d |> ignore ;
   !res
 
@@ -119,85 +119,84 @@ let size_t (d,defs) =
     n + 3 + size_of_descr d
   ) (size_of_descr d) defs
 
-let subst n (d,_) t =
-  let subst (d',_) =
-    match d' with
-    | PNode n' when NodeId.equal n n' -> d
-    | d' -> d'
+let subst n d t =
+  let aux d' =
+    match d'.op with
+    | PNode n' when NodeId.equal n n' -> d.op
+    | _ -> d'.op
   in
-  map_t subst t
+  map_t aux t
 
-let neg (d,n) =
-  match d with
-  | PUnop (PNeg, (d,n)) -> d, n
-  | PBuiltin PEmpty -> PBuiltin PAny, Ty.neg n
-  | PBuiltin PAny -> PBuiltin PEmpty, Ty.neg n
-  | d -> PUnop (PNeg, (d,n)), Ty.neg n
+let neg d =
+  match d.op with
+  | PUnop (PNeg, d) -> d
+  | PBuiltin PEmpty -> { op = PBuiltin PAny ; ty = Ty.neg d.ty }
+  | PBuiltin PAny -> { op = PBuiltin PEmpty ; ty = Ty.neg d.ty }
+  | _ -> { op = PUnop (PNeg, d) ; ty = Ty.neg d.ty }
 
-let cap (d1,n1) (d2,n2) =
-  let ty = Ty.cap n1 n2 in
-  match d1, d2 with
+let cap d1 d2 =
+  let ty = Ty.cap d1.ty d2.ty in
+  match d1.op, d2.op with
   | PVarop (PCap, c1), PVarop (PCap, c2) ->
-    PVarop (PCap, c1@c2), ty
-  | PVarop (PCap, c1), d2 -> PVarop (PCap, c1@[d2,n2]), ty
-  | d1, PVarop (PCap, c2) -> PVarop (PCap, (d1,n1)::c2), ty
-  | d1, d2 -> PVarop (PCap, [d1,n1;d2,n2]), ty
+    { op = PVarop (PCap, c1@c2) ; ty }
+  | PVarop (PCap, c1), _ -> { op = PVarop (PCap, c1@[d2]) ; ty }
+  | _, PVarop (PCap, c2) -> { op = PVarop (PCap, d1::c2) ; ty }
+  | _, _ -> { op = PVarop (PCap, [d1;d2]) ; ty }
 
-let cup (d1,n1) (d2,n2) =
-  let ty = Ty.cup n1 n2 in
-  match d1, d2 with
+let cup d1 d2 =
+  let ty = Ty.cup d1.ty d2.ty in
+  match d1.op, d2.op with
   | PVarop (PCup, c1), PVarop (PCup, c2) ->
-    PVarop (PCup, c1@c2), ty
-  | PVarop (PCup, c1), d2 -> PVarop (PCup, c1@[d2,n2]), ty
-  | d1, PVarop (PCup, c2) -> PVarop (PCup, (d1,n1)::c2), ty
-  | d1, d2 -> PVarop (PCup, [d1,n1;d2,n2]), ty
+    { op = PVarop (PCup, c1@c2) ; ty }
+  | PVarop (PCup, c1), _ -> { op = PVarop (PCup, c1@[d2]) ; ty }
+  | _, PVarop (PCup, c2) -> { op = PVarop (PCup, d1::c2) ; ty }
+  | _, _ -> { op = PVarop (PCup, [d1;d2]) ; ty }
 
-let cap' (d1,n1) (d2,n2) =
-  if Ty.leq n1 n2 then d1,n1
-  else if Ty.leq n2 n1 then d2,n2
-  else cap (d1,n1) (d2,n2)
+let cap' d1 d2 =
+  if Ty.leq d1.ty d2.ty then d1
+  else if Ty.leq d2.ty d1.ty then d2
+  else cap d1 d2
 
-(* let cup' (d1,n1) (d2,n2) =
-  if Ty.leq n2 n1 then d1,n1
-  else if Ty.leq n1 n2 then d2,n2
-  else cup (d1,n1) (d2,n2) *)
-
-let any = PBuiltin PAny, Ty.any
-let empty = PBuiltin PEmpty, Ty.empty
+let any = { op = PBuiltin PAny ; ty = Ty.any }
+let empty = { op = PBuiltin PEmpty ; ty = Ty.empty }
 
 let union union =
-  let union = union |> List.filter (fun (_,n) -> Ty.is_empty n |> not) in
+  let union = union |> List.filter (fun d -> Ty.is_empty d.ty |> not) in
   match union with
   | [] -> empty
   | d::union -> List.fold_left cup d union
 
 let inter inter =
-  let inter = inter |> List.filter (fun (_,n) -> Ty.is_any n |> not) in
+  let inter = inter |> List.filter (fun d -> Ty.is_any d.ty |> not) in
   match inter with
   | [] -> any
   | d::inter -> List.fold_left cap d inter
 
-let arrow (d1,n1) (d2,n2) =
-  PBinop (PArrow, (d1,n1), (d2,n2)), D.mk_arrow (n1,n2) |> Ty.mk_descr
+let arrow d1 d2 =
+  { op = PBinop (PArrow, d1, d2) ; ty = D.mk_arrow (d1.ty, d2.ty) |> Ty.mk_descr }
 
 let tuple lst =
-  let (_,ns) = List.split lst in
-  PVarop (PTuple, lst), D.mk_tuple ns |> Ty.mk_descr
+  let tys = List.map (fun d -> d.ty) lst in
+  { op = PVarop (PTuple, lst) ; ty = D.mk_tuple tys |> Ty.mk_descr }
 
 let record bindings opened =
-  let nbindings = bindings |> List.map (fun (l, (_,n), b) ->
-    (l,(n,b))
-  ) |> LabelMap.of_list in
-  PRecord (bindings, opened), D.mk_record { bindings=nbindings ; opened } |> Ty.mk_descr
+  let nbindings = bindings |>
+    List.map (fun (l, d, b) -> (l, (d.ty, b))) |> LabelMap.of_list in
+  { op = PRecord (bindings, opened) ;
+    ty = D.mk_record { bindings=nbindings ; opened } |> Ty.mk_descr }
 
-let tag tag (o,n) =
-  PTag (tag,(o,n)), D.mk_tag (tag,n) |> Ty.mk_descr
+let tag tag d =
+  { op = PTag (tag,d) ; ty = D.mk_tag (tag, d.ty) |> Ty.mk_descr }
 
 let atom a =
-  PAtom a, D.mk_atom a |> Ty.mk_descr
+  { op = PAtom a ; ty = D.mk_atom a |> Ty.mk_descr }
+
+let var v =
+  { op = PVar v ; ty = Ty.mk_var v }
 
 let interval (o1, o2) =
-  PInterval (o1, o2), Intervals.Atom.mk o1 o2 |> D.mk_interval |> Ty.mk_descr
+  { op = PInterval (o1, o2) ;
+    ty = Intervals.Atom.mk o1 o2 |> D.mk_interval |> Ty.mk_descr }
 
 (* Step 1 : Build the initial ctx and AST *)
 
@@ -214,32 +213,32 @@ type ctx = {
   printers : (tag_struct -> (Format.formatter -> unit)) TagMap.t
 }
 
-let node ctx n =
-  let def = Ty.def n in
+let node ctx ty =
+  let def = Ty.def ty in
   match VDMap.find_opt def ctx.nodes with
-  | Some nid -> PNode nid, n
+  | Some nid -> { op = PNode nid ; ty }
   | None ->
     let nid = NodeId.mk () in
     ctx.nodes <- VDMap.add def nid ctx.nodes ;
-    PNode nid, n
+    { op = PNode nid ; ty }
 
-let build_t (params:params) n =
-  let aliases = params.aliases |> List.map (fun (n, s) -> (n, PNamed s)) in
+let build_t (params:params) ty =
+  let aliases = params.aliases |> List.map (fun (ty, s) -> (ty, PNamed s)) in
   let tags = params.tags |> TagMap.of_list in
   let printers = params.printers |> TagMap.of_list in
   let ctx = { nodes=VDMap.empty ; aliases ; tags ; printers } in
-  ctx, (node ctx n, [])
+  ctx, (node ctx ty, [])
 
 (* Step 2 : Resolve missing definitions (and recognize custom type aliases) *)
 
-let resolve_alias ctx n =
-  begin match List.find_opt (fun (n',_) -> Ty.equiv n n') ctx.aliases with
+let resolve_alias ctx ty =
+  begin match List.find_opt (fun (ty',_) -> Ty.equiv ty ty') ctx.aliases with
   | None ->
-    begin match List.find_opt (fun (n',_) -> Ty.equiv n (Ty.neg n')) ctx.aliases with
+    begin match List.find_opt (fun (ty',_) -> Ty.equiv ty (Ty.neg ty')) ctx.aliases with
     | None -> None
-    | Some (n, d) -> Some (neg (d, n))
+    | Some (ty, op) -> Some (neg { op ; ty })
     end
-  | Some (n, d) -> Some (d, n)
+  | Some (ty, op) -> Some { op ; ty }
   end
 
 let resolve_arrows ctx a =
@@ -272,14 +271,12 @@ let resolve_intervals _ a =
   if size_of_descr neg < size_of_descr pos then neg else pos
 
 let resolve_tuplecomp ctx a =
-  let n = Tuples.mk_comp a |> D.mk_tuples |> Ty.mk_descr in
-  match resolve_alias ctx n with
+  let ty = Tuples.mk_comp a |> D.mk_tuples |> Ty.mk_descr in
+  match resolve_alias ctx ty with
   | Some d -> d
   | None ->
     let dnf = TupleComp.dnf a |> TupleComp.Dnf.simplify in
-    let resolve_tup lst =
-      tuple (lst |> List.map (node ctx))
-    in
+    let resolve_tup lst = tuple (lst |> List.map (node ctx)) in
     let resolve_dnf (ps, ns, _) =
       let ps = ps |> List.map resolve_tup in
       let ns = ns |> List.map resolve_tup |> List.map neg in
@@ -292,8 +289,10 @@ let resolve_tuples ctx a =
   let d = components |> List.map (fun p ->
     let len = TupleComp.len p in
     let elt = resolve_tuplecomp ctx p in
-    cap' (PBuiltin (PAnyTupleComp len),
-        TupleComp.any len |> D.mk_tuplecomp |> Ty.mk_descr) elt
+    let any = { op = PBuiltin (PAnyTupleComp len) ;
+                ty = TupleComp.any len |> D.mk_tuplecomp |> Ty.mk_descr }
+    in
+    cap' any elt
   ) |> union in
   if pos then d else neg d
 
@@ -334,30 +333,32 @@ let rec resolve_custom_tagcomp f ctx env ty =
     end
 
 let resolve_tagcomp ctx a =
-  let n = Tags.mk_comp a |> D.mk_tags |> Ty.mk_descr in
-  match resolve_alias ctx n with
+  let ty = Tags.mk_comp a |> D.mk_tags |> Ty.mk_descr in
+  match resolve_alias ctx ty with
   | Some d -> d
   | None ->
-    let (t, ty) = TagComp.as_atom a in
+    let (t, ty') = TagComp.as_atom a in
     match TagMap.find_opt t ctx.tags with
-    | None -> tag t (node ctx ty)
+    | None -> tag t (node ctx ty')
     | Some f ->
-      try PCustomTag (t, resolve_custom_tagcomp f ctx VDMap.empty ty), n
-      with Exit -> tag t (node ctx ty)
+      try { op = PCustomTag (t, resolve_custom_tagcomp f ctx VDMap.empty ty') ; ty }
+      with Exit -> tag t (node ctx ty')
 
 let resolve_tags ctx a =
   let (pos, components) = Tags.destruct a in
   let d = components |> List.map (fun t ->
     let tag = TagComp.tag t in
     let elt = resolve_tagcomp ctx t in
-    cap' (PBuiltin (PAnyTagComp tag),
-        TagComp.any tag |> D.mk_tagcomp |> Ty.mk_descr) elt
+    let any = { op = PBuiltin (PAnyTagComp tag) ;
+                ty = TagComp.any tag |> D.mk_tagcomp |> Ty.mk_descr }
+    in
+    cap' any elt
   ) |> union in
   if pos then d else neg d
 
 let resolve_comp ctx c =
-  let n = D.of_component c |> Ty.mk_descr in
-  let alias = resolve_alias ctx n in
+  let ty = D.of_component c |> Ty.mk_descr in
+  let alias = resolve_alias ctx ty in
   let alias_or f c =
     match alias with
     | None -> f ctx c
@@ -366,26 +367,26 @@ let resolve_comp ctx c =
   match c with
   | D.Atoms c ->
     alias_or resolve_atoms c,
-    (PBuiltin PAnyAtom, Atoms.any () |> D.mk_atoms |> Ty.mk_descr)
+    { op = PBuiltin PAnyAtom ; ty = Atoms.any () |> D.mk_atoms |> Ty.mk_descr }
   | D.Arrows c ->
     alias_or resolve_arrows c,
-    (PBuiltin PAnyArrow, Arrows.any () |> D.mk_arrows |> Ty.mk_descr)
+    { op = PBuiltin PAnyArrow ; ty = Arrows.any () |> D.mk_arrows |> Ty.mk_descr }
   | D.Intervals c ->
     alias_or resolve_intervals c,
-    (PBuiltin PAnyInt, Intervals.any () |> D.mk_intervals |> Ty.mk_descr)
+    { op = PBuiltin PAnyInt ; ty = Intervals.any () |> D.mk_intervals |> Ty.mk_descr }
   | D.Tags c ->
     alias_or resolve_tags c,
-    (PBuiltin PAnyTag, Tags.any () |> D.mk_tags |> Ty.mk_descr)
+    { op = PBuiltin PAnyTag ; ty = Tags.any () |> D.mk_tags |> Ty.mk_descr }
   | D.Tuples c ->
     alias_or resolve_tuples c,
-    (PBuiltin PAnyTuple, Tuples.any () |> D.mk_tuples |> Ty.mk_descr)
+    { op = PBuiltin PAnyTuple; ty = Tuples.any () |> D.mk_tuples |> Ty.mk_descr }
   | D.Records c ->
     alias_or resolve_records c,
-    (PBuiltin PAnyRecord, Records.any () |> D.mk_records |> Ty.mk_descr)
+    { op = PBuiltin PAnyRecord ; ty = Records.any () |> D.mk_records |> Ty.mk_descr }
 
 let resolve_descr ctx d =
-  let n = VD.mk_descr d |> Ty.of_def in
-  match resolve_alias ctx n with
+  let ty = VD.mk_descr d |> Ty.of_def in
+  match resolve_alias ctx ty with
   | None ->
     let ds = D.components d |> List.map (resolve_comp ctx) in
     let combine ds =
@@ -397,14 +398,13 @@ let resolve_descr ctx d =
   | Some d -> d
 
 let resolve_def ctx def =
-  let n = Ty.of_def def in
-  match resolve_alias ctx n with
+  let ty = Ty.of_def def in
+  match resolve_alias ctx ty with
   | None ->
     let dnf = def |> VD.dnf |> VD.Dnf.simplify in
-    let resolve_var v = PVar v, Ty.mk_var v in
     let resolve_dnf (ps, ns, d) =
-      let ps = ps |> List.map resolve_var in
-      let ns = ns |> List.map resolve_var |> List.map neg in
+      let ps = ps |> List.map var in
+      let ns = ns |> List.map var |> List.map neg in
       let d = resolve_descr ctx d in
       ps@ns@[d] |> inter
     in
@@ -465,22 +465,24 @@ let inline t =
 (* Step 4 : Syntactic simplifications *)
 
 let simplify t =
-  let f (d,_) = match d with
-  | PVarop (PCap, [ d ; (PUnop (PNeg, dn),_) ]) -> PBinop (PDiff, d, dn)
-  | d -> d
+  let f d =
+    match d.op with
+    | PVarop (PCap, [ d ; { op = PUnop (PNeg, dn) ; _ } ]) -> PBinop (PDiff, d, dn)
+    | op -> op
   in
   map_t f t
 
 (* Step 5 : Transform PCustomTag into PCustom *)
 
 let transform_custom_tags ctx t =
-  let aux (d,_) = match d with
+  let aux d =
+    match d.op with
     | PCustomTag (tag, tstruct) ->
       begin match TagMap.find_opt tag ctx.printers with
       | Some f -> PCustom (f tstruct)
-      | None -> d
+      | None -> d.op
       end
-    | d -> d
+    | op -> op
   in
   map_t aux t
 
@@ -542,7 +544,7 @@ let unop_info u = match u with
 | PNeg -> "~", 5, NoAssoc
 
 let rec print_descr prec assoc fmt d =
-  let rec aux prec assoc fmt (d,_) =
+  let rec aux prec assoc fmt d =
     let need_paren = ref false in
     let paren prec' assoc' =
       if prec' < prec || prec' = prec && (assoc' <> assoc || assoc' = NoAssoc)
@@ -551,7 +553,7 @@ let rec print_descr prec assoc fmt d =
         Format.fprintf fmt "("
       end
     in
-    let () = match d with
+    let () = match d.op with
     | PNamed str -> Format.fprintf fmt "%s" str
     | PNode n -> Format.fprintf fmt "%a" NodeId.pp n
     | PBuiltin b -> print_builtin fmt b
