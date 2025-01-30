@@ -1,7 +1,4 @@
 
-module Regexp = Regexp
-module Automaton = Automaton
-
 (* PRINT *)
 
 let print_seq f sep fmt l =

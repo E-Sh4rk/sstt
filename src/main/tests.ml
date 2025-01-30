@@ -182,7 +182,7 @@ let%expect_test "tests_ext" =
     in
     let env = Repl.empty_env in
     let env = { env with Ast.tenv=Ast.StrMap.add "nil" Lists.nil env.tenv } in
-    let env = { env with Ast.tagenv=Ast.StrMap.add "cons" Lists.list_tag env.tagenv } in
+    let env = { env with Ast.tagenv=Ast.StrMap.add "cons" Lists.tag env.tagenv } in
     Output.with_basic_output Format.std_formatter
       (fun () -> test env) () ;
     [%expect {|

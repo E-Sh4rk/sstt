@@ -5,6 +5,8 @@
  (libraries sstt_utils zarith sstt_core)
  (modules (:standard)))
 
+(include_subdirs unqualified)
+
 ; (env
 ;   (dev
 ;     (flags (:standard -warn-error -A))))

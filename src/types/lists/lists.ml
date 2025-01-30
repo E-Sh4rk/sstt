@@ -1,14 +1,14 @@
 open Sstt_core
 open Sstt_utils
 
-let list_tag = TagComp.Tag.mk "list"
+let tag = TagComp.Tag.mk "list"
 
-let tag t =
-  (list_tag, t) |> Descr.mk_tag |> Ty.mk_descr
+let add_tag t =
+  (tag, t) |> Descr.mk_tag |> Ty.mk_descr
 
-let cons hd tl = [hd;tl] |> Descr.mk_tuple |> Ty.mk_descr |> tag
+let cons hd tl = [hd;tl] |> Descr.mk_tuple |> Ty.mk_descr |> add_tag
 
-let nil = [] |> Descr.mk_tuple |> Ty.mk_descr |> tag
+let nil = [] |> Descr.mk_tuple |> Ty.mk_descr |> add_tag
 
 let any =
   let v = Var.mk "list" in
@@ -19,7 +19,7 @@ let any =
 
 let basic_extract ty =
   let (_,any) = any |> Ty.get_descr |> Descr.get_tags
-  |> Tags.get list_tag |> TagComp.as_atom in
+  |> Tags.get tag |> TagComp.as_atom in
   if Ty.leq ty any then
     let tuples = Ty.get_descr ty |> Descr.get_tuples in
     let nil_comps = Tuples.get 0 tuples |> Op.TupleComp.as_union in
@@ -42,8 +42,8 @@ let basic_printer tstruct fmt =
 
 let basic_printer_params = {
   Printer.aliases = [] ;
-  Printer.tags = [(list_tag, basic_extract)] ;
-  Printer.printers = [(list_tag, basic_printer)]
+  Printer.tags = [(tag, basic_extract)] ;
+  Printer.printers = [(tag, basic_printer)]
   }
 
 (* Advanced printer *)
@@ -64,8 +64,8 @@ let extract ty =
         match pair with
         | [l;r] ->
           let (_,ty) = r |> Ty.get_descr |> Descr.get_tags
-          |> Tags.get list_tag |> TagComp.as_atom in
-          if Ty.leq r (Descr.mk_tag (list_tag, ty) |> Ty.mk_descr) |> not
+          |> Tags.get tag |> TagComp.as_atom in
+          if Ty.leq r (Descr.mk_tag (tag, ty) |> Ty.mk_descr) |> not
           then raise Exit ;
           [Printer.CTPLeaf l ; Printer.CTPRec ty ]
         | _ -> assert false  
@@ -129,7 +129,8 @@ let to_automaton t =
 
 module Regexp = Automaton.R
 type regexp = Regexp.t_ext
-let to_regexp automaton =
+
+let to_regexp automaton : regexp =
   automaton |> Automaton.to_regex_my |> Regexp.simp_to_ext |> Regexp.simplify
 
 let rec printer fmt regexp =
@@ -147,6 +148,6 @@ let printer tstruct fmt =
 
 let printer_params = {
   Printer.aliases = [] ;
-  Printer.tags = [(list_tag, extract)] ;
-  Printer.printers = [(list_tag, printer)]
+  Printer.tags = [(tag, extract)] ;
+  Printer.printers = [(tag, printer)]
   }
