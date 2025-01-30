@@ -181,12 +181,13 @@ let%expect_test "tests_ext" =
         test env
     in
     let env = Repl.empty_env in
-    let env = { env with Ast.aenv=Ast.StrMap.singleton "nil" Lists.nil_atom } in
-    let env = { env with Ast.tagenv=Ast.StrMap.singleton "cons" Lists.cons_tag } in
+    let env = { env with Ast.tenv=Ast.StrMap.add "nil" Lists.nil env.tenv } in
+    let env = { env with Ast.tagenv=Ast.StrMap.add "cons" Lists.list_tag env.tagenv } in
     Output.with_basic_output Format.std_formatter
       (fun () -> test env) () ;
     [%expect {|
-      42_43: (42)::(43)::list
-      int_list: x1 where x1 = [] | (int)::x1
+      42_43: (42::(43::list))
+      int_list: x1 where x1 = ([] | int::x1)
+      union: (b::(a::list) | a::list)
       |}]
   

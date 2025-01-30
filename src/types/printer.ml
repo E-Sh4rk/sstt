@@ -39,7 +39,7 @@ and op =
 | PAtom of Atoms.Atom.t
 | PCustom of (Format.formatter -> unit)
 | PTag of TagComp.Tag.t * descr
-| PCustomTag of TagComp.Tag.t * descr list
+| PCustomTag of TagComp.Tag.t * descr list list
 | PInterval of Z.t option * Z.t option
 | PRecord of (Label.t * descr * bool) list * bool
 | PVarop of varop * descr list
@@ -47,7 +47,7 @@ and op =
 | PUnop of unop * descr
 
 type aliases = (Ty.t * string) list
-type custom_tags = (TagComp.Tag.t * (TagComp.t -> (Ty.t list) option)) list
+type custom_tags = (TagComp.Tag.t * (TagComp.t -> (Ty.t list list) option)) list
 type post_process = t -> t
 type params = { aliases : aliases ; tags : custom_tags ; post : post_process }
 
@@ -69,7 +69,7 @@ let map_descr f d = (* Assumes f preserves semantic equivalence *)
     | PAtom atom -> PAtom atom
     | PCustom printer -> PCustom printer
     | PTag (tag, d) -> PTag (tag, aux d)
-    | PCustomTag (tag, ds) -> PCustomTag (tag, List.map aux ds)
+    | PCustomTag (tag, ds) -> PCustomTag (tag, List.map (List.map aux) ds)
     | PInterval (lb, ub) -> PInterval (lb, ub)
     | PRecord (bindings, b) ->
       PRecord (List.map (fun (l,d,b) -> l, aux d, b) bindings, b)
@@ -194,7 +194,7 @@ let merge_params p1 p2 =
 type ctx = {
   mutable nodes : NodeId.t VDMap.t ;
   aliases : (Ty.t * op) list ;
-  tags : (TagComp.t -> (Ty.t list) option) TagMap.t ;
+  tags : (TagComp.t -> (Ty.t list list) option) TagMap.t ;
   post : post_process
 }
 
@@ -306,7 +306,7 @@ let resolve_tagcomp ctx a =
     let custom_nodes = TagMap.find_opt t ctx.tags
       |> Option.fold ~none:None ~some:(fun f -> f a) in
     begin match custom_nodes with
-    | Some ds -> PCustomTag (t, List.map (node ctx) ds), n
+    | Some ds -> PCustomTag (t, List.map (List.map (node ctx)) ds), n
     | None ->
       let dnf = TagComp.dnf a |> TagComp.Dnf.simplify in
       let resolve_tag (t, n) = tag t (node ctx n) in
@@ -521,10 +521,7 @@ let rec print_descr prec assoc fmt d =
     | PTag (t,d) ->
       Format.fprintf fmt "%a(%a)"
         TagComp.Tag.pp t print_descr' d
-    | PCustomTag (t,ds) ->
-      Format.fprintf fmt "%a(%a)"
-        TagComp.Tag.pp t
-        (print_seq print_descr' " ; ") ds
+    | PCustomTag _ -> raise (Invalid_argument "The printer AST contains a custom tag.")
     | PInterval (lb,ub) -> Format.fprintf fmt "%a" print_interval (lb,ub)
     | PRecord (bindings,opened) ->
       let print_binding fmt (l,d,b) =

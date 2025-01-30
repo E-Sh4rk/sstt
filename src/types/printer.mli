@@ -32,7 +32,7 @@ and op =
 | PAtom of Atoms.Atom.t
 | PCustom of (Format.formatter -> unit)
 | PTag of TagComp.Tag.t * descr
-| PCustomTag of TagComp.Tag.t * descr list
+| PCustomTag of TagComp.Tag.t * descr list list
 | PInterval of Z.t option * Z.t option
 | PRecord of (Label.t * descr * bool) list * bool
 | PVarop of varop * descr list
@@ -40,7 +40,7 @@ and op =
 | PUnop of unop * descr
 
 type aliases = (Ty.t * string) list
-type custom_tags = (TagComp.Tag.t * (TagComp.t -> (Ty.t list) option)) list
+type custom_tags = (TagComp.Tag.t * (TagComp.t -> (Ty.t list list) option)) list
 type post_process = t -> t
 type params = { aliases : aliases ; tags : custom_tags ; post : post_process }
 
