@@ -3,6 +3,7 @@ module type Letter = sig
 
   type t
 
+  val equiv : t -> t -> bool
   val compare : t -> t -> int
   val epsilon : t
   val is_epsilon : t -> bool
@@ -135,7 +136,7 @@ module Make (Lt : Letter) : S with type lt = Lt.t = struct
     let rec compare (r1 : t_ext)
         (r2 : t_ext) : bool =
       match r1, r2 with
-      | Letter lt1, Letter lt2 -> Lt.compare lt1 lt2 = 0
+      | Letter lt1, Letter lt2 -> Lt.equiv lt1 lt2
       | Concat l1, Concat l2
       | Union l1, Union l2 -> (try List.for_all2 compare l1 l2 with _ -> false)
       | Star r1, Star r2

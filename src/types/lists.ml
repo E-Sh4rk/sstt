@@ -92,6 +92,7 @@ let rec to_t tstruct =
 
 module Lt = struct
   type t = Printer.descr option
+  let equiv = Option.equal (fun (_,n1) (_,n2) -> Ty.equiv n1 n2)
   let compare = Option.compare (fun (_,n1) (_,n2) -> Ty.compare n1 n2)
   let symbol d = Some d
   let epsilon = None

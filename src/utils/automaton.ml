@@ -156,6 +156,15 @@ module Make (Lt : Regexp.Letter) : S with type lt = Lt.t
     in
     StateSet.exists (Fun.flip StateSet.mem @@ auto.finals) end_states
 
+  let map_states f (auto : t) =
+    let () = auto.states <- StateSet.map f auto.states in
+    let () = auto.starts <- StateSet.map f auto.starts in
+    let () = auto.finals <- StateSet.map f auto.finals in
+    let () = auto.trans <- TransSet.map (
+        fun (s1, l, s2 : trans) : trans -> f s1, l, f s2
+      ) auto.trans in
+    ()
+
   let to_regex_my (auto: t) : regexp =
     (* States renaming
 
@@ -164,14 +173,7 @@ module Make (Lt : Regexp.Letter) : S with type lt = Lt.t
 
        Therefore, we can just add 1 for all states
     *)
-    let () = auto.states <- StateSet.map ((+) 1) auto.states in
-    let () = auto.starts <- StateSet.map ((+) 1) auto.starts in
-    let () = auto.finals <- StateSet.map ((+) 1) auto.finals in
-    let () = auto.trans <- TransSet.map (
-        fun (s1, l, s2 : trans) : trans -> s1 + 1, l, s2 + 1
-      )
-        auto.trans
-    in
+    let () = map_states ((+) 1) auto in
     (* McNaughton-Yamada algorithm *)
     let n = StateSet.cardinal auto.states in
     let get_transition_between (trans : transitions)
@@ -261,16 +263,33 @@ module Make (Lt : Regexp.Letter) : S with type lt = Lt.t
         choose_mat := not !choose_mat
       done
     in
-    StateSet.fold (
-      fun (start_state : state)
-        (acc : regexp) : regexp ->
-        StateSet.fold (
-          fun (end_state : state)
-            (acc' : regexp) : regexp ->
-            if R.is_empty acc' then
+    let regexp =
+      StateSet.fold (
+        fun (start_state : state)
+          (acc : regexp) : regexp ->
+          StateSet.fold (
+            fun (end_state : state)
+              (acc' : regexp) : regexp ->
+              if R.is_empty acc' then
+                if start_state = end_state then
+                  R.(
+                    union (letter Lt.epsilon) (
+                      if !choose_mat then
+                        mat1.(start_state-1).(end_state-1)
+                      else
+                        mat2.(start_state-1).(end_state-1)
+                    )
+                  )
+                else
+                if !choose_mat then
+                  mat1.(start_state-1).(end_state-1)
+                else
+                  mat2.(start_state-1).(end_state-1)
+              else
               if start_state = end_state then
                 R.(
-                  union (letter Lt.epsilon) (
+                  union acc'
+                  @@ union (letter Lt.epsilon) (
                     if !choose_mat then
                       mat1.(start_state-1).(end_state-1)
                     else
@@ -278,33 +297,19 @@ module Make (Lt : Regexp.Letter) : S with type lt = Lt.t
                   )
                 )
               else
-              if !choose_mat then
-                mat1.(start_state-1).(end_state-1)
-              else
-                mat2.(start_state-1).(end_state-1)
-            else
-            if start_state = end_state then
-              R.(
-                union acc'
-                @@ union (letter Lt.epsilon) (
-                  if !choose_mat then
-                    mat1.(start_state-1).(end_state-1)
-                  else
-                    mat2.(start_state-1).(end_state-1)
+                R.(
+                  union acc' (
+                    if !choose_mat then
+                      mat1.(start_state-1).(end_state-1)
+                    else
+                      mat2.(start_state-1).(end_state-1)
+                  )
                 )
-              )
-            else
-              R.(
-                union acc' (
-                  if !choose_mat then
-                    mat1.(start_state-1).(end_state-1)
-                  else
-                    mat2.(start_state-1).(end_state-1)
-                )
-              )
-        )
-          auto.finals acc
-    )
-      auto.starts R.empty
+          )
+            auto.finals acc
+      ) auto.starts R.empty
+    in
+    let () = map_states ((-) 1) auto in
+    regexp
 
 end

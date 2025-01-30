@@ -3,6 +3,10 @@ module type Letter = sig
     type t
     (** A letter is a symbol, with an epsilon *)
 
+    val equiv : t -> t -> bool
+    (** [equiv l1 l2] returns [true] if and only if [l1] and [l2]
+        are equivalent *)
+
     val compare : t -> t -> int
     (** [compare l1 l2] returns a negative number if [l1] < [l2], 0 if
         [l1] = [l2] or a positive number otherwise *)
