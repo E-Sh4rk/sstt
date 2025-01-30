@@ -28,7 +28,7 @@ let extract ty =
     Some (nil_comps@cons_comps |> List.map (List.map (fun ty -> Printer.CTPLeaf ty)))
   else None
 
-let transform_tstruct tstruct =
+let printer tstruct fmt =
   match tstruct with
   | Printer.TSNode _ -> assert false
   | Printer.TSDef (_, union) ->
@@ -39,22 +39,10 @@ let transform_tstruct tstruct =
         Format.fprintf fmt "%a::%a" Printer.print_descr' elt Printer.print_descr' tl
       | _ -> assert false
     in
-    let printer fmt =
-      Format.fprintf fmt "(%a)" (print_seq print_line " | ") union
-    in
-    Printer.PCustom printer
-
-let transform (d,_) = (* TODO: do the map_t printer-side *)
-  match d with
-  | Printer.PCustomTag (tag, tstruct) when TagComp.Tag.equal tag list_tag ->
-    transform_tstruct tstruct
-  | d -> d
-
-let post_process t =
-  Printer.map_t transform t
+    Format.fprintf fmt "(%a)" (print_seq print_line " | ") union
 
 let printer_params = {
   Printer.aliases = [] ;
   Printer.tags = [(list_tag, extract)] ;
-  Printer.post = post_process
+  Printer.printers = [(list_tag, printer)]
   }

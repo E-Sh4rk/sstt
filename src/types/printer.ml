@@ -52,8 +52,8 @@ and tag_struct = TSDef of NodeId.t * tag_params list | TSNode of NodeId.t
 type aliases = (Ty.t * string) list
 type ctag_param = CTPLeaf of Ty.t | CTPRec of Ty.t
 type custom_tags = (TagComp.Tag.t * (Ty.t -> (ctag_param list) list option)) list
-type post_process = t -> t
-type params = { aliases : aliases ; tags : custom_tags ; post : post_process }
+type tags_printers = (TagComp.Tag.t * (tag_struct -> (Format.formatter -> unit))) list
+type params = { aliases : aliases ; tags : custom_tags ; printers : tags_printers }
 
 module VD = VDescr
 module D = Descr
@@ -201,17 +201,17 @@ let interval (o1, o2) =
 
 (* Step 1 : Build the initial ctx and AST *)
 
-let empty_params : params = { aliases = [] ; tags = [] ; post = identity }
+let empty_params : params = { aliases = [] ; tags = [] ; printers = [] }
 
 let merge_params p1 p2 =
   { aliases = p1.aliases@p2.aliases ; tags = p1.tags @ p2.tags ;
-    post = (fun x -> x |> p1.post |> p2.post) }
+    printers = p1.printers@p2.printers }
 
 type ctx = {
   mutable nodes : NodeId.t VDMap.t ;
   aliases : (Ty.t * op) list ;
   tags : (Ty.t -> (ctag_param list) list option) TagMap.t ;
-  post : post_process
+  printers : (tag_struct -> (Format.formatter -> unit)) TagMap.t
 }
 
 let node ctx n =
@@ -226,8 +226,8 @@ let node ctx n =
 let build_t (params:params) n =
   let aliases = params.aliases |> List.map (fun (n, s) -> (n, PNamed s)) in
   let tags = params.tags |> TagMap.of_list in
-  let post = params.post in
-  let ctx = { nodes=VDMap.empty ; aliases ; tags ; post } in
+  let printers = params.printers |> TagMap.of_list in
+  let ctx = { nodes=VDMap.empty ; aliases ; tags ; printers } in
   ctx, (node ctx n, [])
 
 (* Step 2 : Resolve missing definitions (and recognize custom type aliases) *)
@@ -471,7 +471,20 @@ let simplify t =
   in
   map_t f t
 
-(* Step 5 : Rename nodes *)
+(* Step 5 : Transform PCustomTag into PCustom *)
+
+let transform_custom_tags ctx t =
+  let aux (d,_) = match d with
+    | PCustomTag (tag, tstruct) ->
+      begin match TagMap.find_opt tag ctx.printers with
+      | Some f -> PCustom (f tstruct)
+      | None -> d
+      end
+    | d -> d
+  in
+  map_t aux t
+
+(* Step 6 : Rename nodes *)
 
 let rename_nodes (_, defs) =
   let c = ref 0 in
@@ -483,7 +496,7 @@ let rename_nodes (_, defs) =
     NodeId.rename n (next_name ())
     )
 
-(* Step 6 : Print *)
+(* Step 7 : Print *)
 
 let print_builtin fmt b =
   let str =
@@ -602,7 +615,7 @@ let get customs ty =
   let t = resolve_missing_defs ctx t in
   let t = inline t in
   let t = simplify t in
-  let t = ctx.post t in
+  let t = transform_custom_tags ctx t in
   rename_nodes t ;
   t
 

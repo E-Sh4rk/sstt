@@ -45,8 +45,8 @@ and tag_struct = TSDef of NodeId.t * tag_params list | TSNode of NodeId.t
 type aliases = (Ty.t * string) list
 type ctag_param = CTPLeaf of Ty.t | CTPRec of Ty.t
 type custom_tags = (TagComp.Tag.t * (Ty.t -> (ctag_param list) list option)) list
-type post_process = t -> t
-type params = { aliases : aliases ; tags : custom_tags ; post : post_process }
+type tags_printers = (TagComp.Tag.t * (tag_struct -> (Format.formatter -> unit))) list
+type params = { aliases : aliases ; tags : custom_tags ; printers : tags_printers }
 
 val empty_params : params
 
@@ -74,9 +74,5 @@ val print_ty' : Format.formatter -> Ty.t -> unit
 (** [print_subst' fmt s] prints the substitution [s] using formatter [fmt].
 Same as [print_subst [] fmt s]. *)
 val print_subst' : Format.formatter -> Subst.t -> unit
-
-(* Utilities for post-processing the printer AST *)
-
-val map_t : (descr -> op) -> t -> t
 
 val print_descr' : Format.formatter -> descr -> unit
