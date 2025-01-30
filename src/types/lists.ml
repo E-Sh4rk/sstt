@@ -90,23 +90,59 @@ let rec to_t tstruct =
     in
     Node (nid, List.map to_d union)
 
-type regexp =
-  | Elt of Printer.descr
-  | Seq of regexp list
-  | Union of regexp list
-  | Star of regexp
+module Lt = struct
+  type t = Printer.descr option
+  let compare = Option.compare (fun (_,n1) (_,n2) -> Ty.compare n1 n2)
+  let symbol d = Some d
+  let epsilon = None
+  let is_epsilon = Option.is_none
+  let pp fmt = Option.iter (Printer.print_descr' fmt)
+end
+module Automaton = Automaton.Make(Lt)
+module NIMap = Map.Make(Printer.NodeId)
 
-let to_regexp _ = failwith "TODO"
+let to_automaton t =
+  let auto = Automaton.create () in
+  let rec aux env t =
+    match t with
+    | Node (nid, ds) ->
+      let state = Automaton.mk_state auto in
+      let env = NIMap.add nid state env in
+      let treat_d d =
+        match d with
+        | Nil -> Automaton.set_final auto state
+        | Cons (d, t) ->
+          let lt = Lt.symbol d in
+          let state' = aux env t in
+          Automaton.add_trans auto state lt state'
+      in
+      List.iter treat_d ds ; state
+    | Loop nid ->
+      let state = Automaton.mk_state auto in
+      Automaton.add_trans auto state Lt.epsilon (NIMap.find nid env) ;
+      state
+  in
+  let state = aux NIMap.empty t in
+  Automaton.set_start auto state ;
+  auto
+
+module Regexp = Automaton.R
+type regexp = Regexp.t_ext
+let to_regexp automaton =
+  automaton |> Automaton.to_regex_my |> Regexp.simp_to_ext |> Regexp.simplify
 
 let rec printer fmt regexp =
   match regexp with
-  | Elt d -> Format.fprintf fmt "%a" Printer.print_descr' d
-  | Seq lst -> Format.fprintf fmt "(%a)" (print_seq printer " ; ") lst
-  | Union lst -> Format.fprintf fmt "(%a)" (print_seq printer " | ") lst
-  | Star r -> Format.fprintf fmt "(%a)*" printer r
+  | Regexp.Letter d -> Format.fprintf fmt "%a" Lt.pp d
+  | Regexp.Concat lst -> Format.fprintf fmt "(%a)" (print_seq printer " ; ") lst
+  | Regexp.Union lst -> Format.fprintf fmt "(%a)" (print_seq printer " | ") lst
+  | Regexp.Star r -> Format.fprintf fmt "(%a)*" printer r
+  | Regexp.Plus r -> Format.fprintf fmt "(%a)+" printer r
+  | Regexp.Option r -> Format.fprintf fmt "(%a)?" printer r
 
 let printer tstruct fmt =
-  Format.fprintf fmt "[ %a ]" printer (tstruct |> to_t |> to_regexp)
+  Format.fprintf fmt "[ %a ]" printer
+    (tstruct |> to_t |> to_automaton |> to_regexp)
 
 let printer_params = {
   Printer.aliases = [] ;

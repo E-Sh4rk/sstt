@@ -177,7 +177,7 @@ let%expect_test "tests_ext" =
       match IO.parse_command buf with
       | End -> ()
       | Elt elt ->
-        let env = Repl.treat_elt ~pparams:Lists.basic_printer_params env elt in
+        let env = Repl.treat_elt ~pparams:Lists.printer_params env elt in
         test env
     in
     let env = Repl.empty_env in
@@ -186,9 +186,9 @@ let%expect_test "tests_ext" =
     Output.with_basic_output Format.std_formatter
       (fun () -> test env) () ;
     [%expect {|
-      42_43: (42::(43::list))
-      int_list: x1 where x1 = ([] | int::x1)
-      union: (b::(a::list) | a::list)
+      42_43: [ (42 ; 43 ; (any)*) ]
+      int_list: [ (int)* ]
+      union: [ ((43 ; 42) | (43 ; 42 ; (any)+) | 42 | (42 ; (any)+)) ]
       invalid: list(int, list(int, int))
       |}]
   

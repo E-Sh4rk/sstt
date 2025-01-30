@@ -7,8 +7,8 @@ type snd43 = cons(any, cons(43,list)) ;;
 type list_a = x where x = nil | cons('a,x) ;;
 "int_list" list_a ['a : int] ;;
 
-type a = cons(a,list) ;;
-type ba = cons(b,cons(a,list));;
+type a = cons(42,list) ;;
+type ba = cons(43,cons(42,list));;
 "union" a | ba ;;
 
 "invalid" cons(int,cons(int,int)) ;;
