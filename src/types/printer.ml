@@ -208,6 +208,8 @@ let merge_params p1 p2 =
   { aliases = p1.aliases@p2.aliases ; tags = p1.tags @ p2.tags ;
     printers = p1.printers@p2.printers }
 
+let merge_params = List.fold_left merge_params empty_params
+
 type ctx = {
   mutable nodes : NodeId.t VDMap.t ;
   aliases : (Ty.t * op) list ;

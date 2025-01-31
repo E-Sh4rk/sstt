@@ -65,12 +65,12 @@ let rec compute_expr env e =
       | EQ -> poly_leq env ty1 ty2 && poly_leq env ty2 ty1
     in
     RBool (carthesian_product tys1 tys2 |> List.map aux), env
-  
+
 let params pparams env =
   let aliases =
     StrMap.bindings env.tenv |> List.map (fun (str, ty) -> (ty, str))
   in
-  Printer.merge_params pparams { Printer.empty_params with aliases }
+  Printer.merge_params [ pparams ; { Printer.empty_params with aliases } ]
 
 let print_res pparams env fmt res =
   match res with

@@ -1,7 +1,7 @@
 open Sstt_core
 open Sstt_utils
 
-let tag = TagComp.Tag.mk "list"
+let tag = TagComp.Tag.mk "lst"
 
 let add_tag t =
   (tag, t) |> Descr.mk_tag |> Ty.mk_descr

@@ -51,7 +51,7 @@ type params = { aliases : aliases ; tags : custom_tags ; printers : tags_printer
 
 val empty_params : params
 
-val merge_params : params -> params -> params
+val merge_params : params list -> params
 
 (** [get aliases ty] transforms the type [ty] into an algebraic form,
 recognizing type aliases [aliases]. *)
