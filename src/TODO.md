@@ -3,5 +3,5 @@
   - Use ocaml 5.3 syntax (when ppx will work)
 
 - New components:
-  - Lists (extension using tags)
+  - Extensions: Floats, Booleans
   - Abstract types

@@ -6,6 +6,7 @@ type snd43 = cons(any, cons(43,list)) ;;
 
 type list_a = x where x = nil | cons('a,x) ;;
 "int_list" list_a ['a : int] ;;
+"list_not_only_int" list & ~list_a ['a : int] ;;
 
 type a = cons(42,list) ;;
 type ba = cons(43,cons(42,list));;

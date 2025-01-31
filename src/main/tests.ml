@@ -188,6 +188,7 @@ let%expect_test "tests_ext" =
     [%expect {|
       42_43: [ 42 43 any* ]
       int_list: [ int* ]
+      list_not_only_int: [ (~int) | (~int) int+ | int+ ((~int) int*) ]
       union: [ 43 42 | 43 42 any+ | 42 | 42 any+ ]
       invalid: list(int, list(int, int))
       |}]
