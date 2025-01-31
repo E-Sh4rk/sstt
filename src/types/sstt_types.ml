@@ -8,4 +8,5 @@ module Op = Op
 module Transform = Transform
 module Extensions = struct
   module Lists = Lists
+  module Strings = Strings
 end

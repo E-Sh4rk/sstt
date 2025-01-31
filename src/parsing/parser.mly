@@ -89,8 +89,7 @@ ty_main:
 
 ty:
 | ty=ty_norec { ty }
-| ty=ty_norec WHERE defs=separated_nonempty_list(AND, ty_def)
-  { TWhere (ty, defs) }
+| ty=ty_norec WHERE defs=separated_nonempty_list(AND, ty_def) { TWhere (ty, defs) }
 
 %inline ty_def: name=ID EQUAL ty=ty_norec { (name, ty) }
 
@@ -109,12 +108,14 @@ simple_ty:
 atomic_ty:
 | id=ID { parse_atom_or_builtin id }
 | id=TAGID ty=ty RPAREN { TTag (id, ty) }
+| id=TAGID RPAREN { TTag (id, TBuiltin (TAnyTupleComp 0)) }
 | id=VARID { TVar id }
 | id=MVARID { TVarMono id }
 | i=INT { TInterval (Some i, Some i) }
 | LPAREN i1=INT? DPOINT i2=INT? RPAREN { TInterval (i1,i2) }
 | LBRACE bindings=separated_list(SEMICOLON, record_field) o=record_kind RBRACE { TRecord (bindings, o) }
 | LPAREN ty=ty RPAREN { ty }
+| LPAREN RPAREN { TBuiltin (TAnyTupleComp 0) }
 
 %inline record_kind:
 | DPOINT { true }
