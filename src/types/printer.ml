@@ -67,13 +67,7 @@ module TagMap = Map.Make(TagComp.Tag)
 let map_descr f d = (* Assumes f preserves semantic equivalence *)
   let rec aux d =
     let op = match d.op with
-    | Alias str -> Alias str
-    | Node n -> Node n
-    | Builtin b -> Builtin b
-    | Var v -> Var v
-    | Atom atom -> Atom atom
     | Printer printer -> Printer printer
-    | Tag (tag, d) -> Tag (tag, aux d)
     | Custom (tag, ts) ->
       let rec map_ts ts =
         match ts with
@@ -87,6 +81,12 @@ let map_descr f d = (* Assumes f preserves semantic equivalence *)
         | CRec ts -> CRec (map_ts ts)
       in
       Custom (tag, map_ts ts)
+    | Alias str -> Alias str
+    | Node n -> Node n
+    | Builtin b -> Builtin b
+    | Var v -> Var v
+    | Atom atom -> Atom atom
+    | Tag (tag, d) -> Tag (tag, aux d)
     | Interval (lb, ub) -> Interval (lb, ub)
     | Record (bindings, b) ->
       Record (List.map (fun (l,d,b) -> l, aux d, b) bindings, b)
@@ -544,6 +544,8 @@ let binop_info b = match b with
 let unop_info u = match u with
 | Neg -> "~", 5, NoAssoc
 
+let max_prec = 100
+
 let rec print_descr prec assoc fmt d =
   let rec aux prec assoc fmt d =
     let need_paren = ref false in
@@ -555,16 +557,16 @@ let rec print_descr prec assoc fmt d =
       end
     in
     let () = match d.op with
+    | Printer printer -> printer fmt
+    | Custom _ -> raise (Invalid_argument "The printer AST contains a custom tag.")
     | Alias str -> Format.fprintf fmt "%s" str
     | Node n -> Format.fprintf fmt "%a" NodeId.pp n
     | Builtin b -> print_builtin fmt b
     | Var v -> Format.fprintf fmt "%a" Var.pp v
     | Atom a -> Format.fprintf fmt "%a" Atoms.Atom.pp a
-    | Printer printer -> printer fmt
     | Tag (t,d) ->
       Format.fprintf fmt "%a(%a)"
         TagComp.Tag.pp t print_descr' d
-    | Custom _ -> raise (Invalid_argument "The printer AST contains a custom tag.")
     | Interval (lb,ub) -> Format.fprintf fmt "%a" print_interval (lb,ub)
     | Record (bindings,opened) ->
       let print_binding fmt (l,d,b) =
@@ -623,6 +625,8 @@ let get customs ty =
   t
 
 let print = print_t
+let print_descr_atomic = print_descr max_prec NoAssoc
+let print_descr = print_descr'
 
 let print_ty customs fmt ty =
   let ast = get customs ty in

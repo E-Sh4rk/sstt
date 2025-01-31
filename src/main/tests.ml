@@ -186,9 +186,9 @@ let%expect_test "tests_ext" =
     Output.with_basic_output Format.std_formatter
       (fun () -> test env) () ;
     [%expect {|
-      42_43: [ (42 ; 43 ; (any)*) ]
-      int_list: [ (int)* ]
-      union: [ ((43 ; 42) | (43 ; 42 ; (any)+) | 42 | (42 ; (any)+)) ]
+      42_43: [ 42 43 any* ]
+      int_list: [ int* ]
+      union: [ 43 42 | 43 42 any+ | 42 | 42 any+ ]
       invalid: list(int, list(int, int))
       |}]
   

@@ -60,6 +60,13 @@ val get : params -> Ty.t -> t
 (** [print fmt t] prints the algebraic form [t] using formatter [fmt]. *)
 val print : Format.formatter -> t -> unit
 
+(** [print_descr fmt d] prints the printer descriptor [d] using formatter [fmt]. *)
+val print_descr : Format.formatter -> descr -> unit
+
+(** [print_descr_atomic fmt d] prints the printer descriptor [d] in an atomic way
+    (adding parentheses if necessary) using formatter [fmt]. *)
+val print_descr_atomic : Format.formatter -> descr -> unit
+
 (** [print_ty aliases fmt ty] prints the type [ty] using formatter [fmt],
 recognizing type aliases [aliases]. Same as [print fmt (get aliases ty)]. *)
 val print_ty : params -> Format.formatter -> Ty.t -> unit
@@ -75,5 +82,3 @@ val print_ty' : Format.formatter -> Ty.t -> unit
 (** [print_subst' fmt s] prints the substitution [s] using formatter [fmt].
 Same as [print_subst [] fmt s]. *)
 val print_subst' : Format.formatter -> Subst.t -> unit
-
-val print_descr' : Format.formatter -> descr -> unit
