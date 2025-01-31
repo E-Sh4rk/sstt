@@ -201,3 +201,21 @@ let printer_params printer = {
   }
 
 let printer_params' = printer_params print
+
+(* Builder *)
+
+let build r =
+  let rec aux r next =
+    match r with
+    | Letter ty -> cons ty next
+    | Concat lst -> List.fold_right aux lst next
+    | Union lst ->
+      lst |> List.map (fun ty -> aux ty next) |> Ty.disj
+    | Star r ->
+      let v = Var.mk "" in
+      let ty = Ty.cup (aux r (Ty.mk_var v)) next in
+      Ty.of_eqs [(v,ty)] |> List.hd |> snd
+    | Plus r -> aux r (aux (Star r) next)
+    | Option r -> Ty.cup (aux r next) next
+  in
+  aux r nil

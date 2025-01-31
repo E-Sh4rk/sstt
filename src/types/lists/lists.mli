@@ -23,3 +23,5 @@ val print : printer
 
 val printer_params : printer -> Printer.params
 val printer_params' : Printer.params
+
+val build : Ty.t regexp -> Ty.t
