@@ -10,4 +10,5 @@ module Extensions = struct
   module Lists = Lists
   module Strings = Strings
   module Floats = Floats
+  module Bools = Bools
 end
