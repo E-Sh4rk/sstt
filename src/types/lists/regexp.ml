@@ -132,7 +132,7 @@ module Make (Lt : Letter) : S with type lt = Lt.t = struct
     )
       [] l
 
-  let simplify (r : t_ext) : t_ext =
+  let simplify (r : t_ext) : t_ext = (* TODO: improve *)
     let rec compare (r1 : t_ext)
         (r2 : t_ext) : bool =
       match r1, r2 with

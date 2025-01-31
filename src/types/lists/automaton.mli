@@ -1,3 +1,5 @@
+(* This module is taken from https://github.com/Tchou/stt *)
+
 module type S = sig
 
     type lt
