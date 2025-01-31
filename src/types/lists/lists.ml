@@ -24,17 +24,17 @@ let basic_extract ty =
     let tuples = Ty.get_descr ty |> Descr.get_tuples in
     let nil_comps = Tuples.get 0 tuples |> Op.TupleComp.as_union in
     let cons_comps = Tuples.get 2 tuples |> Op.TupleComp.as_union in
-    Some (nil_comps@cons_comps |> List.map (List.map (fun ty -> Printer.CTPLeaf ty)))
+    Some (nil_comps@cons_comps |> List.map (List.map (fun ty -> Printer.LeafParam ty)))
   else None
 
 let basic_printer tstruct fmt =
   match tstruct with
-  | Printer.TSNode _ -> assert false
-  | Printer.TSDef (_, union) ->
+  | Printer.CNode _ -> assert false
+  | Printer.CDef (_, union) ->
     let print_line fmt l =
       match l with
       | [] -> Format.fprintf fmt "[]"
-      | [Printer.TPLeaf elt; Printer.TPLeaf tl] ->
+      | [Printer.CLeaf elt; Printer.CLeaf tl] ->
         Format.fprintf fmt "%a::%a" Printer.print_descr' elt Printer.print_descr' tl
       | _ -> assert false
     in
@@ -56,7 +56,7 @@ let extract ty =
     let tuples = Ty.get_descr ty |> Descr.get_tuples in
     let nil_comps =
       Tuples.get 0 tuples |> Op.TupleComp.as_union
-      |> List.map (List.map (fun ty -> Printer.CTPLeaf ty))
+      |> List.map (List.map (fun ty -> Printer.LeafParam ty))
     in
     let cons_comps =
       Tuples.get 2 tuples |> Op.TupleComp.as_union
@@ -67,7 +67,7 @@ let extract ty =
           |> Tags.get tag |> TagComp.as_atom in
           if Ty.leq r (Descr.mk_tag (tag, ty) |> Ty.mk_descr) |> not
           then raise Exit ;
-          [Printer.CTPLeaf l ; Printer.CTPRec ty ]
+          [Printer.LeafParam l ; Printer.RecParam ty ]
         | _ -> assert false  
       )
     in
@@ -79,12 +79,12 @@ and d = Cons of Printer.descr * t | Nil
 
 let rec to_t tstruct =
   match tstruct with
-  | Printer.TSNode nid -> Loop nid
-  | Printer.TSDef (nid, union) ->
+  | Printer.CNode nid -> Loop nid
+  | Printer.CDef (nid, union) ->
     let to_d params =
       match params with
       | [] -> Nil
-      | [Printer.TPLeaf elt ; Printer.TPRec tstruct] ->
+      | [Printer.CLeaf elt ; Printer.CRec tstruct] ->
         Cons (elt, to_t tstruct)
       | _ -> assert false
     in

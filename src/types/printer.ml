@@ -20,39 +20,40 @@ module NodeId = struct
 end
 
 type unop =
-| PNeg
+| Neg
 type binop =
-| PDiff | PArrow
+| Diff | Arrow
 type varop =
-| PTuple | PCup | PCap
+| Tuple | Cup | Cap
 type builtin =
-| PEmpty | PAny | PAnyTuple | PAnyAtom | PAnyTag | PAnyInt
-| PAnyArrow | PAnyRecord | PAnyTupleComp of int | PAnyTagComp of TagComp.Tag.t
+| Empty | Any | AnyTuple | AnyAtom | AnyTag | AnyInt
+| AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of TagComp.Tag.t
 type t = { main : descr ; defs : def list }
 and def = NodeId.t * descr
 and descr = { op : op ; ty : Ty.t }
 and op =
-| PNamed of string
-| PNode of NodeId.t
-| PBuiltin of builtin
-| PVar of Var.t
-| PAtom of Atoms.Atom.t
-| PCustom of (Format.formatter -> unit)
-| PTag of TagComp.Tag.t * descr
-| PCustomTag of TagComp.Tag.t * tag_struct
-| PInterval of Z.t option * Z.t option
-| PRecord of (Label.t * descr * bool) list * bool
-| PVarop of varop * descr list
-| PBinop of binop * descr * descr
-| PUnop of unop * descr
-and tag_param = TPLeaf of descr | TPRec of tag_struct
-and tag_params = tag_param list
-and tag_struct = TSDef of NodeId.t * tag_params list | TSNode of NodeId.t
+| Printer of (Format.formatter -> unit)
+| Custom of TagComp.Tag.t * custom
+| Alias of string
+| Node of NodeId.t
+| Builtin of builtin
+| Var of Var.t
+| Atom of Atoms.Atom.t
+| Tag of TagComp.Tag.t * descr
+| Interval of Z.t option * Z.t option
+| Record of (Label.t * descr * bool) list * bool
+| Varop of varop * descr list
+| Binop of binop * descr * descr
+| Unop of unop * descr
+and custom_param = CLeaf of descr | CRec of custom
+and custom_params = custom_param list
+and custom = CDef of NodeId.t * custom_params list | CNode of NodeId.t
 
 type aliases = (Ty.t * string) list
-type ctag_param = CTPLeaf of Ty.t | CTPRec of Ty.t
-type custom_tags = (TagComp.Tag.t * (Ty.t -> (ctag_param list) list option)) list
-type tags_printers = (TagComp.Tag.t * (tag_struct -> (Format.formatter -> unit))) list
+type tag_param = LeafParam of Ty.t | RecParam of Ty.t
+type tag_params = tag_param list
+type custom_tags = (TagComp.Tag.t * (Ty.t -> tag_params list option)) list
+type tags_printers = (TagComp.Tag.t * (custom -> (Format.formatter -> unit))) list
 type params = { aliases : aliases ; tags : custom_tags ; printers : tags_printers }
 
 module VD = VDescr
@@ -66,32 +67,32 @@ module TagMap = Map.Make(TagComp.Tag)
 let map_descr f d = (* Assumes f preserves semantic equivalence *)
   let rec aux d =
     let op = match d.op with
-    | PNamed str -> PNamed str
-    | PNode n -> PNode n
-    | PBuiltin b -> PBuiltin b
-    | PVar v -> PVar v
-    | PAtom atom -> PAtom atom
-    | PCustom printer -> PCustom printer
-    | PTag (tag, d) -> PTag (tag, aux d)
-    | PCustomTag (tag, ts) ->
+    | Alias str -> Alias str
+    | Node n -> Node n
+    | Builtin b -> Builtin b
+    | Var v -> Var v
+    | Atom atom -> Atom atom
+    | Printer printer -> Printer printer
+    | Tag (tag, d) -> Tag (tag, aux d)
+    | Custom (tag, ts) ->
       let rec map_ts ts =
         match ts with
-        | TSDef (nid,params) ->
-          TSDef (nid, List.map map_params params)
-        | TSNode nid -> TSNode nid
+        | CDef (nid,params) ->
+          CDef (nid, List.map map_params params)
+        | CNode nid -> CNode nid
       and map_params params = List.map map_param params
       and map_param p =
         match p with
-        | TPLeaf d -> TPLeaf (aux d)
-        | TPRec ts -> TPRec (map_ts ts)
+        | CLeaf d -> CLeaf (aux d)
+        | CRec ts -> CRec (map_ts ts)
       in
-      PCustomTag (tag, map_ts ts)
-    | PInterval (lb, ub) -> PInterval (lb, ub)
-    | PRecord (bindings, b) ->
-      PRecord (List.map (fun (l,d,b) -> l, aux d, b) bindings, b)
-    | PVarop (v, ds) -> PVarop (v, List.map aux ds)
-    | PBinop (b, d1, d2) -> PBinop (b, aux d1, aux d2)
-    | PUnop (u, d) -> PUnop (u, aux d)
+      Custom (tag, map_ts ts)
+    | Interval (lb, ub) -> Interval (lb, ub)
+    | Record (bindings, b) ->
+      Record (List.map (fun (l,d,b) -> l, aux d, b) bindings, b)
+    | Varop (v, ds) -> Varop (v, List.map aux ds)
+    | Binop (b, d1, d2) -> Binop (b, aux d1, aux d2)
+    | Unop (u, d) -> Unop (u, aux d)
     in { d with op = f { d with op } }
   in
   aux d
@@ -103,7 +104,7 @@ let map_t f t =
 let nodes_in_descr d =
   let res = ref NISet.empty in
   let f d = match d.op with
-  | PNode n -> res := NISet.add n !res ; PNode n
+  | Node n -> res := NISet.add n !res ; Node n
   | op -> op
   in
   map_descr f d |> ignore ;
@@ -123,43 +124,43 @@ let size_t t =
 let subst n d t =
   let aux d' =
     match d'.op with
-    | PNode n' when NodeId.equal n n' -> d.op
+    | Node n' when NodeId.equal n n' -> d.op
     | _ -> d'.op
   in
   map_t aux t
 
 let neg d =
   match d.op with
-  | PUnop (PNeg, d) -> d
-  | PBuiltin PEmpty -> { op = PBuiltin PAny ; ty = Ty.neg d.ty }
-  | PBuiltin PAny -> { op = PBuiltin PEmpty ; ty = Ty.neg d.ty }
-  | _ -> { op = PUnop (PNeg, d) ; ty = Ty.neg d.ty }
+  | Unop (Neg, d) -> d
+  | Builtin Empty -> { op = Builtin Any ; ty = Ty.neg d.ty }
+  | Builtin Any -> { op = Builtin Empty ; ty = Ty.neg d.ty }
+  | _ -> { op = Unop (Neg, d) ; ty = Ty.neg d.ty }
 
 let cap d1 d2 =
   let ty = Ty.cap d1.ty d2.ty in
   match d1.op, d2.op with
-  | PVarop (PCap, c1), PVarop (PCap, c2) ->
-    { op = PVarop (PCap, c1@c2) ; ty }
-  | PVarop (PCap, c1), _ -> { op = PVarop (PCap, c1@[d2]) ; ty }
-  | _, PVarop (PCap, c2) -> { op = PVarop (PCap, d1::c2) ; ty }
-  | _, _ -> { op = PVarop (PCap, [d1;d2]) ; ty }
+  | Varop (Cap, c1), Varop (Cap, c2) ->
+    { op = Varop (Cap, c1@c2) ; ty }
+  | Varop (Cap, c1), _ -> { op = Varop (Cap, c1@[d2]) ; ty }
+  | _, Varop (Cap, c2) -> { op = Varop (Cap, d1::c2) ; ty }
+  | _, _ -> { op = Varop (Cap, [d1;d2]) ; ty }
 
 let cup d1 d2 =
   let ty = Ty.cup d1.ty d2.ty in
   match d1.op, d2.op with
-  | PVarop (PCup, c1), PVarop (PCup, c2) ->
-    { op = PVarop (PCup, c1@c2) ; ty }
-  | PVarop (PCup, c1), _ -> { op = PVarop (PCup, c1@[d2]) ; ty }
-  | _, PVarop (PCup, c2) -> { op = PVarop (PCup, d1::c2) ; ty }
-  | _, _ -> { op = PVarop (PCup, [d1;d2]) ; ty }
+  | Varop (Cup, c1), Varop (Cup, c2) ->
+    { op = Varop (Cup, c1@c2) ; ty }
+  | Varop (Cup, c1), _ -> { op = Varop (Cup, c1@[d2]) ; ty }
+  | _, Varop (Cup, c2) -> { op = Varop (Cup, d1::c2) ; ty }
+  | _, _ -> { op = Varop (Cup, [d1;d2]) ; ty }
 
 let cap' d1 d2 =
   if Ty.leq d1.ty d2.ty then d1
   else if Ty.leq d2.ty d1.ty then d2
   else cap d1 d2
 
-let any = { op = PBuiltin PAny ; ty = Ty.any }
-let empty = { op = PBuiltin PEmpty ; ty = Ty.empty }
+let any = { op = Builtin Any ; ty = Ty.any }
+let empty = { op = Builtin Empty ; ty = Ty.empty }
 
 let union union =
   let union = union |> List.filter (fun d -> Ty.is_empty d.ty |> not) in
@@ -174,29 +175,29 @@ let inter inter =
   | d::inter -> List.fold_left cap d inter
 
 let arrow d1 d2 =
-  { op = PBinop (PArrow, d1, d2) ; ty = D.mk_arrow (d1.ty, d2.ty) |> Ty.mk_descr }
+  { op = Binop (Arrow, d1, d2) ; ty = D.mk_arrow (d1.ty, d2.ty) |> Ty.mk_descr }
 
 let tuple lst =
   let tys = List.map (fun d -> d.ty) lst in
-  { op = PVarop (PTuple, lst) ; ty = D.mk_tuple tys |> Ty.mk_descr }
+  { op = Varop (Tuple, lst) ; ty = D.mk_tuple tys |> Ty.mk_descr }
 
 let record bindings opened =
   let nbindings = bindings |>
     List.map (fun (l, d, b) -> (l, (d.ty, b))) |> LabelMap.of_list in
-  { op = PRecord (bindings, opened) ;
+  { op = Record (bindings, opened) ;
     ty = D.mk_record { bindings=nbindings ; opened } |> Ty.mk_descr }
 
 let tag tag d =
-  { op = PTag (tag,d) ; ty = D.mk_tag (tag, d.ty) |> Ty.mk_descr }
+  { op = Tag (tag,d) ; ty = D.mk_tag (tag, d.ty) |> Ty.mk_descr }
 
 let atom a =
-  { op = PAtom a ; ty = D.mk_atom a |> Ty.mk_descr }
+  { op = Atom a ; ty = D.mk_atom a |> Ty.mk_descr }
 
 let var v =
-  { op = PVar v ; ty = Ty.mk_var v }
+  { op = Var v ; ty = Ty.mk_var v }
 
 let interval (o1, o2) =
-  { op = PInterval (o1, o2) ;
+  { op = Interval (o1, o2) ;
     ty = Intervals.Atom.mk o1 o2 |> D.mk_interval |> Ty.mk_descr }
 
 (* Step 1 : Build the initial ctx and AST *)
@@ -210,21 +211,21 @@ let merge_params p1 p2 =
 type ctx = {
   mutable nodes : NodeId.t VDMap.t ;
   aliases : (Ty.t * op) list ;
-  tags : (Ty.t -> (ctag_param list) list option) TagMap.t ;
-  printers : (tag_struct -> (Format.formatter -> unit)) TagMap.t
+  tags : (Ty.t -> tag_params list option) TagMap.t ;
+  printers : (custom -> (Format.formatter -> unit)) TagMap.t
 }
 
 let node ctx ty =
   let def = Ty.def ty in
   match VDMap.find_opt def ctx.nodes with
-  | Some nid -> { op = PNode nid ; ty }
+  | Some nid -> { op = Node nid ; ty }
   | None ->
     let nid = NodeId.mk () in
     ctx.nodes <- VDMap.add def nid ctx.nodes ;
-    { op = PNode nid ; ty }
+    { op = Node nid ; ty }
 
 let build_t (params:params) ty =
-  let aliases = params.aliases |> List.map (fun (ty, s) -> (ty, PNamed s)) in
+  let aliases = params.aliases |> List.map (fun (ty, s) -> (ty, Alias s)) in
   let tags = params.tags |> TagMap.of_list in
   let printers = params.printers |> TagMap.of_list in
   let ctx = { nodes=VDMap.empty ; aliases ; tags ; printers } in
@@ -290,7 +291,7 @@ let resolve_tuples ctx a =
   let d = components |> List.map (fun p ->
     let len = TupleComp.len p in
     let elt = resolve_tuplecomp ctx p in
-    let any = { op = PBuiltin (PAnyTupleComp len) ;
+    let any = { op = Builtin (AnyTupleComp len) ;
                 ty = TupleComp.any len |> D.mk_tuplecomp |> Ty.mk_descr }
     in
     cap' any elt
@@ -316,7 +317,7 @@ let resolve_records ctx a =
 let rec resolve_custom_tagcomp f ctx env ty =
   let vd = Ty.def ty in
   match VDMap.find_opt vd env with
-  | Some nid -> TSNode nid
+  | Some nid -> CNode nid
   | None ->
     begin match f ty with
     | None -> raise Exit
@@ -325,12 +326,12 @@ let rec resolve_custom_tagcomp f ctx env ty =
       let env = VDMap.add vd nid env in
       let treat_param param =
         match param with
-        | CTPLeaf ty -> TPLeaf (node ctx ty)
-        | CTPRec ty -> TPRec (resolve_custom_tagcomp f ctx env ty)
+        | LeafParam ty -> CLeaf (node ctx ty)
+        | RecParam ty -> CRec (resolve_custom_tagcomp f ctx env ty)
       in
       let treat_params params = List.map treat_param params in
       let union = List.map treat_params extracted in
-    TSDef (nid, union)
+    CDef (nid, union)
     end
 
 let resolve_tagcomp ctx a =
@@ -342,7 +343,7 @@ let resolve_tagcomp ctx a =
     match TagMap.find_opt t ctx.tags with
     | None -> tag t (node ctx ty')
     | Some f ->
-      try { op = PCustomTag (t, resolve_custom_tagcomp f ctx VDMap.empty ty') ; ty }
+      try { op = Custom (t, resolve_custom_tagcomp f ctx VDMap.empty ty') ; ty }
       with Exit -> tag t (node ctx ty')
 
 let resolve_tags ctx a =
@@ -350,7 +351,7 @@ let resolve_tags ctx a =
   let d = components |> List.map (fun t ->
     let tag = TagComp.tag t in
     let elt = resolve_tagcomp ctx t in
-    let any = { op = PBuiltin (PAnyTagComp tag) ;
+    let any = { op = Builtin (AnyTagComp tag) ;
                 ty = TagComp.any tag |> D.mk_tagcomp |> Ty.mk_descr }
     in
     cap' any elt
@@ -368,22 +369,22 @@ let resolve_comp ctx c =
   match c with
   | D.Atoms c ->
     alias_or resolve_atoms c,
-    { op = PBuiltin PAnyAtom ; ty = Atoms.any () |> D.mk_atoms |> Ty.mk_descr }
+    { op = Builtin AnyAtom ; ty = Atoms.any () |> D.mk_atoms |> Ty.mk_descr }
   | D.Arrows c ->
     alias_or resolve_arrows c,
-    { op = PBuiltin PAnyArrow ; ty = Arrows.any () |> D.mk_arrows |> Ty.mk_descr }
+    { op = Builtin AnyArrow ; ty = Arrows.any () |> D.mk_arrows |> Ty.mk_descr }
   | D.Intervals c ->
     alias_or resolve_intervals c,
-    { op = PBuiltin PAnyInt ; ty = Intervals.any () |> D.mk_intervals |> Ty.mk_descr }
+    { op = Builtin AnyInt ; ty = Intervals.any () |> D.mk_intervals |> Ty.mk_descr }
   | D.Tags c ->
     alias_or resolve_tags c,
-    { op = PBuiltin PAnyTag ; ty = Tags.any () |> D.mk_tags |> Ty.mk_descr }
+    { op = Builtin AnyTag ; ty = Tags.any () |> D.mk_tags |> Ty.mk_descr }
   | D.Tuples c ->
     alias_or resolve_tuples c,
-    { op = PBuiltin PAnyTuple; ty = Tuples.any () |> D.mk_tuples |> Ty.mk_descr }
+    { op = Builtin AnyTuple; ty = Tuples.any () |> D.mk_tuples |> Ty.mk_descr }
   | D.Records c ->
     alias_or resolve_records c,
-    { op = PBuiltin PAnyRecord ; ty = Records.any () |> D.mk_records |> Ty.mk_descr }
+    { op = Builtin AnyRecord ; ty = Records.any () |> D.mk_records |> Ty.mk_descr }
 
 let resolve_descr ctx d =
   let ty = VD.mk_descr d |> Ty.of_def in
@@ -467,19 +468,19 @@ let inline t =
 let simplify t =
   let f d =
     match d.op with
-    | PVarop (PCap, [ d ; { op = PUnop (PNeg, dn) ; _ } ]) -> PBinop (PDiff, d, dn)
+    | Varop (Cap, [ d ; { op = Unop (Neg, dn) ; _ } ]) -> Binop (Diff, d, dn)
     | op -> op
   in
   map_t f t
 
-(* Step 5 : Transform PCustomTag into PCustom *)
+(* Step 5 : Transform Custom into Printer *)
 
 let transform_custom_tags ctx t =
   let aux d =
     match d.op with
-    | PCustomTag (tag, tstruct) ->
+    | Custom (tag, tstruct) ->
       begin match TagMap.find_opt tag ctx.printers with
-      | Some f -> PCustom (f tstruct)
+      | Some f -> Printer (f tstruct)
       | None -> d.op
       end
     | op -> op
@@ -503,23 +504,23 @@ let rename_nodes t =
 let print_builtin fmt b =
   let str =
     match b with
-    | PEmpty -> "empty"
-    | PAny -> "any"
-    | PAnyTuple -> "tuple"
-    | PAnyAtom -> "atom"
-    | PAnyTag -> "tag"
-    | PAnyInt -> "int"
-    | PAnyArrow -> "arrow"
-    | PAnyRecord -> "record"
-    | PAnyTupleComp i -> "tuple"^(string_of_int i)
-    | PAnyTagComp t -> (TagComp.Tag.name t)^"(any)"
+    | Empty -> "empty"
+    | Any -> "any"
+    | AnyTuple -> "tuple"
+    | AnyAtom -> "atom"
+    | AnyTag -> "tag"
+    | AnyInt -> "int"
+    | AnyArrow -> "arrow"
+    | AnyRecord -> "record"
+    | AnyTupleComp i -> "tuple"^(string_of_int i)
+    | AnyTagComp t -> (TagComp.Tag.name t)^"(any)"
   in
   Format.fprintf fmt "%s" str
 
 let pp_z = Z.pp_print
 let print_interval fmt (lb,ub) =
   match lb, ub with
-  | None, None -> print_builtin fmt PAnyInt
+  | None, None -> print_builtin fmt AnyInt
   | Some lb, Some ub when Z.equal lb ub ->
     Format.fprintf fmt "%a" pp_z lb
   | Some lb, Some ub ->
@@ -532,16 +533,16 @@ let print_interval fmt (lb,ub) =
 type assoc = Left | Right | NoAssoc
 
 let varop_info v = match v with
-| PTuple -> ", ", 0, NoAssoc
-| PCup -> " | ", 2, NoAssoc
-| PCap -> " & ", 3, NoAssoc
+| Tuple -> ", ", 0, NoAssoc
+| Cup -> " | ", 2, NoAssoc
+| Cap -> " & ", 3, NoAssoc
 
 let binop_info b = match b with
-| PArrow -> " -> ", 1, Right
-| PDiff -> " \\ ", 4, Left
+| Arrow -> " -> ", 1, Right
+| Diff -> " \\ ", 4, Left
 
 let unop_info u = match u with
-| PNeg -> "~", 5, NoAssoc
+| Neg -> "~", 5, NoAssoc
 
 let rec print_descr prec assoc fmt d =
   let rec aux prec assoc fmt d =
@@ -554,18 +555,18 @@ let rec print_descr prec assoc fmt d =
       end
     in
     let () = match d.op with
-    | PNamed str -> Format.fprintf fmt "%s" str
-    | PNode n -> Format.fprintf fmt "%a" NodeId.pp n
-    | PBuiltin b -> print_builtin fmt b
-    | PVar v -> Format.fprintf fmt "%a" Var.pp v
-    | PAtom a -> Format.fprintf fmt "%a" Atoms.Atom.pp a
-    | PCustom printer -> printer fmt
-    | PTag (t,d) ->
+    | Alias str -> Format.fprintf fmt "%s" str
+    | Node n -> Format.fprintf fmt "%a" NodeId.pp n
+    | Builtin b -> print_builtin fmt b
+    | Var v -> Format.fprintf fmt "%a" Var.pp v
+    | Atom a -> Format.fprintf fmt "%a" Atoms.Atom.pp a
+    | Printer printer -> printer fmt
+    | Tag (t,d) ->
       Format.fprintf fmt "%a(%a)"
         TagComp.Tag.pp t print_descr' d
-    | PCustomTag _ -> raise (Invalid_argument "The printer AST contains a custom tag.")
-    | PInterval (lb,ub) -> Format.fprintf fmt "%a" print_interval (lb,ub)
-    | PRecord (bindings,opened) ->
+    | Custom _ -> raise (Invalid_argument "The printer AST contains a custom tag.")
+    | Interval (lb,ub) -> Format.fprintf fmt "%a" print_interval (lb,ub)
+    | Record (bindings,opened) ->
       let print_binding fmt (l,d,b) =
         Format.fprintf fmt "%a %s %a"
           Label.pp l
@@ -576,19 +577,19 @@ let rec print_descr prec assoc fmt d =
         (print_seq print_binding " ; ")
         bindings
         (if opened then ".." else "")
-    | PVarop (v,ds) ->
+    | Varop (v,ds) ->
       let sym,prec',assoc' = varop_info v in
       paren prec' assoc' ;
       Format.fprintf fmt "%a"
         (print_seq (aux prec' NoAssoc) sym)
         ds
-    | PBinop (b,d1,d2) ->
+    | Binop (b,d1,d2) ->
       let sym,prec',assoc' = binop_info b in
       paren prec' assoc' ;
       Format.fprintf fmt "%a%s%a"
         (aux prec' Left) d1 sym
         (aux prec' Right) d2
-    | PUnop (u,d) ->
+    | Unop (u,d) ->
       let sym,prec',assoc' = unop_info u in
       paren prec' assoc' ;
       Format.fprintf fmt "%s%a" sym (aux prec' NoAssoc) d

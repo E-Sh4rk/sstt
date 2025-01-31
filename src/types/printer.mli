@@ -13,39 +13,40 @@ module NodeId : sig
 end
 
 type unop =
-| PNeg
+| Neg
 type binop =
-| PDiff | PArrow
+| Diff | Arrow
 type varop =
-| PTuple | PCup | PCap
+| Tuple | Cup | Cap
 type builtin =
-| PEmpty | PAny | PAnyTuple | PAnyAtom | PAnyTag | PAnyInt
-| PAnyArrow | PAnyRecord | PAnyTupleComp of int | PAnyTagComp of TagComp.Tag.t
+| Empty | Any | AnyTuple | AnyAtom | AnyTag | AnyInt
+| AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of TagComp.Tag.t
 type t = { main : descr ; defs : def list }
 and def = NodeId.t * descr
 and descr = { op : op ; ty : Ty.t }
 and op =
-| PNamed of string
-| PNode of NodeId.t
-| PBuiltin of builtin
-| PVar of Var.t
-| PAtom of Atoms.Atom.t
-| PCustom of (Format.formatter -> unit)
-| PTag of TagComp.Tag.t * descr
-| PCustomTag of TagComp.Tag.t * tag_struct
-| PInterval of Z.t option * Z.t option
-| PRecord of (Label.t * descr * bool) list * bool
-| PVarop of varop * descr list
-| PBinop of binop * descr * descr
-| PUnop of unop * descr
-and tag_param = TPLeaf of descr | TPRec of tag_struct
-and tag_params = tag_param list
-and tag_struct = TSDef of NodeId.t * tag_params list | TSNode of NodeId.t
+| Printer of (Format.formatter -> unit)
+| Custom of TagComp.Tag.t * custom
+| Alias of string
+| Node of NodeId.t
+| Builtin of builtin
+| Var of Var.t
+| Atom of Atoms.Atom.t
+| Tag of TagComp.Tag.t * descr
+| Interval of Z.t option * Z.t option
+| Record of (Label.t * descr * bool) list * bool
+| Varop of varop * descr list
+| Binop of binop * descr * descr
+| Unop of unop * descr
+and custom_param = CLeaf of descr | CRec of custom
+and custom_params = custom_param list
+and custom = CDef of NodeId.t * custom_params list | CNode of NodeId.t
 
 type aliases = (Ty.t * string) list
-type ctag_param = CTPLeaf of Ty.t | CTPRec of Ty.t
-type custom_tags = (TagComp.Tag.t * (Ty.t -> (ctag_param list) list option)) list
-type tags_printers = (TagComp.Tag.t * (tag_struct -> (Format.formatter -> unit))) list
+type tag_param = LeafParam of Ty.t | RecParam of Ty.t
+type tag_params = tag_param list
+type custom_tags = (TagComp.Tag.t * (Ty.t -> tag_params list option)) list
+type tags_printers = (TagComp.Tag.t * (custom -> (Format.formatter -> unit))) list
 type params = { aliases : aliases ; tags : custom_tags ; printers : tags_printers }
 
 val empty_params : params
