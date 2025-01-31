@@ -177,7 +177,7 @@ let%expect_test "tests_ext" =
       match IO.parse_command buf with
       | End -> ()
       | Elt elt ->
-        let env = Repl.treat_elt ~pparams:Lists.printer_params env elt in
+        let env = Repl.treat_elt ~pparams:Lists.printer_params' env elt in
         test env
     in
     let env = Repl.empty_env in

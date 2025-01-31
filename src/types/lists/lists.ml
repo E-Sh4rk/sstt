@@ -98,7 +98,7 @@ module Lt = struct
   let symbol d = Some d
   let epsilon = None
   let is_epsilon = Option.is_none
-  let pp fmt = Option.iter (print_descr_atomic fmt)
+  let to_symbol = Option.get
 end
 module Automaton = Automaton.Make(Lt)
 module NIMap = Map.Make(Printer.NodeId)
@@ -129,10 +129,27 @@ let to_automaton t =
   auto
 
 module Regexp = Automaton.R
-type regexp = Regexp.t_ext
 
-let to_regexp automaton : regexp =
+type 'a regexp =
+| Letter of 'a
+| Concat of 'a regexp list
+| Union of 'a regexp list
+| Star of 'a regexp
+| Plus of 'a regexp
+| Option of 'a regexp
+
+let rec convert_regexp (r:Regexp.t_ext) =
+  match r with
+  | Regexp.Letter l -> Letter (Lt.to_symbol l)
+  | Regexp.Concat lst -> Concat (List.map convert_regexp lst)
+  | Regexp.Union lst -> Union (List.map convert_regexp lst)
+  | Regexp.Star r -> Star (convert_regexp r)
+  | Regexp.Plus r -> Plus (convert_regexp r)
+  | Regexp.Option r -> Option (convert_regexp r)
+
+let to_regexp automaton =
   automaton |> Automaton.to_regex_my |> Regexp.simp_to_ext |> Regexp.simplify
+  |> convert_regexp
 
 let prec_star = 2
 let prec_plus = 2
@@ -140,7 +157,7 @@ let prec_option = 2
 let prec_concat = 1
 let prec_union = 0
 
-let rec printer prec fmt regexp =
+let rec print prec fmt regexp =
   let need_paren = ref false in
   let paren prec' =
     if prec' <= prec
@@ -150,33 +167,37 @@ let rec printer prec fmt regexp =
     end
   in
   let () = match regexp with
-  | Regexp.Letter d -> Format.fprintf fmt "%a" Lt.pp d
-  | Regexp.Concat lst ->
+  | Letter d -> Format.fprintf fmt "%a" Printer.print_descr_atomic d
+  | Concat lst ->
     paren prec_concat ;
-    Format.fprintf fmt "%a" (print_seq (printer prec_concat) " ") lst
-  | Regexp.Union lst ->
+    Format.fprintf fmt "%a" (print_seq (print prec_concat) " ") lst
+  | Union lst ->
     paren prec_union ;
-    Format.fprintf fmt "%a" (print_seq (printer prec_union) " | ") lst
-  | Regexp.Star r ->
+    Format.fprintf fmt "%a" (print_seq (print prec_union) " | ") lst
+  | Star r ->
     paren prec_star ;
-    Format.fprintf fmt "%a*" (printer prec_star) r
-  | Regexp.Plus r ->
+    Format.fprintf fmt "%a*" (print prec_star) r
+  | Plus r ->
     paren prec_plus ;
-    Format.fprintf fmt "%a+" (printer prec_plus) r
-  | Regexp.Option r ->
+    Format.fprintf fmt "%a+" (print prec_plus) r
+  | Option r ->
     paren prec_option ;
-    Format.fprintf fmt "%a?" (printer prec_option) r
+    Format.fprintf fmt "%a?" (print prec_option) r
   in
   if !need_paren then Format.fprintf fmt ")"
 
-let printer = printer (-1)
+type printer = Format.formatter -> Printer.descr regexp -> unit
 
-let printer tstruct fmt =
-  Format.fprintf fmt "[ %a ]" printer
-    (tstruct |> to_t |> to_automaton |> to_regexp)
+let print fmt =
+  Format.fprintf fmt "[ %a ]" (print (-1))
 
-let printer_params = {
+let to_printer (print:printer) tstruct fmt =
+  print fmt (tstruct |> to_t |> to_automaton |> to_regexp)
+
+let printer_params printer = {
   Printer.aliases = [] ;
   Printer.tags = [(tag, extract)] ;
-  Printer.printers = [(tag, printer)]
+  Printer.printers = [(tag, to_printer printer)]
   }
+
+let printer_params' = printer_params print

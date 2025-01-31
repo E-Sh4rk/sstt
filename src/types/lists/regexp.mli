@@ -25,12 +25,7 @@ module type Letter = sig
     type lt
     (** The letter type *)
   
-    type t_simp =
-    | S_Empty
-    | S_Letter of lt
-    | S_Concat of t_simp * t_simp
-    | S_Union of t_simp * t_simp
-    | S_Star of t_simp
+    type t_simp
     (** A simple implementation of a regex *)
 
     type t_ext =
