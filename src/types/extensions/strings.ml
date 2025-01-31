@@ -40,9 +40,9 @@ let to_t tstruct =
 type printer = Format.formatter -> t -> unit
 let print fmt (pos, strs) =
   let pp_string fmt str = Format.fprintf fmt "%S" str in
-  let neg = if pos then "" else "~" in
+  let neg = if pos then "" else "string\\" in
   match strs with
-  | [] -> Format.fprintf fmt "%sstring" neg
+  | [] -> assert (not pos) ; Format.fprintf fmt "string"
   | [elt] -> Format.fprintf fmt "%s%a" neg pp_string elt
   | strs -> Format.fprintf fmt "%s(%a)" neg (print_seq pp_string " | ") strs
 
