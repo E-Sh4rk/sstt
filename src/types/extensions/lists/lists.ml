@@ -17,6 +17,8 @@ let any =
 
 let any_non_empty = cons Ty.any any
 
+(* TODO: get_tag, make destruct operate on a TagComp *)
+
 let destruct ty =
   let union =
     ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
@@ -40,6 +42,9 @@ let destruct' ty =
   with Op.EmptyAtom -> Ty.empty, Ty.empty
 
 (* Basic printer *)
+
+(* TODO: disallow vars at top-level (in other extensions too).
+   If vars are in the rec part, backup to a basic printer. *)
 
 let basic_extract ty =
   let (_,any) = any |> Ty.get_descr |> Descr.get_tags
