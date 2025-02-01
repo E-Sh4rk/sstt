@@ -611,9 +611,8 @@ and print_t fmt t =
   Format.fprintf fmt "%a" print_descr' t.main ;
   match t.defs with
   | [] -> ()
-  | def::defs ->
-    Format.fprintf fmt " where %a%a" print_def def
-      (print_seq print_def " and ") defs
+  | defs ->
+    Format.fprintf fmt " where %a" (print_seq print_def " and ") defs
 
 (* MAIN *)
 
