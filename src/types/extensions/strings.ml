@@ -10,12 +10,12 @@ let atoms = Hashtbl.create 256
 let strings = Hashtbl.create 256
 let str str =
   match Hashtbl.find_opt atoms str with
-  | Some atom -> atom |> Descr.mk_atom |> Ty.mk_descr
+  | Some atom -> atom |> Descr.mk_atom |> Ty.mk_descr |> add_tag
   | None ->
     let atom = Atoms.Atom.mk str in
     Hashtbl.add atoms str atom ;
     Hashtbl.add strings atom str ;
-    atom |> Descr.mk_atom |> Ty.mk_descr
+    atom |> Descr.mk_atom |> Ty.mk_descr |> add_tag
 
 let any = Atoms.any () |> Descr.mk_atoms |> Ty.mk_descr |> add_tag
 

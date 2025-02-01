@@ -11,7 +11,7 @@ let cons hd tl = [hd;tl] |> Descr.mk_tuple |> Ty.mk_descr |> add_tag
 let nil = [] |> Descr.mk_tuple |> Ty.mk_descr |> add_tag
 
 let any =
-  let v = Var.mk "list" in
+  let v = Var.mk "" in
   let def = Ty.cup nil (cons Ty.any (Ty.mk_var v)) in
   Ty.of_eqs [(v,def)] |> List.hd |> snd |> Transform.simplify
 

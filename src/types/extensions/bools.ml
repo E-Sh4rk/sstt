@@ -8,8 +8,8 @@ let add_tag t =
 let atrue = Atoms.Atom.mk "true"
 let afalse = Atoms.Atom.mk "false"
 
-let btrue = atrue |> Descr.mk_atom |> Ty.mk_descr
-let bfalse = afalse |> Descr.mk_atom |> Ty.mk_descr
+let btrue = atrue |> Descr.mk_atom |> Ty.mk_descr |> add_tag
+let bfalse = afalse |> Descr.mk_atom |> Ty.mk_descr |> add_tag
 let bool b = if b then btrue else bfalse
 
 let any = Ty.cup btrue bfalse |> Transform.simplify
