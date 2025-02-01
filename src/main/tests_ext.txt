@@ -12,8 +12,12 @@ type a = lst(42,list) ;;
 type ba = lst(43,lst(42,list));;
 "list_union" a | ba ;;
 
-"list_invalid" lst(int,lst(int,int)) ;;
+"char_any" chr((0..255)) ;;
+"char_union" chr((0..255)) \ chr((50..100)) ;;
+"char_singl" chr(42) ;;
 
+"list_invalid" lst(int,lst(int,int)) ;;
 "bool_invalid" bool(42) ;;
 "float_invalid" flt(42) ;;
 "string_invalid" str(42) ;;
+"char_invalid" chr(something) ;;

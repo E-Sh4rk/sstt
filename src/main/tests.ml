@@ -174,7 +174,7 @@ let%expect_test "tests_ext" =
     let cin = open_in fn in
     let buf = Lexing.from_channel cin in
     let pparams = [
-      Lists.printer_params' ; Bools.printer_params' ;
+      Lists.printer_params' ; Bools.printer_params' ; Chars.printer_params' ;
       Floats.printer_params' ; Strings.printer_params'
     ] |> Printer.merge_params in
     let rec test env =
@@ -189,6 +189,7 @@ let%expect_test "tests_ext" =
     let env = { env with Ast.tagenv=Ast.StrMap.add "bool" Bools.tag env.tagenv } in
     let env = { env with Ast.tagenv=Ast.StrMap.add "flt" Floats.tag env.tagenv } in
     let env = { env with Ast.tagenv=Ast.StrMap.add "str" Strings.tag env.tagenv } in
+    let env = { env with Ast.tagenv=Ast.StrMap.add "chr" Chars.tag env.tagenv } in
     Output.with_basic_output Format.std_formatter
       (fun () -> test env) () ;
     [%expect {|
@@ -196,9 +197,13 @@ let%expect_test "tests_ext" =
       int_list: [ int* ]
       list_not_only_int: [ (~int) | (~int) int+ | int+ ((~int) int*) ]
       list_union: [ 43 42 | 43 42 any+ | 42 | 42 any+ ]
+      char_any: char
+      char_union: (('\000'-'1') | ('e'-'\255'))
+      char_singl: '*'
       list_invalid: lst(int, lst(int, int))
       bool_invalid: bool(42)
       float_invalid: flt(42)
       string_invalid: str(42)
+      char_invalid: chr(something)
       |}]
   
