@@ -15,6 +15,20 @@ let any =
   let def = Ty.cup nil (cons Ty.any (Ty.mk_var v)) in
   Ty.of_eqs [(v,def)] |> List.hd |> snd |> Transform.simplify
 
+let any_non_empty = cons Ty.any any
+
+let destruct ty =
+  try
+    let comps =
+      ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
+      |> TagComp.as_atom |> snd |> Ty.get_descr |> Descr.get_tuples
+      |> Tuples.get 2 |> Op.TupleComp.approx
+    in
+    match comps with
+    | [elt;tl] -> elt, tl
+    | _ -> assert false
+  with Op.EmptyAtom -> Ty.empty, Ty.empty
+
 (* Basic printer *)
 
 let basic_extract ty =
