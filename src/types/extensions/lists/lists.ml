@@ -131,7 +131,8 @@ let to_automaton t =
 module Regexp = Automaton.R
 
 type 'a regexp =
-| Letter of 'a
+| Epsilon
+| Symbol of 'a
 | Concat of 'a regexp list
 | Union of 'a regexp list
 | Star of 'a regexp
@@ -140,7 +141,8 @@ type 'a regexp =
 
 let rec convert_regexp (r:Regexp.t_ext) =
   match r with
-  | Regexp.Letter l -> Letter (Lt.to_symbol l)
+  | Regexp.Letter l when Lt.is_epsilon l -> Epsilon
+  | Regexp.Letter l -> Symbol (Lt.to_symbol l)
   | Regexp.Concat lst -> Concat (List.map convert_regexp lst)
   | Regexp.Union lst -> Union (List.map convert_regexp lst)
   | Regexp.Star r -> Star (convert_regexp r)
@@ -167,7 +169,8 @@ let rec print prec fmt regexp =
     end
   in
   let () = match regexp with
-  | Letter d -> Format.fprintf fmt "%a" Printer.print_descr_atomic d
+  | Epsilon -> ()
+  | Symbol d -> Format.fprintf fmt "%a" Printer.print_descr_atomic d
   | Concat lst ->
     paren prec_concat ;
     Format.fprintf fmt "%a" (print_seq (print prec_concat) " ") lst
@@ -207,7 +210,8 @@ let printer_params' = printer_params print
 let build r =
   let rec aux r next =
     match r with
-    | Letter ty -> cons ty next
+    | Epsilon -> next
+    | Symbol ty -> cons ty next
     | Concat lst -> List.fold_right aux lst next
     | Union lst ->
       lst |> List.map (fun ty -> aux ty next) |> Ty.disj

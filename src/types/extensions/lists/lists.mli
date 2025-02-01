@@ -10,7 +10,8 @@ val any : Ty.t
 val basic_printer_params : Printer.params
 
 type 'a regexp =
-| Letter of 'a
+| Epsilon
+| Symbol of 'a
 | Concat of 'a regexp list
 | Union of 'a regexp list
 | Star of 'a regexp
