@@ -41,44 +41,19 @@ let destruct' ty =
     | _ -> assert false
   with Op.EmptyAtom -> Ty.empty, Ty.empty
 
-(* Basic printer *)
-
-(* TODO: disallow vars at top-level (in other extensions too).
-   If vars are in the rec part, backup to a basic printer. *)
-
 let basic_extract ty =
   let (_,any) = any |> Ty.get_descr |> Descr.get_tags
   |> Tags.get tag |> TagComp.as_atom in
-  if Ty.leq ty any then
+  if Ty.leq ty any && Ty.vars_toplevel ty |> VarSet.is_empty then
     let tuples = Ty.get_descr ty |> Descr.get_tuples in
     let nil_comps = Tuples.get 0 tuples |> Op.TupleComp.as_union in
     let cons_comps = Tuples.get 2 tuples |> Op.TupleComp.as_union in
     Some (nil_comps@cons_comps |> List.map (List.map (fun ty -> Printer.LeafParam ty)))
   else None
 
-let basic_printer tstruct fmt =
-  match tstruct with
-  | Printer.CNode _ -> assert false
-  | Printer.CDef (_, union) ->
-    let print_line fmt l =
-      match l with
-      | [] -> Format.fprintf fmt "[]"
-      | [Printer.CLeaf elt; Printer.CLeaf tl] ->
-        Format.fprintf fmt "%a::%a" Printer.print_descr_atomic elt Printer.print_descr_atomic tl
-      | _ -> assert false
-    in
-    Format.fprintf fmt "(%a)" (print_seq print_line " | ") union
-
-let basic_printer_params = {
-  Printer.aliases = [] ;
-  Printer.tags = [(tag, basic_extract)] ;
-  Printer.printers = [(tag, basic_printer)]
-  }
-
-(* Advanced printer *)
-
 let extract ty =
   try
+    if Ty.vars_toplevel ty |> VarSet.is_empty |> not then raise Exit ;
     let pair = TupleComp.any 2 |> Descr.mk_tuplecomp |> Ty.mk_descr in
     let nil = TupleComp.any 0 |> Descr.mk_tuplecomp |> Ty.mk_descr in
     if Ty.leq ty (Ty.cup pair nil) |> not then raise Exit ;
@@ -92,6 +67,7 @@ let extract ty =
       |> List.map (fun pair ->
         match pair with
         | [l;r] ->
+          if Ty.vars_toplevel r |> VarSet.is_empty |> not then raise Exit ;
           let (_,ty) = r |> Ty.get_descr |> Descr.get_tags
           |> Tags.get tag |> TagComp.as_atom in
           if Ty.leq r (Descr.mk_tag (tag, ty) |> Ty.mk_descr) |> not
@@ -103,21 +79,40 @@ let extract ty =
     Some (nil_comps@cons_comps)
   with Exit -> None
 
-type t = Node of Printer.NodeId.t * d list | Loop of Printer.NodeId.t
-and d = Cons of Printer.descr * t | Nil
+type params_r = RNode of Printer.NodeId.t * params_rd list | RLoop of Printer.NodeId.t
+and params_rd = RCons of Printer.descr * params_r | RNil
 
-let rec to_t tstruct =
-  match tstruct with
-  | Printer.CNode nid -> Loop nid
-  | Printer.CDef (nid, union) ->
-    let to_d params =
-      match params with
-      | [] -> Nil
-      | [Printer.CLeaf elt ; Printer.CRec tstruct] ->
-        Cons (elt, to_t tstruct)
-      | _ -> assert false
-    in
-    Node (nid, List.map to_d union)
+type basic = Nil | Cons of Printer.descr * Printer.descr
+type params = R of params_r | B of basic list
+
+let to_params tstruct =
+  let rec regexp tstruct =
+    match tstruct with
+    | Printer.CNode nid -> RLoop nid
+    | Printer.CDef (nid, union) ->
+      let to_d params =
+        match params with
+        | [] -> RNil
+        | [Printer.CLeaf elt ; Printer.CRec tstruct] ->
+          RCons (elt, regexp tstruct)
+        | _ -> raise Exit
+      in
+      RNode (nid, List.map to_d union)
+  in
+  let basic tstruct =
+    match tstruct with
+    | Printer.CDef (_, union) ->
+      let to_c params =
+        match params with
+        | [] -> Nil
+        | [Printer.CLeaf elt ; Printer.CLeaf tl] -> Cons (elt, tl)
+        | _ -> assert false
+      in
+      List.map to_c union
+    | _ -> assert false
+  in
+  try R (regexp tstruct)
+  with Exit -> B (basic tstruct)
 
 module Lt = struct
   open Printer
@@ -132,28 +127,28 @@ end
 module Automaton = Automaton.Make(Lt)
 module NIMap = Map.Make(Printer.NodeId)
 
-let to_automaton t =
+let to_automaton params_r =
   let auto = Automaton.create () in
   let rec aux env t =
     match t with
-    | Node (nid, ds) ->
+    | RNode (nid, ds) ->
       let state = Automaton.mk_state auto in
       let env = NIMap.add nid state env in
       let treat_d d =
         match d with
-        | Nil -> Automaton.set_final auto state
-        | Cons (d, t) ->
+        | RNil -> Automaton.set_final auto state
+        | RCons (d, t) ->
           let lt = Lt.symbol d in
           let state' = aux env t in
           Automaton.add_trans auto state lt state'
       in
       List.iter treat_d ds ; state
-    | Loop nid ->
+    | RLoop nid ->
       let state = Automaton.mk_state auto in
       Automaton.add_trans auto state Lt.epsilon (NIMap.find nid env) ;
       state
   in
-  let state = aux NIMap.empty t in
+  let state = aux NIMap.empty params_r in
   Automaton.set_start auto state ;
   auto
 
@@ -167,6 +162,10 @@ type 'a regexp =
 | Star of 'a regexp
 | Plus of 'a regexp
 | Option of 'a regexp
+
+type t =
+  | Regexp of Printer.descr regexp
+  | Basic of basic list
 
 let rec convert_regexp (r:Regexp.t_ext) =
   match r with
@@ -182,13 +181,18 @@ let to_regexp automaton =
   automaton |> Automaton.to_regex_my |> Regexp.simp_to_ext |> Regexp.simplify
   |> convert_regexp
 
+let to_t t =
+  match to_params t with
+  | R r -> Regexp (r |> to_automaton |> to_regexp)
+  | B bs -> Basic bs 
+
 let prec_star = 2
 let prec_plus = 2
 let prec_option = 2
 let prec_concat = 1
 let prec_union = 0
 
-let rec print prec fmt regexp =
+let rec print_r prec fmt regexp =
   let need_paren = ref false in
   let paren prec' =
     if prec' <= prec
@@ -202,37 +206,55 @@ let rec print prec fmt regexp =
   | Symbol d -> Format.fprintf fmt "%a" Printer.print_descr_atomic d
   | Concat lst ->
     paren prec_concat ;
-    Format.fprintf fmt "%a" (print_seq (print prec_concat) " ") lst
+    Format.fprintf fmt "%a" (print_seq (print_r prec_concat) " ") lst
   | Union lst ->
     paren prec_union ;
-    Format.fprintf fmt "%a" (print_seq (print prec_union) " | ") lst
+    Format.fprintf fmt "%a" (print_seq (print_r prec_union) " | ") lst
   | Star r ->
     paren prec_star ;
-    Format.fprintf fmt "%a*" (print prec_star) r
+    Format.fprintf fmt "%a*" (print_r prec_star) r
   | Plus r ->
     paren prec_plus ;
-    Format.fprintf fmt "%a+" (print prec_plus) r
+    Format.fprintf fmt "%a+" (print_r prec_plus) r
   | Option r ->
     paren prec_option ;
-    Format.fprintf fmt "%a?" (print prec_option) r
+    Format.fprintf fmt "%a?" (print_r prec_option) r
   in
   if !need_paren then Format.fprintf fmt ")"
 
-type printer = Format.formatter -> Printer.descr regexp -> unit
+type printer = Format.formatter -> t -> unit
 
-let print fmt =
-  Format.fprintf fmt "[ %a ]" (print (-1))
+let print_r fmt =
+  Format.fprintf fmt "[ %a ]" (print_r (-1))
+
+let print fmt t =
+  match t with
+  | Regexp r -> print_r fmt r
+  | Basic union ->
+    let print_line fmt l =
+      match l with
+      | Nil -> Format.fprintf fmt "[]"
+      | Cons (elt,tl) ->
+        Format.fprintf fmt "%a::%a" Printer.print_descr_atomic elt Printer.print_descr_atomic tl
+    in
+    Format.fprintf fmt "(%a)" (print_seq print_line " | ") union
 
 let to_printer (print:printer) tstruct fmt =
-  print fmt (tstruct |> to_t |> to_automaton |> to_regexp)
+  print fmt (to_t tstruct)
 
 let printer_params printer = {
   Printer.aliases = [] ;
-  Printer.tags = [(tag, extract)] ;
+  Printer.tags = [(tag, extract) ; (tag, basic_extract)] ;
   Printer.printers = [(tag, to_printer printer)]
   }
 
 let printer_params' = printer_params print
+
+let basic_printer_params = {
+  Printer.aliases = [] ;
+  Printer.tags = [(tag, basic_extract)] ;
+  Printer.printers = [(tag, to_printer print)]
+}
 
 (* Builder *)
 

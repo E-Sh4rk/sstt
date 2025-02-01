@@ -24,7 +24,7 @@ let any =
 let extract ty =
   let (_,any) = any |> Ty.get_descr |> Descr.get_tags
   |> Tags.get tag |> TagComp.as_atom in
-  if Ty.leq ty any
+  if Ty.leq ty any && Ty.vars_toplevel ty |> VarSet.is_empty
   then Some [[Printer.LeafParam ty]]
   else None
 

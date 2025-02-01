@@ -20,7 +20,8 @@ let str str =
 let any = Atoms.any () |> Descr.mk_atoms |> Ty.mk_descr |> add_tag
 
 let extract ty =
-  if Ty.leq ty (Atoms.any () |> Descr.mk_atoms |> Ty.mk_descr) then
+  if Ty.leq ty (Atoms.any () |> Descr.mk_atoms |> Ty.mk_descr)
+    && Ty.vars_toplevel ty |> VarSet.is_empty then
     let (_, atoms) = ty |> Ty.get_descr |> Descr.get_atoms |> Atoms.destruct in
     if List.for_all (Hashtbl.mem strings) atoms
     then Some [[Printer.LeafParam ty]]

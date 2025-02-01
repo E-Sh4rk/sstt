@@ -213,7 +213,7 @@ let merge_params = List.fold_left merge_params empty_params
 type ctx = {
   mutable nodes : NodeId.t VDMap.t ;
   aliases : (Ty.t * op) list ;
-  tags : (Ty.t -> tag_params list option) TagMap.t ;
+  tags : ((Ty.t -> tag_params list option) list) TagMap.t ;
   printers : (custom -> (Format.formatter -> unit)) TagMap.t
 }
 
@@ -226,9 +226,16 @@ let node ctx ty =
     ctx.nodes <- VDMap.add def nid ctx.nodes ;
     { op = Node nid ; ty }
 
+let tag_handlers ctx tag =
+  match TagMap.find_opt tag ctx.tags with None -> [] | Some lst -> lst
+
 let build_t (params:params) ty =
   let aliases = params.aliases |> List.map (fun (ty, s) -> (ty, Alias s)) in
-  let tags = params.tags |> TagMap.of_list in
+  let add_tag_handler (tag,f) acc =
+    let cur = match TagMap.find_opt tag acc with None -> [] | Some lst -> lst in
+    TagMap.add tag (f::cur) acc
+  in
+  let tags = List.fold_right add_tag_handler params.tags TagMap.empty in
   let printers = params.printers |> TagMap.of_list in
   let ctx = { nodes=VDMap.empty ; aliases ; tags ; printers } in
   ctx, { main = node ctx ty ; defs = [] }
@@ -342,11 +349,15 @@ let resolve_tagcomp ctx a =
   | Some d -> d
   | None ->
     let (t, ty') = TagComp.as_atom a in
-    match TagMap.find_opt t ctx.tags with
-    | None -> tag t (node ctx ty')
-    | Some f ->
-      try { op = Custom (t, resolve_custom_tagcomp f ctx VDMap.empty ty') ; ty }
-      with Exit -> tag t (node ctx ty')
+    let handlers = tag_handlers ctx t in
+    let rec aux handlers =
+      match handlers with
+      | [] -> tag t (node ctx ty')
+      | f::handlers ->
+        try { op = Custom (t, resolve_custom_tagcomp f ctx VDMap.empty ty') ; ty }
+        with Exit -> aux handlers
+    in
+    aux handlers
 
 let resolve_tags ctx a =
   let (pos, components) = Tags.destruct a in

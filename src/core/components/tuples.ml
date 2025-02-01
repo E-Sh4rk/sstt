@@ -1,6 +1,8 @@
 open Sigs
 open Sstt_utils
 
+(* TODO: fix () not supertype of tuple0 *)
+
 module Atom(N:Node) = struct
   type node = N.t
   type t = node list

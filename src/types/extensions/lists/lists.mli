@@ -21,7 +21,13 @@ type 'a regexp =
 | Plus of 'a regexp
 | Option of 'a regexp
 
-type printer = Format.formatter -> Printer.descr regexp -> unit
+type basic = Nil | Cons of Printer.descr * Printer.descr
+
+type t =
+| Regexp of Printer.descr regexp
+| Basic of basic list
+
+type printer = Format.formatter -> t -> unit
 
 val print : printer
 
