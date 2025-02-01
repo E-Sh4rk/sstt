@@ -18,6 +18,16 @@ let any =
 let any_non_empty = cons Ty.any any
 
 let destruct ty =
+  let union =
+    ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
+    |> TagComp.as_atom |> snd |> Ty.get_descr |> Descr.get_tuples
+    |> Tuples.get 2 |> Op.TupleComp.as_union
+  in
+  union |> List.map (fun comps -> match comps with
+  | [elt;tl] -> elt, tl
+  | _ -> assert false)
+
+let destruct' ty =
   try
     let comps =
       ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag

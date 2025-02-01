@@ -7,7 +7,8 @@ val cons : Ty.t -> Ty.t -> Ty.t
 val nil : Ty.t
 val any : Ty.t
 val any_non_empty : Ty.t
-val destruct : Ty.t -> Ty.t * Ty.t
+val destruct : Ty.t -> (Ty.t * Ty.t) list
+val destruct' : Ty.t -> Ty.t * Ty.t
 
 val basic_printer_params : Printer.params
 
