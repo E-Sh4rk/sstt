@@ -3,8 +3,9 @@ open Sstt_utils
 
 let tag = TagComp.Tag.mk "lst"
 
-let add_tag t =
-  (tag, t) |> Descr.mk_tag |> Ty.mk_descr
+let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
+let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
+  |> TagComp.as_atom |> snd
 
 let cons hd tl = [hd;tl] |> Descr.mk_tuple |> Ty.mk_descr |> add_tag
 
@@ -19,8 +20,7 @@ let any_non_empty = cons Ty.any any
 
 let destruct ty =
   let union =
-    ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
-    |> TagComp.as_atom |> snd |> Ty.get_descr |> Descr.get_tuples
+    proj_tag ty |> Ty.get_descr |> Descr.get_tuples
     |> Tuples.get 2 |> Op.TupleComp.as_union
   in
   union |> List.map (fun comps -> match comps with
@@ -30,8 +30,7 @@ let destruct ty =
 let destruct' ty =
   try
     let comps =
-      ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
-      |> TagComp.as_atom |> snd |> Ty.get_descr |> Descr.get_tuples
+      proj_tag ty |> Ty.get_descr |> Descr.get_tuples
       |> Tuples.get 2 |> Op.TupleComp.approx
     in
     match comps with
@@ -41,9 +40,7 @@ let destruct' ty =
 
 let basic_extract ty =
   let open Printer in
-  let (_,any) = any |> Ty.get_descr |> Descr.get_tags
-  |> Tags.get tag |> TagComp.as_atom in
-  if Ty.leq ty any && Ty.vars_toplevel ty |> VarSet.is_empty then
+  if Ty.leq ty (proj_tag any) && Ty.vars_toplevel ty |> VarSet.is_empty then
     let tuples = Ty.get_descr ty |> Descr.get_tuples in
     let nil_comps = Tuples.get 0 tuples |> Op.TupleComp.as_union
       |> List.map (fun _ -> { tag_case_id=0 ; tag_params=[] }) in
@@ -69,11 +66,8 @@ let extract ty =
       |> List.map (fun pair ->
         match pair with
         | [l;r] ->
-          if Ty.vars_toplevel r |> VarSet.is_empty |> not then raise Exit ;
-          let (_,ty) = r |> Ty.get_descr |> Descr.get_tags
-          |> Tags.get tag |> TagComp.as_atom in
-          if Ty.leq r (Descr.mk_tag (tag, ty) |> Ty.mk_descr) |> not
-          then raise Exit ;
+          let ty = proj_tag r in
+          if Ty.equiv r (Descr.mk_tag (tag, ty) |> Ty.mk_descr) |> not then raise Exit ;
           { tag_case_id=3 ; tag_params=[PLeaf l ; PRec ty] }
         | _ -> assert false  
       )

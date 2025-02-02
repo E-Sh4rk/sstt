@@ -3,8 +3,9 @@ open Sstt_utils
 
 let tag = TagComp.Tag.mk "str"
 
-let add_tag t =
-  (tag, t) |> Descr.mk_tag |> Ty.mk_descr
+let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
+let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
+  |> TagComp.as_atom |> snd
 
 let atoms = Hashtbl.create 256
 let strings = Hashtbl.create 256
@@ -21,8 +22,7 @@ let any = Atoms.any () |> Descr.mk_atoms |> Ty.mk_descr |> add_tag
 
 let extract ty =
   let open Printer in
-  if Ty.leq ty (Atoms.any () |> Descr.mk_atoms |> Ty.mk_descr)
-    && Ty.vars_toplevel ty |> VarSet.is_empty then
+  if Ty.leq ty (proj_tag any) && Ty.vars_toplevel ty |> VarSet.is_empty then
     let (_, atoms) = ty |> Ty.get_descr |> Descr.get_atoms |> Atoms.destruct in
     if List.for_all (Hashtbl.mem strings) atoms
     then Some [{ tag_case_id=0 ; tag_params=[PUnprocessed ty] } ]

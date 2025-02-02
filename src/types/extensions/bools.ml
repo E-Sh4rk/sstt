@@ -2,8 +2,9 @@ open Sstt_core
 
 let tag = TagComp.Tag.mk "bool"
 
-let add_tag t =
-  (tag, t) |> Descr.mk_tag |> Ty.mk_descr
+let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
+let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
+  |> TagComp.as_atom |> snd
 
 let atrue = Atoms.Atom.mk "true"
 let afalse = Atoms.Atom.mk "false"
@@ -16,9 +17,7 @@ let any = Ty.cup btrue bfalse |> Transform.simplify
 
 let extract ty =
   let open Printer in
-  let (_,any) = any |> Ty.get_descr |> Descr.get_tags
-  |> Tags.get tag |> TagComp.as_atom in
-  if Ty.leq ty any && Ty.vars_toplevel ty |> VarSet.is_empty
+  if Ty.leq ty (proj_tag any) && Ty.vars_toplevel ty |> VarSet.is_empty
   then Some [{ tag_case_id=0 ; tag_params=[PUnprocessed ty] } ]
   else None
 
