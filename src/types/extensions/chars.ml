@@ -22,18 +22,20 @@ let any =
   |> Descr.mk_interval |> Ty.mk_descr |> add_tag
 
 let extract ty =
+  let open Printer in
   let (_,any) = any |> Ty.get_descr |> Descr.get_tags
   |> Tags.get tag |> TagComp.as_atom in
   if Ty.leq ty any && Ty.vars_toplevel ty |> VarSet.is_empty
-  then Some [[Printer.LeafParam ty]]
+  then Some [{ tag_case_id=0 ; tag_params=[PUnprocessed ty] } ]
   else None
 
 type t = interval list
 
 let to_t tstruct =
+  let open Printer in
   match tstruct with
-  | Printer.CDef (_, [[Printer.CLeaf d]]) ->
-    let intervals = d.ty |> Ty.get_descr |> Descr.get_intervals |> Intervals.destruct in
+  | CDef (_, [{ case_id=0 ; params=[PUnprocessed ty]}]) ->
+    let intervals = ty |> Ty.get_descr |> Descr.get_intervals |> Intervals.destruct in
     intervals |> List.map (fun int -> match Intervals.Atom.get int with
       | (Some i1, Some i2) -> Z.to_int i1 |> Char.chr, Z.to_int i2 |> Char.chr
       | _ -> assert false)

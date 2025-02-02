@@ -28,6 +28,7 @@ type varop =
 type builtin =
 | Empty | Any | AnyTuple | AnyAtom | AnyTag | AnyInt
 | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of TagComp.Tag.t
+type ('u, 'l, 'r) param = PUnprocessed of 'u | PLeaf of 'l | PRec of 'r
 type t = { main : descr ; defs : def list }
 and def = NodeId.t * descr
 and descr = { op : op ; ty : Ty.t }
@@ -45,13 +46,11 @@ and op =
 | Varop of varop * descr list
 | Binop of binop * descr * descr
 | Unop of unop * descr
-and custom_param = CLeaf of descr | CRec of custom
-and custom_params = custom_param list
+and custom_params = { case_id : int ; params : (Ty.t, descr, custom) param list }
 and custom = CDef of NodeId.t * custom_params list | CNode of NodeId.t
 
 type aliases = (Ty.t * string) list
-type tag_param = LeafParam of Ty.t | RecParam of Ty.t
-type tag_params = tag_param list
+type tag_params = { tag_case_id : int ; tag_params : (Ty.t, Ty.t, Ty.t) param list }
 type custom_tags = (TagComp.Tag.t * (Ty.t -> tag_params list option)) list
 type tags_printers = (TagComp.Tag.t * (custom -> (Format.formatter -> unit))) list
 type params = { aliases : aliases ; tags : custom_tags ; printers : tags_printers }
@@ -74,11 +73,13 @@ let map_descr f d = (* Assumes f preserves semantic equivalence *)
         | CDef (nid,params) ->
           CDef (nid, List.map map_params params)
         | CNode nid -> CNode nid
-      and map_params params = List.map map_param params
+      and map_params { case_id ; params } =
+        { case_id ; params=List.map map_param params }
       and map_param p =
         match p with
-        | CLeaf d -> CLeaf (aux d)
-        | CRec ts -> CRec (map_ts ts)
+        | PUnprocessed ty -> PUnprocessed ty
+        | PLeaf d -> PLeaf (aux d)
+        | PRec ts -> PRec (map_ts ts)
       in
       Custom (tag, map_ts ts)
     | Alias str -> Alias str
@@ -335,10 +336,13 @@ let rec resolve_custom_tagcomp f ctx env ty =
       let env = VDMap.add vd nid env in
       let treat_param param =
         match param with
-        | LeafParam ty -> CLeaf (node ctx ty)
-        | RecParam ty -> CRec (resolve_custom_tagcomp f ctx env ty)
+        | PUnprocessed ty -> PUnprocessed ty
+        | PLeaf ty -> PLeaf (node ctx ty)
+        | PRec ty -> PRec (resolve_custom_tagcomp f ctx env ty)
       in
-      let treat_params params = List.map treat_param params in
+      let treat_params { tag_case_id ; tag_params } =
+        { case_id=tag_case_id ; params=List.map treat_param tag_params }
+      in
       let union = List.map treat_params extracted in
     CDef (nid, union)
     end

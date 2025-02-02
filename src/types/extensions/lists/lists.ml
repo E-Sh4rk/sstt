@@ -17,8 +17,6 @@ let any =
 
 let any_non_empty = cons Ty.any any
 
-(* TODO: get_tag, make destruct operate on a TagComp *)
-
 let destruct ty =
   let union =
     ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
@@ -42,16 +40,20 @@ let destruct' ty =
   with Op.EmptyAtom -> Ty.empty, Ty.empty
 
 let basic_extract ty =
+  let open Printer in
   let (_,any) = any |> Ty.get_descr |> Descr.get_tags
   |> Tags.get tag |> TagComp.as_atom in
   if Ty.leq ty any && Ty.vars_toplevel ty |> VarSet.is_empty then
     let tuples = Ty.get_descr ty |> Descr.get_tuples in
-    let nil_comps = Tuples.get 0 tuples |> Op.TupleComp.as_union in
-    let cons_comps = Tuples.get 2 tuples |> Op.TupleComp.as_union in
-    Some (nil_comps@cons_comps |> List.map (List.map (fun ty -> Printer.LeafParam ty)))
+    let nil_comps = Tuples.get 0 tuples |> Op.TupleComp.as_union
+      |> List.map (fun _ -> { tag_case_id=0 ; tag_params=[] }) in
+    let cons_comps = Tuples.get 2 tuples |> Op.TupleComp.as_union
+      |> List.map (fun tys -> { tag_case_id=1 ; tag_params=List.map (fun ty -> PLeaf ty) tys }) in
+    Some (nil_comps@cons_comps)
   else None
 
 let extract ty =
+  let open Printer in
   try
     if Ty.vars_toplevel ty |> VarSet.is_empty |> not then raise Exit ;
     let pair = TupleComp.any 2 |> Descr.mk_tuplecomp |> Ty.mk_descr in
@@ -60,7 +62,7 @@ let extract ty =
     let tuples = Ty.get_descr ty |> Descr.get_tuples in
     let nil_comps =
       Tuples.get 0 tuples |> Op.TupleComp.as_union
-      |> List.map (List.map (fun ty -> Printer.LeafParam ty))
+      |> List.map (fun _ -> { tag_case_id=2 ; tag_params=[] })
     in
     let cons_comps =
       Tuples.get 2 tuples |> Op.TupleComp.as_union
@@ -72,7 +74,7 @@ let extract ty =
           |> Tags.get tag |> TagComp.as_atom in
           if Ty.leq r (Descr.mk_tag (tag, ty) |> Ty.mk_descr) |> not
           then raise Exit ;
-          [Printer.LeafParam l ; Printer.RecParam ty ]
+          { tag_case_id=3 ; tag_params=[PLeaf l ; PRec ty] }
         | _ -> assert false  
       )
     in
@@ -86,29 +88,29 @@ type basic = Nil | Cons of Printer.descr * Printer.descr
 type params = R of params_r | B of basic list
 
 let to_params tstruct =
+  let open Printer in
   let rec regexp tstruct =
     match tstruct with
-    | Printer.CNode nid -> RLoop nid
-    | Printer.CDef (nid, union) ->
-      let to_d params =
+    | CNode nid -> RLoop nid
+    | CDef (nid, union) ->
+      let to_r params =
         match params with
-        | [] -> RNil
-        | [Printer.CLeaf elt ; Printer.CRec tstruct] ->
-          RCons (elt, regexp tstruct)
+        | { case_id=2 ; params=[]} -> RNil
+        | { case_id=3 ; params=[PLeaf elt ; PRec tstruct]} -> RCons (elt, regexp tstruct)
         | _ -> raise Exit
       in
-      RNode (nid, List.map to_d union)
+      RNode (nid, List.map to_r union)
   in
   let basic tstruct =
     match tstruct with
-    | Printer.CDef (_, union) ->
-      let to_c params =
+    | CDef (_, union) ->
+      let to_b params =
         match params with
-        | [] -> Nil
-        | [Printer.CLeaf elt ; Printer.CLeaf tl] -> Cons (elt, tl)
+        | { case_id=0 ; params=[]} -> Nil
+        | { case_id=1 ; params=[PLeaf elt ; PLeaf tl]} -> Cons (elt, tl)
         | _ -> assert false
       in
-      List.map to_c union
+      List.map to_b union
     | _ -> assert false
   in
   try R (regexp tstruct)

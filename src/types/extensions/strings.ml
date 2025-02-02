@@ -20,20 +20,22 @@ let str str =
 let any = Atoms.any () |> Descr.mk_atoms |> Ty.mk_descr |> add_tag
 
 let extract ty =
+  let open Printer in
   if Ty.leq ty (Atoms.any () |> Descr.mk_atoms |> Ty.mk_descr)
     && Ty.vars_toplevel ty |> VarSet.is_empty then
     let (_, atoms) = ty |> Ty.get_descr |> Descr.get_atoms |> Atoms.destruct in
     if List.for_all (Hashtbl.mem strings) atoms
-    then Some [[Printer.LeafParam ty]]
+    then Some [{ tag_case_id=0 ; tag_params=[PUnprocessed ty] } ]
     else None
   else None
 
 type t = bool * string list
 
 let to_t tstruct =
+  let open Printer in
   match tstruct with
-  | Printer.CDef (_, [[Printer.CLeaf d]]) ->
-    let (pos, atoms) = d.ty |> Ty.get_descr |> Descr.get_atoms |> Atoms.destruct in
+  | CDef (_, [{ case_id=0 ; params=[PUnprocessed ty]}]) ->
+    let (pos, atoms) = ty |> Ty.get_descr |> Descr.get_atoms |> Atoms.destruct in
     let strs = atoms |> List.map Atoms.Atom.name in
     (pos, strs)
   | _ -> assert false

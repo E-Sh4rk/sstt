@@ -28,10 +28,11 @@ let any =
   [Ninf;Neg;Nzero;Pzero;Pos;Pinf;Nan] |> List.map flt |> Ty.disj |> Transform.simplify
 
 let extract ty =
+  let open Printer in
   let (_,any) = any |> Ty.get_descr |> Descr.get_tags
   |> Tags.get tag |> TagComp.as_atom in
   if Ty.leq ty any && Ty.vars_toplevel ty |> VarSet.is_empty
-  then Some [[Printer.LeafParam ty]]
+  then Some [{ tag_case_id=0 ; tag_params=[PUnprocessed ty] } ]
   else None
 
 type t = { ninf : bool ; neg : bool ; nzero : bool ; pzero : bool ; pos : bool ; pinf : bool ; nan : bool }
@@ -59,9 +60,10 @@ let components { ninf ; neg ; nzero ; pzero ; pos ; pinf ; nan } =
   ] |> List.filter_map (fun (b,k) -> if b then Some k else None)
 
 let to_t tstruct =
+  let open Printer in
   match tstruct with
-  | Printer.CDef (_, [[Printer.CLeaf d]]) ->
-    let (pos, atoms') = d.ty |> Ty.get_descr |> Descr.get_atoms |> Atoms.destruct in
+  | CDef (_, [{ case_id=0 ; params=[PUnprocessed ty]}]) ->
+    let (pos, atoms') = ty |> Ty.get_descr |> Descr.get_atoms |> Atoms.destruct in
     assert pos ;
     let has k =
       let atom = List.assoc k atoms in

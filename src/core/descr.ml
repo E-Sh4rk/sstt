@@ -1,8 +1,6 @@
 open Sigs
 open Sstt_utils
 
-(* TODO: Make tag be a layer before Descr instead of a Component ? *)
-
 module Make(N:Node) = struct
   module Arrows = Arrows.Make(N)
   module Atoms = Atoms.Make(N)

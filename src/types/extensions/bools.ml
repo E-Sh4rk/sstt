@@ -15,10 +15,11 @@ let bool b = if b then btrue else bfalse
 let any = Ty.cup btrue bfalse |> Transform.simplify
 
 let extract ty =
+  let open Printer in
   let (_,any) = any |> Ty.get_descr |> Descr.get_tags
   |> Tags.get tag |> TagComp.as_atom in
   if Ty.leq ty any && Ty.vars_toplevel ty |> VarSet.is_empty
-  then Some [[Printer.LeafParam ty]]
+  then Some [{ tag_case_id=0 ; tag_params=[PUnprocessed ty] } ]
   else None
 
 type t = { t : bool ; f : bool }
@@ -32,9 +33,10 @@ let components { t ; f } =
   ] |> List.filter_map (fun (b,k) -> if b then Some k else None)
 
 let to_t tstruct =
+  let open Printer in
   match tstruct with
-  | Printer.CDef (_, [[Printer.CLeaf d]]) ->
-    let (pos, atoms) = d.ty |> Ty.get_descr |> Descr.get_atoms |> Atoms.destruct in
+  | CDef (_, [{ case_id=0 ; params=[PUnprocessed ty]}]) ->
+    let (pos, atoms) = ty |> Ty.get_descr |> Descr.get_atoms |> Atoms.destruct in
     assert pos ;
     {
       t = List.mem atrue atoms ;
