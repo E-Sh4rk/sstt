@@ -165,6 +165,7 @@ let%expect_test "tests" =
     app2: any
     app3: (-5..5)
     app4: empty
+    app5: bool
     |}]
 
 open Extensions
