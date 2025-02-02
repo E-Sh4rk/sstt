@@ -1,8 +1,6 @@
 open Sigs
 open Sstt_utils
 
-(* TODO: fix () not supertype of tuple0 *)
-
 module Atom(N:Node) = struct
   type node = N.t
   type t = node list
@@ -71,7 +69,10 @@ module MakeC(N:Node) = struct
       | [] -> false
       | a::_ ->
         let n = List.length a in
-        psi n (conj n ps) ns
+        if n = 0 then
+          ns <> [] (* optimisations in psi are not compatible with n = 0 *)
+        else
+          psi n (conj n ps) ns
     else true
   let is_empty' t =
     Bdd.dnf t |> List.for_all is_clause_empty

@@ -197,7 +197,7 @@ let%expect_test "tests_ext" =
       int_list: [ int* ]
       list_not_only_int: [ (~int) | (~int) int+ | int+ ((~int) int*) ]
       list_union: [ 43 42 | 43 42 any+ | 42 | 42 any+ ]
-      list_with_vars: lst(42, 'a & [ int* ])
+      list_with_vars: (42::('a & [ int* ]))
       char_any: char
       char_union: (('\000'-'1') | ('e'-'\255'))
       char_singl: '*'
