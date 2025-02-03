@@ -6,72 +6,46 @@ type msg_kind =
 
 type _ Effect.t += Print: (msg_kind * ('a, Format.formatter, unit) format) -> 'a t
 
-let print k fmt =
-  perform (Print (k,fmt))
+let print k fmt = perform (Print (k,fmt))
 
-(* let with_basic_output fmtout f arg =
+let with_basic_output fmtout f arg =
   match f arg with
   | x -> x
   | effect Print (kind, fmt), k ->
     begin match kind with
     | Error ->
-        let fmt = "[Error] "^^fmt^^"@." in
-        continue k (Format.fprintf fmtout fmt)
+      let fmt = "[Error] "^^fmt^^"@." in
+      continue k (Format.fprintf fmtout fmt)
     | Warning ->
-        let fmt = "[Warning] "^^fmt^^"@." in
-        continue k (Format.fprintf fmtout fmt)
+      let fmt = "[Warning] "^^fmt^^"@." in
+      continue k (Format.fprintf fmtout fmt)
     | Info ->
-        let fmt = "[Info] "^^fmt^^"@." in
-        continue k (Format.fprintf fmtout fmt)
+      let fmt = "[Info] "^^fmt^^"@." in
+      continue k (Format.fprintf fmtout fmt)
     | Msg ->
-        let fmt = fmt^^"@." in
-        continue k (Format.fprintf fmtout fmt)
+      let fmt = fmt^^"@." in
+      continue k (Format.fprintf fmtout fmt)
     | Log _ ->
-        continue k (Format.ifprintf fmtout fmt)
-    end *)
+      continue k (Format.ifprintf fmtout fmt)
+    end
 
-let with_basic_output fmtout f arg =
-  try_with
-    f arg { effc = fun (type a) (eff: a t) ->
-    match eff with
-    | Print (kind, fmt) -> Some (fun (k: (a, _) continuation) ->
-        match kind with
-        | Error ->
-            let fmt = "[Error] "^^fmt^^"@." in
-            continue k (Format.fprintf fmtout fmt)
-        | Warning ->
-            let fmt = "[Warning] "^^fmt^^"@." in
-            continue k (Format.fprintf fmtout fmt)
-        | Info ->
-            let fmt = "[Info] "^^fmt^^"@." in
-            continue k (Format.fprintf fmtout fmt)
-        | Msg ->
-            let fmt = fmt^^"@." in
-            continue k (Format.fprintf fmtout fmt)
-        | Log _ ->
-            continue k (Format.ifprintf fmtout fmt)
-    )
-    | _ -> None }
-    
 let with_rich_output fmtout f arg =
-  try_with
-    f arg { effc = fun (type a) (eff: a t) ->
-    match eff with
-    | Print (kind, fmt) -> Some (fun (k: (a, _) continuation) ->
-        match kind with
-        | Error ->
-            let fmt = "@{<red;bold>[Error] "^^fmt^^"@}@." in
-            continue k (Format.fprintf fmtout fmt)
-        | Warning ->
-            let fmt = "@{<yellow;bold>[Warning] "^^fmt^^"@}@." in
-            continue k (Format.fprintf fmtout fmt)
-        | Info ->
-            let fmt = "@{<blue;bold>[Info] "^^fmt^^"@}@." in
-            continue k (Format.fprintf fmtout fmt)
-        | Msg ->
-            let fmt = fmt^^"@." in
-            continue k (Format.fprintf fmtout fmt)
-        | Log _ ->
-            continue k (Format.ifprintf fmtout fmt)
-    )
-    | _ -> None }
+  match f arg with
+  | x -> x
+  | effect Print (kind, fmt), k ->
+    begin match kind with
+    | Error ->
+      let fmt = "@{<red;bold>[Error] "^^fmt^^"@}@." in
+      continue k (Format.fprintf fmtout fmt)
+    | Warning ->
+      let fmt = "@{<yellow;bold>[Warning] "^^fmt^^"@}@." in
+      continue k (Format.fprintf fmtout fmt)
+    | Info ->
+      let fmt = "@{<blue;bold>[Info] "^^fmt^^"@}@." in
+      continue k (Format.fprintf fmtout fmt)
+    | Msg ->
+      let fmt = fmt^^"@." in
+      continue k (Format.fprintf fmtout fmt)
+    | Log _ ->
+      continue k (Format.ifprintf fmtout fmt)
+    end

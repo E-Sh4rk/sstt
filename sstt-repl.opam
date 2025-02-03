@@ -10,6 +10,7 @@ bug-reports: "https://github.com/E-Sh4rk/sstt/issues"
 depends: [
   "dune" {>= "3.13"}
   "sstt"
+  "ppxlib" {>= "0.35.0"}
   "ppx_expect"
   "menhir"
   "odoc" {with-doc}
@@ -27,4 +28,7 @@ build: [
     "@runtest" {with-test}
     "@doc" {with-doc}
   ]
+]
+pin-depends: [
+  [ "ppxlib.0.35.0" "git+https://github.com/ocaml-ppx/ppxlib.git#3a791083c612e91fa4e6a9660ef69776ea750324" ]
 ]
