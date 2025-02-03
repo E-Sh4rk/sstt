@@ -11,6 +11,7 @@ type list_a = x where x = lst() | lst('a,x) ;;
 type a = lst(42,list) ;;
 type ba = lst(43,lst(42,list));;
 "list_union" a | ba ;;
+"list_regexp" x where x = lst(()) | lst('a,x) | lst('b,x);;
 
 "list_with_vars" lst(42, 'a & (x where x=lst((int,x)|()))) ;;
 
