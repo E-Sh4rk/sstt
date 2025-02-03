@@ -12,6 +12,7 @@ module Make(VO:VarOrder) = struct
     include Var
     let compare = VO.compare
   end
+  module VarSet = Set.Make(Var)
 
   type norm_constr = Left of Var.t * Ty.t | Right of Ty.t * Var.t
   type merged_constr = Ty.t * Var.t * Ty.t
@@ -308,6 +309,7 @@ module Make(VO:VarOrder) = struct
     cs |> MCS.to_list |> List.map to_eq |> unify |> Subst.map (Subst.apply !renaming)
 
   let tally delta cs =
+    let delta = VarSet.of_list delta in
     let ncss = cs
       |> List.map (fun (s,t) -> norm delta (Ty.diff s t)) |> NCSS.conj in
     let mcss = ncss
@@ -317,10 +319,11 @@ end
 
 module Tallying = Make(Var)
 
-let tally = Tallying.tally
-let tally_with_order cmp =
+let tally delta =
+  Tallying.tally (VarSet.elements delta)
+let tally_with_order cmp delta =
   let module Tallying = Make(struct let compare = cmp end) in
-  Tallying.tally
+  Tallying.tally (VarSet.elements delta)
 let tally_with_priority preserve =
   let cnt = ref 0 in
   let pmap = List.fold_left
