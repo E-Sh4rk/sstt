@@ -32,7 +32,7 @@ type expr =
   | CCmp of expr * op * expr
 
 type elt =
-  | DefineType of string * ty
+  | DefineType of string list * expr
   | Expr of string option * expr
 
 type program = elt list

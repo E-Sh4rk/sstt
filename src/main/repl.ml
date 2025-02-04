@@ -86,10 +86,15 @@ let print_res pparams env fmt res =
 
 let treat_elt ?(pparams=Printer.empty_params) env elt =
   match elt with
-  | DefineType (str, ty) ->
-    let ty,env = build_ty env ty in
-    let tenv = StrMap.add str ty env.tenv in
-    { env with tenv }
+  | DefineType (ids, e) ->
+    let r, env = compute_expr env e in
+    begin match r with
+    | RTy tys when List.length tys = List.length ids ->
+      let tenv = List.fold_left (fun tenv (str,ty) -> StrMap.add str ty tenv)
+        env.tenv (List.combine ids tys) in
+      { env with tenv }
+    | _ -> failwith "Definitions must be types." 
+    end
   | Expr (str, e) ->
     let r, env = compute_expr env e in
     begin match str with

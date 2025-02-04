@@ -32,8 +32,8 @@ type expr =
   | CApp of expr * expr
   | CCmp of expr * op * expr
 
-type elt = (* TODO: allow type computation in DefineType *)
-  | DefineType of string * ty
+type elt =
+  | DefineType of string list * expr
   | Expr of string option * expr
 
 type program = elt list

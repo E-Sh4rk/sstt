@@ -50,7 +50,8 @@ command:
 | EOF { End }
 
 elt:
-| TYPE str=ID EQUAL ty=ty BREAK { DefineType (str, ty) }
+| TYPE ids=separated_nonempty_list(SEMICOLON, ID) EQUAL e=expr_nocmp BREAK
+  { DefineType (ids, e) }
 | str=STRING? e=expr BREAK { Expr (str, e) }
 
 expr:
