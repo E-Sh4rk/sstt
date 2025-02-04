@@ -95,10 +95,14 @@ module MakeC(N:Node) = struct
 
     let to_t a = [a], []
     let to_t' (ns,b) =
+      let any_tuple n = List.init n (fun _ -> N.any ()) in
       let rec aux ns =
         match ns with
         | [] -> []
-        | n::ns -> ((N.neg n)::ns)::(aux ns |> List.map (fun s -> n::s))
+        | n::ns ->
+          let this = (N.neg n)::(any_tuple (List.length ns)) in
+          let others = aux ns |> List.map (fun s -> (N.any ())::s) in
+          this::others
       in
       if b then [ns] else aux ns
     let to_t' (a,b) = to_t' (a,b) |> List.filter (fun a -> Atom.is_empty a |> not)

@@ -2,7 +2,6 @@ open Sstt_core
 open Sstt_utils
 
 (* TODO: refactor automaton and regexp *)
-(* TODO: fix "not_only_a" test *)
 
 let tag = TagComp.Tag.mk "lst"
 

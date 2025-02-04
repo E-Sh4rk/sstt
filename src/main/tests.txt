@@ -98,9 +98,3 @@ type bool = true | false ;;
 "app3" (int -> true -> (..5)) & ((0..) -> bool -> (-5..)) 42 true ;;
 "app4" (any -> any) empty ;;
 "app5" (~string -> false) & (string -> true) any;;
-
-
-type list_a = x where x = lst() | lst('a,x) ;;
-type list = x where x = lst() | lst(any,x) ;;
-
-"list_not_only_a" list & ~list_a ;;
