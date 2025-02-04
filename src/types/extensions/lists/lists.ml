@@ -1,7 +1,7 @@
 open Sstt_core
 open Sstt_utils
 
-(* TODO: refactor automaton and regexp *)
+(* TODO: Simplify generated regexp using '+' and '?' *)
 
 let tag = TagComp.Tag.mk "lst"
 
@@ -142,13 +142,13 @@ let to_automaton params_r =
   auto
 
 type 'a regexp =
-| Epsilon
-| Symbol of 'a
-| Concat of 'a regexp list
-| Union of 'a regexp list
-| Star of 'a regexp
-| Plus of 'a regexp
-| Option of 'a regexp
+  | Epsilon
+  | Symbol of 'a
+  | Concat of 'a regexp list
+  | Union of 'a regexp list
+  | Star of 'a regexp
+  | Plus of 'a regexp
+  | Option of 'a regexp
 
 type t =
   | Regexp of Printer.descr regexp
@@ -169,7 +169,7 @@ let union r1 r2 =
 let rec convert_regexp (r: Printer.descr Regexp.t) =
   match r with
   | Epsilon -> Epsilon
-  | Car l -> Symbol l
+  | Letter l -> Symbol l
   | Concat (r1, r2) -> concat (convert_regexp r1) (convert_regexp r2)
   | Union (r1, r2) -> union (convert_regexp r1) (convert_regexp r2)
   | Star r -> Star (convert_regexp r)

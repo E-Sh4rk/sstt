@@ -1,7 +1,6 @@
-open Regexp
 open Sstt_utils
 
-module Make (L : Letter) = struct
+module Make (L : Regexp.Letter) = struct
   module State = Int
   type state = State.t
   module States = Set.Make(Int)
@@ -28,17 +27,18 @@ module Make (L : Letter) = struct
     mutable trans : Transitions.t ;
     mutable finals : States.t ;
   }
-  let create (_ : unit) : t = {
+  let create () : t = {
     st_counter = 0 ;
     trans = Transitions.empty ;
     finals = States.empty ;
   }
 
   let is_initial (_ : t) (s : state) = s = 0
+  let is_final (auto : t) (s : state) =
+    States.mem s auto.finals
 
-  (** First state created is initial *)
   let mk_state (auto : t) : state =
-    let st = auto.st_counter in
+    let st = auto.st_counter in (* First state created is initial *)
     auto.st_counter <- auto.st_counter + 1 ;
     st
 
@@ -52,13 +52,14 @@ module Make (L : Letter) = struct
       (state : state) : unit =
     auto.finals <- States.add state auto.finals
 
-  module R = Regexp(L)
+  module R = Regexp.Make(L)
   let to_regexp (auto : t) =
+    let open Regexp in
     let lst_to_reg lst =
       match lst with
       | [] -> Empty
       | hd::lst ->
-        List.fold_left (fun acc e -> Union (acc, Car e)) (Car hd) lst
+        List.fold_left (fun acc e -> Union (acc, Letter e)) (Letter hd) lst
     in
     let n = auto.st_counter in
     let m = Array.make_matrix n n Empty in
@@ -70,5 +71,4 @@ module Make (L : Letter) = struct
     let v = Array.make n Empty in
     auto.finals |> States.elements |> List.iter (fun i -> v.(i) <- Epsilon) ;
     R.brzozowski m v |> R.simple_re
-
 end

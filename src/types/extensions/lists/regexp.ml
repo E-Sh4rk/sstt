@@ -1,12 +1,20 @@
+(**
+   Taken from cs.stackexchange.com
+   https://cs.stackexchange.com/a/2392
+**)
+
 module type Letter = sig
   type t
   val equal : t -> t -> bool
 end
 
-type 'l t = | Empty | Epsilon | Car of 'l | Union of 'l t * 'l t
-| Concat of 'l t * 'l t | Star of 'l t
+type 'l t =
+| Empty | Epsilon | Letter of 'l
+| Union of 'l t * 'l t
+| Concat of 'l t * 'l t
+| Star of 'l t
 
-module Regexp(L:Letter) = struct
+module Make(L:Letter) = struct
 
   module R = struct
     type nonrec t = L.t t
@@ -14,27 +22,28 @@ module Regexp(L:Letter) = struct
       match t, t' with
       | Empty, Empty -> true
       | Epsilon, Epsilon -> true
-      | Car l, Car l' -> L.equal l l'
+      | Letter l, Letter l' -> L.equal l l'
       | Union (r1,r2), Union (r1', r2')
       | Concat (r1,r2), Concat (r1', r2') -> equal r1 r1' && equal r2 r2'
       | Star r, Star r' -> equal r r'
       | _, _ -> false
   end
+  type t = R.t
 
   let simple_re =
     let rec simple = function
-      | Union (e, f) when e = f -> e
+      | Union (e, f) when R.equal e f -> e
+      | Union (Empty, e) | Union (e, Empty) -> e
       | Union (Union (e, f), g) -> simple (Union (e, Union (f, g)))
-      | Concat (Concat (e, f), g) -> simple (Concat (e, Concat (f, g)))
       | Concat (Epsilon, e) | Concat (e, Epsilon) -> simple e
       | Concat (Empty, _) | Concat (_, Empty) -> Empty
-      | Union (Empty, e) | Union (e, Empty) -> e
+      | Concat (Concat (e, f), g) -> simple (Concat (e, Concat (f, g)))
       | Star Empty -> Epsilon
       | Star Epsilon -> Epsilon
       | Star e -> Star (simple e)
       | Union (e, f) -> Union (simple e, simple f)
       | Concat (e, f) -> Concat (simple e, simple f)
-      | (Empty | Epsilon | Car _) as e -> e
+      | (Empty | Epsilon | Letter _) as e -> e
     in
     let rec f e =
       let e' = simple e in
