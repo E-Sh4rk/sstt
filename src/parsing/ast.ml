@@ -32,7 +32,7 @@ type expr =
   | CApp of expr * expr
   | CCmp of expr * op * expr
 
-type elt =
+type elt = (* TODO: allow type computation in DefineType *)
   | DefineType of string * ty
   | Expr of string option * expr
 

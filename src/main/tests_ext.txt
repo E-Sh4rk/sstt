@@ -6,7 +6,7 @@ type snd43 = lst(any, lst(43,list)) ;;
 
 type list_a = x where x = lst() | lst('a,x) ;;
 "int_list" list_a ['a : int] ;;
-"list_not_only_int" list & ~list_a ['a : int] ;;
+"list_not_only_a" list & ~list_a ;;
 
 type a = lst(42,list) ;;
 type ba = lst(43,lst(42,list));;

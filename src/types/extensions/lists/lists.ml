@@ -1,6 +1,9 @@
 open Sstt_core
 open Sstt_utils
 
+(* TODO: refactor automaton and regexp *)
+(* TODO: fix "not_only_a" test *)
+
 let tag = TagComp.Tag.mk "lst"
 
 let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
@@ -112,13 +115,8 @@ let to_params tstruct =
 
 module Lt = struct
   open Printer
-  type t = descr option
-  let equiv = Option.equal (fun d1 d2 -> Ty.equiv d1.ty d2.ty)
-  let compare = Option.compare (fun d1 d2 -> Ty.compare d1.ty d2.ty)
-  let symbol d = Some d
-  let epsilon = None
-  let is_epsilon = Option.is_none
-  let to_symbol = Option.get
+  type t = descr
+  let equal d1 d2 = Ty.equiv d1.ty d2.ty
 end
 module Automaton = Automaton.Make(Lt)
 module NIMap = Map.Make(Printer.NodeId)
@@ -134,21 +132,15 @@ let to_automaton params_r =
         match d with
         | RNil -> Automaton.set_final auto state
         | RCons (d, t) ->
-          let lt = Lt.symbol d in
           let state' = aux env t in
-          Automaton.add_trans auto state lt state'
+          Automaton.add_trans auto state d state'
       in
       List.iter treat_d ds ; state
-    | RLoop nid ->
-      let state = Automaton.mk_state auto in
-      Automaton.add_trans auto state Lt.epsilon (NIMap.find nid env) ;
-      state
+    | RLoop nid -> NIMap.find nid env
   in
   let state = aux NIMap.empty params_r in
-  Automaton.set_start auto state ;
+  assert (Automaton.is_initial auto state) ;
   auto
-
-module Regexp = Automaton.R
 
 type 'a regexp =
 | Epsilon
@@ -163,19 +155,29 @@ type t =
   | Regexp of Printer.descr regexp
   | Basic of basic list
 
-let rec convert_regexp (r:Regexp.t_ext) =
+let concat r1 r2 =
+  match r1, r2 with
+  | Concat l1, Concat l2 -> Concat (l1@l2)
+  | Concat l1, r2 -> Concat (l1@[r2])
+  | r1, Concat l2 -> Concat ([r1]@l2)
+  | r1, r2 -> Concat [r1;r2]
+let union r1 r2 =
+  match r1, r2 with
+  | Union l1, Union l2 -> Union (l1@l2)
+  | Union l1, r2 -> Union (l1@[r2])
+  | r1, Union l2 -> Union ([r1]@l2)
+  | r1, r2 -> Union [r1;r2]
+let rec convert_regexp (r: Printer.descr Regexp.t) =
   match r with
-  | Regexp.Letter l when Lt.is_epsilon l -> Epsilon
-  | Regexp.Letter l -> Symbol (Lt.to_symbol l)
-  | Regexp.Concat lst -> Concat (List.map convert_regexp lst)
-  | Regexp.Union lst -> Union (List.map convert_regexp lst)
-  | Regexp.Star r -> Star (convert_regexp r)
-  | Regexp.Plus r -> Plus (convert_regexp r)
-  | Regexp.Option r -> Option (convert_regexp r)
+  | Epsilon -> Epsilon
+  | Car l -> Symbol l
+  | Concat (r1, r2) -> concat (convert_regexp r1) (convert_regexp r2)
+  | Union (r1, r2) -> union (convert_regexp r1) (convert_regexp r2)
+  | Star r -> Star (convert_regexp r)
+  | Empty -> assert false
 
 let to_regexp automaton =
-  automaton |> Automaton.to_regex_my |> Regexp.simp_to_ext |> Regexp.simplify
-  |> convert_regexp
+  automaton |> Automaton.to_regexp |> convert_regexp
 
 let to_t t =
   match to_params t with

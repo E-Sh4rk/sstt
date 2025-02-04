@@ -166,6 +166,7 @@ let%expect_test "tests" =
     app3: (-5..5)
     app4: empty
     app5: bool
+    list_not_only_a: lst((any, list) \ ('a, list_a))
     |}]
 
 open Extensions
@@ -196,9 +197,9 @@ let%expect_test "tests_ext" =
     [%expect {|
       list_42_43: [ 42 43 any* ]
       int_list: [ int* ]
-      list_not_only_int: [ (~int) | (~int) int+ | int+ ((~int) int*) ]
-      list_union: [ 43 42 | 43 42 any+ | 42 | 42 any+ ]
-      list_regexp: [ ((('b \ 'a) | (('b \ 'a)* 'a)+) ('b \ 'a)*)? ]
+      list_not_only_a: [ 'a* (~'a) 'a* ]
+      list_union: [ 42 any* | 43 42 any* ]
+      list_regexp: [ ('a | ('b \ 'a))* ]
       list_with_vars: (42::('a & [ int* ]))
       char_any: char
       char_union: (('\000'-'1') | ('e'-'\255'))
