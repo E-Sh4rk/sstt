@@ -70,5 +70,5 @@ module Make (L : Regexp.Letter) = struct
     done ;
     let v = Array.make n Empty in
     auto.finals |> States.elements |> List.iter (fun i -> v.(i) <- Epsilon) ;
-    R.brzozowski m v |> R.simple_re
+    R.brzozowski m v |> R.simple_re |> R.to_ext
 end

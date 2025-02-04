@@ -15,5 +15,5 @@ module Make(L:Regexp.Letter) : sig
 
     val set_final : t -> state -> unit
 
-    val to_regexp : t -> L.t Regexp.t
+    val to_regexp : t -> L.t Regexp.t_ext
 end

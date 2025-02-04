@@ -1,8 +1,6 @@
 open Sstt_core
 open Sstt_utils
 
-(* TODO: Simplify generated regexp using '+' and '?' *)
-
 let tag = TagComp.Tag.mk "lst"
 
 let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
@@ -154,26 +152,15 @@ type t =
   | Regexp of Printer.descr regexp
   | Basic of basic list
 
-let concat r1 r2 =
-  match r1, r2 with
-  | Concat l1, Concat l2 -> Concat (l1@l2)
-  | Concat l1, r2 -> Concat (l1@[r2])
-  | r1, Concat l2 -> Concat ([r1]@l2)
-  | r1, r2 -> Concat [r1;r2]
-let union r1 r2 =
-  match r1, r2 with
-  | Union l1, Union l2 -> Union (l1@l2)
-  | Union l1, r2 -> Union (l1@[r2])
-  | r1, Union l2 -> Union ([r1]@l2)
-  | r1, r2 -> Union [r1;r2]
-let rec convert_regexp (r: Printer.descr Regexp.t) =
+let rec convert_regexp (r: Printer.descr Regexp.t_ext) =
   match r with
-  | Epsilon -> Epsilon
-  | Letter l -> Symbol l
-  | Concat (r1, r2) -> concat (convert_regexp r1) (convert_regexp r2)
-  | Union (r1, r2) -> union (convert_regexp r1) (convert_regexp r2)
-  | Star r -> Star (convert_regexp r)
-  | Empty -> assert false
+  | EEpsilon -> Epsilon
+  | ELetter l -> Symbol l
+  | EConcat rs -> Concat (List.map convert_regexp rs)
+  | EUnion rs -> Union (List.map convert_regexp rs)
+  | EStar r -> Star (convert_regexp r)
+  | EOption r -> Option (convert_regexp r)
+  | EPlus r -> Plus (convert_regexp r)
 
 let to_regexp automaton =
   automaton |> Automaton.to_regexp |> convert_regexp
