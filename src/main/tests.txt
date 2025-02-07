@@ -76,6 +76,7 @@ type bool = true | false ;;
 "print16" ~(40..44) ;;
 "print17" ~tag(42) ;;
 "print18" ('a->'b)&('c->'d)&~('e->'f)&~('g->'h) ;;
+"print19" tag\lst() ;;
 
 "tally1" [ 'x <= 'y ] ;;
 "tally2" [ 'X <= 'y ] ;;

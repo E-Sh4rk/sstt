@@ -2,8 +2,8 @@
 open Sstt_types
 
 type builtin =
-  | TEmpty | TAny | TAnyTuple | TAnyAtom | TAnyInt
-  | TAnyArrow | TAnyRecord | TAnyTupleComp of int
+  | TEmpty | TAny | TAnyTuple | TAnyAtom | TAnyTag | TAnyInt
+  | TAnyArrow | TAnyRecord | TAnyTupleComp of int | TAnyTagComp of TagComp.Tag.t
 type varop = TTuple
 type binop = TCap | TCup | TDiff | TArrow
 type unop = TNeg
@@ -62,11 +62,13 @@ let builtin t =
   match t with
   | TEmpty -> Ty.empty | TAny -> Ty.any
   | TAnyAtom -> Descr.mk_atoms (Atoms.any ()) |> Ty.mk_descr
+  | TAnyTag -> Descr.mk_tags (Tags.any ()) |> Ty.mk_descr
   | TAnyInt -> Descr.mk_intervals (Intervals.any ()) |> Ty.mk_descr
   | TAnyTuple -> Descr.mk_tuples (Tuples.any ()) |> Ty.mk_descr
   | TAnyArrow -> Descr.mk_arrows (Arrows.any ()) |> Ty.mk_descr
   | TAnyRecord -> Descr.mk_records (Records.any ()) |> Ty.mk_descr
   | TAnyTupleComp n -> TupleComp.any n |> Descr.mk_tuplecomp |> Ty.mk_descr
+  | TAnyTagComp t -> TagComp.any t |> Descr.mk_tagcomp |> Ty.mk_descr
 
 let tvar env str =
   begin match StrMap.find_opt str env.venv with

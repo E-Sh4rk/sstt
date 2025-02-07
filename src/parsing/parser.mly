@@ -9,6 +9,7 @@ let parse_atom_or_builtin str =
     | "arrow" -> TBuiltin TAnyArrow
     | "record" -> TBuiltin TAnyRecord
     | "atom" -> TBuiltin TAnyAtom
+    | "tag" -> TBuiltin TAnyTag
     | "int" -> TBuiltin TAnyInt
     | str ->
       let regexp = Str.regexp {|^tuple\([0-9]*\)$|} in

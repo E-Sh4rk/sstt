@@ -1,8 +1,8 @@
 open Sstt_types
 
 type builtin =
-  | TEmpty | TAny | TAnyTuple | TAnyAtom | TAnyInt
-  | TAnyArrow | TAnyRecord | TAnyTupleComp of int
+  | TEmpty | TAny | TAnyTuple | TAnyAtom | TAnyTag | TAnyInt
+  | TAnyArrow | TAnyRecord | TAnyTupleComp of int | TAnyTagComp of TagComp.Tag.t
 type varop = TTuple
 type binop = TCap | TCup | TDiff | TArrow
 type unop = TNeg
