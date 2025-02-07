@@ -48,6 +48,10 @@ type custom_tags = (TagComp.Tag.t * (Ty.t -> tag_params list option)) list
 type tags_printers = (TagComp.Tag.t * (custom -> (Format.formatter -> unit))) list
 type params = { aliases : aliases ; tags : custom_tags ; printers : tags_printers }
 
+val cup_descr : descr -> descr -> descr
+val cap_descr : descr -> descr -> descr
+val neg_descr : descr -> descr
+
 val empty_params : params
 
 val merge_params : params list -> params

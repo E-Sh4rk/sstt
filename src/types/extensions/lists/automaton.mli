@@ -1,5 +1,5 @@
 
-module Make(L:Regexp.Letter) : sig
+module Make(R:Regexp.Regexp) : sig
     type state
     type t
 
@@ -11,9 +11,9 @@ module Make(L:Regexp.Letter) : sig
     (** The first state created is initial. *)
     val mk_state : t -> state
 
-    val add_trans : t -> state -> L.t -> state -> unit
+    val add_trans : t -> state -> R.lt -> state -> unit
 
     val set_final : t -> state -> unit
 
-    val to_regexp : t -> L.t Regexp.t_ext
+    val to_regexp : t -> R.t
 end

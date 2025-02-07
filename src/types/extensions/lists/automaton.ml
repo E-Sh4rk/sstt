@@ -1,6 +1,6 @@
 open Sstt_utils
 
-module Make (L : Regexp.Letter) = struct
+module Make (R : Regexp.Regexp) = struct
   module State = Int
   type state = State.t
   module States = Set.Make(Int)
@@ -11,7 +11,7 @@ module Make (L : Regexp.Letter) = struct
         compare s1 s1' |> ccmp
         compare s2 s2'
     end)
-    type t = L.t list SPMap.t
+    type t = R.lt list SPMap.t
     let empty = SPMap.empty
     let find s1 s2 t =
       match SPMap.find_opt (s1,s2) t with
@@ -44,7 +44,7 @@ module Make (L : Regexp.Letter) = struct
 
   let add_trans (auto : t)
       (state1 : state)
-      (letter : L.t)
+      (letter : R.lt)
       (state2 : state) : unit =
     auto.trans <- Transitions.add state1 letter state2 auto.trans
 
@@ -52,9 +52,8 @@ module Make (L : Regexp.Letter) = struct
       (state : state) : unit =
     auto.finals <- States.add state auto.finals
 
-  module R = Regexp.Make(L)
   let to_regexp (auto : t) =
-    let open Regexp in
+    let open R in
     let lst_to_reg lst =
       match lst with
       | [] -> Empty
@@ -70,5 +69,5 @@ module Make (L : Regexp.Letter) = struct
     done ;
     let v = Array.make n Empty in
     auto.finals |> States.elements |> List.iter (fun i -> v.(i) <- Epsilon) ;
-    R.brzozowski m v |> R.simple_re |> R.to_ext
+    R.brzozowski m v
 end

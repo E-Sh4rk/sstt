@@ -8,24 +8,44 @@ module type Letter = sig
   val equal : t -> t -> bool
 end
 
-type 'l t =
-| Empty | Epsilon | Letter of 'l
-| Union of 'l t * 'l t
-| Concat of 'l t * 'l t
-| Star of 'l t
+module type Regexp = sig
+  type lt
 
-type 'l t_ext =
-| EEpsilon | ELetter of 'l
-| EUnion of 'l t_ext list
-| EConcat of 'l t_ext list
-| EStar of 'l t_ext
-| EOption of 'l t_ext
-| EPlus of 'l t_ext
+  type t =
+  | Empty | Epsilon | Letter of lt
+  | Union of t * t
+  | Concat of t * t
+  | Star of t
+  
+  type t_ext =
+  | EEpsilon | ELetter of lt
+  | EUnion of t_ext list
+  | EConcat of t_ext list
+  | EStar of t_ext
+  | EOption of t_ext
+  | EPlus of t_ext
 
-module Make(L:Letter) = struct
+  val brzozowski : t array array -> t array -> t
+  val simple_re : (t -> t) -> t -> t
+  val to_ext : t -> t_ext
+end
+
+module Make(L:Letter) : Regexp with type lt=L.t = struct
+  type lt = L.t
+  type t =
+  | Empty | Epsilon | Letter of lt
+  | Union of t * t
+  | Concat of t * t
+  | Star of t
+  type t_ext =
+  | EEpsilon | ELetter of lt
+  | EUnion of t_ext list
+  | EConcat of t_ext list
+  | EStar of t_ext
+  | EOption of t_ext
+  | EPlus of t_ext
 
   module R = struct
-    type nonrec t = L.t t
     let rec equal t t' =
       match t, t' with
       | Empty, Empty -> true
@@ -37,7 +57,6 @@ module Make(L:Letter) = struct
       | _, _ -> false
   end
   module RExt = struct
-    type nonrec t = L.t t_ext
     let rec equal t t' =
       match t, t' with
       | EEpsilon, EEpsilon -> true
@@ -51,8 +70,6 @@ module Make(L:Letter) = struct
       | EPlus r, EPlus r' -> equal r r'
       | _, _ -> false
   end
-  type t = R.t
-  type t_ext = RExt.t
 
   let brzozowski a b =
     let m = Array.length a in
@@ -73,8 +90,9 @@ module Make(L:Letter) = struct
     done;
     b.(0)
 
-  let simple_re =
-    let rec simple = function
+  let simple_re f =
+    let rec simple r =
+      let r = match r with
       | Union (e, f) when R.equal e f -> e
       | Union (Empty, e) | Union (e, Empty) -> e
       | Union (Union (e, f), g) -> simple (Union (e, Union (f, g)))
@@ -83,10 +101,13 @@ module Make(L:Letter) = struct
       | Concat (Concat (e, f), g) -> simple (Concat (e, Concat (f, g)))
       | Star Empty -> Epsilon
       | Star Epsilon -> Epsilon
+      | Star (Star s) -> simple (Star s)
       | Star e -> Star (simple e)
       | Union (e, f) -> Union (simple e, simple f)
       | Concat (e, f) -> Concat (simple e, simple f)
       | (Empty | Epsilon | Letter _) as e -> e
+      in
+      f r
     in
     let rec f e =
       let e' = simple e in

@@ -160,6 +160,11 @@ let cap' d1 d2 =
   else if Ty.leq d2.ty d1.ty then d2
   else cap d1 d2
 
+let cup' d1 d2 =
+  if Ty.leq d1.ty d2.ty then d2
+  else if Ty.leq d2.ty d1.ty then d1
+  else cup d1 d2
+
 let any = { op = Builtin Any ; ty = Ty.any }
 let empty = { op = Builtin Empty ; ty = Ty.empty }
 
@@ -658,3 +663,7 @@ let print_subst customs fmt s =
 
 let print_ty' = print_ty empty_params
 let print_subst' = print_subst empty_params
+
+let cap_descr = cap'
+let cup_descr = cup'
+let neg_descr = neg

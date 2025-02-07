@@ -115,7 +115,8 @@ module Lt = struct
   type t = descr
   let equal d1 d2 = Ty.equiv d1.ty d2.ty
 end
-module Automaton = Automaton.Make(Lt)
+module Regexp = Regexp.Make(Lt)
+module Automaton = Automaton.Make(Regexp)
 module NIMap = Map.Make(Printer.NodeId)
 
 let to_automaton params_r =
@@ -152,7 +153,7 @@ type t =
   | Regexp of Printer.descr regexp
   | Basic of basic list
 
-let rec convert_regexp (r: Printer.descr Regexp.t_ext) =
+let rec convert_regexp (r: Regexp.t_ext) =
   match r with
   | EEpsilon -> Epsilon
   | ELetter l -> Symbol l
@@ -163,7 +164,13 @@ let rec convert_regexp (r: Printer.descr Regexp.t_ext) =
   | EPlus r -> Plus (convert_regexp r)
 
 let to_regexp automaton =
-  automaton |> Automaton.to_regexp |> convert_regexp
+  let simpl_union = function
+    | Regexp.Union (Regexp.Letter d1, Regexp.Letter d2) ->
+      Regexp.Letter (Printer.cup_descr d1 d2)
+    | r -> r
+  in
+  automaton |> Automaton.to_regexp |> Regexp.simple_re simpl_union
+  |> Regexp.to_ext |> convert_regexp
 
 let to_t t =
   match to_params t with
@@ -182,7 +189,7 @@ let rec print_r prec fmt regexp =
     if prec' <= prec
     then begin
       need_paren := true ;
-      Format.fprintf fmt "("
+      Format.fprintf fmt "!("
     end
   in
   let () = match regexp with
