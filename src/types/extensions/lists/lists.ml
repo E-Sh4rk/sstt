@@ -45,7 +45,9 @@ let basic_extract ty =
     let nil_comps = Tuples.get 0 tuples |> Op.TupleComp.as_union
       |> List.map (fun _ -> { tag_case_id=0 ; tag_params=[] }) in
     let cons_comps = Tuples.get 2 tuples |> Op.TupleComp.as_union
-      |> List.map (fun tys -> { tag_case_id=1 ; tag_params=List.map (fun ty -> PLeaf ty) tys }) in
+      |> List.map (fun tys ->
+        let tag_params = List.mapi (fun i ty -> { param_id=i ; param_kind=PLeaf ty }) tys in
+        { tag_case_id=1 ; tag_params }) in
     Some (nil_comps@cons_comps)
   else None
 
@@ -68,7 +70,9 @@ let extract ty =
         | [l;r] ->
           let ty = proj_tag r in
           if Ty.equiv r (Descr.mk_tag (tag, ty) |> Ty.mk_descr) |> not then raise Exit ;
-          { tag_case_id=3 ; tag_params=[PLeaf l ; PRec ty] }
+          let tp1 = { param_id=0 ; param_kind=PLeaf l } in
+          let tp2 = { param_id=1 ; param_kind=PRec ty } in
+          { tag_case_id=3 ; tag_params=[tp1;tp2] }
         | _ -> assert false  
       )
     in
@@ -90,7 +94,10 @@ let to_params tstruct =
       let to_r params =
         match params with
         | { case_id=2 ; params=[]} -> RNil
-        | { case_id=3 ; params=[PLeaf elt ; PRec tstruct]} -> RCons (elt, regexp tstruct)
+        | { case_id=3 ; params=[
+          { param_id=0 ; param_kind=PLeaf elt } ;
+          { param_id=1 ; param_kind=PRec tstruct } ]} ->
+          RCons (elt, regexp tstruct)
         | _ -> raise Exit
       in
       RNode (nid, List.map to_r union)
@@ -101,7 +108,9 @@ let to_params tstruct =
       let to_b params =
         match params with
         | { case_id=0 ; params=[]} -> Nil
-        | { case_id=1 ; params=[PLeaf elt ; PLeaf tl]} -> Cons (elt, tl)
+        | { case_id=1 ; params=[
+          { param_id=0 ; param_kind=PLeaf elt } ;
+          { param_id=1 ; param_kind=PLeaf tl } ]} -> Cons (elt, tl)
         | _ -> assert false
       in
       List.map to_b union

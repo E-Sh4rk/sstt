@@ -21,7 +21,8 @@ type varop =
 type builtin =
 | Empty | Any | AnyTuple | AnyAtom | AnyTag | AnyInt
 | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of TagComp.Tag.t
-type ('u, 'l, 'r) param = PUnprocessed of 'u | PLeaf of 'l | PRec of 'r
+type ('u, 'l, 'r) param_kind = PUnprocessed of 'u | PLeaf of 'l | PRec of 'r
+type ('u, 'l, 'r) param = { param_id : int ; param_kind : ('u, 'l, 'r) param_kind }
 type t = { main : descr ; defs : def list }
 and def = NodeId.t * descr
 and descr = { op : op ; ty : Ty.t }

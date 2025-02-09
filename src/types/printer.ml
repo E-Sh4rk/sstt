@@ -28,7 +28,8 @@ type varop =
 type builtin =
 | Empty | Any | AnyTuple | AnyAtom | AnyTag | AnyInt
 | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of TagComp.Tag.t
-type ('u, 'l, 'r) param = PUnprocessed of 'u | PLeaf of 'l | PRec of 'r
+type ('u, 'l, 'r) param_kind = PUnprocessed of 'u | PLeaf of 'l | PRec of 'r
+type ('u, 'l, 'r) param = { param_id : int ; param_kind : ('u, 'l, 'r) param_kind }
 type t = { main : descr ; defs : def list }
 and def = NodeId.t * descr
 and descr = { op : op ; ty : Ty.t }
@@ -76,10 +77,12 @@ let map_descr f d = (* Assumes f preserves semantic equivalence *)
       and map_params { case_id ; params } =
         { case_id ; params=List.map map_param params }
       and map_param p =
-        match p with
-        | PUnprocessed ty -> PUnprocessed ty
-        | PLeaf d -> PLeaf (aux d)
-        | PRec ts -> PRec (map_ts ts)
+        let param_kind =
+          match p.param_kind with
+          | PUnprocessed ty -> PUnprocessed ty
+          | PLeaf d -> PLeaf (aux d)
+          | PRec ts -> PRec (map_ts ts)
+        in { p with param_kind }
       in
       Custom (tag, map_ts ts)
     | Alias str -> Alias str
@@ -340,10 +343,12 @@ let rec resolve_custom_tagcomp f ctx env ty =
       let nid = NodeId.mk () in
       let env = VDMap.add vd nid env in
       let treat_param param =
-        match param with
-        | PUnprocessed ty -> PUnprocessed ty
-        | PLeaf ty -> PLeaf (node ctx ty)
-        | PRec ty -> PRec (resolve_custom_tagcomp f ctx env ty)
+        let param_kind =
+          match param.param_kind with
+          | PUnprocessed ty -> PUnprocessed ty
+          | PLeaf ty -> PLeaf (node ctx ty)
+          | PRec ty -> PRec (resolve_custom_tagcomp f ctx env ty)
+        in { param with param_kind }
       in
       let treat_params { tag_case_id ; tag_params } =
         { case_id=tag_case_id ; params=List.map treat_param tag_params }
