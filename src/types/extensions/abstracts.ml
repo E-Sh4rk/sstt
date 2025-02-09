@@ -5,6 +5,7 @@ type variance = Cov | Contrav | Inv
 
 let atypes = Hashtbl.create 256
 
+(* TODO: encode using records with possibly absent fields *)
 let a = Atoms.Atom.mk "" |> Descr.mk_atom |> Ty.mk_descr
 
 let encode_params vs ps =
@@ -27,9 +28,14 @@ let mk tag ps =
 
 let extract_params vs ty =
   let n = List.length vs in
-  let extract_tuple ty =
+  let extract_tuples ty =
     Ty.get_descr ty |> Descr.get_tuples |> Tuples.get n
     |> Op.TupleComp.as_union
+  in
+  let extract_tuple ty =
+    match extract_tuples ty with
+    | [tup] -> tup
+    | _ -> raise Exit
   in
   let aux (ls, rs) =
     let aux (v,(l,r)) =
@@ -42,32 +48,44 @@ let extract_params vs ty =
     List.combine vs tys |> List.map aux
   in
   let aux (l, r) =
-    let ul, ur = extract_tuple l, extract_tuple r in (* ur should have length 1 *)
-    carthesian_product ul ur |> List.map aux
+    let uls, rs = extract_tuples l, extract_tuple r in
+    uls |> List.map (fun ls -> (ls,rs)) |> List.map aux
   in
-  Ty.get_descr ty |> Descr.get_arrows |> Arrows.dnf |> Arrows.Dnf.simplify
+  let res = Ty.get_descr ty |> Descr.get_arrows |> Arrows.dnf |> Arrows.Dnf.simplify
   |> List.map (fun (ps, ns, _) ->
     List.map aux ps |> List.flatten,
     List.map aux ns  |> List.flatten
-  )
-  (* TODO: check the extracted data is equivalent to ty *)
+  ) in
+  (* We check that the encoding of the result is equivalent to the initial type [ty]
+  (otherwise it means that [ty] is not a valid encoding of an abstract type) *)
+  let ty' =
+    res |> List.map (fun (ps, ns) ->
+      let ps = ps |> List.map (encode_params vs) |> Ty.conj in
+      let ns = ns |> List.map (encode_params vs) |> List.map Ty.neg |> Ty.conj in
+      Ty.cap ps ns
+    ) |> Ty.disj
+  in
+  if Ty.equiv ty ty' |> not then raise Exit ;
+  res
 
 let extract tag ty =
   let open Printer in
   match Hashtbl.find_opt atypes tag with
   | None -> None
   | Some vs ->
-    let ps = extract_params vs ty in
-    let cases = ps |> List.map (fun (ps, ns) ->
-      let ps = ps |> List.map (fun tys ->
-        { comp_id=0 ; comp_def=List.map (fun ty -> PLeaf ty) tys }
+    try
+      let ps = extract_params vs ty in
+      let cases = ps |> List.map (fun (ps, ns) ->
+        let ps = ps |> List.map (fun tys ->
+          { comp_id=0 ; comp_def=List.map (fun ty -> PLeaf ty) tys }
+        ) in
+        let ns = ns |> List.map (fun tys ->
+          { comp_id=1 ; comp_def=List.map (fun ty -> PLeaf ty) tys }
+        ) in
+        { tag_case_id=0 ; tag_case_def=ps@ns }
       ) in
-      let ns = ns |> List.map (fun tys ->
-        { comp_id=1 ; comp_def=List.map (fun ty -> PLeaf ty) tys }
-      ) in
-      { tag_case_id=0 ; tag_case_def=ps@ns }
-    ) in
-    Some cases
+      Some cases
+    with Exit -> None
 
 type params = Printer.descr list
 type t = (params list * params list) list
