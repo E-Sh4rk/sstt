@@ -12,4 +12,5 @@ module Extensions = struct
   module Floats = Floats
   module Bools = Bools
   module Chars = Chars
+  module Abstracts = Abstracts
 end
