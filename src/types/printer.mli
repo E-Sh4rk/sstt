@@ -21,8 +21,8 @@ type varop =
 type builtin =
 | Empty | Any | AnyTuple | AnyAtom | AnyTag | AnyInt
 | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of TagComp.Tag.t
-type ('u, 'l, 'r) param_kind = PUnprocessed of 'u | PLeaf of 'l | PRec of 'r
-type ('u, 'l, 'r) param = { param_id : int ; param_kind : ('u, 'l, 'r) param_kind }
+type ('u, 'l, 'r) tag_param = PUnprocessed of 'u | PLeaf of 'l | PRec of 'r
+type ('u, 'l, 'r) tag_comp = { comp_id : int ; comp_def : ('u, 'l, 'r) tag_param list }
 type t = { main : descr ; defs : def list }
 and def = NodeId.t * descr
 and descr = { op : op ; ty : Ty.t }
@@ -40,11 +40,11 @@ and op =
 | Varop of varop * descr list
 | Binop of binop * descr * descr
 | Unop of unop * descr
-and custom_params = { case_id : int ; params : (Ty.t, descr, custom) param list }
+and custom_params = { case_id : int ; case_def : (Ty.t, descr, custom) tag_comp list }
 and custom = CDef of NodeId.t * custom_params list | CNode of NodeId.t
 
 type aliases = (Ty.t * string) list
-type tag_params = { tag_case_id : int ; tag_params : (Ty.t, Ty.t, Ty.t) param list }
+type tag_params = { tag_case_id : int ; tag_case_def : (Ty.t, Ty.t, Ty.t) tag_comp list }
 type custom_tags = (TagComp.Tag.t * (Ty.t -> tag_params list option)) list
 type tags_printers = (TagComp.Tag.t * (custom -> (Format.formatter -> unit))) list
 type params = { aliases : aliases ; tags : custom_tags ; printers : tags_printers }

@@ -19,8 +19,8 @@ let extract ty =
   let open Printer in
   if Ty.leq ty (proj_tag any) && Ty.vars_toplevel ty |> VarSet.is_empty
   then
-    let tag_params = [ { param_id=0 ; param_kind=PUnprocessed ty } ] in
-    Some [{ tag_case_id=0 ; tag_params } ]
+    let tag_case_def = [ { comp_id=0 ; comp_def=[PUnprocessed ty] } ] in
+    Some [{ tag_case_id=0 ; tag_case_def } ]
   else None
 
 type t = { t : bool ; f : bool }
@@ -36,7 +36,7 @@ let components { t ; f } =
 let to_t tstruct =
   let open Printer in
   match tstruct with
-  | CDef (_, [{ case_id=0 ; params=[{ param_id=0 ; param_kind=PUnprocessed ty}]}]) ->
+  | CDef (_, [{ case_id=0 ; case_def=[{ comp_id=0 ; comp_def=[PUnprocessed ty]}]}]) ->
     let (pos, atoms) = ty |> Ty.get_descr |> Descr.get_atoms |> Atoms.destruct in
     assert pos ;
     {

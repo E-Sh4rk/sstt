@@ -26,8 +26,8 @@ let extract ty =
     let (_, atoms) = ty |> Ty.get_descr |> Descr.get_atoms |> Atoms.destruct in
     if List.for_all (Hashtbl.mem strings) atoms
     then
-      let tag_params = [ { param_id=0 ; param_kind=PUnprocessed ty } ] in
-      Some [{ tag_case_id=0 ; tag_params } ]
+      let tag_case_def = [ { comp_id=0 ; comp_def=[PUnprocessed ty] } ] in
+      Some [{ tag_case_id=0 ; tag_case_def } ]
     else None
   else None
 
@@ -36,7 +36,7 @@ type t = bool * string list
 let to_t tstruct =
   let open Printer in
   match tstruct with
-  | CDef (_, [{ case_id=0 ; params=[{ param_id=0 ; param_kind=PUnprocessed ty}]}]) ->
+  | CDef (_, [{ case_id=0 ; case_def=[{ comp_id=0 ; comp_def=[PUnprocessed ty]}]}]) ->
     let (pos, atoms) = ty |> Ty.get_descr |> Descr.get_atoms |> Atoms.destruct in
     let strs = atoms |> List.map Atoms.Atom.name in
     (pos, strs)

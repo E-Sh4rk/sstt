@@ -26,8 +26,8 @@ let extract ty =
   let open Printer in
   if Ty.leq ty (proj_tag any) && Ty.vars_toplevel ty |> VarSet.is_empty
   then
-    let tag_params = [ { param_id=0 ; param_kind=PUnprocessed ty } ] in
-    Some [{ tag_case_id=0 ; tag_params } ]
+    let tag_case_def = [ { comp_id=0 ; comp_def=[PUnprocessed ty] } ] in
+    Some [{ tag_case_id=0 ; tag_case_def } ]
   else None
 
 type t = interval list
@@ -35,7 +35,7 @@ type t = interval list
 let to_t tstruct =
   let open Printer in
   match tstruct with
-  | CDef (_, [{ case_id=0 ; params=[{ param_id=0 ; param_kind=PUnprocessed ty}]}]) ->
+  | CDef (_, [{ case_id=0 ; case_def=[{ comp_id=0 ; comp_def=[PUnprocessed ty]}]}]) ->
     let intervals = ty |> Ty.get_descr |> Descr.get_intervals |> Intervals.destruct in
     intervals |> List.map (fun int -> match Intervals.Atom.get int with
       | (Some i1, Some i2) -> Z.to_int i1 |> Char.chr, Z.to_int i2 |> Char.chr
