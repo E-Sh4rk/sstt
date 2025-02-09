@@ -5,16 +5,19 @@ type variance = Cov | Contrav | Inv
 
 let atypes = Hashtbl.create 256
 
-(* TODO: encode using records with possibly absent fields *)
 let a = Atoms.Atom.mk "" |> Descr.mk_atom |> Ty.mk_descr
+let are_atoms_finite ty =
+  Ty.get_descr ty |> Descr.get_atoms |> Atoms.destruct |> fst
+let diff_a ty = if are_atoms_finite ty then Ty.diff ty a else ty
+let cup_a ty = if are_atoms_finite ty then Ty.cup ty a else ty
 
 let encode_params vs ps =
   let (ls, rs) =
     List.combine vs ps |> List.map (fun (v,p) ->
       match v with
-      | Cov -> a, Ty.cup a p
-      | Contrav -> Ty.cup a p, a
-      | Inv -> Ty.cup a p, Ty.cup a p
+      | Cov -> a, cup_a p
+      | Contrav -> cup_a p, a
+      | Inv -> cup_a p, cup_a p
   ) |> List.split
   in
   let lhs = Descr.mk_tuple ls |> Ty.mk_descr in
@@ -40,9 +43,9 @@ let extract_params vs ty =
   let aux (ls, rs) =
     let aux (v,(l,r)) =
       match v with
-      | Cov -> Ty.diff r a
-      | Contrav -> Ty.diff l a
-      | Inv -> Ty.diff l a
+      | Cov -> diff_a r
+      | Contrav -> diff_a l
+      | Inv -> diff_a l
     in
     let tys = List.combine ls rs in
     List.combine vs tys |> List.map aux
