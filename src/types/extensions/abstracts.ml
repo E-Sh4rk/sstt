@@ -28,14 +28,10 @@ let mk tag ps =
 let extract_params vs ty =
   let n = List.length vs in
   let extract_tuple ty =
-    let tups = Ty.get_descr ty |> Descr.get_tuples |> Tuples.get n
-    |> Op.TupleComp.as_union in
-    match tups with
-    | [tup] -> tup
-    | _ -> raise Exit
+    Ty.get_descr ty |> Descr.get_tuples |> Tuples.get n
+    |> Op.TupleComp.as_union
   in
-  let aux (l, r) =
-    let ls, rs = extract_tuple l, extract_tuple r in
+  let aux (ls, rs) =
     let aux (v,(l,r)) =
       match v with
       | Cov -> Ty.diff r a
@@ -45,9 +41,14 @@ let extract_params vs ty =
     let tys = List.combine ls rs in
     List.combine vs tys |> List.map aux
   in
+  let aux (l, r) =
+    let ul, ur = extract_tuple l, extract_tuple r in (* ur should have length 1 *)
+    carthesian_product ul ur |> List.map aux
+  in
   Ty.get_descr ty |> Descr.get_arrows |> Arrows.dnf |> Arrows.Dnf.simplify
   |> List.map (fun (ps, ns, _) ->
-    (List.map aux ps, List.map aux ns)
+    List.map aux ps |> List.flatten,
+    List.map aux ns  |> List.flatten
   )
   (* TODO: check the extracted data is equivalent to ty *)
 

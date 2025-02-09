@@ -62,14 +62,25 @@ let regroup_tuples conjuncts =
   with Exit -> []
 let regroup_tuples (ps,ns,b) =
   (regroup_tuples ps, ns, b)
+let simpl_tuple1 dnf =
+  let calc_line (ps,ns,_) =
+    Ty.cap
+      (ps |> List.map List.hd |> Ty.conj)
+      (ns |> List.map List.hd |> List.map Ty.neg |> Ty.conj)
+  in
+  [dnf |> List.map calc_line |> Ty.disj]
 
 let simpl_arrows a =
   Arrows.dnf a |> Arrows.Dnf.simplify |> List.map regroup_arrows |> Arrows.of_dnf
 let simpl_records r =
   Records.dnf r |> Records.Dnf.simplify |> List.map regroup_records |> Records.of_dnf
 let simpl_tuples p =
-  TupleComp.dnf p |> TupleComp.Dnf.simplify |> List.map regroup_tuples
-  |> TupleComp.of_dnf (TupleComp.len p)
+  let dnf = TupleComp.dnf p |> TupleComp.Dnf.simplify in
+  let n = TupleComp.len p in
+  if n = 1 then
+    dnf |> simpl_tuple1 |> TupleComp.mk
+  else
+    dnf |> List.map regroup_tuples |> TupleComp.of_dnf n
 let simpl_tuples t = Tuples.map simpl_tuples t
 let simpl_tags t = Tags.map (fun c -> TagComp.as_atom c |> TagComp.mk) t
 
