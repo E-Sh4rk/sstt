@@ -5,11 +5,26 @@ type variance = Cov | Contrav | Inv
 
 let atypes = Hashtbl.create 256
 
-let a = Atoms.Atom.mk "" |> Descr.mk_atom |> Ty.mk_descr
-let are_atoms_finite ty =
-  Ty.get_descr ty |> Descr.get_atoms |> Atoms.destruct |> fst
-let diff_a ty = if are_atoms_finite ty then Ty.diff ty a else ty
-let cup_a ty = if are_atoms_finite ty then Ty.cup ty a else ty
+let a = Atoms.Atom.mk ""
+let map_atoms f ty =
+  Ty.def ty |> VDescr.map (fun d ->
+    let natoms = Descr.get_atoms d in
+    Descr.set_component d (Descr.Atoms (f natoms)) 
+  ) |> Ty.of_def
+let set_a pos ty =
+  let aux atom =
+    let (p,s) = Atoms.destruct atom in
+    let s =
+      if not p then s
+      else if pos then a::s
+      else List.filter (fun a' -> Atoms.Atom.equal a a' |> not) s
+    in
+    (p, s) |> Atoms.construct
+  in
+  map_atoms aux ty
+let diff_a = set_a false
+let cup_a = set_a true
+let a = a |> Descr.mk_atom |> Ty.mk_descr
 
 let encode_params vs ps =
   let (ls, rs) =
