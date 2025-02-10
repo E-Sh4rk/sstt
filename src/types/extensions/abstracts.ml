@@ -5,38 +5,32 @@ type variance = Cov | Contrav | Inv
 
 let atypes = Hashtbl.create 256
 
-let a = Atoms.Atom.mk ""
-let map_atoms f ty =
-  Ty.def ty |> VDescr.map (fun d ->
-    let natoms = Descr.get_atoms d in
-    Descr.set_component d (Descr.Atoms (f natoms)) 
-  ) |> Ty.of_def
-let set_a pos ty =
-  let aux atom =
-    let (p,s) = Atoms.destruct atom in
-    let s =
-      if not p then s
-      else if pos then a::s
-      else List.filter (fun a' -> Atoms.Atom.equal a a' |> not) s
-    in
-    (p, s) |> Atoms.construct
-  in
-  map_atoms aux ty
-let diff_a = set_a false
-let cup_a = set_a true
-let a = a |> Descr.mk_atom |> Ty.mk_descr
+let labels = Hashtbl.create 10
+let label_of_position i =
+  match Hashtbl.find_opt labels i with
+  | Some lbl -> lbl
+  | None ->
+    let lbl = Label.mk (string_of_int i) in
+    Hashtbl.add labels i lbl ; lbl
 
 let encode_params vs ps =
   let (ls, rs) =
-    List.combine vs ps |> List.map (fun (v,p) ->
-      match v with
-      | Cov -> a, cup_a p
-      | Contrav -> cup_a p, a
-      | Inv -> cup_a p, cup_a p
+    List.combine vs ps |> List.mapi (fun i (v,p) ->
+      let lbl = label_of_position i in
+      let l, r = match v with
+      | Cov -> Ty.empty, p
+      | Contrav -> p, Ty.empty
+      | Inv -> p, p
+      in
+      (lbl, (l,true)), (lbl, (r,true))
   ) |> List.split
   in
-  let lhs = Descr.mk_tuple ls |> Ty.mk_descr in
-  let rhs = Descr.mk_tuple rs |> Ty.mk_descr in
+  let mk_record bs =
+    let open Records.Atom in
+    { bindings = bs |> LabelMap.of_list ; opened = false }
+    |> Descr.mk_record |> Ty.mk_descr
+  in
+  let lhs, rhs = mk_record ls, mk_record rs in
   Descr.mk_arrow (lhs,rhs) |> Ty.mk_descr
 
 let mk tag ps =
@@ -46,9 +40,13 @@ let mk tag ps =
 
 let extract_params vs ty =
   let n = List.length vs in
+  let convert_to_tuple r =
+    let open Records.Atom in
+    List.init n (fun i -> find (label_of_position i) r |> fst)
+  in
   let extract_tuples ty =
-    Ty.get_descr ty |> Descr.get_tuples |> Tuples.get n
-    |> Op.TupleComp.as_union
+    Ty.get_descr ty |> Descr.get_records |> Op.Records.as_union |>
+    List.map convert_to_tuple
   in
   let extract_tuple ty =
     match extract_tuples ty with
@@ -58,9 +56,9 @@ let extract_params vs ty =
   let aux (ls, rs) =
     let aux (v,(l,r)) =
       match v with
-      | Cov -> diff_a r
-      | Contrav -> diff_a l
-      | Inv -> diff_a l
+      | Cov -> r
+      | Contrav -> l
+      | Inv -> l
     in
     let tys = List.combine ls rs in
     List.combine vs tys |> List.map aux
@@ -72,7 +70,7 @@ let extract_params vs ty =
   let res = Ty.get_descr ty |> Descr.get_arrows |> Arrows.dnf |> Arrows.Dnf.simplify
   |> List.map (fun (ps, ns, _) ->
     List.map aux ps |> List.flatten,
-    List.map aux ns  |> List.flatten
+    List.map aux ns |> List.flatten
   ) in
   (* We check that the encoding of the result is equivalent to the initial type [ty]
   (otherwise it means that [ty] is not a valid encoding of an abstract type) *)
