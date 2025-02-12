@@ -2,6 +2,8 @@ open Sstt_core
 
 type variance = Cov | Contrav | Inv
 
+val is_abstract : TagComp.Tag.t -> bool
+val params_of : TagComp.Tag.t -> variance list
 val mk : TagComp.Tag.t -> Ty.t list -> Ty.t
 val mk_any : TagComp.Tag.t -> Ty.t
 

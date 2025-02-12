@@ -42,6 +42,9 @@ let mk_any tag =
   let arrow = Arrows.any () |> Descr.mk_arrows |> Ty.mk_descr in
   (tag, arrow) |> Descr.mk_tag |> Ty.mk_descr
 
+let is_abstract tag = Hashtbl.mem atypes tag
+let params_of tag = Hashtbl.find atypes tag
+
 let extract_params vs ty =
   let n = List.length vs in
   let convert_to_tuple r =
