@@ -38,6 +38,10 @@ let mk tag ps =
   let ty = encode_params vs ps in
   (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
 
+let mk_any tag =
+  let arrow = Arrows.any () |> Descr.mk_arrows |> Ty.mk_descr in
+  (tag, arrow) |> Descr.mk_tag |> Ty.mk_descr
+
 let extract_params vs ty =
   let n = List.length vs in
   let convert_to_tuple r =
@@ -78,7 +82,8 @@ let extract_params vs ty =
     res |> List.map (fun (ps, ns) ->
       let ps = ps |> List.map (encode_params vs) |> Ty.conj in
       let ns = ns |> List.map (encode_params vs) |> List.map Ty.neg |> Ty.conj in
-      Ty.cap ps ns
+      let arrow = Arrows.any () |> Descr.mk_arrows |> Ty.mk_descr in
+      Ty.cap arrow (Ty.cap ps ns)
     ) |> Ty.disj
   in
   if Ty.equiv ty ty' |> not then raise Exit ;
@@ -133,7 +138,7 @@ type printer = TagComp.Tag.t -> Format.formatter -> t -> unit
 
 let print tag fmt t =
   let nb_lit ps = List.length ps in
-  let nb_lit (ps,ns) = nb_lit ps + nb_lit ns in
+  let nb_lit (ps,ns) = nb_lit ps + nb_lit ns + (if ps = [] then 1 else 0) in
   let nb_lit lst = List.map nb_lit lst |> List.fold_left (+) 0 in
   let print_lit fmt (pos,params) =
     Format.fprintf fmt "%s%a(%a)" (if pos then "" else "~") TagComp.Tag.pp tag
@@ -141,8 +146,10 @@ let print tag fmt t =
   in
   let print_line fmt (ps, ns) =
     let ps, ns = List.map (fun d -> true, d) ps, List.map (fun d -> false, d) ns in
-    let params = ps@ns in
-    Format.fprintf fmt "%a" (print_seq print_lit " & ") params
+    Format.fprintf fmt "%s%s%a"
+      (if ps = [] then TagComp.Tag.name tag else "")
+      (if ps = [] && ns <> [] then " & " else "")
+      (print_seq print_lit " & ") (ps@ns)
   in
   if nb_lit t > 1 then
     Format.fprintf fmt "(%a)" (print_seq print_line " | ") t

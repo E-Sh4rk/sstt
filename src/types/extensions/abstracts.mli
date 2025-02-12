@@ -3,6 +3,7 @@ open Sstt_core
 type variance = Cov | Contrav | Inv
 
 val mk : TagComp.Tag.t -> Ty.t list -> Ty.t
+val mk_any : TagComp.Tag.t -> Ty.t
 
 type params = Printer.descr list
 type t = (params list * params list) list

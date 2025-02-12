@@ -5,7 +5,7 @@ let print_seq f sep fmt l =
   let fst = ref true in
   l |> List.iter
     (fun e -> Format.fprintf fmt "%s%a" (if !fst then "" else sep) f e ; fst := false)
-  
+
 let print_seq_cut f fmt l =
   let fst = ref true in
   l |> List.iter (fun e ->
@@ -23,14 +23,6 @@ let print_seq_space f fmt l =
       else
         Format.fprintf fmt "@ %a" f e
     )
-
-let print_set f fmt s =
-  Format.fprintf fmt "{ %a }" (print_seq f " ; ") s
-
-let print_corr f1 f2 fmt (a,b) =
-  Format.fprintf fmt "%a=%a" f1 a f2 b
-let print_map f1 f2 fmt s =
-  Format.fprintf fmt "%a" (print_set (print_corr f1 f2)) s
 
 (* MISC *)
 
