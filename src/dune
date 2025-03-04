@@ -27,6 +27,15 @@
  (preprocess (pps js_of_ocaml-ppx))
  (modules js))
 
+(executable
+ (name wasm)
+;  (public_name sstt)
+;  (package sstt-wasm)
+ (libraries repl zarith_stubs_js)
+ (modes wasm)
+ (preprocess (pps js_of_ocaml-ppx))
+ (modules wasm))
+
  (env
  (_
   (js_of_ocaml

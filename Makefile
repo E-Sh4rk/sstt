@@ -29,8 +29,16 @@ js:
 	git describe --always --tags HEAD > web/version.txt
 	chmod +w web/version.txt
 
+wasm:
+	opam exec -- dune build --profile release src/wasm.bc.wasm.js
+	cp _build/default/src/wasm.bc.wasm.js web/sstt.js
+	cp -r _build/default/src/wasm.bc.wasm.assets web/
+	chmod +w web/sstt.js web/wasm.bc.wasm.assets web/wasm.bc.wasm.assets/*
+	git describe --always --tags HEAD > web/version.txt
+	chmod +w web/version.txt
+
 web-deps:
-	opam install zarith_stubs_js js_of_ocaml js_of_ocaml-ppx
+	opam install zarith_stubs_js js_of_ocaml js_of_ocaml-ppx wasm_of_ocaml-compiler
 	cd web ; npm ci
 
 clean:
