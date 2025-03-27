@@ -58,8 +58,10 @@ module rec Node : Node = struct
 
   let of_def d = d |> cons
 
-  let any () = VDescr.any () |> cons
-  let empty () = VDescr.empty () |> cons
+  let any = VDescr.any () |> cons
+  let empty =  VDescr.empty () |> cons
+  let any () = any
+  let empty () = empty
 
   let cap t1 t2 =
     VDescr.cap (def t1) (def t2) |> cons
