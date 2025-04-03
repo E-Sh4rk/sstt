@@ -38,7 +38,7 @@ wasm:
 	chmod +w web/version.txt
 
 web-deps:
-	opam install zarith_stubs_js js_of_ocaml js_of_ocaml-ppx wasm_of_ocaml-compiler
+	opam install js_of_ocaml js_of_ocaml-ppx wasm_of_ocaml-compiler
 	cd web ; npm ci
 
 clean:
