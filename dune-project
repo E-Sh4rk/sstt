@@ -26,7 +26,7 @@
 (package
  (name sstt-repl)
  (synopsis "Simple Set-Theoretic Types REPL library")
- (depends sstt (ppxlib (>= 0.35.0)) ppx_expect menhir)
+ (depends sstt menhir)
 )
 
 (package

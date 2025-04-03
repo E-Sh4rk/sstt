@@ -1,0 +1,6 @@
+(library
+ (name sstt_tests)
+ (inline_tests (deps tests.txt tests_ext.txt))
+ (libraries sstt_main sstt_parsing sstt_utils sstt_types)
+ (preprocess (pps ppx_expect))
+ (modules (:standard)))

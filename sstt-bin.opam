@@ -8,7 +8,7 @@ license: "MIT"
 homepage: "https://github.com/E-Sh4rk/sstt"
 bug-reports: "https://github.com/E-Sh4rk/sstt/issues"
 depends: [
-  "dune" {>= "3.13"}
+  "dune" {>= "3.17"}
   "sstt-repl"
   "odoc" {with-doc}
 ]

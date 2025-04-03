@@ -9,7 +9,7 @@ homepage: "https://github.com/E-Sh4rk/sstt"
 bug-reports: "https://github.com/E-Sh4rk/sstt/issues"
 depends: [
   "ocaml" {>= "5.3.0"}
-  "dune" {>= "3.13"}
+  "dune" {>= "3.17"}
   "zarith"
   "odoc" {with-doc}
 ]
