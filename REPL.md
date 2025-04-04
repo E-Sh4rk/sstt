@@ -34,6 +34,8 @@ A type computation is either:
 - The composition of two type substitutions `s1` and `s2`, noted `s1 s2`
 - The application of a parameter type `t2` to an arrow type `t1`, noted `t1 t2`
 
+Note that if a polymorphic type variable appears in a subtyping test, it will return true if and only if there exists an instantiation that makes the subtyping instance hold. For instance, `'X <= int` is true, while `'x <= int` is false.
+
 ### Commands
 
 A command in the REPL ends with `;;`. It can be either:

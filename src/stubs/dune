@@ -10,7 +10,7 @@
  (name zarith_wasm)
  (wasm_of_ocaml
   (wasm_files ./runtime.wat)
-  (javascript_files ./runtime_wasm.js)
+  (javascript_files ./runtime.js ./runtime_wasm.js)
   (flags --no-sourcemap))
  (libraries)
  (preprocess no_preprocessing))
