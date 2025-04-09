@@ -27,30 +27,30 @@ module Make(N:Node) = struct
   }
   type node = N.t
 
-  let any () = {
-    atoms = Atoms.any () ;
-    tags = Tags.any () ;
-    tuples = Tuples.any () ;
-    arrows = Arrows.any () ;
-    records = Records.any () ;
-    intervals = Intervals.any ()
+  let any = {
+    atoms = Atoms.any ;
+    tags = Tags.any  ;
+    tuples = Tuples.any ;
+    arrows = Arrows.any ;
+    records = Records.any ;
+    intervals = Intervals.any
   }
 
-  let empty () = {
-    atoms = Atoms.empty () ;
-    tags = Tags.empty () ;
-    tuples = Tuples.empty () ;
-    arrows = Arrows.empty () ;
-    records = Records.empty () ;
-    intervals = Intervals.empty ()
+  let empty = {
+    atoms = Atoms.empty ;
+    tags = Tags.empty;
+    tuples = Tuples.empty;
+    arrows = Arrows.empty;
+    records = Records.empty;
+    intervals = Intervals.empty
   }
 
-  let mk_atoms a = { (empty ()) with atoms = a }
-  let mk_tags a = { (empty ()) with tags = a }
-  let mk_arrows a = { (empty ()) with arrows = a }
-  let mk_tuples a = { (empty ()) with tuples = a }
-  let mk_records a = { (empty ()) with records = a }
-  let mk_intervals a = { (empty ()) with intervals = a }
+  let mk_atoms a = { empty with atoms = a }
+  let mk_tags a = { empty with tags = a }
+  let mk_arrows a = { empty with arrows = a }
+  let mk_tuples a = { empty with tuples = a }
+  let mk_records a = { empty with records = a }
+  let mk_intervals a = { empty with intervals = a }
 
   let mk_atom a = Atoms.mk a |> mk_atoms
   let mk_tagcomp a = Tags.mk_comp a |> mk_tags
@@ -79,8 +79,8 @@ module Make(N:Node) = struct
     | Tags tags -> { t with tags }
     | Tuples tuples -> { t with tuples }
     | Records records -> { t with records }
-  let of_component = set_component (empty ())
-  let of_components = List.fold_left set_component (empty ())
+  let of_component = set_component empty
+  let of_components = List.fold_left set_component empty
 
   let unop fato ftag ftup farr frec fint t = {
     atoms = fato t.atoms ;

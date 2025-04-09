@@ -43,8 +43,8 @@ module Make(N:Node)(C:TaggedComp with type node = N.t) = struct
       let map = cs |> List.map (fun a -> (C.tag a, C.neg a)) |> TMap.of_list in
       { map ; others=true }
   
-  let any () = { map = TMap.empty ; others = true }
-  let empty () = { map = TMap.empty ; others = false }
+  let any = { map = TMap.empty ; others = true }
+  let empty = { map = TMap.empty ; others = false }
 
   let cap t1 t2 =
     let others = t1.others && t2.others in

@@ -82,8 +82,8 @@ module Make(N:Node) = struct
   module ISet = Set.Make(Interval)
   type t = ISet.t
 
-  let empty () = ISet.empty
-  let any () = ISet.singleton Interval.any
+  let empty = ISet.empty
+  let any = ISet.singleton Interval.any
   let mk i = ISet.singleton i
 
   let normalize t =

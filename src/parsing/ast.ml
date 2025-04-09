@@ -61,12 +61,12 @@ let empty_env = {
 let builtin t =
   match t with
   | TEmpty -> Ty.empty | TAny -> Ty.any
-  | TAnyAtom -> Descr.mk_atoms (Atoms.any ()) |> Ty.mk_descr
-  | TAnyTag -> Descr.mk_tags (Tags.any ()) |> Ty.mk_descr
-  | TAnyInt -> Descr.mk_intervals (Intervals.any ()) |> Ty.mk_descr
-  | TAnyTuple -> Descr.mk_tuples (Tuples.any ()) |> Ty.mk_descr
-  | TAnyArrow -> Descr.mk_arrows (Arrows.any ()) |> Ty.mk_descr
-  | TAnyRecord -> Descr.mk_records (Records.any ()) |> Ty.mk_descr
+  | TAnyAtom -> Descr.mk_atoms Atoms.any |> Ty.mk_descr
+  | TAnyTag -> Descr.mk_tags Tags.any |> Ty.mk_descr
+  | TAnyInt -> Descr.mk_intervals Intervals.any |> Ty.mk_descr
+  | TAnyTuple -> Descr.mk_tuples Tuples.any |> Ty.mk_descr
+  | TAnyArrow -> Descr.mk_arrows Arrows.any |> Ty.mk_descr
+  | TAnyRecord -> Descr.mk_records Records.any |> Ty.mk_descr
   | TAnyTupleComp n -> TupleComp.any n |> Descr.mk_tuplecomp |> Ty.mk_descr
   | TAnyTagComp t -> TagComp.any t |> Descr.mk_tagcomp |> Ty.mk_descr
 

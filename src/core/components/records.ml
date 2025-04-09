@@ -69,7 +69,7 @@ module Atom(N:Node) = struct
     LabelMap.equal OTy.equal t1.bindings t2.bindings
   let compare t1 t2 =
     compare t1.opened t2.opened |> ccmp
-    (LabelMap.compare OTy.compare) t1.bindings t2.bindings
+      (LabelMap.compare OTy.compare) t1.bindings t2.bindings
 end
 
 module Atom'(N:Node) = struct
@@ -119,8 +119,8 @@ module Atom'(N:Node) = struct
     LabelMap.equal OTy.equal t1.bindings t2.bindings
   let compare t1 t2 =
     compare t1.opened t2.opened |> ccmp
-    (Option.compare LabelSet.compare) t1.required t2.required |> ccmp
-    (LabelMap.compare OTy.compare) t1.bindings t2.bindings
+      (Option.compare LabelSet.compare) t1.required t2.required |> ccmp
+      (LabelMap.compare OTy.compare) t1.bindings t2.bindings
 end
 
 module Make(N:Node) = struct
@@ -133,8 +133,8 @@ module Make(N:Node) = struct
   type t = Bdd.t
   type node = N.t
 
-  let any () = Bdd.any ()
-  let empty () = Bdd.empty ()
+  let any = Bdd.any
+  let empty = Bdd.empty
 
   let mk a = Bdd.singleton a
 
@@ -155,22 +155,22 @@ module Make(N:Node) = struct
     | [], [] -> []
     | s::ss, t::tt ->
       let res1 = distribute_diff ss tt
-      |> List.map (fun ss -> s::ss) in
+                 |> List.map (fun ss -> s::ss) in
       let res2 = (ON.diff s t)::ss in
       res2::res1
     | _, _ -> assert false
   let rec psi n ss ts =
     if List.exists2 ON.leq ss (disj n ts) |> not then false (* optimisation *)
     else match ts with
-    | [] -> (* List.exists ON.is_empty ss *) true
-    | tt::ts ->
-      List.exists ON.is_empty ss || (* optimisation *)
-      distribute_diff ss tt |> List.for_all (fun ss -> psi n ss ts)
+      | [] -> (* List.exists ON.is_empty ss *) true
+      | tt::ts ->
+        List.exists ON.is_empty ss || (* optimisation *)
+        distribute_diff ss tt |> List.for_all (fun ss -> psi n ss ts)
   let is_clause_empty (ps,ns,b) =
     if b then
       let dom = List.fold_left
-        (fun acc a -> LabelSet.union acc (Atom.dom a))
-        LabelSet.empty (ps@ns) |> LabelSet.to_list in
+          (fun acc a -> LabelSet.union acc (Atom.dom a))
+          LabelSet.empty (ps@ns) |> LabelSet.to_list in
       let ps, ns =
         ps |> List.map (Atom.to_tuple_with_default dom),
         ns |> List.map (Atom.to_tuple_with_default dom) in
@@ -231,8 +231,8 @@ module Make(N:Node) = struct
       let open Atom' in
       let dom = LabelSet.union (dom s1) (dom s2) in
       let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
-        (lbl, OTy.cap (find lbl s1) (find lbl s2))
-      ) |> LabelMap.of_list in
+          (lbl, OTy.cap (find lbl s1) (find lbl s2))
+        ) |> LabelMap.of_list in
       let opened = s1.opened && s2.opened in
       let required =
         match s1.required, s2.required with
@@ -248,7 +248,7 @@ module Make(N:Node) = struct
 
   let dnf t = Bdd.dnf t |> Dnf.mk
   let dnf' t = dnf t |> Dnf'.from_dnf
-    ({ Atom'.bindings=LabelMap.empty ; opened=true ; required=None })
+                 ({ Atom'.bindings=LabelMap.empty ; opened=true ; required=None })
   let of_dnf dnf = Dnf.mk dnf |> Bdd.of_dnf
   let of_dnf' dnf' = of_dnf (Dnf'.to_dnf dnf')
 

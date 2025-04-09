@@ -10,6 +10,16 @@ module type TyBase = sig
   type t
   type node
 
+  val any : t
+  val empty : t
+
+  include Comparable with type t := t
+end
+
+module type TyBaseRef = sig
+  type t
+  type node
+
   val any : unit -> t
   val empty : unit -> t
 
@@ -39,13 +49,13 @@ module type Dnf = sig
   type leaf
 
   (** [t] represents a disjunctive normal form, that is, a disjunction of clauses.
-  For leaf components, [leaf] is a boolean that should be true.
-  If set to false, the corresponding clause will be ignored. *)
+      For leaf components, [leaf] is a boolean that should be true.
+      If set to false, the corresponding clause will be ignored. *)
   type t = (atom list * atom list * leaf) list
 
   (** [simplify t] removes from [t] useless clauses and summands.
-  In particular, [simplify t] is ensured not to contain any [empty] summand
-  nor [any] clause. *)
+      In particular, [simplify t] is ensured not to contain any [empty] summand
+      nor [any] clause. *)
   val simplify : t -> t
 end
 
@@ -54,12 +64,12 @@ module type Dnf' = sig
   type leaf
 
   (** [t] represents a condensed disjunctive normal form, that is,
-  a disjunction of atoms. [leaf] is a boolean that should be true.
-  If set to false, the corresponding atom will be ignored. *)
+      a disjunction of atoms. [leaf] is a boolean that should be true.
+      If set to false, the corresponding atom will be ignored. *)
   type t = (atom * leaf) list
 
   (** [simplify t] removes from [t] useless summands.
-  In particular, [simplify t] is ensured not to contain any [empty] summand. *)
+      In particular, [simplify t] is ensured not to contain any [empty] summand. *)
   val simplify : t -> t
 end
 
@@ -75,8 +85,8 @@ module type Atoms = sig
   val construct : bool * Atom.t list -> t
 
   (** [destruct t] returns a pair [(b,atoms)] such that:
-  if [b] is true, then [t] contains exactly the atoms [atoms],
-  and if [b] is false, then [t] contains exactly the atoms not in [atoms]. *)
+      if [b] is true, then [t] contains exactly the atoms [atoms],
+      and if [b] is false, then [t] contains exactly the atoms not in [atoms]. *)
   val destruct : t -> bool * Atom.t list
 end
 
@@ -87,14 +97,14 @@ module type IntervalAtom = sig
   type t
 
   (** [mk b1 b2] creates an interval from bound [b1]
-  (inclusive, -infinity if [None]) to bound [b2]
-  (inclusive, +infinity if [None]).
-  Raises: [Invalid_argument] if the interval is empty. *)
+      (inclusive, -infinity if [None]) to bound [b2]
+      (inclusive, +infinity if [None]).
+      Raises: [Invalid_argument] if the interval is empty. *)
   val mk : Z.t option -> Z.t option -> t
 
   (** [mk_bounded i1 i2] creates an interval from bound [i1]
-  (inclusive) to bound [i2] (inclusive).
-  Raises: [Invalid_argument] if the interval is empty. *)
+      (inclusive) to bound [i2] (inclusive).
+      Raises: [Invalid_argument] if the interval is empty. *)
   val mk_bounded : Z.t -> Z.t -> t
 
   (** [mk_singl i] creates an interval containing exactly [i]. *)
@@ -115,9 +125,9 @@ module type Intervals = sig
   val destruct : t -> Atom.t list
 
   (** [destruct_neg t] destructs the negation of [t].
-  The negation of [t] is sometimes simpler than [t] itself,
-  which may justify working on this negative form
-  (for instance when pretty-printing). *)
+      The negation of [t] is sometimes simpler than [t] itself,
+      which may justify working on this negative form
+      (for instance when pretty-printing). *)
   val destruct_neg : t -> Atom.t list
 end
 
@@ -149,9 +159,10 @@ end
 
 module type OTy = sig
   type node
-  include TyBase with type node := node and type t = node * bool
-  include SetTheoretic with type t := t
+  include TyBaseRef with type node := node and type t = node * bool
   val absent : unit -> t
+
+  include SetTheoretic with type t := t
   val is_absent : t -> bool
 end
 
@@ -161,13 +172,13 @@ module type RecordAtom = sig
   type t = { bindings : OTy.t LabelMap.t ; opened : bool }
 
   (** [dom t] returns the set of explicit labels in [t].
-  Note that this does not mean that labels in [dom t] are present in
-  the record values captured by [t]: even if a binding is present
-  in [t], it could be associated with a possibly absent type. *)
+      Note that this does not mean that labels in [dom t] are present in
+      the record values captured by [t]: even if a binding is present
+      in [t], it could be associated with a possibly absent type. *)
   val dom : t -> LabelSet.t
 
   (** [find l t] returns the type associated with the label [l] in [t],
-  even if [t] does not have an explicit binding for [l]. *)
+      even if [t] does not have an explicit binding for [l]. *)
   val find : Label.t -> t -> OTy.t
 
   val to_tuple : Label.t list -> t -> OTy.t list
@@ -181,17 +192,17 @@ module type RecordAtom' = sig
   module OTy : OTy with type node := node
 
   (** When the field [required] is equal to [Some labels],
-  it means that [t] requires at least one field not in [labels] to be present. *)
+      it means that [t] requires at least one field not in [labels] to be present. *)
   type t = { bindings : OTy.t LabelMap.t ; opened : bool ; required : LabelSet.t option }
 
   (** [dom t] returns the set of explicit labels in [t].
-  Note that this does not mean that labels in [dom t] are present in
-  the record values captured by [t]: even if a binding is present
-  in [t], it could be associated with a possibly absent type. *)
+      Note that this does not mean that labels in [dom t] are present in
+      the record values captured by [t]: even if a binding is present
+      in [t], it could be associated with a possibly absent type. *)
   val dom : t -> LabelSet.t
 
   (** [find l t] returns the type associated with the label [l] in [t],
-  even if [t] does not have an explicit binding for [l]. *)
+      even if [t] does not have an explicit binding for [l]. *)
   val find : Label.t -> t -> OTy.t
 
   include Comparable with type t := t
@@ -209,7 +220,7 @@ module type Records = sig
   val dnf : t -> Dnf.t
 
   (** [dnf' t] returns a condensed disjunctive form of [t]
-  where each clause is a positive literal. *)
+      where each clause is a positive literal. *)
   val dnf' : t -> Dnf'.t
 
   val of_dnf : Dnf.t -> t
@@ -244,7 +255,7 @@ module type TupleComp = sig
   val dnf : t -> Dnf.t
 
   (** [dnf' t] returns a condensed disjunctive form of [t]
-  where each clause is a positive literal. *)
+      where each clause is a positive literal. *)
   val dnf' : t -> Dnf'.t
 
   val of_dnf : int -> Dnf.t -> t
@@ -261,8 +272,8 @@ module type Tuples = sig
   val mk_comp : TupleComp.t -> t
 
   (** [components t] returns a pair [(cs,b)] where [cs] are the tuple components
-  explicitely present in [t], and [b] is a boolean indicating whether components
-  of other cardinalities are [any] (if [b] is [true]) or [empty] (if [b] is [false]). *)
+      explicitely present in [t], and [b] is a boolean indicating whether components
+      of other cardinalities are [any] (if [b] is [true]) or [empty] (if [b] is [false]). *)
   val components : t -> TupleComp.t list * bool
 
   val of_components : TupleComp.t list * bool -> t
@@ -276,9 +287,9 @@ module type Tuples = sig
   val construct : bool * TupleComp.t list -> t
 
   (** [destruct t] returns a pair [(b,cs)] such that:
-  if [b] is true, then [t] contains exactly the tuple components [cs],
-  and if [b] is false, then the negation of [t] contains exactly
-  the tuple components [cs]. *)
+      if [b] is true, then [t] contains exactly the tuple components [cs],
+      and if [b] is false, then the negation of [t] contains exactly
+      the tuple components [cs]. *)
   val destruct : t -> bool * TupleComp.t list
 
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
@@ -326,8 +337,8 @@ module type Tags = sig
   val mk_comp : TagComp.t -> t
 
   (** [components t] returns a pair [(cs,b)] where [cs] are the tag components
-  explicitely present in [t], and [b] is a boolean indicating whether components
-  of other tags are [any] (if [b] is [true]) or [empty] (if [b] is [false]). *)
+      explicitely present in [t], and [b] is a boolean indicating whether components
+      of other tags are [any] (if [b] is [true]) or [empty] (if [b] is [false]). *)
   val components : t -> TagComp.t list * bool
 
   val of_components : TagComp.t list * bool -> t
@@ -341,9 +352,9 @@ module type Tags = sig
   val construct : bool * TagComp.t list -> t
 
   (** [destruct t] returns a pair [(b,cs)] such that:
-  if [b] is true, then [t] contains exactly the components [cs],
-  and if [b] is false, then the negation of [t] contains exactly
-  the components [cs]. *)
+      if [b] is true, then [t] contains exactly the components [cs],
+      and if [b] is false, then the negation of [t] contains exactly
+      the components [cs]. *)
   val destruct : t -> bool * TagComp.t list
 
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
@@ -363,12 +374,12 @@ module type Descr = sig
   module Tuples : Tuples with type node := node
 
   type component =
-  | Atoms of Atoms.t
-  | Arrows of Arrows.t
-  | Intervals of Intervals.t
-  | Records of Records.t
-  | Tags of Tags.t
-  | Tuples of Tuples.t
+    | Atoms of Atoms.t
+    | Arrows of Arrows.t
+    | Intervals of Intervals.t
+    | Records of Records.t
+    | Tags of Tags.t
+    | Tuples of Tuples.t
 
   val mk_atom : Atoms.Atom.t -> t
   val mk_atoms : Atoms.t -> t
@@ -406,6 +417,15 @@ end
 module type VDescr = sig
   include TyBase
 
+  val cap : t -> t -> t
+  val cup : t -> t -> t
+  val diff : t -> t -> t
+  val neg : t -> t
+  val is_empty : t -> bool
+  val leq : t -> t -> bool
+  val equiv : t -> t -> bool
+
+
   module Descr : Descr with type node := node
   module Dnf : Dnf with type atom = Var.t and type leaf = Descr.t
 
@@ -415,7 +435,7 @@ module type VDescr = sig
   val mk_descr : Descr.t -> t
 
   (** [get_descr t] extracts a monomorphic descriptor from [t],
-  which describes [t] by ignoring its top-level type variables. *)
+      which describes [t] by ignoring its top-level type variables. *)
   val get_descr : t -> Descr.t
 
   (** [map f t] replaces every descriptor [d] in [t] by the descriptor [f d]. *)
@@ -426,22 +446,30 @@ module type VDescr = sig
 
   val dnf : t -> Dnf.t
   val of_dnf : Dnf.t -> t
+
+  val simplify : t -> t
+  val direct_nodes : t -> node list
+  val direct_vars : t -> Var.t list
+
+  val substitute : t VarMap.t -> t -> t
 end
 
 (* Nodes *)
 
 module type Node = sig
   type t
-  include TyBase with type t:=t and type node:=t
+  type node = t
+  type vdescr
+  type descr
 
-  module VDescr : VDescr with type node := t
+  include TyBaseRef with type t := t and type node := node  
 
-  val def : t -> VDescr.t
-  val of_def : VDescr.t -> t
+  val def : t -> vdescr
+  val of_def : vdescr -> t
 
   val mk_var : Var.t -> t
-  val mk_descr : VDescr.Descr.t -> t
-  val get_descr : t -> VDescr.Descr.t
+  val mk_descr : descr -> t
+  val get_descr : t -> descr
 
   include SetTheoretic with type t := t
   val with_own_cache : ('a -> 'b) -> 'a -> 'b
@@ -469,8 +497,8 @@ module type Ty = sig
   val empty : t
 
   (** [def t] returns the full descriptor of [t]. For a given type [t],
-  [def t] is not necessarily constant: it may change over time, for instance
-  when the descriptor of [t] is simplified. *)
+      [def t] is not necessarily constant: it may change over time, for instance
+      when the descriptor of [t] is simplified. *)
   val def : t -> VDescr.t
 
   (** [of_def d] creates a type from the full descriptor [d]. *)
@@ -482,7 +510,7 @@ module type Ty = sig
   val mk_descr : VDescr.Descr.t -> t
 
   (** [get_descr t] extracts a monomorphic descriptor from [t],
-  which describes [t] by ignoring its top-level type variables. *)
+      which describes [t] by ignoring its top-level type variables. *)
   val get_descr : t -> VDescr.Descr.t
 
   include SetTheoretic with type t := t
@@ -494,8 +522,8 @@ module type Ty = sig
   val nodes : t -> t list
 
   (** [of_eqs [(x1,t1);...;(xn,tn)]] returns the types [x1], ..., [xn]
-  satisfying the system of equations [x1=t1], ..., [xn=tn].
-  Raises: [Invalid_argument] if the set of equations is not contractive. *)
+      satisfying the system of equations [x1=t1], ..., [xn=tn].
+      Raises: [Invalid_argument] if the set of equations is not contractive. *)
   val of_eqs : (Var.t * t) list -> (Var.t * t) list
 
   (** [substitute s t] applies the type variable substitution [s] to [t]. *)

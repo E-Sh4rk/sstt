@@ -8,13 +8,13 @@ module Ty : Ty = struct
 
   type t = N.t
 
-  module VDescr = N.VDescr
+  module VDescr = Node.VDescr
 
   let simpl t = N.with_own_cache N.simplify t ; t
   let s f t = f t |> simpl
   let s' f t = simpl t |> f
 
-  let any, empty = N.any () |> simpl, N.empty () |> simpl
+  let any, empty = N.any ()|> simpl, N.empty ()|> simpl
   let def, of_def = s' N.def, s N.of_def
 
   let mk_var, mk_descr, get_descr = s N.mk_var, s N.mk_descr, s' N.get_descr

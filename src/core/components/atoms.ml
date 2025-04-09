@@ -9,8 +9,8 @@ module Make(N:Node) = struct
   type t = Pos of ASet.t | Neg of ASet.t
   type node = N.t
 
-  let any () = Neg ASet.empty
-  let empty () = Pos ASet.empty
+  let any = Neg ASet.empty
+  let empty = Pos ASet.empty
 
   let mk e = Pos (ASet.singleton e)
   let construct (n,es) =
