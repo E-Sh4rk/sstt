@@ -3,8 +3,6 @@ open Sigs
 open Effect.Deep
 open Effect
 
-let () = Printexc.record_backtrace true
-
 module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr.t = struct
 
   module NSet = Set.Make(Node)
