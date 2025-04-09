@@ -3,8 +3,7 @@ open Sigs
 open Effect.Deep
 open Effect
 
-module rec Node : Node = struct
-  module VDescr = Vdescr.Make(Node)
+module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr.t = struct
 
   module NSet = Set.Make(Node)
   module NMap = Map.Make(Node)
@@ -12,12 +11,16 @@ module rec Node : Node = struct
   type _ Effect.t += GetCache: unit -> (bool VDMap.t) t
   type _ Effect.t += SetCache: bool VDMap.t -> unit t
 
+  type vdescr = VDescr.t
+  type descr = VDescr.Descr.t
+
   type t = {
     id : int ;
     neg : t ; (* Always generate the negation node as it is very easy to compute *)
     mutable def : VDescr.t option ;
     mutable simplified : bool ;
   }
+  type node = t
 
   let has_def t = Option.is_some t.def
   let def t = t.def |> Option.get
@@ -58,10 +61,10 @@ module rec Node : Node = struct
 
   let of_def d = d |> cons
 
-  let any = VDescr.any () |> cons
-  let empty =  VDescr.empty () |> cons
-  let any () = any
-  let empty () = empty
+  let any, empty =
+    let any =  VDescr.any |> cons in
+    let empty = any.neg in
+    (fun () -> any), (fun () -> empty)
 
   let cap t1 t2 =
     VDescr.cap (def t1) (def t2) |> cons
@@ -76,7 +79,7 @@ module rec Node : Node = struct
   let is_empty t =
     let def = def t in
     if t.simplified then
-      VDescr.equal def (VDescr.empty ())
+      VDescr.equal def VDescr.empty
     else
       let cache = perform (GetCache ()) in
       begin match VDMap.find_opt def cache with
@@ -180,9 +183,10 @@ module rec Node : Node = struct
       define (new_node n) d
     ) ;
     new_node t
-  
+
   let mk_var v = VDescr.mk_var v |> cons
   let mk_descr d = VDescr.mk_descr d |> cons
   let get_descr t = def t |> VDescr.get_descr
   let nodes t = dependencies t |> NSet.to_list
 end
+and VDescr : VDescr with type node = Node.t = Vdescr.Make(Node)

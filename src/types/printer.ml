@@ -394,22 +394,22 @@ let resolve_comp ctx c =
   match c with
   | D.Atoms c ->
     alias_or resolve_atoms c,
-    { op = Builtin AnyAtom ; ty = Atoms.any () |> D.mk_atoms |> Ty.mk_descr }
+    { op = Builtin AnyAtom ; ty = Atoms.any |> D.mk_atoms |> Ty.mk_descr }
   | D.Arrows c ->
     alias_or resolve_arrows c,
-    { op = Builtin AnyArrow ; ty = Arrows.any () |> D.mk_arrows |> Ty.mk_descr }
+    { op = Builtin AnyArrow ; ty = Arrows.any |> D.mk_arrows |> Ty.mk_descr }
   | D.Intervals c ->
     alias_or resolve_intervals c,
-    { op = Builtin AnyInt ; ty = Intervals.any () |> D.mk_intervals |> Ty.mk_descr }
+    { op = Builtin AnyInt ; ty = Intervals.any |> D.mk_intervals |> Ty.mk_descr }
   | D.Tags c ->
     alias_or resolve_tags c,
-    { op = Builtin AnyTag ; ty = Tags.any () |> D.mk_tags |> Ty.mk_descr }
+    { op = Builtin AnyTag ; ty = Tags.any |> D.mk_tags |> Ty.mk_descr }
   | D.Tuples c ->
     alias_or resolve_tuples c,
-    { op = Builtin AnyTuple; ty = Tuples.any () |> D.mk_tuples |> Ty.mk_descr }
+    { op = Builtin AnyTuple; ty = Tuples.any |> D.mk_tuples |> Ty.mk_descr }
   | D.Records c ->
     alias_or resolve_records c,
-    { op = Builtin AnyRecord ; ty = Records.any () |> D.mk_records |> Ty.mk_descr }
+    { op = Builtin AnyRecord ; ty = Records.any |> D.mk_records |> Ty.mk_descr }
 
 let resolve_descr ctx d =
   let ty = VD.mk_descr d |> Ty.of_def in

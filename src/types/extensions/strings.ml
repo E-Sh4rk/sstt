@@ -18,7 +18,7 @@ let str str =
     Hashtbl.add strings atom str ;
     atom |> Descr.mk_atom |> Ty.mk_descr |> add_tag
 
-let any = Atoms.any () |> Descr.mk_atoms |> Ty.mk_descr |> add_tag
+let any = Atoms.any |> Descr.mk_atoms |> Ty.mk_descr |> add_tag
 
 let extract ty =
   let open Printer in

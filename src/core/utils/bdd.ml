@@ -2,8 +2,8 @@ open Sstt_utils
 
 module type Leaf = sig
   type t
-  val any : unit -> t
-  val empty : unit -> t
+  val any : t
+  val empty : t
   val cap : t -> t -> t
   val cup : t -> t -> t
   val diff : t -> t -> t
@@ -15,8 +15,8 @@ end
 
 module BoolLeaf : Leaf with type t = bool = struct
   type t = bool
-  let any () = true
-  let empty () = false
+  let any = true
+  let empty = false
   let cap = (&&)
   let cup = (||)
   let diff b1 b2 = b1 && not b2
@@ -38,11 +38,11 @@ module Make(N:Atom)(L:Leaf) = struct
   | Node of N.t * t * t
   | Leaf of L.t
 
-  let empty () = Leaf (L.empty ())
-  let any () = Leaf (L.any ())
+  let empty = Leaf (L.empty)
+  let any = Leaf (L.any)
 
-  let singleton a = Node (a, any (), empty ())
-  let nsingleton a = Node (a, empty (), any ())
+  let singleton a = Node (a, any, empty)
+  let nsingleton a = Node (a, empty, any)
   let mk_leaf l = Leaf l
 
   let rec equal t1 t2 =
@@ -126,8 +126,8 @@ module Make(N:Atom)(L:Leaf) = struct
     in
     aux [] [] [] t
 
-  let conj = List.fold_left cap (any ())
-  let disj = List.fold_left cup (empty ())
+  let conj = List.fold_left cap any
+  let disj = List.fold_left cup empty
   let of_dnf dnf =
     let line (ps,ns,l) =
       let ps = ps |> List.map singleton in

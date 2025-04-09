@@ -27,8 +27,8 @@ module MakeC(N:Node) = struct
   type t = Tag.t * Bdd.t
   type node = N.t
 
-  let any n = n, Bdd.any ()
-  let empty n = n, Bdd.empty ()
+  let any n = n, Bdd.any
+  let empty n = n, Bdd.empty
 
   let mk a = Atom.tag a, Bdd.singleton a
 

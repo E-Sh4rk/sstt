@@ -21,8 +21,8 @@ module Make(N:Node) = struct
   type t = Bdd.t
   type node = N.t
 
-  let any () = Bdd.any ()
-  let empty () = Bdd.empty ()
+  let any = Bdd.any
+  let empty = Bdd.empty
   let mk a = Bdd.singleton a
 
   let cap = Bdd.cap

@@ -7,18 +7,19 @@ module Atom = struct
 end
 
 module Make(N:Node) = struct
+
   module Descr = Descr.Make(N)
   module Bdd = Bdd.Make(Atom)(Descr)
 
   type t = Bdd.t
   type node = N.t
 
-  let any () = Bdd.any ()
-  let empty () = Bdd.empty ()
+  let any = Bdd.any
+  let empty = Bdd.empty
 
   let mk_var a = Bdd.singleton a
   let mk_descr d = Bdd.mk_leaf d
-  let get_descr t = Bdd.leaves t |> List.fold_left Descr.cup (Descr.empty ())
+  let get_descr t = Bdd.leaves t |> List.fold_left Descr.cup Descr.empty
 
   let cap = Bdd.cap
   let cup = Bdd.cup
@@ -54,7 +55,7 @@ module Make(N:Node) = struct
     type leaf = Descr.t
     type t = Var.t
 
-    let undesirable_leaf l = Descr.equal l (Descr.empty ())
+    let undesirable_leaf l = Descr.equal l Descr.empty
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
   end
   module Dnf = Dnf.Make(DnfAtom)(N)
