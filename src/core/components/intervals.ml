@@ -76,7 +76,7 @@ module Interval = struct
 end
 
 module Atom = Interval
-type node
+
 module ISet = Set.Make(Interval)
 type t = ISet.t
 

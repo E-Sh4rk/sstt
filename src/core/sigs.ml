@@ -6,25 +6,14 @@ module type Comparable = sig
   val equal : t -> t -> bool
 end
 
+
 module type TyBase = sig
   type t
-  type node
-
-  val any : t
   val empty : t
+  val any : t
 
-  include Comparable with type t := t
 end
 
-module type TyBaseRef = sig
-  type t
-  type node
-
-  val any : unit -> t
-  val empty : unit -> t
-
-  include Comparable with type t := t
-end
 
 module type SetTheoretic = sig
   type t
@@ -75,11 +64,11 @@ end
 
 (* Atoms *)
 
-module type AtomAtom = Id.NamedIdentifier
-
 module type Atoms = sig
-  include TyBase
-  module Atom : AtomAtom
+  include TyBase with type t = Tdefs.atoms
+  include Comparable with type t := t
+
+  module Atom = Atoms.Atom
   val mk : Atom.t -> t
 
   val construct : bool * Atom.t list -> t
@@ -93,6 +82,7 @@ end
 (* Intervals *)
 
 module type IntervalAtom = sig
+  (* TODO: Unused, remove and put the doc string elsewhere *)
   (** [t] represents a non-empty integer interval. *)
   type t
 
@@ -118,8 +108,10 @@ module type IntervalAtom = sig
 end
 
 module type Intervals = sig
-  include TyBase
-  module Atom : IntervalAtom
+  include TyBase with type t = Tdefs.intervals
+  include Comparable with type t := t
+
+  module Atom = Intervals.Atom
   val mk : Atom.t -> t
   val construct : Atom.t list -> t
   val destruct : t -> Atom.t list
@@ -134,15 +126,20 @@ end
 (* Arrows *)
 
 module type ArrowAtom = sig
-  type node
-  type t = node * node
-  include Comparable with type t := t
-  val map_nodes : (node -> node) -> t -> t
+
+  include Comparable with  type t = Tdefs.arrow_atom
+
+  val map_nodes : (Tdefs.node -> Tdefs.node) -> t -> t
 end
 
 module type Arrows = sig
-  include TyBase
-  module Atom : ArrowAtom with type node := node
+  include TyBase with type t = Tdefs.arrows
+  include Comparable with type t := t
+
+
+  include Comparable with type t = Tdefs.arrows
+
+  module Atom : ArrowAtom
   module Dnf : Dnf with type atom = Atom.t and type leaf = bool
   val mk : Atom.t -> t
 
@@ -152,18 +149,14 @@ module type Arrows = sig
   val of_dnf : Dnf.t -> t
 
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
-  val map_nodes : (node -> node) -> t -> t
+  val map_nodes : (Tdefs.node -> Tdefs.node) -> t -> t
 end
 
 (* Records *)
 
-type 'node oty = 'node * bool
-
 module type RecordAtom = sig
-  type node
-  type nonrec oty = node oty
-
-  type t = { bindings : oty LabelMap.t ; opened : bool }
+  type t = Tdefs.record_atom = { bindings : Tdefs.onode LabelMap.t ; opened : bool }
+  include Comparable with type t := t
 
   (** [dom t] returns the set of explicit labels in [t].
       Note that this does not mean that labels in [dom t] are present in
@@ -173,21 +166,18 @@ module type RecordAtom = sig
 
   (** [find l t] returns the type associated with the label [l] in [t],
       even if [t] does not have an explicit binding for [l]. *)
-  val find : Label.t -> t -> oty
-
-  val to_tuple : Label.t list -> t -> oty list
-  val to_tuple_with_default : Label.t list -> t -> oty list
-  include Comparable with type t := t
-  val map_nodes : (node -> node) -> t -> t
+  val find : Label.t -> t -> Tdefs.onode
+  val to_tuple : Label.t list -> t -> Tdefs.onode list
+  val to_tuple_with_default : Label.t list -> t -> Tdefs.onode list
+  val map_nodes : (Tdefs.node -> Tdefs.node) -> t -> t
 end
 
 module type RecordAtom' = sig
-  type node
-  type nonrec oty = node oty
 
   (** When the field [required] is equal to [Some labels],
       it means that [t] requires at least one field not in [labels] to be present. *)
-  type t = { bindings : oty LabelMap.t ; opened : bool ; required : LabelSet.t option }
+  type t = Tdefs.record_atom' = { bindings : Tdefs.onode LabelMap.t ; opened : bool; required : LabelSet.t option }
+  include Comparable with type t := t
 
   (** [dom t] returns the set of explicit labels in [t].
       Note that this does not mean that labels in [dom t] are present in
@@ -197,15 +187,16 @@ module type RecordAtom' = sig
 
   (** [find l t] returns the type associated with the label [l] in [t],
       even if [t] does not have an explicit binding for [l]. *)
-  val find : Label.t -> t -> oty
+  val find : Label.t -> t -> Tdefs.onode
 
-  include Comparable with type t := t
 end
 
 module type Records = sig
-  include TyBase
-  module Atom : RecordAtom with type node := node
-  module Atom' : RecordAtom' with type node := node
+  include TyBase with type t = Tdefs.records 
+  include Comparable with type t := t
+
+  module Atom : RecordAtom
+  module Atom' : RecordAtom'
   module Dnf : Dnf with type atom = Atom.t and type leaf = bool
   module Dnf' : Dnf' with type atom = Atom'.t and type leaf = bool
   val mk : Atom.t -> t
@@ -221,21 +212,21 @@ module type Records = sig
   val of_dnf' : Dnf'.t -> t
 
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
-  val map_nodes : (node -> node) -> t -> t
+  val map_nodes : (Tdefs.node -> Tdefs.node) -> t -> t
 end
 
 (* Tuples *)
 
 module type TupleAtom = sig
-  type node
-  type t = node list
+  type t = Tdefs.tuple_atom
   include Comparable with type t := t
-  val map_nodes : (node -> node) -> t -> t
+  val map_nodes : (Tdefs.node -> Tdefs.node) -> t -> t
 end
 
 module type TupleComp = sig
-  include TyBase
-  module Atom : TupleAtom with type node := node
+  include Comparable with type t = Tdefs.tuple_comp
+
+  module Atom : TupleAtom
   module Dnf : Dnf with type atom = Atom.t and type leaf = bool
   module Dnf' : Dnf' with type atom = Atom.t and type leaf = bool
   val any : int -> t
@@ -256,12 +247,14 @@ module type TupleComp = sig
   val of_dnf' : int -> Dnf'.t -> t
 
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
-  val map_nodes : (node -> node) -> t -> t
+  val map_nodes : (Tdefs.node -> Tdefs.node) -> t -> t
 end
 
 module type Tuples = sig
-  include TyBase
-  module TupleComp : TupleComp with type node := node
+  include TyBase with type t = Tdefs.tuples
+  include Comparable with type t := t
+
+  module TupleComp : TupleComp
   val mk : TupleComp.Atom.t -> t
   val mk_comp : TupleComp.t -> t
 
@@ -287,22 +280,21 @@ module type Tuples = sig
   val destruct : t -> bool * TupleComp.t list
 
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
-  val map_nodes : (node -> node) -> t -> t
+  val map_nodes : (Tdefs.node -> Tdefs.node) -> t -> t
 end
 
 (* Tags *)
 
 module type TagAtom = sig
-  type node
-  module Tag : Id.NamedIdentifier
-  type t = Tag.t * node
+  module Tag = Tdefs.Tag
+  type t = Tdefs.tag_atom
   include Comparable with type t := t
-  val map_nodes : (node -> node) -> t -> t
+  val map_nodes : (Tdefs.node -> Tdefs.node) -> t -> t
 end
 
 module type TagComp = sig
-  include TyBase
-  module Atom : TagAtom with type node := node
+  include Comparable with type t = Tdefs.tag_comp
+  module Atom : TagAtom
   module Tag = Atom.Tag
   module Dnf : Dnf with type atom = Atom.t and type leaf = bool
   val any : Tag.t -> t
@@ -321,12 +313,16 @@ module type TagComp = sig
   val as_atom : t -> Atom.t
 
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
-  val map_nodes : (node -> node) -> t -> t
+  val map_nodes : (Tdefs.node -> Tdefs.node) -> t -> t
 end
 
 module type Tags = sig
-  include TyBase
-  module TagComp : TagComp with type node := node
+  include TyBase with type t = Tdefs.tags
+  include Comparable with type t := t
+
+  module TagComp : TagComp
+  module TMap : Map.S with type key = TagComp.Tag.t
+
   val mk : TagComp.Atom.t -> t
   val mk_comp : TagComp.t -> t
 
@@ -352,20 +348,21 @@ module type Tags = sig
   val destruct : t -> bool * TagComp.t list
 
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
-  val map_nodes : (node -> node) -> t -> t
+  val map_nodes : (Tdefs.node -> Tdefs.node) -> t -> t
 end
 
 (* Descr *)
 
 module type Descr = sig
-  include TyBase
+  include TyBase with type t = Tdefs.descr
+  include Comparable with type t := t
 
-  module Arrows : Arrows with type node := node
-  module Atoms : Atoms with type node := node
-  module Intervals : Intervals with type node := node
-  module Records : Records with type node := node
-  module Tags : Tags with type node := node
-  module Tuples : Tuples with type node := node
+  module Arrows : Arrows
+  module Atoms : Atoms
+  module Intervals : Intervals
+  module Records : Records
+  module Tags : Tags
+  module Tuples : Tuples
 
   type component =
     | Atoms of Atoms.t
@@ -374,6 +371,9 @@ module type Descr = sig
     | Records of Records.t
     | Tags of Tags.t
     | Tuples of Tuples.t
+
+  val any : t 
+  val empty : t
 
   val mk_atom : Atoms.Atom.t -> t
   val mk_atoms : Atoms.t -> t
@@ -403,13 +403,14 @@ module type Descr = sig
   val of_components : component list -> t
 
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
-  val map_nodes : (node -> node) -> t -> t
+  val map_nodes : (Tdefs.node -> Tdefs.node) -> t -> t
 end
 
 (* VDescr *)
 
 module type VDescr = sig
-  include TyBase
+  include TyBase with type t = Tdefs.vdescr
+  include Comparable with type t := t
 
   val cap : t -> t -> t
   val cup : t -> t -> t
@@ -419,30 +420,29 @@ module type VDescr = sig
   val leq : t -> t -> bool
   val equiv : t -> t -> bool
 
-
-  module Descr : Descr with type node := node
-  module Dnf : Dnf with type atom = Var.t and type leaf = Descr.t
+  module Descr : Descr
+  module Dnf : Dnf with type atom = Var.t and type leaf = Tdefs.descr
 
   val mk_var : Var.t -> t
 
   (** [mk_descr d] creates a full descriptor from the monomorphic descriptor [d]. *)
-  val mk_descr : Descr.t -> t
+  val mk_descr : Tdefs.descr -> t
 
   (** [get_descr t] extracts a monomorphic descriptor from [t],
       which describes [t] by ignoring its top-level type variables. *)
-  val get_descr : t -> Descr.t
+  val get_descr : t -> Tdefs.descr
 
   (** [map f t] replaces every descriptor [d] in [t] by the descriptor [f d]. *)
-  val map : (Descr.t -> Descr.t) -> t -> t
+  val map : (Tdefs.descr -> Tdefs.descr) -> t -> t
 
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
-  val map_nodes : (node -> node) -> t -> t
+  val map_nodes : (Tdefs.node -> Tdefs.node) -> t -> t
 
   val dnf : t -> Dnf.t
   val of_dnf : Dnf.t -> t
 
   val simplify : t -> t
-  val direct_nodes : t -> node list
+  val direct_nodes : t -> Tdefs.node list
   val direct_vars : t -> Var.t list
 
   val substitute : t VarMap.t -> t -> t
@@ -451,21 +451,17 @@ end
 (* Nodes *)
 
 module type Node = sig
-  type t
-  type node = t
-  type vdescr
-  type descr
 
-  include TyBaseRef with type t := t and type node := node
+  include Comparable with type t = Tdefs.node
+  include SetTheoretic with type t := t
 
-  val def : t -> vdescr
-  val of_def : vdescr -> t
+  val def : t -> Tdefs.vdescr
+  val of_def : Tdefs.vdescr -> t
 
   val mk_var : Var.t -> t
-  val mk_descr : descr -> t
-  val get_descr : t -> descr
+  val mk_descr : Tdefs.descr -> t
+  val get_descr : t -> Tdefs.descr
 
-  include SetTheoretic with type t := t
   val with_own_cache : ('a -> 'b) -> 'a -> 'b
 
   val vars : t -> VarSet.t
@@ -482,44 +478,37 @@ end
 (* Ty *)
 
 module type Ty = sig
-  type t
-  include TyBase with type t:=t and type node:=t
-
-  module VDescr : VDescr with type node := t
+  include TyBase with type t = Tdefs.node
+  include Comparable with type t := t
 
   module O : sig
-    type node = t
-    type t = node oty
-    include TyBase with type node := node and type t := t
-    val absent : t
-    val required : node -> t
-    val optional : node -> t
-
+    include TyBase with type t = Tdefs.onode 
+    include Comparable with type t := t
     include SetTheoretic with type t := t
+    val absent : t
+    val required : Tdefs.node -> t
+    val optional : Tdefs.node -> t    
     val is_absent : t -> bool
     val is_required : t -> bool
     val is_optional : t -> bool
   end
 
-  val any : t
-  val empty : t
-
   (** [def t] returns the full descriptor of [t]. For a given type [t],
       [def t] is not necessarily constant: it may change over time, for instance
       when the descriptor of [t] is simplified. *)
-  val def : t -> VDescr.t
+  val def : t -> Tdefs.vdescr
 
   (** [of_def d] creates a type from the full descriptor [d]. *)
-  val of_def : VDescr.t -> t
+  val of_def : Tdefs.vdescr -> t
 
   val mk_var : Var.t -> t
 
   (** [mk_descr d] creates a type from the monomorphic descriptor [d]. *)
-  val mk_descr : VDescr.Descr.t -> t
+  val mk_descr : Tdefs.descr -> t
 
   (** [get_descr t] extracts a monomorphic descriptor from [t],
       which describes [t] by ignoring its top-level type variables. *)
-  val get_descr : t -> VDescr.Descr.t
+  val get_descr : t -> Tdefs.descr
 
   include SetTheoretic with type t := t
 

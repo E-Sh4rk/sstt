@@ -11,14 +11,18 @@ module Ty : Ty = struct
   module VDescr = Node.VDescr
   module O = struct
     include Records.OTy(N)
-    let any, empty, absent = any (), empty (), absent ()
+    let any = Tdefs.any_onode
+    let empty = Tdefs.empty_onode
+    let absent = Tdefs.absent_onode
   end
 
   let simpl t = N.with_own_cache N.simplify t ; t
   let s f t = f t |> simpl
   let s' f t = simpl t |> f
 
-  let any, empty = N.any ()|> simpl, N.empty ()|> simpl
+  let any = Tdefs.any_node
+  let empty = Tdefs.empty_node
+
   let def, of_def = s' N.def, s N.of_def
 
   let mk_var, mk_descr, get_descr = s N.mk_var, s N.mk_descr, s' N.get_descr
@@ -42,7 +46,13 @@ module Ty : Ty = struct
 
   let compare, equal, hash = N.compare, N.equal, N.hash
 end
-module VDescr = Ty.VDescr
+
+module VDescr = struct
+  include Node.VDescr
+  let empty = Tdefs.empty_vdescr
+  let any = Tdefs.any_vdescr
+end
+
 module Descr = VDescr.Descr
 module Arrows = Descr.Arrows
 module Atoms = Descr.Atoms
