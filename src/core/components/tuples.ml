@@ -134,7 +134,7 @@ end
 
 module Make(N:Node) = struct
   module TupleComp = MakeC(N)
-  include Tagged.Make(N)(TupleComp)
+  include Tagged.Make (TupleComp)
 
   let mk_comp p = mk p
   let mk a = mk (TupleComp.mk a)

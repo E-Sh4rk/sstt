@@ -89,7 +89,7 @@ end
 
 module Make(N:Node) = struct
   module TagComp = MakeC(N)
-  include Tagged.Make(N)(TagComp)
+  include Tagged.Make(TagComp)
 
   let mk_comp p = mk p
   let mk a = mk (TagComp.mk a)

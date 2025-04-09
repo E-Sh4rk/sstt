@@ -23,10 +23,9 @@ module type TaggedComp = sig
   include Comparable with type t := t
 end
 
-module Make(N:Node)(C:TaggedComp with type node = N.t) = struct
+module Make(C : TaggedComp) = struct
   module TMap = Map.Make(C.Tag)
 
-  type node = N.t
   type t = { map : C.t TMap.t ; others : bool }
 
   let mk a =
@@ -42,29 +41,29 @@ module Make(N:Node)(C:TaggedComp with type node = N.t) = struct
     else
       let map = cs |> List.map (fun a -> (C.tag a, C.neg a)) |> TMap.of_list in
       { map ; others=true }
-  
+
   let any = { map = TMap.empty ; others = true }
   let empty = { map = TMap.empty ; others = false }
 
   let cap t1 t2 =
     let others = t1.others && t2.others in
     let map = TMap.merge (fun _ o1 o2 ->
-      match o1, o2 with
-      | None, None -> None
-      | Some t1, None -> if t2.others then Some t1 else None
-      | None, Some t2 -> if t1.others then Some t2 else None
-      | Some t1, Some t2 -> Some (C.cap t1 t2)
-    ) t1.map t2.map in
+        match o1, o2 with
+        | None, None -> None
+        | Some t1, None -> if t2.others then Some t1 else None
+        | None, Some t2 -> if t1.others then Some t2 else None
+        | Some t1, Some t2 -> Some (C.cap t1 t2)
+      ) t1.map t2.map in
     { map ; others }
   let cup t1 t2 =
     let others = t1.others || t2.others in
     let map = TMap.merge (fun _ o1 o2 ->
-      match o1, o2 with
-      | None, None -> None
-      | Some t1, None -> if t2.others then None else Some t1
-      | None, Some t2 -> if t1.others then None else Some t2
-      | Some t1, Some t2 -> Some (C.cup t1 t2)
-    ) t1.map t2.map in
+        match o1, o2 with
+        | None, None -> None
+        | Some t1, None -> if t2.others then None else Some t1
+        | None, Some t2 -> if t1.others then None else Some t2
+        | Some t1, Some t2 -> Some (C.cup t1 t2)
+      ) t1.map t2.map in
     { map ; others }
   let neg t =
     let others = not t.others in
@@ -73,12 +72,12 @@ module Make(N:Node)(C:TaggedComp with type node = N.t) = struct
   let diff t1 t2 =
     let others = t1.others && not t2.others in
     let map = TMap.merge (fun _ o1 o2 ->
-      match o1, o2 with
-      | None, None -> None
-      | Some t1, None -> if not t2.others then Some t1 else None
-      | None, Some t2 -> if t1.others then Some (C.neg t2) else None
-      | Some t1, Some t2 -> Some (C.diff t1 t2)
-    ) t1.map t2.map in
+        match o1, o2 with
+        | None, None -> None
+        | Some t1, None -> if not t2.others then Some t1 else None
+        | None, Some t2 -> if t1.others then Some (C.neg t2) else None
+        | Some t1, Some t2 -> Some (C.diff t1 t2)
+      ) t1.map t2.map in
     { map ; others }
 
   let is_empty t =
@@ -86,8 +85,8 @@ module Make(N:Node)(C:TaggedComp with type node = N.t) = struct
     TMap.for_all (fun _ a -> C.is_empty a) t.map
 
   let direct_nodes t = t.map |> TMap.bindings |>
-    List.map (fun (_,t) -> C.direct_nodes t) |>
-    List.concat
+                       List.map (fun (_,t) -> C.direct_nodes t) |>
+                       List.concat
 
   let map_nodes f t =
     let map = TMap.map (C.map_nodes f) t.map in
@@ -126,5 +125,5 @@ module Make(N:Node)(C:TaggedComp with type node = N.t) = struct
     TMap.equal C.equal t1.map t2.map
   let compare t1 t2 =
     compare t1.others t2.others |> ccmp
-    (TMap.compare C.compare) t1.map t2.map
+      (TMap.compare C.compare) t1.map t2.map
 end
