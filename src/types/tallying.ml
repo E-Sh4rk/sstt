@@ -233,12 +233,12 @@ module Make(VO:VarOrder) = struct
         ns |> List.map (to_tuple_with_default dom) in
       let n = List.length dom + 1 in
     (* We reuse the same algorithm as for tuples *)
-      let ps = mapn (fun () -> List.init n (fun _ -> OTy.any ())) OTy.conj ps in
+      let ps = mapn (fun () -> List.init n (fun _ -> Ty.O.any)) Ty.O.conj ps in
       let aux_n nss =
         let csss = nss |> List.mapi (fun i ns ->
           let pcomp = List.nth ps i in
-          let ncomp = ns |> List.map (fun ns -> List.nth ns i) |> OTy.disj |> OTy.neg in
-          OTy.cap pcomp ncomp |> aux_oty m
+          let ncomp = ns |> List.map (fun ns -> List.nth ns i) |> Ty.O.disj |> Ty.O.neg in
+          Ty.O.cap pcomp ncomp |> aux_oty m
         ) in
         NCSS.disj csss
       in

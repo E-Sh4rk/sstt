@@ -9,6 +9,11 @@ module Ty : Ty = struct
   type t = N.t
 
   module VDescr = Node.VDescr
+  module O = struct
+    type node = t
+    include VDescr.Descr.Records.Atom.OTy
+    let any, empty, absent = any (), empty (), absent ()
+  end
 
   let simpl t = N.with_own_cache N.simplify t ; t
   let s f t = f t |> simpl
@@ -38,7 +43,6 @@ module Ty : Ty = struct
 
   let compare, equal, hash = N.compare, N.equal, N.hash
 end
-
 module VDescr = Ty.VDescr
 module Descr = VDescr.Descr
 module Arrows = Descr.Arrows

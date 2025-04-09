@@ -73,7 +73,7 @@ module Records = struct
     let union_a a1 a2 =
       let dom = LabelSet.union (dom a1) (dom a2) in
       let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
-        (lbl, OTy.cup (find lbl a1) (find lbl a2))
+        (lbl, Ty.O.cup (find lbl a1) (find lbl a2))
       ) |> LabelMap.of_list in
       { bindings ; opened = a1.opened || a2.opened }
     in
@@ -82,21 +82,21 @@ module Records = struct
     | hd::tl -> List.fold_left union_a hd tl
 
   let proj label t =
-    as_union t |> List.map (Records.Atom.find label) |> Records.Atom'.OTy.disj
+    as_union t |> List.map (Records.Atom.find label) |> Ty.O.disj
 
   let merge a1 a2 =
     let open Records.Atom in
     let dom = LabelSet.union (dom a1) (dom a2) in
     let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
       let oty1, oty2 = find lbl a1, find lbl a2 in
-      let oty = if snd oty2 then OTy.cup oty1 (fst oty2, false) else oty2 in
+      let oty = if snd oty2 then Ty.O.cup oty1 (fst oty2, false) else oty2 in
       (lbl, oty)
     ) |> LabelMap.of_list in
     { bindings ; opened = a1.opened && a2.opened } |> Records.mk
 
   let remove a lbl =
     let open Records.Atom in
-    let bindings = a.bindings |> LabelMap.add lbl (OTy.absent ()) in
+    let bindings = a.bindings |> LabelMap.add lbl (Ty.O.absent) in
     { a with bindings } |> Records.mk
 
 end

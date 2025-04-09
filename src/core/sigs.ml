@@ -462,7 +462,7 @@ module type Node = sig
   type vdescr
   type descr
 
-  include TyBaseRef with type t := t and type node := node  
+  include TyBaseRef with type t := t and type node := node
 
   val def : t -> vdescr
   val of_def : vdescr -> t
@@ -492,6 +492,16 @@ module type Ty = sig
   include TyBase with type t:=t and type node:=t
 
   module VDescr : VDescr with type node := t
+
+  module O : sig
+    type node = t
+    type t = node * bool
+    include TyBase with type node := node and type t := t
+    val absent : t
+
+    include SetTheoretic with type t := t
+    val is_absent : t -> bool
+  end
 
   val any : t
   val empty : t
