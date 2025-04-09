@@ -40,7 +40,8 @@ module Atom(N:Node) = struct
   module OTy = OTy(N)
 
   type node = N.t
-  type t = { bindings : OTy.t LabelMap.t ; opened : bool }
+  type nonrec oty = node oty
+  type t = { bindings : oty LabelMap.t ; opened : bool }
   let map_nodes f t =
     { t with bindings = LabelMap.map (fun (n,b) -> (f n, b)) t.bindings }
   let direct_nodes t =
@@ -77,7 +78,8 @@ module Atom'(N:Node) = struct
   module OTy = OTy(N)
 
   type node = N.t
-  type t = { bindings : OTy.t LabelMap.t ; opened : bool ; required : LabelSet.t option }
+  type nonrec oty = node oty
+  type t = { bindings : oty LabelMap.t ; opened : bool ; required : LabelSet.t option }
   let dom t = LabelMap.bindings t.bindings |> List.map fst |> LabelSet.of_list
   let find lbl t =
     match LabelMap.find_opt lbl t.bindings with
@@ -127,7 +129,7 @@ module Make(N:Node) = struct
   module Atom = Atom(N)
   module Atom' = Atom'(N)
 
-  module ON = Atom.OTy
+  module ON = OTy(N)
   module Bdd = Bdd.Make(Atom)(Bdd.BoolLeaf)
 
   type t = Bdd.t
@@ -206,7 +208,7 @@ module Make(N:Node) = struct
         | None -> []
         | Some lbls ->
           let bindings =
-            lbls |> LabelSet.elements |> List.map (fun l -> (l,OTy.any ()))
+            lbls |> LabelSet.elements |> List.map (fun l -> (l,ON.any ()))
             |> LabelMap.of_list
           in
           [{Atom.bindings=bindings ; Atom.opened=false}]
@@ -231,7 +233,7 @@ module Make(N:Node) = struct
       let open Atom' in
       let dom = LabelSet.union (dom s1) (dom s2) in
       let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
-          (lbl, OTy.cap (find lbl s1) (find lbl s2))
+          (lbl, ON.cap (find lbl s1) (find lbl s2))
         ) |> LabelMap.of_list in
       let opened = s1.opened && s2.opened in
       let required =

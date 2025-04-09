@@ -157,19 +157,13 @@ end
 
 (* Records *)
 
-module type OTy = sig
-  type node
-  include TyBaseRef with type node := node and type t = node * bool
-  val absent : unit -> t
-
-  include SetTheoretic with type t := t
-  val is_absent : t -> bool
-end
+type 'node oty = 'node * bool
 
 module type RecordAtom = sig
   type node
-  module OTy : OTy with type node := node
-  type t = { bindings : OTy.t LabelMap.t ; opened : bool }
+  type nonrec oty = node oty
+
+  type t = { bindings : oty LabelMap.t ; opened : bool }
 
   (** [dom t] returns the set of explicit labels in [t].
       Note that this does not mean that labels in [dom t] are present in
@@ -179,21 +173,21 @@ module type RecordAtom = sig
 
   (** [find l t] returns the type associated with the label [l] in [t],
       even if [t] does not have an explicit binding for [l]. *)
-  val find : Label.t -> t -> OTy.t
+  val find : Label.t -> t -> oty
 
-  val to_tuple : Label.t list -> t -> OTy.t list
-  val to_tuple_with_default : Label.t list -> t -> OTy.t list
+  val to_tuple : Label.t list -> t -> oty list
+  val to_tuple_with_default : Label.t list -> t -> oty list
   include Comparable with type t := t
   val map_nodes : (node -> node) -> t -> t
 end
 
 module type RecordAtom' = sig
   type node
-  module OTy : OTy with type node := node
+  type nonrec oty = node oty
 
   (** When the field [required] is equal to [Some labels],
       it means that [t] requires at least one field not in [labels] to be present. *)
-  type t = { bindings : OTy.t LabelMap.t ; opened : bool ; required : LabelSet.t option }
+  type t = { bindings : oty LabelMap.t ; opened : bool ; required : LabelSet.t option }
 
   (** [dom t] returns the set of explicit labels in [t].
       Note that this does not mean that labels in [dom t] are present in
@@ -203,7 +197,7 @@ module type RecordAtom' = sig
 
   (** [find l t] returns the type associated with the label [l] in [t],
       even if [t] does not have an explicit binding for [l]. *)
-  val find : Label.t -> t -> OTy.t
+  val find : Label.t -> t -> oty
 
   include Comparable with type t := t
 end
@@ -495,7 +489,7 @@ module type Ty = sig
 
   module O : sig
     type node = t
-    type t = node * bool
+    type t = node oty
     include TyBase with type node := node and type t := t
     val absent : t
 

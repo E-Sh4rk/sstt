@@ -10,8 +10,7 @@ module Ty : Ty = struct
 
   module VDescr = Node.VDescr
   module O = struct
-    type node = t
-    include VDescr.Descr.Records.Atom.OTy
+    include Records.OTy(N)
     let any, empty, absent = any (), empty (), absent ()
   end
 
