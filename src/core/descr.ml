@@ -3,19 +3,19 @@ open Sstt_utils
 
 module Make(N:Node) = struct
   module Arrows = Arrows.Make(N)
-  module Atoms = Atoms.Make(N)
-  module Intervals = Intervals.Make(N)
+  module Atoms = Atoms
+  module Intervals = Intervals
   module Records = Records.Make(N)
   module Tags = Tags.Make(N)
   module Tuples = Tuples.Make(N)
 
   type component =
-  | Atoms of Atoms.t
-  | Arrows of Arrows.t
-  | Intervals of Intervals.t
-  | Records of Records.t
-  | Tags of Tags.t
-  | Tuples of Tuples.t
+    | Atoms of Atoms.t
+    | Arrows of Arrows.t
+    | Intervals of Intervals.t
+    | Records of Records.t
+    | Tags of Tags.t
+    | Tuples of Tuples.t
 
   type t = {
     atoms : Atoms.t ;
@@ -123,17 +123,17 @@ module Make(N:Node) = struct
     ] |> List.concat
 
   let simplify = unop Atoms.simplify Tags.simplify Tuples.simplify
-    Arrows.simplify Records.simplify Intervals.simplify
+      Arrows.simplify Records.simplify Intervals.simplify
   let map_nodes f = unop (Atoms.map_nodes f) (Tags.map_nodes f) (Tuples.map_nodes f)
-    (Arrows.map_nodes f) (Records.map_nodes f) (Intervals.map_nodes f)
+      (Arrows.map_nodes f) (Records.map_nodes f) (Intervals.map_nodes f)
 
   let compare t1 t2 =
     Atoms.compare t1.atoms t2.atoms |> ccmp
-    Intervals.compare t1.intervals t2.intervals |> ccmp
-    Tags.compare t1.tags t2.tags |> ccmp
-    Tuples.compare t1.tuples t2.tuples |> ccmp
-    Arrows.compare t1.arrows t2.arrows |> ccmp
-    Records.compare t1.records t2.records
+      Intervals.compare t1.intervals t2.intervals |> ccmp
+      Tags.compare t1.tags t2.tags |> ccmp
+      Tuples.compare t1.tuples t2.tuples |> ccmp
+      Arrows.compare t1.arrows t2.arrows |> ccmp
+      Records.compare t1.records t2.records
 
   let equal t1 t2 =
     Atoms.equal t1.atoms t2.atoms &&

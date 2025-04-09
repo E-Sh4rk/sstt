@@ -1,4 +1,3 @@
-open Sigs
 open Sstt_utils
 
 module Interval = struct
@@ -30,7 +29,7 @@ module Interval = struct
     | Some lb1, Some lb2 -> Z.compare lb1 lb2
   let compare (lb1, ub1) (lb2,ub2) =
     cmp_lb lb1 lb2 |> ccmp
-    cmp_ub ub1 ub2
+      cmp_ub ub1 ub2
   let equal t1 t2 = compare t1 t2 = 0
 
   let min_lb o1 o2 =
@@ -76,71 +75,67 @@ module Interval = struct
     | Some i1, Some i2 -> Format.fprintf fmt "(%a..%a)" Z.pp_print i1 Z.pp_print i2
 end
 
-module Make(N:Node) = struct
-  module Atom = Interval
-  type node = N.t
-  module ISet = Set.Make(Interval)
-  type t = ISet.t
+module Atom = Interval
+type node
+module ISet = Set.Make(Interval)
+type t = ISet.t
 
-  let empty = ISet.empty
-  let any = ISet.singleton Interval.any
-  let mk i = ISet.singleton i
+let empty = ISet.empty
+let any = ISet.singleton Interval.any
+let mk i = ISet.singleton i
 
-  let normalize t =
-    let rec try_combine acc lst =
-      match acc, lst with
-      | acc, [] -> acc
-      | [], cur::lst -> try_combine [cur] lst
-      | last::acc, cur::lst ->
-        begin match Interval.combine last cur with
+let normalize t =
+  let rec try_combine acc lst =
+    match acc, lst with
+    | acc, [] -> acc
+    | [], cur::lst -> try_combine [cur] lst
+    | last::acc, cur::lst ->
+      begin match Interval.combine last cur with
         | None -> try_combine (cur::last::acc) lst
         | Some i -> try_combine (i::acc) lst
-        end
+      end
+  in
+  t |> ISet.elements |> try_combine [] |> ISet.of_list
+let of_list lst = lst |> ISet.of_list |> normalize
+let construct = of_list
+
+let neg t =
+  let ub next =
+    match next with
+    | [] -> None
+    | (Some lb,_)::_ -> Some (Z.pred lb)
+    | (None, _)::_ -> raise Exit
+  in
+  let lb prev =
+    match prev with
+    | [] -> None
+    | (_,Some ub)::_ -> Some (Z.succ ub)
+    | (_, None)::_ -> raise Exit
+  in
+  let rec aux prev next =
+    let cur =
+      try [lb prev, ub next] with Exit -> []
     in
-    t |> ISet.elements |> try_combine [] |> ISet.of_list
-  let of_list lst = lst |> ISet.of_list |> normalize
-  let construct = of_list
+    match next with
+    | [] -> cur
+    | hd::next -> cur@(aux (hd::prev) next)
+  in
+  aux [] (ISet.elements t) |> ISet.of_list
+let cup t1 t2 = ISet.union t1 t2 |> normalize
+let cap t1 t2 =
+  carthesian_product (ISet.elements t1) (ISet.elements t2)
+  |> List.filter_map (fun (i1, i2) -> Interval.inter i1 i2) |> of_list
+let diff t1 t2 = cap t1 (neg t2)
 
-  let neg t =
-    let ub next =
-      match next with
-      | [] -> None
-      | (Some lb,_)::_ -> Some (Z.pred lb)
-      | (None, _)::_ -> raise Exit
-    in
-    let lb prev =
-      match prev with
-      | [] -> None
-      | (_,Some ub)::_ -> Some (Z.succ ub)
-      | (_, None)::_ -> raise Exit
-    in
-    let rec aux prev next =
-      let cur =
-        try [lb prev, ub next] with Exit -> []
-      in
-      match next with
-      | [] -> cur
-      | hd::next -> cur@(aux (hd::prev) next)
-    in
-    aux [] (ISet.elements t) |> ISet.of_list
-  let cup t1 t2 = ISet.union t1 t2 |> normalize
-  let cap t1 t2 =
-    carthesian_product (ISet.elements t1) (ISet.elements t2)
-    |> List.filter_map (fun (i1, i2) -> Interval.inter i1 i2) |> of_list
-  let diff t1 t2 = cap t1 (neg t2)
+let is_empty = ISet.is_empty
 
-  let is_empty = ISet.is_empty
+let direct_nodes _ = []
+let map_nodes _ t = t
+let simplify t = t
 
-  let direct_nodes _ = []
-  let map_nodes _ t = t
-  let simplify t = t
+let destruct t = ISet.elements t
+let destruct_neg t = neg t |> ISet.elements
 
-  let destruct t = ISet.elements t
-  let destruct_neg t = neg t |> ISet.elements
-
-  let compare = ISet.compare
-  let equal = ISet.equal
-end
-
-
+let compare = ISet.compare
+let equal = ISet.equal
 
