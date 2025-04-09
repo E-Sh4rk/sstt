@@ -55,32 +55,55 @@ let regroup_records conjuncts =
     [{ Records.Atom.bindings ; opened }]
   with Exit -> []
 let regroup_records (ps,ns,b) =
-  (regroup_records ps, ns, b)
+  let open Records.Atom in
+  (* Convert negative atoms to positive ones when possible *)
+  let ps',ns = ns |> List.partition_map (fun r ->
+    match LabelMap.to_list r.bindings with
+    | [lbl,oty] when r.opened ->
+      Either.Left ({ r with bindings=LabelMap.singleton lbl (Ty.O.neg oty) })
+    | _ -> Either.Right r
+  ) in
+  (* Regroup positive conjuncts *)
+  (regroup_records (ps'@ps), ns, b)
+let merge_record_lines (ps1,ns1,b1) (ps2,ns2,b2) =
+  let open Records.Atom in
+  match ps1, ps2, ns1, ns2 with
+  | [p1], [p2], [], [] when b1=b2 && p1.opened=p2.opened ->
+    begin match LabelMap.to_list p1.bindings, LabelMap.to_list p2.bindings with
+    | [lbl1,oty1], [lbl2,oty2] when Label.equal lbl1 lbl2 ->
+      Some ([{ p1 with bindings=LabelMap.singleton lbl1 (Ty.O.cup oty1 oty2) }],[],b1)
+    | _, _ -> None
+    end
+  | _, _, _, _ -> None
 
 let regroup_tuples conjuncts =
   try [mapn (fun () -> raise Exit) Ty.conj conjuncts]
   with Exit -> []
 let regroup_tuples (ps,ns,b) =
-  (regroup_tuples ps, ns, b)
-let simpl_tuple1 dnf =
-  let calc_line (ps,ns,_) =
-    Ty.cap
-      (ps |> List.map List.hd |> Ty.conj)
-      (ns |> List.map List.hd |> List.map Ty.neg |> Ty.conj)
-  in
-  [dnf |> List.map calc_line |> Ty.disj]
+  (* Convert negative atoms to positive ones when possible *)
+  let ps',ns = ns |> List.partition_map (fun lst ->
+    match lst with
+    | [ty] -> Either.Left [Ty.neg ty]
+    | _ -> Either.Right lst
+  ) in
+  (* Regroup positive conjuncts *)
+  (regroup_tuples (ps'@ps), ns, b)
+let merge_tuple_lines (ps1,ns1,b1) (ps2,ns2,b2) =
+  match ps1, ps2, ns1, ns2 with
+  | [[p1]], [[p2]], [], [] when b1=b2 ->
+    Some ([[Ty.cup p1 p2]], [], b1)
+  | _, _, _, _ -> None
 
 let simpl_arrows a =
   Arrows.dnf a |> Arrows.Dnf.simplify |> List.map regroup_arrows |> Arrows.of_dnf
 let simpl_records r =
-  Records.dnf r |> Records.Dnf.simplify |> List.map regroup_records |> Records.of_dnf
+  Records.dnf r |> Records.Dnf.simplify |> List.map regroup_records
+  |> merge_when_possible merge_record_lines |> Records.of_dnf
 let simpl_tuples p =
   let dnf = TupleComp.dnf p |> TupleComp.Dnf.simplify in
   let n = TupleComp.len p in
-  if n = 1 then
-    dnf |> simpl_tuple1 |> TupleComp.mk
-  else
-    dnf |> List.map regroup_tuples |> TupleComp.of_dnf n
+  dnf |> List.map regroup_tuples
+  |> merge_when_possible merge_tuple_lines |> TupleComp.of_dnf n
 let simpl_tuples t = Tuples.map simpl_tuples t
 let simpl_tags t = Tags.map (fun c -> TagComp.as_atom c |> TagComp.mk) t
 
