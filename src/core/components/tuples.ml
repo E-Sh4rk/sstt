@@ -19,7 +19,7 @@ module MakeC(N:Node) = struct
   module Bdd = Bdd.Make(Atom)(Bdd.BoolLeaf)
   module Tag = Int
 
-  type t = int * Bdd.t
+  type t = Tdefs.tuple_comp
 
   let any n = n, Bdd.any
   let empty n = n, Bdd.empty

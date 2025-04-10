@@ -2,7 +2,6 @@ open Sigs
 open Sstt_utils
 
 module Atom = struct
-  type node = Tdefs.node
   type t = Tdefs.arrow_atom
   let map_nodes f (n1,n2) = (f n1, f n2)
   let direct_nodes (n1,n2) = [n1;n2]

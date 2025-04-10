@@ -18,7 +18,6 @@ module Make(N:Node) = struct
     | Tuples of Tuples.t
 
   type t = Tdefs.descr
-  type node = N.t
 
   let empty = Tdefs.empty_descr
   let any = Tdefs.any_descr
