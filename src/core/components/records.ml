@@ -10,6 +10,7 @@ module OTy(N:Node) = struct
   let absent = (Tdefs.empty_node, true)
   let required t = (t, false)
   let optional t = (t, true)
+  let get (t,_) = t
 
   let cap (n1, b1) (n2, b2) =
     (N.cap n1 n2, b1 && b2)
@@ -36,6 +37,8 @@ module OTy(N:Node) = struct
 
   let equal (n1,b1) (n2,b2) = b1 = b2 && N.equal n1 n2
   let compare (n1,b1) (n2,b2) = compare b1 b2 |> ccmp N.compare n1 n2
+
+  let map_nodes f (n,b) = (f n, b)
 end
 
 module Atom(N:Node) = struct
@@ -44,7 +47,7 @@ module Atom(N:Node) = struct
 
   type t = Tdefs.record_atom = { bindings : Tdefs.onode LabelMap.t ; opened : bool }
   let map_nodes f t =
-    { t with bindings = LabelMap.map (fun (n,b) -> (f n, b)) t.bindings }
+    { t with bindings = LabelMap.map (OTy.map_nodes f) t.bindings }
 
   let direct_nodes t =
     t.bindings |> LabelMap.bindings |> List.map (fun (_,(n,_)) -> n)
@@ -98,7 +101,7 @@ module Atom'(N:Node) = struct
       match t.required with
       | None -> None
       | Some lbls ->
-        if bindings |> LabelMap.exists (fun l (_,b) -> LabelSet.mem l lbls |> not && not b)
+        if bindings |> LabelMap.exists (fun l on -> LabelSet.mem l lbls |> not && OTy.is_required on)
         then None
         else Some (lbls |> LabelSet.filter (fun l -> find l t |> OTy.is_absent |> not))
     in

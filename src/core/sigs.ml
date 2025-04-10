@@ -482,7 +482,7 @@ module type Ty = sig
   include Comparable with type t := t
 
   module O : sig
-    include TyBase with type t = Tdefs.onode 
+    include TyBase with type t = Tdefs.onode
     include Comparable with type t := t
     include SetTheoretic with type t := t
     val absent : t
@@ -491,6 +491,7 @@ module type Ty = sig
     val is_absent : t -> bool
     val is_required : t -> bool
     val is_optional : t -> bool
+    val get : t -> Tdefs.node
   end
 
   (** [def t] returns the full descriptor of [t]. For a given type [t],
