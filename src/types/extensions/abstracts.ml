@@ -38,9 +38,7 @@ let mk tag ps =
   let ty = encode_params vs ps in
   (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
 
-let mk_any tag =
-  let arrow = Arrows.any |> Descr.mk_arrows |> Ty.mk_descr in
-  (tag, arrow) |> Descr.mk_tag |> Ty.mk_descr
+let mk_any tag = (tag, Ty.any) |> Descr.mk_tag |> Ty.mk_descr
 
 let is_abstract tag = Hashtbl.mem atypes tag
 let params_of tag = Hashtbl.find atypes tag
@@ -85,8 +83,7 @@ let extract_params vs ty =
     res |> List.map (fun (ps, ns) ->
       let ps = ps |> List.map (encode_params vs) |> Ty.conj in
       let ns = ns |> List.map (encode_params vs) |> List.map Ty.neg |> Ty.conj in
-      let arrow = Arrows.any |> Descr.mk_arrows |> Ty.mk_descr in
-      Ty.cap arrow (Ty.cap ps ns)
+      Ty.cap ps ns
     ) |> Ty.disj
   in
   if Ty.equiv ty ty' |> not then raise Exit ;
