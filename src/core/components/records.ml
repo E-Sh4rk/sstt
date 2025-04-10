@@ -3,12 +3,11 @@ open Sigs
 open Sstt_utils
 
 module OTy(N:Node) = struct
-  type node = N.t
-  type t = node * bool
+  type t = Tdefs.onode
 
-  let any () = (N.any (), true)
-  let empty () = (N.empty (), false)
-  let absent () = (N.empty (), true)
+  let empty = Tdefs.empty_onode
+  let any = Tdefs.any_onode
+  let absent = Tdefs.absent_onode
   let required t = (t, false)
   let optional t = (t, true)
 
@@ -43,25 +42,24 @@ module Atom(N:Node) = struct
   module Label = Label
   module OTy = OTy(N)
 
-  type node = N.t
-  type nonrec oty = node oty
-  type t = { bindings : oty LabelMap.t ; opened : bool }
+  type t = Tdefs.record_atom = { bindings : Tdefs.onode LabelMap.t ; opened : bool }
   let map_nodes f t =
     { t with bindings = LabelMap.map (fun (n,b) -> (f n, b)) t.bindings }
+
   let direct_nodes t =
     t.bindings |> LabelMap.bindings |> List.map (fun (_,(n,_)) -> n)
   let dom t = LabelMap.bindings t.bindings |> List.map fst |> LabelSet.of_list
   let find lbl t =
     match LabelMap.find_opt lbl t.bindings, t.opened with
     | Some on, _ -> on
-    | None, true -> OTy.any ()
-    | None, false -> OTy.absent ()
+    | None, true -> Tdefs.any_onode
+    | None, false -> Tdefs.absent_onode
   let to_tuple dom t = dom |> List.map (fun l -> find l t)
   let to_tuple_with_default dom t =
     if t.opened then
-      (OTy.any ())::(to_tuple dom t)
+      Tdefs.any_onode::(to_tuple dom t)
     else
-      (OTy.absent ())::(to_tuple dom t)  
+      Tdefs.absent_onode::(to_tuple dom t)  
   let simplify t =
     let not_any _ on = OTy.is_any on |> not in
     let not_absent _ on = OTy.is_absent on |> not in
@@ -81,15 +79,13 @@ module Atom'(N:Node) = struct
   module Label = Label
   module OTy = OTy(N)
 
-  type node = N.t
-  type nonrec oty = node oty
-  type t = { bindings : oty LabelMap.t ; opened : bool ; required : LabelSet.t option }
+  type t = Tdefs.record_atom' = { bindings : Tdefs.onode LabelMap.t ; opened : bool; required : LabelSet.t option }
   let dom t = LabelMap.bindings t.bindings |> List.map fst |> LabelSet.of_list
   let find lbl t =
     match LabelMap.find_opt lbl t.bindings with
     | Some on -> on
-    | None when t.opened -> OTy.any ()
-    | None -> OTy.absent ()
+    | None when t.opened -> Tdefs.any_onode
+    | None -> Tdefs.absent_onode
   let simplify t =
     let bindings =
       let not_any _ on = OTy.is_any on |> not in
@@ -136,11 +132,10 @@ module Make(N:Node) = struct
   module ON = OTy(N)
   module Bdd = Bdd.Make(Atom)(Bdd.BoolLeaf)
 
-  type t = Bdd.t
-  type node = N.t
+  type t = Tdefs.records
 
-  let any = Bdd.any
-  let empty = Bdd.empty
+  let any = Tdefs.any_descr.records
+  let empty = Tdefs.empty_descr.records
 
   let mk a = Bdd.singleton a
 
@@ -150,10 +145,10 @@ module Make(N:Node) = struct
   let diff = Bdd.diff
 
   let conj n ps =
-    let init = fun () -> List.init n (fun _ -> ON.any ()) in
+    let init = fun () -> List.init n (fun _ -> Tdefs.any_onode) in
     mapn init ON.conj ps
   let disj n ps =
-    let init = fun () -> List.init n (fun _ -> ON.empty ()) in
+    let init = fun () -> List.init n (fun _ -> Tdefs.empty_onode) in
     mapn init ON.disj ps
 
   let rec distribute_diff ss tt =
@@ -205,31 +200,29 @@ module Make(N:Node) = struct
     type t = Atom.t
     type t' = Atom'.t
 
-    let to_t a' =
-      let open Atom' in
+    let to_t (a':Atom'.t) : Atom.t list *Atom.t list =
       let ns =
         match a'.required with
         | None -> []
         | Some lbls ->
           let bindings =
-            lbls |> LabelSet.elements |> List.map (fun l -> (l,ON.any ()))
+            lbls |> LabelSet.elements |> List.map (fun l -> (l,Tdefs.any_onode))
             |> LabelMap.of_list
           in
-          [{Atom.bindings=bindings ; Atom.opened=false}]
+          Tdefs.[{bindings=bindings ; opened=false}]
       in
-      let ps = [{Atom.bindings=a'.bindings ; Atom.opened=a'.opened}] in
+      let ps = Tdefs.[{bindings=a'.bindings ; opened=a'.opened}] in
       ps, ns
-    let to_t' (a,b) =
-      let open Atom' in
-      let not_binding (l,on) =
-        { bindings=LabelMap.singleton l (ON.neg on) ; opened=true ; required=None }
+    let to_t' ((a:Atom.t),b) =
+      let not_binding (l,on) : Atom'.t =
+        Tdefs.{ bindings=LabelMap.singleton l (ON.neg on) ; opened=true ; required=None }
       in
       if b then
-        [ { bindings=a.Atom.bindings ; opened=a.Atom.opened ; required=None } ]
+        Tdefs.[ { bindings=a.bindings ; opened=a.opened ; required=None } ]
       else
-        let res = a.Atom.bindings |> LabelMap.bindings |> List.map not_binding in
-        if a.Atom.opened then res
-        else { bindings=a.Atom.bindings ; opened=true ; required=Some (Atom.dom a) }::res
+        let res = a.bindings |> LabelMap.bindings |> List.map not_binding in
+        if a.opened then res
+        else Tdefs.{ bindings=a.bindings ; opened=true ; required=Some (Atom.dom a) }::res
     let to_t' (a,b) =
       to_t' (a,b) |> List.filter (fun a -> Atom'.is_empty a |> not)
       |> List.map Atom'.simplify
@@ -246,7 +239,7 @@ module Make(N:Node) = struct
         | Some r, None | None, Some r -> Some r
         | Some r1, Some r2 -> Some (LabelSet.union r1 r2)
       in
-      let res = { bindings ; opened ; required } in
+      let res = Tdefs.{ bindings ; opened ; required } in
       if is_empty res then None else Some (simplify res)
   end
   module Dnf' = Dnf.Make'(DnfAtom)(DnfAtom')(N)
@@ -254,7 +247,7 @@ module Make(N:Node) = struct
 
   let dnf t = Bdd.dnf t |> Dnf.mk
   let dnf' t = dnf t |> Dnf'.from_dnf
-                 ({ Atom'.bindings=LabelMap.empty ; opened=true ; required=None })
+                 Tdefs.{ bindings=LabelMap.empty ; opened=true ; required=None }
   let of_dnf dnf = Dnf.mk dnf |> Bdd.of_dnf
   let of_dnf' dnf' = of_dnf (Dnf'.to_dnf dnf')
 

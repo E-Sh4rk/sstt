@@ -1,12 +1,11 @@
 open Sigs
 open Sstt_utils
-
-module Tag = Id.NamedIdentifier()
+open Tdefs
 
 module Atom(N:Node) = struct
   module Tag = Tag
-  type node = N.t
-  type t = Tag.t * node
+
+  type t = Tdefs.tag_atom
   let tag (tag,_) = tag
   let map_nodes f (t,n) = t, f n
   let direct_nodes (_,n) = [n]
@@ -24,8 +23,7 @@ module MakeC(N:Node) = struct
   module Bdd = Bdd.Make(Atom)(Bdd.BoolLeaf)
   module Tag = Atom.Tag
 
-  type t = Tag.t * Bdd.t
-  type node = N.t
+  type t = Tdefs.tag_comp
 
   let any n = n, Bdd.any
   let empty n = n, Bdd.empty
@@ -89,7 +87,7 @@ end
 
 module Make(N:Node) = struct
   module TagComp = MakeC(N)
-  include Tagged.Make(N)(TagComp)
+  include Tagged.Make(TagComp)
 
   let mk_comp p = mk p
   let mk a = mk (TagComp.mk a)
