@@ -492,9 +492,13 @@ module type Ty = sig
     type t = node oty
     include TyBase with type node := node and type t := t
     val absent : t
+    val required : node -> t
+    val optional : node -> t
 
     include SetTheoretic with type t := t
     val is_absent : t -> bool
+    val is_required : t -> bool
+    val is_optional : t -> bool
   end
 
   val any : t

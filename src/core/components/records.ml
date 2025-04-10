@@ -9,6 +9,8 @@ module OTy(N:Node) = struct
   let any () = (N.any (), true)
   let empty () = (N.empty (), false)
   let absent () = (N.empty (), true)
+  let required t = (t, false)
+  let optional t = (t, true)
 
   let cap (n1, b1) (n2, b2) =
     (N.cap n1 n2, b1 && b2)
@@ -27,6 +29,8 @@ module OTy(N:Node) = struct
   let is_empty (n,b) = not b && N.is_empty n
   let is_any (n,b) = b && N.is_any n
   let is_absent (n,b) = b && N.is_empty n
+  let is_optional (_,b) = b
+  let is_required (_,b) = not b
   let leq (n1,b1) (n2,b2) = (not b1 || b2) && N.leq n1 n2
   let equiv (n1,b1) (n2,b2) = b1 = b2 && N.equiv n1 n2
   let disjoint (n1,b1) (n2,b2) = not (b1 && b2) && N.disjoint n1 n2
