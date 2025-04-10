@@ -112,7 +112,3 @@ let empty_node =
   let t = N.mk () in
   N.define true t empty_vdescr any_vdescr; t
 let any_node = empty_node.neg
-
-let any_onode = (any_node, true)
-let empty_onode = (empty_node, false)
-let absent_onode = (empty_node, true)

@@ -11,9 +11,6 @@ module Ty : Ty = struct
   module VDescr = Node.VDescr
   module O = struct
     include Records.OTy(N)
-    let any = Tdefs.any_onode
-    let empty = Tdefs.empty_onode
-    let absent = Tdefs.absent_onode
   end
 
   let simpl t = N.with_own_cache N.simplify t ; t

@@ -5,9 +5,9 @@ open Sstt_utils
 module OTy(N:Node) = struct
   type t = Tdefs.onode
 
-  let empty = Tdefs.empty_onode
-  let any = Tdefs.any_onode
-  let absent = Tdefs.absent_onode
+  let empty = (Tdefs.empty_node, false)
+  let any = (Tdefs.any_node, true)
+  let absent = (Tdefs.empty_node, true)
   let required t = (t, false)
   let optional t = (t, true)
 
@@ -52,14 +52,14 @@ module Atom(N:Node) = struct
   let find lbl t =
     match LabelMap.find_opt lbl t.bindings, t.opened with
     | Some on, _ -> on
-    | None, true -> Tdefs.any_onode
-    | None, false -> Tdefs.absent_onode
+    | None, true -> OTy.any
+    | None, false -> OTy.absent
   let to_tuple dom t = dom |> List.map (fun l -> find l t)
   let to_tuple_with_default dom t =
     if t.opened then
-      Tdefs.any_onode::(to_tuple dom t)
+      OTy.any::(to_tuple dom t)
     else
-      Tdefs.absent_onode::(to_tuple dom t)  
+      OTy.absent::(to_tuple dom t)
   let simplify t =
     let not_any _ on = OTy.is_any on |> not in
     let not_absent _ on = OTy.is_absent on |> not in
@@ -84,8 +84,8 @@ module Atom'(N:Node) = struct
   let find lbl t =
     match LabelMap.find_opt lbl t.bindings with
     | Some on -> on
-    | None when t.opened -> Tdefs.any_onode
-    | None -> Tdefs.absent_onode
+    | None when t.opened -> OTy.any
+    | None -> OTy.absent
   let simplify t =
     let bindings =
       let not_any _ on = OTy.is_any on |> not in
@@ -145,10 +145,10 @@ module Make(N:Node) = struct
   let diff = Bdd.diff
 
   let conj n ps =
-    let init = fun () -> List.init n (fun _ -> Tdefs.any_onode) in
+    let init = fun () -> List.init n (fun _ -> ON.any) in
     mapn init ON.conj ps
   let disj n ps =
-    let init = fun () -> List.init n (fun _ -> Tdefs.empty_onode) in
+    let init = fun () -> List.init n (fun _ -> ON.empty) in
     mapn init ON.disj ps
 
   let rec distribute_diff ss tt =
@@ -206,7 +206,7 @@ module Make(N:Node) = struct
         | None -> []
         | Some lbls ->
           let bindings =
-            lbls |> LabelSet.elements |> List.map (fun l -> (l,Tdefs.any_onode))
+            lbls |> LabelSet.elements |> List.map (fun l -> (l,ON.any))
             |> LabelMap.of_list
           in
           Tdefs.[{bindings=bindings ; opened=false}]

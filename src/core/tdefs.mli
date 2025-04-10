@@ -46,12 +46,6 @@ val empty_node : node
 
 val any_node : node
 
-val empty_onode : onode
-
-val any_onode : onode
-
-val absent_onode : onode
-
 module N : 
 sig
   type t = node
