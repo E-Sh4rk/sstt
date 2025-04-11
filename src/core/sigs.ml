@@ -452,11 +452,10 @@ end
 
 module type Node = sig
   type t
-  type node = t
   type vdescr
   type descr
 
-  include TyBaseRef with type t := t and type node := node
+  include TyBaseRef with type t := t and type node := t
 
   val def : t -> vdescr
   val of_def : vdescr -> t

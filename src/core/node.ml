@@ -20,7 +20,6 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
     mutable def : VDescr.t option ;
     mutable simplified : bool ;
   }
-  type node = t
 
   let has_def t = Option.is_some t.def
   let def t = t.def |> Option.get
