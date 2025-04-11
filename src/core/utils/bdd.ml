@@ -33,13 +33,11 @@ module type Atom = sig
   val equal : t -> t -> bool
 end
 
-type ('atom, 'leaf) t = 
- | Leaf of 'leaf
- | Node of 'atom * ('atom, 'leaf) t * ('atom,'leaf) t
-
 module Make(N:Atom)(L:Leaf) = struct
-  type nonrec t = (N.t, L.t) t
-  
+  type t =
+  | Node of N.t * t * t
+  | Leaf of L.t
+
   let empty = Leaf (L.empty)
   let any = Leaf (L.any)
 

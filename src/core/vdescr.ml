@@ -11,7 +11,8 @@ module Make(N:Node) = struct
   module Descr = Descr.Make(N)
   module Bdd = Bdd.Make(Atom)(Descr)
 
-  type t = Tdefs.vdescr
+  type t = Bdd.t
+  type node = N.t
 
   let any = Bdd.any
   let empty = Bdd.empty

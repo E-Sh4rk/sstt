@@ -2,7 +2,8 @@ open Sigs
 open Sstt_utils
 
 module Atom(N:Node) = struct
-  type t = Tdefs.tuple_atom
+  type node = N.t
+  type t = node list
   let tag t = List.length t
   let map_nodes f t = List.map f t
   let direct_nodes t = t
@@ -19,7 +20,8 @@ module MakeC(N:Node) = struct
   module Bdd = Bdd.Make(Atom)(Bdd.BoolLeaf)
   module Tag = Int
 
-  type t = Tdefs.tuple_comp
+  type t = int * Bdd.t
+  type node = N.t
 
   let any n = n, Bdd.any
   let empty n = n, Bdd.empty
@@ -39,10 +41,10 @@ module MakeC(N:Node) = struct
   let diff (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.diff t1 t2
     
   let conj n ps =
-    let init = fun () -> List.init n (fun _ -> Tdefs.any_node) in
+    let init = fun () -> List.init n (fun _ -> N.any ()) in
     mapn init N.conj ps
   let disj n ps =
-    let init = fun () -> List.init n (fun _ -> Tdefs.empty_node) in
+    let init = fun () -> List.init n (fun _ -> N.empty ()) in
     mapn init N.disj ps
 
   let rec distribute_diff ss tt =
@@ -93,13 +95,13 @@ module MakeC(N:Node) = struct
 
     let to_t a = [a], []
     let to_t' (ns,b) =
-      let any_tuple n = List.init n (fun _ -> Tdefs.any_node) in
+      let any_tuple n = List.init n (fun _ -> N.any()) in
       let rec aux ns =
         match ns with
         | [] -> []
         | n::ns ->
           let this = (N.neg n)::(any_tuple (List.length ns)) in
-          let others = aux ns |> List.map (fun s -> Tdefs.any_node::s) in
+          let others = aux ns |> List.map (fun s -> (N.any())::s) in
           this::others
       in
       if b then [ns] else aux ns
@@ -112,7 +114,7 @@ module MakeC(N:Node) = struct
   module Dnf = Dnf.Make(DnfAtom)(N)
 
   let dnf (_,t) = Bdd.dnf t |> Dnf.mk
-  let dnf' (n,t) = dnf (n,t) |> Dnf'.from_dnf (List.init n (fun _ -> Tdefs.any_node))
+  let dnf' (n,t) = dnf (n,t) |> Dnf'.from_dnf (List.init n (fun _ -> N.any ()))
   let of_dnf tag dnf =
     dnf |> List.iter (fun (ps,ns,_) ->
       ps |> List.iter (fun a -> check_tag tag (Atom.tag a)) ;

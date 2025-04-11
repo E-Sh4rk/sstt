@@ -1,26 +1,28 @@
 open Sigs
 open Sstt_utils
 
-module Atom = struct
-  type t = Tdefs.arrow_atom
+module Atom(N:Node) = struct
+  type node = N.t
+  type t = node * node
   let map_nodes f (n1,n2) = (f n1, f n2)
   let direct_nodes (n1,n2) = [n1;n2]
   let simplify t = t
   let equal (s1,t1) (s2,t2) =
-    Tdefs.N.equal s1 s2 && Tdefs.N.equal t1 t2
+    N.equal s1 s2 && N.equal t1 t2
   let compare (s1,t1) (s2,t2) =
-    Tdefs.N.compare s1 s2 |> ccmp
-    Tdefs.N.compare t1 t2
+    N.compare s1 s2 |> ccmp
+    N.compare t1 t2
 end
 
-module Make(N : Node) = struct
-  module Atom = Atom
+module Make(N:Node) = struct
+  module Atom = Atom(N)
   module Bdd = Bdd.Make(Atom)(Bdd.BoolLeaf)
 
-  type t = Tdefs.arrows
-  let any = Tdefs.any_descr.arrows
-  let empty = Tdefs.empty_descr.arrows
+  type t = Bdd.t
+  type node = N.t
 
+  let any = Bdd.any
+  let empty = Bdd.empty
   let mk a = Bdd.singleton a
 
   let cap = Bdd.cap
