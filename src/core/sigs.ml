@@ -411,15 +411,6 @@ end
 module type VDescr = sig
   include TyBase
 
-  val cap : t -> t -> t
-  val cup : t -> t -> t
-  val diff : t -> t -> t
-  val neg : t -> t
-  val is_empty : t -> bool
-  val leq : t -> t -> bool
-  val equiv : t -> t -> bool
-
-
   module Descr : Descr with type node := node
   module Dnf : Dnf with type atom = Var.t and type leaf = Descr.t
 
@@ -440,15 +431,26 @@ module type VDescr = sig
 
   val dnf : t -> Dnf.t
   val of_dnf : Dnf.t -> t
+end
+
+(* Nodes (internal signature, not exposed to the user) *)
+
+(* Expose some additional internal VDescr methods,
+   required for the recursive definition *)
+module type VDescr' = sig
+  include VDescr
+
+  val cap : t -> t -> t
+  val cup : t -> t -> t
+  val diff : t -> t -> t
+  val neg : t -> t
+  val is_empty : t -> bool
 
   val simplify : t -> t
   val direct_nodes : t -> node list
   val direct_vars : t -> Var.t list
-
   val substitute : t VarMap.t -> t -> t
 end
-
-(* Nodes *)
 
 module type Node = sig
   type t

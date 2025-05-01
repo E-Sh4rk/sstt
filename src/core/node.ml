@@ -188,4 +188,4 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
   let get_descr t = def t |> VDescr.get_descr
   let nodes t = dependencies t |> NSet.to_list
 end
-and VDescr : VDescr with type node = Node.t = Vdescr.Make(Node)
+and VDescr : VDescr' with type node = Node.t = Vdescr.Make(Node)
