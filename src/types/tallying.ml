@@ -141,12 +141,17 @@ module Make(VO:VarOrder) = struct
 
   let norm delta t =
     let rec aux m t =
-      let vd = Ty.def t in
-      if VDSet.mem vd m then NCSS.any
+      if Ty.vars t |> Base.VarSet.for_all (fun x -> VarSet.mem x delta) then
+        (* Optimisation: performing tallying on an expression with
+           no polymorphic type variable should be as fast as subtyping. *)
+        begin if Ty.is_empty t then NCSS.any else NCSS.empty end
       else
-        let m = VDSet.add vd m in
-        let summands = vd |> VDescr.dnf |> VDescr.Dnf.simplify |> List.map Summand.of_line in
-        summands |> List.map (aux_summand m) |> NCSS.conj
+        let vd = Ty.def t in
+        if VDSet.mem vd m then NCSS.any
+        else
+          let m = VDSet.add vd m in
+          let summands = vd |> VDescr.dnf |> VDescr.Dnf.simplify |> List.map Summand.of_line in
+          summands |> List.map (aux_summand m) |> NCSS.conj
     and aux_summand m summand =
       match VarSet.diff (Summand.vars summand) delta |> VarSet.elements with
       | [] ->
