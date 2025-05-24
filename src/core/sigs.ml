@@ -475,8 +475,8 @@ module type Node = sig
 
   val of_eqs : (Var.t * t) list -> (Var.t * t) list
   val substitute : t VarMap.t -> t -> t
+  val factorize : t -> t
   val simplify : t -> unit
-  val normalize : ?approx:bool -> t -> unit
 
   val hash : t -> int
 end
@@ -541,10 +541,8 @@ module type Ty = sig
   (** [substitute s t] applies the type variable substitution [s] to [t]. *)
   val substitute : t VarMap.t -> t -> t
 
-  (** [normalize ~approx t] factorizes equivalent nodes in [t].
-      If [approx] is true, BDD syntactic equivalence is used
-      instead of semantic equivalence. *)
-  val normalize : ?approx:bool -> t -> unit
+  (** [factorize t] factorizes equivalent nodes in [t]. *)
+  val factorize : t -> t
 
   val hash : t -> int
 end

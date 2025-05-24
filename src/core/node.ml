@@ -183,25 +183,24 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
     ) ;
     new_node t
 
-  let normalize ?(approx=false) t =
-    let eq =
-      if approx then
-        (fun n1 n2 -> VDescr.equal (def n1) (def n2))
-      else
-        (fun n1 n2 -> equiv n1 n2)
-    in
-    let eq n1 n2 = equal n1 n2 || eq n1 n2 in
-    let all_nodes = ref [] in
+  let factorize t =
+    let cache = ref NMap.empty in
     let rec aux t =
-      match List.find_opt (eq t) (!all_nodes) with
+      match NMap.find_opt t !cache with
       | Some n -> n
       | None ->
-        all_nodes := t::(!all_nodes) ;
-        let vd = def t |> VDescr.map_nodes aux in
-        define ~simplified:t.simplified t vd ;
-        t
+        begin match NMap.bindings !cache
+          |> List.find_opt (fun (t',_) -> equiv t t') with
+        | Some (_, n) -> n
+        | None ->
+          let n = mk () in
+          cache := NMap.add t n (!cache) ;
+          let vd = def t |> VDescr.map_nodes aux in
+          define n vd ;
+          n
+        end
     in
-    aux t |> ignore
+    aux t
 
   let mk_var v = VDescr.mk_var v |> cons
   let mk_descr d = VDescr.mk_descr d |> cons

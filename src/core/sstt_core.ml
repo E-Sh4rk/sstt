@@ -33,8 +33,7 @@ module Ty : Ty = struct
   let vars, vars_toplevel, nodes = s' N.vars, s' N.vars_toplevel, s' N.nodes
   let of_eqs eqs = N.of_eqs eqs |> List.map (fun (v,ty) -> v, simpl ty)
   let substitute s t = N.substitute s t |> simpl
-  let normalize ?(approx=false) t =
-    N.with_own_cache (N.normalize ~approx) (simpl t)
+  let factorize t = N.with_own_cache N.factorize t |> simpl
 
   let is_empty t = N.with_own_cache N.is_empty t
   let leq t1 t2 = N.equal t1 t2 || N.with_own_cache (N.leq t1) t2
