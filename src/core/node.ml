@@ -50,9 +50,9 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
 
   let define ?(simplified=false) t d =
     t.def <- Some d ;
-    if simplified then t.simplified <- true ;
+    t.simplified <- simplified ;
     t.neg.def <- Some (VDescr.neg d) ;
-    if simplified then t.neg.simplified <- true
+    t.neg.simplified <- simplified
 
   let cons d =
     let t = mk () in
@@ -182,6 +182,26 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
       define (new_node n) d
     ) ;
     new_node t
+
+  let normalize ?(approx=false) t =
+    let eq =
+      if approx then
+        (fun n1 n2 -> VDescr.equal (def n1) (def n2))
+      else
+        (fun n1 n2 -> equiv n1 n2)
+    in
+    let eq n1 n2 = equal n1 n2 || eq n1 n2 in
+    let all_nodes = ref [] in
+    let rec aux t =
+      match List.find_opt (eq t) (!all_nodes) with
+      | Some n -> n
+      | None ->
+        all_nodes := t::(!all_nodes) ;
+        let vd = def t |> VDescr.map_nodes aux in
+        define ~simplified:t.simplified t vd ;
+        t
+    in
+    aux t |> ignore
 
   let mk_var v = VDescr.mk_var v |> cons
   let mk_descr d = VDescr.mk_descr d |> cons
