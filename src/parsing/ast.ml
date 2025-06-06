@@ -7,6 +7,7 @@ type builtin =
 type varop = TTuple
 type binop = TCap | TCup | TDiff | TArrow
 type unop = TNeg
+type tail = TOpen | TClosed | TRowVar of string
 type ty =
   | TBuiltin of builtin
   | TNamed of string
@@ -14,7 +15,7 @@ type ty =
   | TVar of string
   | TVarMono of string
   | TInterval of Z.t option * Z.t option
-  | TRecord of (string * ty * bool) list * bool
+  | TRecord of (string * ty * bool) list * tail
   | TVarop of varop * ty list
   | TBinop of binop * ty * ty
   | TUnop of unop * ty
@@ -47,6 +48,7 @@ type env = { aenv : Atoms.Atom.t StrMap.t ;
              tenv : Ty.t StrMap.t ;
              venv : Var.t StrMap.t ;
              mvenv : Var.t StrMap.t ;
+             rvenv : Var.t StrMap.t ;
              mono : VarSet.t ;
              lenv : Label.t StrMap.t
 }
@@ -54,7 +56,7 @@ type env = { aenv : Atoms.Atom.t StrMap.t ;
 let empty_env = {
   aenv = StrMap.empty ; tagenv = StrMap.empty ;
   tenv = StrMap.empty ;
-  venv = StrMap.empty ; mvenv = StrMap.empty ;
+  venv = StrMap.empty ; mvenv = StrMap.empty ; rvenv = StrMap.empty ;
   mono = VarSet.empty ; lenv = StrMap.empty
 }
 
@@ -91,6 +93,16 @@ let tvar_mono env str =
     v, env
   end
 
+let rowvar env str =
+  begin match StrMap.find_opt str env.rvenv with
+  | Some v -> v, env
+  | None ->
+    let v = Var.mk str in
+    let venv = StrMap.add str v env.rvenv in
+    let env = { env with venv } in
+    v, env
+  end
+
 let label env str =
   begin match StrMap.find_opt str env.lenv with
   | Some l -> l, env
@@ -123,6 +135,14 @@ let tag env str ty =
     let env = { env with tagenv } in
     Descr.mk_tag (t, ty) |> Ty.mk_descr, env  
 
+let tail env t =
+  match t with
+  | TOpen -> Records.Tail.Open, env
+  | TClosed -> Records.Tail.Closed, env
+  | TRowVar str -> 
+    let v, env = rowvar env str in
+    Records.Tail.RowVar v, env
+
 let build_ty env t =
   let rec aux env t =
   match t with
@@ -139,7 +159,8 @@ let build_ty env t =
   | TVarMono str ->
     let v, env = tvar_mono env str in
     Ty.mk_var v, env
-  | TRecord (bindings, opened) ->
+  | TRecord (bindings, t) ->
+    let t, env = tail env t in
     let (bindings,env) =
       List.fold_left (fun (res, env) (l,ty,b) ->
         let l, env = label env l in
@@ -147,7 +168,7 @@ let build_ty env t =
         (l,(ty,b))::res,env
       ) ([], env) bindings in
     let bindings = LabelMap.of_list bindings in
-    Descr.mk_record { bindings ; opened } |> Ty.mk_descr, env
+    Descr.mk_record { bindings ; tail=t } |> Ty.mk_descr, env
   | TVarop (v, tys) ->
     let (tys,env) =
       List.fold_left (fun (res, env) ty ->

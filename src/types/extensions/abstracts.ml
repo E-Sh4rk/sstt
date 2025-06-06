@@ -27,7 +27,7 @@ let encode_params vs ps =
   in
   let mk_record bs =
     let open Records.Atom in
-    { bindings = bs |> LabelMap.of_list ; opened = true }
+    { bindings = bs |> LabelMap.of_list ; tail = Open }
     |> Descr.mk_record |> Ty.mk_descr
   in
   let lhs, rhs = mk_record ls, mk_record rs in

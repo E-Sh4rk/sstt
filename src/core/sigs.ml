@@ -158,12 +158,19 @@ end
 (* Records *)
 
 type 'node oty = 'node * bool
+type tail = Open | Closed | RowVar of Var.t
+
+module type Tail = sig
+  type t = tail = Open | Closed | RowVar of Var.t
+  val is_open : t -> bool
+  val get_opt_var : t -> Var.t option
+end
 
 module type RecordAtom = sig
   type node
   type nonrec oty = node oty
 
-  type t = { bindings : oty LabelMap.t ; opened : bool }
+  type t = { bindings : oty LabelMap.t ; tail : tail }
 
   (** [dom t] returns the set of explicit labels in [t].
       Note that this does not mean that labels in [dom t] are present in
@@ -187,7 +194,7 @@ module type RecordAtom' = sig
 
   (** When the field [required] is equal to [Some labels],
       it means that [t] requires at least one field not in [labels] to be present. *)
-  type t = { bindings : oty LabelMap.t ; opened : bool ; required : LabelSet.t option }
+  type t = { bindings : oty LabelMap.t ; tail : tail ; required : LabelSet.t option }
 
   (** [dom t] returns the set of explicit labels in [t].
       Note that this does not mean that labels in [dom t] are present in
@@ -204,6 +211,7 @@ end
 
 module type Records = sig
   include TyBase
+  module Tail : Tail
   module Atom : RecordAtom with type node := node
   module Atom' : RecordAtom' with type node := node
   module Dnf : Dnf with type atom = Atom.t and type leaf = bool

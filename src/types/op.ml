@@ -65,17 +65,23 @@ module Records = struct
     let open Records.Atom in
     Records.dnf' t |> Records.Dnf'.simplify |> List.map fst |>
     List.map (fun t ->
-      { bindings=t.Records.Atom'.bindings ; opened=t.opened }
+      { bindings=t.Records.Atom'.bindings ; tail=t.tail }
     )
 
-  let approx t =
+  let approx t = 
     let open Records.Atom in
     let union_a a1 a2 =
       let dom = LabelSet.union (dom a1) (dom a2) in
       let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
         (lbl, Ty.O.cup (find lbl a1) (find lbl a2))
       ) |> LabelMap.of_list in
-      { bindings ; opened = a1.opened || a2.opened }
+      let tail =
+        match a1.tail, a2.tail with
+        | Open, _ | _, Open -> Records.Tail.Open
+        | Closed, Closed -> Closed
+        | RowVar v, _ | _, RowVar v -> RowVar v
+      in
+      { bindings ; tail }
     in
     match as_union t with
     | [] -> raise EmptyAtom
@@ -92,7 +98,9 @@ module Records = struct
       let oty = if snd oty2 then Ty.O.cup oty1 (fst oty2, false) else oty2 in
       (lbl, oty)
     ) |> LabelMap.of_list in
-    { bindings ; opened = a1.opened && a2.opened } |> Records.mk
+    let tail = Records.Tail.Open (* TODO approximate better based on a1 and a2 *)
+    in
+    { bindings ; tail } |> Records.mk
 
   let remove a lbl =
     let open Records.Atom in
