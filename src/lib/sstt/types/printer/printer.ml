@@ -30,6 +30,7 @@ module TagMap = Map.Make(Tag)
 type builtin =
   | Empty | Any | AnyTuple | AnyEnum | AnyTag | AnyInt
   | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of Tag.t
+type tail = Open | Closed | RowVar of RowVar.t
 type t = { main : descr ; defs : def list }
 and def = NodeId.t * descr
 and descr = { op : op ; ty : Ty.t }
@@ -42,7 +43,7 @@ and op =
   | Enum of Enum.t
   | Tag of Tag.t * descr
   | Interval of Z.t option * Z.t option
-  | Record of (Label.t * descr * bool) list * bool
+  | Record of (Label.t * descr * bool) list * tail
   | Varop of varop * descr list
   | Binop of binop * descr * descr
   | Unop of unop * descr
@@ -175,11 +176,17 @@ let tuple lst =
   let tys = List.map (fun d -> d.ty) lst in
   { op = Varop (Tuple, lst) ; ty = D.mk_tuple tys |> Ty.mk_descr }
 
-let record bindings opened =
+let record bindings tail =
   let nbindings = bindings |>
                   List.map (fun (l, d, b) -> (l, Ty.F.mk d.ty b)) |> LabelMap.of_list in
-  { op = Record (bindings, opened) ;
-    ty = D.mk_record { bindings=nbindings ; opened } |> Ty.mk_descr }
+  let ntail =
+    match tail with
+    | Open -> Records.Tail.Open
+    | Closed -> Records.Tail.Closed
+    | RowVar v -> Records.Tail.RowVar v
+  in
+  { op = Record (bindings, tail) ;
+    ty = D.mk_record { bindings=nbindings ; tail=ntail } |> Ty.mk_descr }
 
 let tag tag d =
   { op = Tag (tag,d) ; ty = D.mk_tag (tag, d.ty) |> Ty.mk_descr }
@@ -284,7 +291,12 @@ let resolve_records ctx a =
         let n, b = Ty.F.destruct oty in
         (l, node ctx n, b)
       ) in
-    record bindings r.opened
+    let tail = match r.tail with
+      | Open -> Open
+      | Closed -> Closed
+      | RowVar v -> RowVar v
+    in
+    record bindings tail
   in
   Records.dnf a |> resolve_dnf resolve_rec
 
@@ -491,17 +503,24 @@ let rec print_descr prec assoc fmt d =
       Format.fprintf fmt "%a(%a)"
         Tag.pp t print_descr' d
     | Interval (lb,ub) -> Format.fprintf fmt "%a" print_interval (lb,ub)
-    | Record (bindings,opened) ->
+    | Record (bindings,tail) ->
       let print_binding fmt (l,d,b) =
         Format.fprintf fmt "%a %s %a"
           Label.pp l
           (if b then ":?" else ":")
           print_descr' d
       in
-      Format.fprintf fmt "{ %a %s}"
+      let print_tail fmt t =
+        begin match t with
+          | Open -> Format.fprintf fmt ".."
+          | Closed -> Format.fprintf fmt ""
+          | RowVar v -> Format.fprintf fmt "%a" RowVar.pp v
+        end
+      in
+      Format.fprintf fmt "{ %a %a}"
         (print_seq print_binding " ; ")
         bindings
-        (if opened then ".." else "")
+        print_tail tail
     | Varop (v,ds) ->
       let sym,prec',_ as opinfo = varop_info v in
       Prec.fprintf prec assoc opinfo fmt "%a"

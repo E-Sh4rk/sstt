@@ -16,6 +16,7 @@ end
 type builtin =
   | Empty | Any | AnyTuple | AnyEnum | AnyTag | AnyInt
   | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of Tag.t
+type tail = Open | Closed | RowVar of RowVar.t
 type t = { main : descr ; defs : def list }
 and def = NodeId.t * descr
 and descr = { op : op ; ty : Ty.t }
@@ -28,7 +29,7 @@ and op =
   | Enum of Enum.t
   | Tag of Tag.t * descr
   | Interval of Z.t option * Z.t option
-  | Record of (Label.t * descr * bool) list * bool
+  | Record of (Label.t * descr * bool) list * tail
   | Varop of varop * descr list
   | Binop of binop * descr * descr
   | Unop of unop * descr

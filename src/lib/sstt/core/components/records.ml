@@ -47,16 +47,46 @@ module FieldTy(N:Node) = struct
   let hash (n, b) = Hash.(mix (bool b) (N.hash n))
 end
 
+module Tail = struct
+  type t = tail = Open | Closed | RowVar of RowVar.t
+
+  let get_opt_var = function
+    | RowVar v -> Some v
+    | _ -> None
+
+  let is_open = function
+    | Open | RowVar _ -> true
+    | Closed -> false
+
+  let equal t1 t2 =
+    match t1, t2 with
+    | Open, Open -> true
+    | Closed, Closed -> true
+    | RowVar v1, RowVar v2 -> RowVar.equal v1 v2
+    | _ -> false
+
+  let compare t1 t2 =
+    match t1, t2 with
+    | Open, Open -> 0
+    | Closed, Closed -> 0
+    | RowVar v1, RowVar v2 -> RowVar.compare v1 v2
+    | Open, _ -> -1
+    | _, Open -> 1
+    | Closed, _ -> -1
+    | _, Closed -> 1
+end
+
 module Atom(N:Node) = struct
   module FieldTy = FieldTy(N)
 
   type node = N.t
-  type t = { bindings : FieldTy.t LabelMap.t ; opened : bool }
+  type t = { bindings : FieldTy.t LabelMap.t ; tail : tail }
 
   let hash t = (* This hashing is not incremental and could hurt performances
                   if we make heavy use of records (t.bindings is traversed by
                   the polymorphic Hash function) *)
-    Hash.(mix (bool t.opened) (Hashtbl.hash t.bindings))
+    Hash.(mix (Hashtbl.hash t.tail) (Hashtbl.hash t.bindings))
+
   let map_nodes f t =
     { t with bindings = LabelMap.map (FieldTy.map_nodes f) t.bindings }
 
@@ -64,49 +94,53 @@ module Atom(N:Node) = struct
     t.bindings |> LabelMap.bindings |> List.map (fun (_,f) -> FieldTy.get f)
   let dom t = LabelMap.bindings t.bindings |> List.map fst |> LabelSet.of_list
   let find lbl t =
-    match LabelMap.find_opt lbl t.bindings, t.opened with
+    match LabelMap.find_opt lbl t.bindings, t.tail with
     | Some on, _ -> on
-    | None, true -> FieldTy.any
-    | None, false -> FieldTy.absent
+    | None, (Open | RowVar _) -> FieldTy.any
+    | None, Closed -> FieldTy.absent
   let to_tuple dom t = dom |> List.map (fun l -> find l t)
   let to_tuple_with_default dom t =
-    if t.opened then
-      FieldTy.any::(to_tuple dom t)
-    else
-      FieldTy.absent::(to_tuple dom t)
+    match t.tail with
+    | Closed -> FieldTy.absent::(to_tuple dom t)
+    | _ ->  FieldTy.any::(to_tuple dom t)
   let simplify t =
     let is_default =
-      if t.opened then FieldTy.is_any
-      else FieldTy.is_absent
+      match t.tail with
+      | Closed -> FieldTy.is_absent
+      | _ -> FieldTy.is_any
     in
     let bindings = LabelMap.filter (fun _ on -> not (is_default on)) t.bindings in
     if bindings == t.bindings then t else { t with bindings }
   let equal t1 t2 =
-    t1.opened && t2.opened &&
+    Tail.equal t1.tail t2.tail &&
     LabelMap.equal FieldTy.equal t1.bindings t2.bindings
   let compare t1 t2 =
-    compare t1.opened t2.opened |> ccmp
+    compare (Tail.is_open t1.tail) (Tail.is_open t2.tail) |> ccmp
       (LabelMap.compare FieldTy.compare) t1.bindings t2.bindings
 end
 
 module Atom'(N:Node) = struct
   module FieldTy = FieldTy(N)
 
+  type tail = Tail.t
+
   type node = N.t
-  type t = { bindings : FieldTy.t LabelMap.t ; opened : bool ; required : LabelSet.t option }
+  type t = { bindings : FieldTy.t LabelMap.t ; tail : tail ; required : LabelSet.t option }
+
   let hash t = (* Same remark as OTY.hash *)
-    Hash.(mix3 (bool t.opened) (Hashtbl.hash t.bindings) (Hashtbl.hash t.required))
+    Hash.(mix3 (Hashtbl.hash t.tail) (Hashtbl.hash t.bindings) (Hashtbl.hash t.required))
 
   let dom t = LabelMap.bindings t.bindings |> List.map fst |> LabelSet.of_list
   let find lbl t =
-    match LabelMap.find_opt lbl t.bindings with
-    | Some on -> on
-    | None when t.opened -> FieldTy.any
-    | None -> FieldTy.absent
+    match LabelMap.find_opt lbl t.bindings, t.tail with
+    | Some on, _ -> on
+    | None, (Open | RowVar _) -> FieldTy.any
+    | None, Closed -> FieldTy.absent
   let simplify t =
     let is_default =
-      if t.opened then FieldTy.is_any
-      else FieldTy.is_absent
+      match t.tail with
+      | Closed -> FieldTy.is_absent
+      | _ -> FieldTy.is_any
     in
     let bindings = LabelMap.filter (fun _ on -> not (is_default on)) t.bindings in
 
@@ -125,7 +159,7 @@ module Atom'(N:Node) = struct
     let required_ok =
       match t.required with
       | None -> true
-      | Some _ when t.opened -> true
+      | Some _ when (Tail.is_open t.tail) -> true
       | Some req ->
         t.bindings |> LabelMap.exists
           (fun l o -> LabelSet.mem l req |> not && FieldTy.is_absent o |> not)
@@ -133,11 +167,11 @@ module Atom'(N:Node) = struct
     not required_ok ||
     LabelMap.bindings t.bindings |> List.exists is_empty_binding
   let equal t1 t2 =
-    t1.opened = t2.opened &&
+    Tail.equal t1.tail t2.tail &&
     Option.equal LabelSet.equal t1.required t2.required &&
     LabelMap.equal FieldTy.equal t1.bindings t2.bindings
   let compare t1 t2 =
-    compare t1.opened t2.opened |> ccmp
+    compare (Tail.is_open t1.tail) (Tail.is_open t2.tail) |> ccmp
       (Option.compare LabelSet.compare) t1.required t2.required |> ccmp
       (LabelMap.compare FieldTy.compare) t1.bindings t2.bindings
 end
@@ -148,6 +182,8 @@ module Make(N:Node) = struct
 
   module F = Atom.FieldTy
   module Bdd = Bdd.Make(Atom)(Bdd.BoolLeaf)
+
+  module Tail = Tail
 
   type t = Bdd.t
   type node = N.t
@@ -200,7 +236,7 @@ module Make(N:Node) = struct
 
     let atom_is_valid _ = true
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
-    let any' = { Atom'.bindings=LabelMap.empty ; opened=true ; required=None }
+    let any' = { Atom'.bindings=LabelMap.empty ; tail=Open ; required=None }
 
     let to_atom a' =
       let open Atom' in
@@ -212,21 +248,21 @@ module Make(N:Node) = struct
             lbls |> LabelSet.elements |> List.map (fun l -> (l,F.any))
             |> LabelMap.of_list
           in
-          [{Atom.bindings=bindings ; Atom.opened=false}]
+          [{Atom.bindings=bindings ; Atom.tail=Closed}]
       in
-      let ps = [{Atom.bindings=a'.bindings ; Atom.opened=a'.opened}] in
+      let ps = [{Atom.bindings=a'.bindings ; Atom.tail=a'.tail}] in
       ps, ns
     let to_atom' (a,b) =
       let open Atom' in
       let not_binding (l,on) =
-        { bindings=LabelMap.singleton l (F.neg on) ; opened=true ; required=None }
+        { bindings=LabelMap.singleton l (F.neg on) ; tail=Open ; required=None }
       in
       if b then
-        [ { bindings=a.Atom.bindings ; opened=a.Atom.opened ; required=None } ]
+        [ { bindings=a.Atom.bindings ; tail=a.tail ; required=None } ]
       else
         let res = a.Atom.bindings |> LabelMap.bindings |> List.map not_binding in
-        if a.Atom.opened then res
-        else { bindings=a.Atom.bindings ; opened=true ; required=Some (Atom.dom a) }::res
+        if (Tail.is_open a.tail) then res
+        else { bindings=a.Atom.bindings ; tail=a.tail ; required=Some (Atom.dom a) }::res
     let to_atom' (a,b) =
       to_atom' (a,b) |> List.filter (fun a -> Atom'.is_empty a |> not)
       |> List.map Atom'.simplify
@@ -236,14 +272,19 @@ module Make(N:Node) = struct
       let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
           (lbl, F.cap (find lbl s1) (find lbl s2))
         ) |> LabelMap.of_list in
-      let opened = s1.opened && s2.opened in
+      let tail = (* TODO: TOTALLY WRONG STUB *)
+        match s1.tail, s2.tail with
+        | Open, _ | _, Open -> Open
+        | Closed, Closed -> Closed
+        | RowVar v, _ | _, RowVar v -> RowVar v
+      in
       let required =
         match s1.required, s2.required with
         | None, None -> None
         | Some r, None | None, Some r -> Some r
         | Some r1, Some r2 -> Some (LabelSet.union r1 r2)
       in
-      let res = { bindings ; opened ; required } in
+      let res = { bindings ; tail ; required } in
       if is_empty res then None else Some (simplify res)
   end
   module Dnf = Dnf.LMake'(Comp)
