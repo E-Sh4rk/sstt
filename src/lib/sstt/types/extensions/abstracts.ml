@@ -58,7 +58,7 @@ let encode_params encoding ps =
         label_of_position false i, Ty.F.optional p
       ) |> LabelMap.of_list
   in
-  { Records.Atom.bindings ; Records.Atom.opened=false }
+  { Records.Atom.bindings ; Records.Atom.tail=Closed }
   |> Descr.mk_record |> Ty.mk_descr
 
 let mk tag ps =
