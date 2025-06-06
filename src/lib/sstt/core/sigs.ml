@@ -437,6 +437,13 @@ module type Arrows = sig
 end
 
 (* Records *)
+type tail = Open | Closed | RowVar of Var.t
+
+module type Tail = sig
+  type t = tail = Open | Closed | RowVar of Var.t
+  val is_open : t -> bool
+  val get_opt_var : t -> Var.t option
+end
 
 module type RecordAtom = sig
   type node
@@ -446,7 +453,7 @@ module type RecordAtom = sig
   (** An optional type (see {!Sstt.Ty.O}). *)
 
   type t = { bindings : oty LabelMap.t;(** mapping from labels to optional types *)
-             opened : bool (** if [true], denotes an open record *)
+             tail : tail (** can be [Open], [Closed] or a row variable *)
            }
   (** A single record type.  *)
 
@@ -480,9 +487,9 @@ module type RecordAtom' = sig
   type node
   type oty = node * bool
 
-  type t = { bindings : oty LabelMap.t ; opened : bool ; required : LabelSet.t option }
+  type t = { bindings : oty LabelMap.t ; tail : tail ; required : LabelSet.t option }
   (** A compact representation for record types.
-      The [bindings] and [opened] field have the same meaning as in {!Records.Atom.t}.
+      The [bindings] and [tail] field have the same meaning as in {!Records.Atom.t}.
       When the field [required] is equal to [Some labels],
       it means that [t] requires at least one field not in [labels] to be present. *)
 
@@ -501,6 +508,8 @@ module type RecordAtom' = sig
 end
 
 module type Records = sig
+
+  module Tail : Tail
 
   type t
   (** Record types is a union of intersection of positive and negative records:

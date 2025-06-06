@@ -6,6 +6,7 @@ type builtin =
 type varop = TTuple
 type binop = TCap | TCup | TDiff | TArrow
 type unop = TNeg
+type tail = TOpen | TClosed | TRowVar of string
 type ty =
   | TBuiltin of builtin
   | TNamed of string
@@ -13,7 +14,7 @@ type ty =
   | TVar of string
   | TVarMono of string
   | TInterval of Z.t option * Z.t option
-  | TRecord of (string * ty * bool) list * bool
+  | TRecord of (string * ty * bool) list * tail
   | TVarop of varop * ty list
   | TBinop of binop * ty * ty
   | TUnop of unop * ty
@@ -46,6 +47,7 @@ type env = { eenv : Enums.Atom.t StrMap.t ;
              tenv : Ty.t StrMap.t ;
              venv : Var.t StrMap.t ;
              mvenv : Var.t StrMap.t ;
+             rvenv : Var.t StrMap.t ;
              mono : VarSet.t ;
              lenv : Label.t StrMap.t
 }
