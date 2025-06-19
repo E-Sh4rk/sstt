@@ -1,6 +1,7 @@
 
 include Sstt_core
 
+module Prec = Prec
 module Printer = Printer
 module Tallying = Tallying
 module Subst = Subst
