@@ -26,8 +26,8 @@ let extract ty =
     let (_, atoms) = ty |> Ty.get_descr |> Descr.get_atoms |> Atoms.destruct in
     if List.for_all (Hashtbl.mem strings) atoms
     then
-      let tag_case_def = [ { comp_id=0 ; comp_def=[PUnprocessed ty] } ] in
-      Some [{ tag_case_id=0 ; tag_case_def } ]
+      let case_def = [ { comp_id=0 ; comp_def=[PUnprocessed ty] } ] in
+      Some [{ case_id=0 ; case_def } ]
     else None
   else None
 

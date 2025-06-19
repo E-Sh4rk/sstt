@@ -43,12 +43,12 @@ let basic_extract ty =
   if Ty.leq ty (proj_tag any) && Ty.vars_toplevel ty |> VarSet.is_empty then
     let tuples = Ty.get_descr ty |> Descr.get_tuples in
     let nil_comps = Tuples.get 0 tuples |> Op.TupleComp.as_union
-      |> List.map (fun _ -> { tag_case_id=0 ; tag_case_def=[] })
+      |> List.map (fun _ -> { case_id=0 ; case_def=[] })
     in
     let cons_comps = Tuples.get 2 tuples |> Op.TupleComp.as_union
       |> List.map (fun tys ->
         let tag_comp = { comp_id=0 ; comp_def=List.map (fun ty -> PLeaf ty) tys } in
-        { tag_case_id=1 ; tag_case_def=[tag_comp] })
+        { case_id=1 ; case_def=[tag_comp] })
     in
     Some (nil_comps@cons_comps)
   else None
@@ -63,7 +63,7 @@ let extract ty =
     let tuples = Ty.get_descr ty |> Descr.get_tuples in
     let nil_comps =
       Tuples.get 0 tuples |> Op.TupleComp.as_union
-      |> List.map (fun _ -> { tag_case_id=2 ; tag_case_def=[] })
+      |> List.map (fun _ -> { case_id=2 ; case_def=[] })
     in
     let cons_comps =
       Tuples.get 2 tuples |> Op.TupleComp.as_union
@@ -73,7 +73,7 @@ let extract ty =
           let ty = proj_tag r in
           if Ty.equiv r (Descr.mk_tag (tag, ty) |> Ty.mk_descr) |> not then raise Exit ;
           let tag_comp = { comp_id=0 ; comp_def=[PLeaf l ; PRec ty] } in
-          { tag_case_id=3 ; tag_case_def=[tag_comp] }
+          { case_id=3 ; case_def=[tag_comp] }
         | _ -> assert false  
       )
     in

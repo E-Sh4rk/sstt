@@ -19,8 +19,8 @@ let extract ty =
   let open Printer in
   if Ty.leq ty (proj_tag any) && Ty.vars_toplevel ty |> VarSet.is_empty
   then
-    let tag_case_def = [ { comp_id=0 ; comp_def=[PUnprocessed ty] } ] in
-    Some [{ tag_case_id=0 ; tag_case_def } ]
+    let case_def = [ { comp_id=0 ; comp_def=[PUnprocessed ty] } ] in
+    Some [{ case_id=0 ; case_def } ]
   else None
 
 type t = { t : bool ; f : bool }

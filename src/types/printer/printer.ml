@@ -54,18 +54,17 @@ type op = (module CustomNode) op'
 (* Printer extensions *)
 type ('u, 'l, 'r) tag_param = PUnprocessed of 'u | PLeaf of 'l | PRec of 'r
 type ('u, 'l, 'r) tag_comp = { comp_id : int ; comp_def : ('u, 'l, 'r) tag_param list }
-type custom_params = { case_id : int ; case_def : (Ty.t, descr, custom) tag_comp list }
-and custom = CDef of NodeId.t * custom_params list | CNode of NodeId.t
-type custom_params' = { case_id' : int ; case_def' : (Ty.t, (TagComp.Tag.t * custom') descr', custom') tag_comp list }
-and custom' = CDef of NodeId.t * custom_params' list | CNode of NodeId.t
-type tag_params = { tag_case_id : int ; tag_case_def : (Ty.t, Ty.t, Ty.t) tag_comp list }
+type ('u, 'l, 'r) custom_params = { case_id : int ; case_def : ('u, 'l, 'r) tag_comp list }
+type custom = CDef of NodeId.t * (Ty.t, descr, custom) custom_params list | CNode of NodeId.t
+type extracted_params = (Ty.t, Ty.t, Ty.t) custom_params list
 module type PrinterExt = sig
     type t
     val tag : TagComp.Tag.t
-    val parsers : (Ty.t -> tag_params list option) list
+    val parsers : (Ty.t -> extracted_params option) list
     val get : custom -> t
     val print : int -> assoc -> Format.formatter -> t -> unit
 end
+type custom' = CDef of NodeId.t * (Ty.t, (TagComp.Tag.t * custom') descr', custom') custom_params list | CNode of NodeId.t
 
 type aliases = (Ty.t * string) list
 type extensions = (module PrinterExt) list
@@ -104,8 +103,8 @@ let map_ic map (tag, ts) =
     | CDef (nid,params) ->
       CDef (nid, List.map map_params params)
     | CNode nid -> CNode nid
-  and map_params { case_id' ; case_def' } =
-    { case_id' ; case_def'=List.map map_param case_def' }
+  and map_params { case_id ; case_def } =
+    { case_id ; case_def=List.map map_param case_def }
   and map_param p =
     let auxp = function
       | PUnprocessed ty -> PUnprocessed ty
@@ -366,8 +365,8 @@ let rec resolve_custom_tagcomp f ctx env ty =
           | PRec ty -> PRec (resolve_custom_tagcomp f ctx env ty)
         in { param with comp_def = List.map auxp param.comp_def }
       in
-      let treat_params { tag_case_id ; tag_case_def } =
-        { case_id'=tag_case_id ; case_def'=List.map treat_param tag_case_def }
+      let treat_params { case_id ; case_def } =
+        { case_id ; case_def=List.map treat_param case_def }
       in
       let union = List.map treat_params extracted in
     CDef (nid, union)
@@ -527,8 +526,8 @@ let transform_custom_tags ctx t =
         | CDef (nid,params) ->
           CDef (nid, List.map map_params params)
         | CNode nid -> CNode nid
-      and map_params { case_id' ; case_def' } =
-        { case_id=case_id' ; case_def=List.map map_param case_def' }
+      and map_params { case_id; case_def } =
+        { case_id ; case_def=List.map map_param case_def }
       and map_param p =
         let auxp = function
           | PUnprocessed ty -> PUnprocessed ty

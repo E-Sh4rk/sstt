@@ -103,7 +103,7 @@ let extract tag ty =
         let ns = ns |> List.map (fun tys ->
           { comp_id=1 ; comp_def=List.map (fun ty -> PLeaf ty) tys }
         ) in
-        { tag_case_id=0 ; tag_case_def=ps@ns }
+        { case_id=0 ; case_def=ps@ns }
       ) in
       Some cases
     with Exit -> None

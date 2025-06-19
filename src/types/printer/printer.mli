@@ -47,13 +47,13 @@ type op = (module CustomNode) op'
 (* Printer extensions *)
 type ('u, 'l, 'r) tag_param = PUnprocessed of 'u | PLeaf of 'l | PRec of 'r
 type ('u, 'l, 'r) tag_comp = { comp_id : int ; comp_def : ('u, 'l, 'r) tag_param list }
-type custom_params = { case_id : int ; case_def : (Ty.t, descr, custom) tag_comp list }
-and custom = CDef of NodeId.t * custom_params list | CNode of NodeId.t
-type tag_params = { tag_case_id : int ; tag_case_def : (Ty.t, Ty.t, Ty.t) tag_comp list }
+type ('u, 'l, 'r) custom_params = { case_id : int ; case_def : ('u, 'l, 'r) tag_comp list }
+type custom = CDef of NodeId.t * (Ty.t, descr, custom) custom_params list | CNode of NodeId.t
+type extracted_params = (Ty.t, Ty.t, Ty.t) custom_params list
 module type PrinterExt = sig
     type t
     val tag : TagComp.Tag.t
-    val parsers : (Ty.t -> tag_params list option) list
+    val parsers : (Ty.t -> extracted_params option) list
     val get : custom -> t
     val print : int -> assoc -> Format.formatter -> t -> unit
 end
