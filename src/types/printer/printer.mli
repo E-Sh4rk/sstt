@@ -1,4 +1,5 @@
 open Sstt_core
+open Prec
 
 module NodeId : sig
     type t
@@ -18,12 +19,6 @@ module type CustomNode = sig
     val print : Format.formatter -> t -> unit
 end
 
-type unop =
-| Neg
-type binop =
-| Diff | Arrow
-type varop =
-| Tuple | Cup | Cap
 type builtin =
 | Empty | Any | AnyTuple | AnyAtom | AnyTag | AnyInt
 | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of TagComp.Tag.t
@@ -88,6 +83,10 @@ val print_descr : Format.formatter -> descr -> unit
 (** [print_descr_atomic fmt d] prints the printer descriptor [d] in an atomic way
     (adding parentheses if necessary) using formatter [fmt]. *)
 val print_descr_atomic : Format.formatter -> descr -> unit
+
+(** [print_descr_ctx prec assoc fmt d] prints the printer descriptor [d] in a context
+with precedence [prec] and associativity [assoc], using formatter [fmt]. *)
+val print_descr_ctx : int -> assoc -> Format.formatter -> descr -> unit
 
 (** [print_ty aliases fmt ty] prints the type [ty] using formatter [fmt],
 recognizing type aliases [aliases]. Same as [print fmt (get aliases ty)]. *)

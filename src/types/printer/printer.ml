@@ -1,5 +1,6 @@
 open Sstt_core
 open Sstt_utils
+open Prec
 
 module NodeId = struct
   type t = { id : int ; mutable name : string option }
@@ -25,12 +26,6 @@ module type CustomNode = sig
     val print : Format.formatter -> t -> unit
 end
 
-type unop =
-| Neg
-type binop =
-| Diff | Arrow
-type varop =
-| Tuple | Cup | Cap
 type builtin =
 | Empty | Any | AnyTuple | AnyAtom | AnyTag | AnyInt
 | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of TagComp.Tag.t
@@ -594,22 +589,6 @@ let print_interval fmt (lb,ub) =
   | Some lb, None ->
     Format.fprintf fmt "(%a..)" pp_z lb
 
-type assoc = Left | Right | NoAssoc
-
-let varop_info v = match v with
-| Tuple -> ", ", 0, NoAssoc
-| Cup -> " | ", 2, NoAssoc
-| Cap -> " & ", 3, NoAssoc
-
-let binop_info b = match b with
-| Arrow -> " -> ", 1, Right
-| Diff -> " \\ ", 4, Left
-
-let unop_info u = match u with
-| Neg -> "~", 5, NoAssoc
-
-let max_prec = 100
-
 let rec print_descr prec assoc fmt d =
   let rec aux prec assoc fmt d =
     let need_paren = ref false in
@@ -665,7 +644,7 @@ let rec print_descr prec assoc fmt d =
   in
   aux prec assoc fmt d
 
-and print_descr' fmt d = print_descr (-1) NoAssoc fmt d
+and print_descr' fmt d = print_descr min_prec NoAssoc fmt d
 
 and print_def fmt (n,d) =
   Format.fprintf fmt "%a = %a" NodeId.pp n print_descr' d
@@ -690,7 +669,7 @@ let get customs ty =
 
 let print = print_t
 let print_descr_atomic = print_descr max_prec NoAssoc
-let print_descr = print_descr'
+let print_descr, print_descr_ctx = print_descr', print_descr
 
 let print_ty customs fmt ty =
   let ast = get customs ty in
