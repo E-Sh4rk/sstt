@@ -51,13 +51,17 @@ let print fmt (pos, strs) =
   | [elt] -> Format.fprintf fmt "%s%a" neg pp_string elt
   | strs -> Format.fprintf fmt "%s(%a)" neg (print_seq pp_string " | ") strs
 
-let to_printer (print:printer) tstruct fmt =
-  print fmt (tstruct |> to_t)  
-
 let printer_params printer = {
   Printer.aliases = [] ;
-  Printer.tags = [(tag, extract)] ;
-  Printer.printers = [(tag, to_printer printer)]
+  Printer.extensions =
+    let module M = struct
+      type nonrec t = t
+      let tag = tag
+      let parsers = [extract]
+      let get = to_t
+      let print = printer
+    end
+  in [(module M : Printer.PrinterExt)]
   }
 
 let printer_params' = printer_params print

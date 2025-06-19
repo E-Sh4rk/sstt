@@ -156,18 +156,21 @@ let print tag fmt t =
   else
     Format.fprintf fmt "%a" (print_seq print_line " | ") t
 
-let to_printer (print:printer) tag tstruct fmt =
-  print tag fmt (to_t tstruct)
-
 let define printer name (vs:variance list) =
   let tag = TagComp.Tag.mk name in
   Hashtbl.add atypes tag vs ;
   let printer_params = {
     Printer.aliases = [] ;
-    Printer.tags = [(tag, extract tag)] ;
-    Printer.printers = [(tag, to_printer printer tag)]
-    }
-  in
+    Printer.extensions =
+      let module M = struct
+        type nonrec t = t
+        let tag = tag
+        let parsers = [extract tag]
+        let get = to_t
+        let print = printer tag
+      end
+    in [(module M : Printer.PrinterExt)]
+  } in
   tag, printer_params
 
 let define' = define print

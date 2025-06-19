@@ -53,13 +53,17 @@ let print fmt { t ; f } =
   | true, false -> Format.fprintf fmt "true"
   | false, true -> Format.fprintf fmt "false"
 
-let to_printer (print:printer) tstruct fmt =
-  print fmt (tstruct |> to_t)  
-
 let printer_params printer = {
   Printer.aliases = [] ;
-  Printer.tags = [(tag, extract)] ;
-  Printer.printers = [(tag, to_printer printer)]
+  Printer.extensions =
+    let module M = struct
+      type nonrec t = t
+      let tag = tag
+      let parsers = [extract]
+      let get = to_t
+      let print = printer
+    end
+  in [(module M : Printer.PrinterExt)]
   }
 
 let printer_params' = printer_params print

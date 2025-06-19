@@ -12,6 +12,12 @@ module NodeId : sig
     val pp : Format.formatter -> t -> unit
 end
 
+module type CustomNode = sig
+    type t
+    val v : t
+    val print : Format.formatter -> t -> unit
+end
+
 type unop =
 | Neg
 type binop =
@@ -21,33 +27,45 @@ type varop =
 type builtin =
 | Empty | Any | AnyTuple | AnyAtom | AnyTag | AnyInt
 | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of TagComp.Tag.t
-type ('u, 'l, 'r) tag_param = PUnprocessed of 'u | PLeaf of 'l | PRec of 'r
-type ('u, 'l, 'r) tag_comp = { comp_id : int ; comp_def : ('u, 'l, 'r) tag_param list }
-type t = { main : descr ; defs : def list }
-and def = NodeId.t * descr
-and descr = { op : op ; ty : Ty.t }
-and op =
-| Printer of (Format.formatter -> unit)
-| Custom of TagComp.Tag.t * custom
+type 'c t' = { main : 'c descr' ; defs : 'c def' list }
+and 'c def' = NodeId.t * 'c descr'
+and 'c descr' = { op : 'c op' ; ty : Ty.t }
+and 'c op' =
+| Custom of 'c
 | Alias of string
 | Node of NodeId.t
 | Builtin of builtin
 | Var of Var.t
 | Atom of Atoms.Atom.t
-| Tag of TagComp.Tag.t * descr
+| Tag of TagComp.Tag.t * 'c descr'
 | Interval of Z.t option * Z.t option
-| Record of (Label.t * descr * bool) list * bool
-| Varop of varop * descr list
-| Binop of binop * descr * descr
-| Unop of unop * descr
-and custom_params = { case_id : int ; case_def : (Ty.t, descr, custom) tag_comp list }
+| Record of (Label.t * 'c descr' * bool) list * bool
+| Varop of varop * 'c descr' list
+| Binop of binop * 'c descr' * 'c descr'
+| Unop of unop * 'c descr'
+
+type t = (module CustomNode) t'
+type descr = (module CustomNode) descr'
+type def = (module CustomNode) def'
+type op = (module CustomNode) op'
+
+(* Printer extensions *)
+type ('u, 'l, 'r) tag_param = PUnprocessed of 'u | PLeaf of 'l | PRec of 'r
+type ('u, 'l, 'r) tag_comp = { comp_id : int ; comp_def : ('u, 'l, 'r) tag_param list }
+type custom_params = { case_id : int ; case_def : (Ty.t, descr, custom) tag_comp list }
 and custom = CDef of NodeId.t * custom_params list | CNode of NodeId.t
+type tag_params = { tag_case_id : int ; tag_case_def : (Ty.t, Ty.t, Ty.t) tag_comp list }
+module type PrinterExt = sig
+    type t
+    val tag : TagComp.Tag.t
+    val parsers : (Ty.t -> tag_params list option) list
+    val get : custom -> t
+    val print : Format.formatter -> t -> unit
+end
 
 type aliases = (Ty.t * string) list
-type tag_params = { tag_case_id : int ; tag_case_def : (Ty.t, Ty.t, Ty.t) tag_comp list }
-type custom_tags = (TagComp.Tag.t * (Ty.t -> tag_params list option)) list
-type tags_printers = (TagComp.Tag.t * (custom -> (Format.formatter -> unit))) list
-type params = { aliases : aliases ; tags : custom_tags ; printers : tags_printers }
+type extensions = (module PrinterExt) list
+type params = { aliases : aliases ; extensions : extensions }
 
 val cup_descr : descr -> descr -> descr
 val cap_descr : descr -> descr -> descr

@@ -238,22 +238,33 @@ let print fmt t =
     in
     Format.fprintf fmt "(%a)" (print_seq print_line " | ") union
 
-let to_printer (print:printer) tstruct fmt =
-  print fmt (to_t tstruct)
-
 let printer_params printer = {
   Printer.aliases = [] ;
-  Printer.tags = [(tag, extract) ; (tag, basic_extract)] ;
-  Printer.printers = [(tag, to_printer printer)]
+  Printer.extensions =
+    let module M = struct
+      type nonrec t = t
+      let tag = tag
+      let parsers = [extract ; basic_extract]
+      let get = to_t
+      let print = printer
+    end
+  in [(module M : Printer.PrinterExt)]
   }
 
 let printer_params' = printer_params print
 
 let basic_printer_params = {
   Printer.aliases = [] ;
-  Printer.tags = [(tag, basic_extract)] ;
-  Printer.printers = [(tag, to_printer print)]
-}
+  Printer.extensions =
+    let module M = struct
+      type nonrec t = t
+      let tag = tag
+      let parsers = [basic_extract]
+      let get = to_t
+      let print = print
+    end
+  in [(module M : Printer.PrinterExt)]
+  }
 
 (* Builder *)
 
