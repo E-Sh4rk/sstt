@@ -201,9 +201,9 @@ let%expect_test "tests_ext" =
       list_not_only_a: [ any* (~'a) any* ]
       list_union: [ 42 any* | 43 42 any* ]
       list_regexp: [ ('a | 'b \ 'a)* ]
-      list_with_vars: (42::('a & [ int* ]))
+      list_with_vars: 42::('a & [ int* ])
       char_any: char
-      char_union: (('\000'-'1') | ('e'-'\255'))
+      char_union: ('\000'-'1') | ('e'-'\255')
       char_singl: '*'
       list_invalid: lst(int, lst(int, int))
       bool_invalid: bool(42)

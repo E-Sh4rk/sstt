@@ -45,8 +45,10 @@ let to_t tstruct =
     }
   | _ -> assert false
 
-type printer = Format.formatter -> t -> unit
-let print fmt { t ; f } =
+open Prec
+
+type printer = int -> assoc -> Format.formatter -> t -> unit
+let print _ _ fmt { t ; f } =
   match t, f with
   | false, false -> assert false
   | true, true -> Format.fprintf fmt "bool"

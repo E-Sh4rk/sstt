@@ -134,27 +134,33 @@ let to_t tstruct : t =
       (function { case_id=0 ; case_def } -> aux case_def | _ -> assert false)
   | _ -> assert false
 
-type printer = TagComp.Tag.t -> Format.formatter -> t -> unit
+open Prec
 
-let print tag fmt t =
-  let nb_lit ps = List.length ps in
-  let nb_lit (ps,ns) = nb_lit ps + nb_lit ns + (if ps = [] then 1 else 0) in
-  let nb_lit lst = List.map nb_lit lst |> List.fold_left (+) 0 in
-  let print_lit fmt (pos,params) =
-    Format.fprintf fmt "%s%a(%a)" (if pos then "" else "~") TagComp.Tag.pp tag
-      (print_seq Printer.print_descr_atomic ", ") params
+type printer = TagComp.Tag.t -> int -> assoc -> Format.formatter -> t -> unit
+
+let print tag prec assoc fmt t =
+  let print_atom fmt params =
+    let sym,prec',_ = varop_info Tuple in
+    Format.fprintf fmt "%a(%a)" TagComp.Tag.pp tag
+      (print_seq (Printer.print_descr_ctx prec' NoAssoc) sym) params
   in
-  let print_line fmt (ps, ns) =
+  let print_lit prec assoc fmt (pos,params) =
+    if pos then
+      print_atom fmt params
+    else
+      let sym,_,_ as opinfo = unop_info Neg in
+      fprintf prec assoc opinfo fmt "%s%a" sym print_atom params
+  in
+  let print_line prec assoc fmt (ps, ns) =
     let ps, ns = List.map (fun d -> true, d) ps, List.map (fun d -> false, d) ns in
-    Format.fprintf fmt "%s%s%a"
+    let sym,prec',_ as opinfo = varop_info Cap in
+    fprintf prec assoc opinfo fmt "%s%s%a"
       (if ps = [] then TagComp.Tag.name tag else "")
-      (if ps = [] && ns <> [] then " & " else "")
-      (print_seq print_lit " & ") (ps@ns)
+      (if ps = [] && ns <> [] then sym else "")
+      (print_seq (print_lit prec' NoAssoc) sym) (ps@ns)
   in
-  if nb_lit t > 1 then
-    Format.fprintf fmt "(%a)" (print_seq print_line " | ") t
-  else
-    Format.fprintf fmt "%a" (print_seq print_line " | ") t
+  let sym,prec',_ as opinfo = varop_info Cup in
+  fprintf prec assoc opinfo fmt "%a" (print_seq (print_line prec' NoAssoc) sym) t
 
 let define printer name (vs:variance list) =
   let tag = TagComp.Tag.mk name in

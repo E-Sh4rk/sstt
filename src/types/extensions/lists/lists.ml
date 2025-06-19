@@ -221,12 +221,14 @@ let rec print_r prec fmt regexp =
   in
   if !need_paren then Format.fprintf fmt ")"
 
-type printer = Format.formatter -> t -> unit
+open Prec
+
+type printer = int -> assoc -> Format.formatter -> t -> unit
 
 let print_r fmt =
   Format.fprintf fmt "[ %a ]" (print_r (-1))
 
-let print fmt t =
+let print prec assoc fmt t =
   match t with
   | Regexp r -> print_r fmt r
   | Basic union ->
@@ -234,9 +236,11 @@ let print fmt t =
       match l with
       | Nil -> Format.fprintf fmt "[]"
       | Cons (elt,tl) ->
-        Format.fprintf fmt "%a::%a" Printer.print_descr_atomic elt Printer.print_descr_atomic tl
+        Format.fprintf fmt "%a::%a"
+          Printer.print_descr_atomic elt Printer.print_descr_atomic tl
     in
-    Format.fprintf fmt "(%a)" (print_seq print_line " | ") union
+    let sym,_,_ as opinfo = varop_info Cup in
+    fprintf prec assoc opinfo fmt "%a" (print_seq print_line sym) union
 
 let printer_params printer = {
   Printer.aliases = [] ;

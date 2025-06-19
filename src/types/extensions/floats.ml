@@ -81,7 +81,9 @@ let to_t tstruct =
     }
   | _ -> assert false
 
-type printer = Format.formatter -> t -> unit
+open Prec
+
+type printer = int -> assoc -> Format.formatter -> t -> unit
 let comp_names =
   [
     Ninf, "-inf" ;
@@ -92,16 +94,24 @@ let comp_names =
     Pinf, "+inf" ;
     Nan, "nan"
   ]
-let print fmt t =
+let print prec assoc fmt t =
   let pp_k fmt k = Format.fprintf fmt "%s" (List.assoc k comp_names) in
   let comp = components t in
   let pos, t = if List.length comp >= 4 then false, neg_t t else true, t in
   let comp = components t in
-  let neg = if pos then "" else "float\\" in
-  match comp with
-  | [] -> assert (not pos) ; Format.fprintf fmt "float"
-  | [k] -> Format.fprintf fmt "%s%a" neg pp_k k
-  | ks -> Format.fprintf fmt "%s(%a)" neg (print_seq pp_k " | ") ks
+  let aux prec assoc fmt comp =
+    match comp with
+    | [] -> assert (not pos) ; Format.fprintf fmt "float"
+    | [elt] -> Format.fprintf fmt "%a" pp_k elt
+    | comp ->
+      let sym,_,_ as opinfo = varop_info Cup in
+      fprintf prec assoc opinfo fmt "%a" (print_seq pp_k sym) comp
+  in
+  if pos then
+    aux prec assoc fmt comp
+  else
+    let sym,prec',_ as opinfo = binop_info Diff in
+    fprintf prec assoc opinfo fmt "float%s%a" sym (aux prec' Right) comp
 
 let printer_params printer = {
   Printer.aliases = [] ;

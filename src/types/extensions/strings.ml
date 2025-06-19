@@ -42,14 +42,24 @@ let to_t tstruct =
     (pos, strs)
   | _ -> assert false
 
-type printer = Format.formatter -> t -> unit
-let print fmt (pos, strs) =
+open Prec
+
+type printer = int -> assoc -> Format.formatter -> t -> unit
+let print prec assoc fmt (pos, strs) =
   let pp_string fmt str = Format.fprintf fmt "%S" str in
-  let neg = if pos then "" else "string\\" in
-  match strs with
-  | [] -> assert (not pos) ; Format.fprintf fmt "string"
-  | [elt] -> Format.fprintf fmt "%s%a" neg pp_string elt
-  | strs -> Format.fprintf fmt "%s(%a)" neg (print_seq pp_string " | ") strs
+  let aux prec assoc fmt strs =
+    match strs with
+    | [] -> assert (not pos) ; Format.fprintf fmt "string"
+    | [elt] -> Format.fprintf fmt "%a" pp_string elt
+    | strs ->
+      let sym,_,_ as opinfo = varop_info Cup in
+      fprintf prec assoc opinfo fmt "%a" (print_seq pp_string sym) strs
+  in
+  if pos then
+    aux prec assoc fmt strs
+  else
+    let sym,prec',_ as opinfo = binop_info Diff in
+    fprintf prec assoc opinfo fmt "string%s%a" sym (aux prec' Right) strs
 
 let printer_params printer = {
   Printer.aliases = [] ;

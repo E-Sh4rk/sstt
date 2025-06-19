@@ -23,7 +23,7 @@ end
 module type CustomNode = sig
     type t
     val v : t
-    val print : Format.formatter -> t -> unit
+    val print : int -> assoc -> Format.formatter -> t -> unit
 end
 
 type builtin =
@@ -64,7 +64,7 @@ module type PrinterExt = sig
     val tag : TagComp.Tag.t
     val parsers : (Ty.t -> tag_params list option) list
     val get : custom -> t
-    val print : Format.formatter -> t -> unit
+    val print : int -> assoc -> Format.formatter -> t -> unit
 end
 
 type aliases = (Ty.t * string) list
@@ -591,18 +591,10 @@ let print_interval fmt (lb,ub) =
 
 let rec print_descr prec assoc fmt d =
   let rec aux prec assoc fmt d =
-    let need_paren = ref false in
-    let paren prec' assoc' =
-      if prec' < prec || prec' = prec && (assoc' <> assoc || assoc' = NoAssoc)
-      then begin
-        need_paren := true ;
-        Format.fprintf fmt "("
-      end
-    in
-    let () = match d.op with
+    match d.op with
     | Custom m ->
       let module M = (val m : CustomNode) in
-      M.print fmt M.v
+      M.print prec assoc fmt M.v
     | Alias str -> Format.fprintf fmt "%s" str
     | Node n -> Format.fprintf fmt "%a" NodeId.pp n
     | Builtin b -> print_builtin fmt b
@@ -624,23 +616,18 @@ let rec print_descr prec assoc fmt d =
         bindings
         (if opened then ".." else "")
     | Varop (v,ds) ->
-      let sym,prec',assoc' = varop_info v in
-      paren prec' assoc' ;
-      Format.fprintf fmt "%a"
+      let sym,prec',_ as opinfo = varop_info v in
+      Prec.fprintf prec assoc opinfo fmt "%a"
         (print_seq (aux prec' NoAssoc) sym)
         ds
     | Binop (b,d1,d2) ->
-      let sym,prec',assoc' = binop_info b in
-      paren prec' assoc' ;
-      Format.fprintf fmt "%a%s%a"
+      let sym,prec',_ as opinfo = binop_info b in
+      Prec.fprintf prec assoc opinfo fmt "%a%s%a"
         (aux prec' Left) d1 sym
         (aux prec' Right) d2
     | Unop (u,d) ->
-      let sym,prec',assoc' = unop_info u in
-      paren prec' assoc' ;
-      Format.fprintf fmt "%s%a" sym (aux prec' NoAssoc) d
-    in
-    if !need_paren then Format.fprintf fmt ")"
+      let sym,prec',_ as opinfo = unop_info u in
+      Prec.fprintf prec assoc opinfo fmt "%s%a" sym (aux prec' NoAssoc) d
   in
   aux prec assoc fmt d
 

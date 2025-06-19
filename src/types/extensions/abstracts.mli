@@ -9,7 +9,7 @@ val mk_any : TagComp.Tag.t -> Ty.t
 
 type params = Printer.descr list
 type t = (params list * params list) list
-type printer = TagComp.Tag.t -> Format.formatter -> t -> unit
+type printer = TagComp.Tag.t -> int -> Prec.assoc -> Format.formatter -> t -> unit
 val print : printer
 
 val define : printer -> string -> variance list -> TagComp.Tag.t * Printer.params

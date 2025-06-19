@@ -28,7 +28,7 @@ type t =
 | Regexp of Printer.descr regexp
 | Basic of basic list
 
-type printer = Format.formatter -> t -> unit
+type printer = int -> Prec.assoc -> Format.formatter -> t -> unit
 
 val print : printer
 

@@ -44,8 +44,10 @@ let to_t tstruct =
 
 let any_t = [(Char.chr 0, Char.chr 255)]
 
-type printer = Format.formatter -> t -> unit
-let print fmt ints =
+open Prec
+
+type printer = int -> assoc -> Format.formatter -> t -> unit
+let print prec assoc fmt ints =
   let pp_chars fmt (chr1, chr2) =
     if Char.equal chr1 chr2
     then Format.fprintf fmt "%C" chr1
@@ -57,7 +59,9 @@ let print fmt ints =
     match ints with
     | [] -> assert false
     | [i] -> Format.fprintf fmt "%a" pp_chars i
-    | ints -> Format.fprintf fmt "(%a)" (print_seq pp_chars " | ") ints
+    | ints ->
+      let sym,_,_ as opinfo = varop_info Cup in
+      fprintf prec assoc opinfo fmt "%a" (print_seq pp_chars sym) ints
 
 let printer_params printer = {
   Printer.aliases = [] ;

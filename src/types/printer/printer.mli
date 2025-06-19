@@ -16,7 +16,7 @@ end
 module type CustomNode = sig
     type t
     val v : t
-    val print : Format.formatter -> t -> unit
+    val print : int -> assoc -> Format.formatter -> t -> unit
 end
 
 type builtin =
@@ -55,7 +55,7 @@ module type PrinterExt = sig
     val tag : TagComp.Tag.t
     val parsers : (Ty.t -> tag_params list option) list
     val get : custom -> t
-    val print : Format.formatter -> t -> unit
+    val print : int -> assoc -> Format.formatter -> t -> unit
 end
 
 type aliases = (Ty.t * string) list
