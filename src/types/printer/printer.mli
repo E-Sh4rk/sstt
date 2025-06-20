@@ -53,7 +53,7 @@ type extracted_params = (Ty.t, Ty.t, Ty.t) custom_params list
 module type PrinterExt = sig
     type t
     val tag : TagComp.Tag.t
-    val parsers : (Ty.t -> extracted_params option) list
+    val extractors : (Ty.t -> extracted_params option) list
     val get : custom -> t
     val print : int -> assoc -> Format.formatter -> t -> unit
 end

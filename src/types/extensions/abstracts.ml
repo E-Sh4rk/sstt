@@ -171,7 +171,7 @@ let define printer name (vs:variance list) =
       let module M = struct
         type nonrec t = t
         let tag = tag
-        let parsers = [extract tag]
+        let extractors = [extract tag]
         let get = to_t
         let print = printer tag
       end

@@ -248,7 +248,7 @@ let printer_params printer = {
     let module M = struct
       type nonrec t = t
       let tag = tag
-      let parsers = [extract ; basic_extract]
+      let extractors = [extract ; basic_extract]
       let get = to_t
       let print = printer
     end
@@ -263,7 +263,7 @@ let basic_printer_params = {
     let module M = struct
       type nonrec t = t
       let tag = tag
-      let parsers = [basic_extract]
+      let extractors = [basic_extract]
       let get = to_t
       let print = print
     end
