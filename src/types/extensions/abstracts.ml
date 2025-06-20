@@ -96,16 +96,16 @@ let extract tag ty =
   | Some vs ->
     try
       let ps = extract_params vs ty in
-      let cases = ps |> List.map (fun (ps, ns) ->
+      let ps = ps |> List.mapi (fun i (ps, ns) ->
         let ps = ps |> List.map (fun tys ->
-          { comp_id=0 ; comp_def=List.map (fun ty -> PLeaf ty) tys }
+          { pid=[i;0] ; pdef=List.map (fun ty -> PLeaf ty) tys }
         ) in
         let ns = ns |> List.map (fun tys ->
-          { comp_id=1 ; comp_def=List.map (fun ty -> PLeaf ty) tys }
+          { pid=[i;1] ; pdef=List.map (fun ty -> PLeaf ty) tys }
         ) in
-        { case_id=0 ; case_def=ps@ns }
-      ) in
-      Some cases
+        { pid=[i] ; pdef=[] }::ps@ns
+      ) |> List.flatten in
+      Some ps
     with Exit -> None
 
 type params = Printer.descr list
@@ -113,25 +113,23 @@ type t = (params list * params list) list
 
 let to_t tstruct : t =
   let open Printer in
-  let aux def =
-    let (pos, def) =
-      match def with
-      | { comp_id = 0; comp_def } -> true, comp_def
-      | { comp_id = 1; comp_def } -> false, comp_def
+  let aux_i defs i =
+    let ps, ns = defs |> List.filter_map (fun {pid;pdef} ->
+      match pid with
+      | [j;neg] ->
+        if j = i then
+          Some (neg=0, List.map (function PLeaf d -> d | _ -> assert false) pdef)
+        else None
+      | [_] -> None
       | _ -> assert false
-    in
-    let def = def |> List.map (function PLeaf d -> d | _ -> assert false) in
-    pos, def
-  in
-  let aux defs =
-    let defs = List.map aux defs in
-    let ps, ns = List.partition fst defs in
+    ) |> List.partition fst in
     List.map snd ps, List.map snd ns
   in
   match tstruct with
   | CDef (_, defs) ->
-    defs |> List.map
-      (function { case_id=0 ; case_def } -> aux case_def | _ -> assert false)
+    let ids = defs |> List.filter_map
+      (fun {pid;_} -> match pid with [i] -> Some i | _ -> None) in
+    List.map (aux_i defs) ids
   | _ -> assert false
 
 open Prec

@@ -43,12 +43,10 @@ let basic_extract ty =
   if Ty.leq ty (proj_tag any) && Ty.vars_toplevel ty |> VarSet.is_empty then
     let tuples = Ty.get_descr ty |> Descr.get_tuples in
     let nil_comps = Tuples.get 0 tuples |> Op.TupleComp.as_union
-      |> List.map (fun _ -> { case_id=0 ; case_def=[] })
+      |> List.map (fun _ -> { pid=[0] ; pdef=[] })
     in
     let cons_comps = Tuples.get 2 tuples |> Op.TupleComp.as_union
-      |> List.map (fun tys ->
-        let tag_comp = { comp_id=0 ; comp_def=List.map (fun ty -> PLeaf ty) tys } in
-        { case_id=1 ; case_def=[tag_comp] })
+      |> List.map (fun tys -> { pid=[1] ; pdef=List.map (fun ty -> PLeaf ty) tys })
     in
     Some (nil_comps@cons_comps)
   else None
@@ -63,7 +61,7 @@ let extract ty =
     let tuples = Ty.get_descr ty |> Descr.get_tuples in
     let nil_comps =
       Tuples.get 0 tuples |> Op.TupleComp.as_union
-      |> List.map (fun _ -> { case_id=2 ; case_def=[] })
+      |> List.map (fun _ -> { pid=[2] ; pdef=[] })
     in
     let cons_comps =
       Tuples.get 2 tuples |> Op.TupleComp.as_union
@@ -72,8 +70,7 @@ let extract ty =
         | [l;r] ->
           let ty = proj_tag r in
           if Ty.equiv r (Descr.mk_tag (tag, ty) |> Ty.mk_descr) |> not then raise Exit ;
-          let tag_comp = { comp_id=0 ; comp_def=[PLeaf l ; PRec ty] } in
-          { case_id=3 ; case_def=[tag_comp] }
+          { pid=[3] ; pdef=[PLeaf l ; PRec ty] }
         | _ -> assert false  
       )
     in
@@ -94,9 +91,8 @@ let to_params tstruct =
     | CDef (nid, union) ->
       let to_r params =
         match params with
-        | { case_id=2 ; case_def=[]} -> RNil
-        | { case_id=3 ; case_def=[
-          { comp_id=0 ; comp_def=[PLeaf elt ; PRec tstruct] } ]} ->
+        | { pid=[2] ; pdef=[] } -> RNil
+        | { pid=[3] ; pdef=[PLeaf elt ; PRec tstruct] } ->
           RCons (elt, regexp tstruct)
         | _ -> raise Exit
       in
@@ -107,9 +103,8 @@ let to_params tstruct =
     | CDef (_, union) ->
       let to_b params =
         match params with
-        | { case_id=0 ; case_def=[]} -> Nil
-        | { case_id=1 ; case_def=[
-          { comp_id=0 ; comp_def=[PLeaf elt ; PLeaf tl] } ]} -> Cons (elt, tl)
+        | { pid=[0] ; pdef=[]} -> Nil
+        | { pid=[1] ; pdef=[PLeaf elt ; PLeaf tl] } -> Cons (elt, tl)
         | _ -> assert false
       in
       List.map to_b union

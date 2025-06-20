@@ -136,3 +136,8 @@ let merge_when_possible merge_opt lst =
       end
     in
     aux lst
+
+let (--) i j =
+  let rec aux n acc =
+    if n < i then acc else aux (n-1) (n :: acc)
+  in aux j []

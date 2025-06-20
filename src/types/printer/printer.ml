@@ -52,11 +52,10 @@ type def = (module CustomNode) def'
 type op = (module CustomNode) op'
 
 (* Printer extensions *)
-type ('u, 'l, 'r) tag_param = PUnprocessed of 'u | PLeaf of 'l | PRec of 'r
-type ('u, 'l, 'r) tag_comp = { comp_id : int ; comp_def : ('u, 'l, 'r) tag_param list }
-type ('u, 'l, 'r) custom_params = { case_id : int ; case_def : ('u, 'l, 'r) tag_comp list }
-type custom = CDef of NodeId.t * (Ty.t, descr, custom) custom_params list | CNode of NodeId.t
-type extracted_params = (Ty.t, Ty.t, Ty.t) custom_params list
+type ('u, 'l, 'r) cparam = PUnprocessed of 'u | PLeaf of 'l | PRec of 'r
+type ('u, 'l, 'r) cparams = { pid : int list ; pdef : ('u, 'l, 'r) cparam list }
+type custom = CDef of NodeId.t * (Ty.t, descr, custom) cparams list | CNode of NodeId.t
+type extracted_params = (Ty.t, Ty.t, Ty.t) cparams list
 module type PrinterExt = sig
     type t
     val tag : TagComp.Tag.t
@@ -64,7 +63,7 @@ module type PrinterExt = sig
     val get : custom -> t
     val print : int -> assoc -> Format.formatter -> t -> unit
 end
-type custom' = CDef of NodeId.t * (Ty.t, (TagComp.Tag.t * custom') descr', custom') custom_params list | CNode of NodeId.t
+type custom' = CDef of NodeId.t * (Ty.t, (TagComp.Tag.t * custom') descr', custom') cparams list | CNode of NodeId.t
 
 type aliases = (Ty.t * string) list
 type extensions = (module PrinterExt) list
@@ -103,14 +102,13 @@ let map_ic map (tag, ts) =
     | CDef (nid,params) ->
       CDef (nid, List.map map_params params)
     | CNode nid -> CNode nid
-  and map_params { case_id ; case_def } =
-    { case_id ; case_def=List.map map_param case_def }
+  and map_params { pid ; pdef } =
+    { pid ; pdef=List.map map_param pdef }
   and map_param p =
-    let auxp = function
-      | PUnprocessed ty -> PUnprocessed ty
-      | PLeaf d -> PLeaf (map d)
-      | PRec ts -> PRec (map_ts ts)
-    in { p with comp_def = List.map auxp p.comp_def }
+    match p with
+    | PUnprocessed ty -> PUnprocessed ty
+    | PLeaf d -> PLeaf (map d)
+    | PRec ts -> PRec (map_ts ts)
   in
   (tag, map_ts ts)
 let map_descr = map_descr' map_ic
@@ -359,14 +357,13 @@ let rec resolve_custom_tagcomp f ctx env ty =
       let nid = NodeId.mk () in
       let env = VDMap.add vd nid env in
       let treat_param param =
-        let auxp = function
-          | PUnprocessed ty -> PUnprocessed ty
-          | PLeaf ty -> PLeaf (node ctx ty)
-          | PRec ty -> PRec (resolve_custom_tagcomp f ctx env ty)
-        in { param with comp_def = List.map auxp param.comp_def }
+        match param with
+        | PUnprocessed ty -> PUnprocessed ty
+        | PLeaf ty -> PLeaf (node ctx ty)
+        | PRec ty -> PRec (resolve_custom_tagcomp f ctx env ty)
       in
-      let treat_params { case_id ; case_def } =
-        { case_id ; case_def=List.map treat_param case_def }
+      let treat_params { pid ; pdef } =
+        { pid ; pdef=List.map treat_param pdef }
       in
       let union = List.map treat_params extracted in
     CDef (nid, union)
@@ -526,14 +523,13 @@ let transform_custom_tags ctx t =
         | CDef (nid,params) ->
           CDef (nid, List.map map_params params)
         | CNode nid -> CNode nid
-      and map_params { case_id; case_def } =
-        { case_id ; case_def=List.map map_param case_def }
+      and map_params { pid; pdef } =
+        { pid ; pdef=List.map map_param pdef }
       and map_param p =
-        let auxp = function
-          | PUnprocessed ty -> PUnprocessed ty
-          | PLeaf d -> PLeaf (map d)
-          | PRec ts -> PRec (map_ts ts)
-        in { p with comp_def = List.map auxp p.comp_def }
+        match p with
+        | PUnprocessed ty -> PUnprocessed ty
+        | PLeaf d -> PLeaf (map d)
+        | PRec ts -> PRec (map_ts ts)
       in
       let module M' = struct
         type t = M.t
