@@ -387,14 +387,7 @@ let resolve_tagcomp ctx a =
 
 let resolve_tags ctx a =
   let (pos, components) = Tags.destruct a in
-  let d = components |> List.map (fun t ->
-    let tag = TagComp.tag t in
-    let elt = resolve_tagcomp ctx t in
-    let any = { op = Builtin (AnyTagComp tag) ;
-                ty = TagComp.any tag |> D.mk_tagcomp |> Ty.mk_descr }
-    in
-    cap' any elt
-  ) |> union in
+  let d = components |> List.map (resolve_tagcomp ctx) |> union in
   if pos then d else neg d
 
 let resolve_comp ctx c =

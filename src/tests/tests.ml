@@ -26,6 +26,8 @@ let%expect_test "tests" =
     tags2: tag1(true, false) | tag2(false, true)
     tags3: true
     tags4: 42
+    tags5: ~tag(bool)
+    tags6: ~(tag1(bool) | tag2(int))
     tuple1: false
     tuple2: true
     tuple3: true
@@ -176,9 +178,10 @@ let%expect_test "tests_ext" =
     let fn = "tests_ext.txt" in
     let cin = open_in fn in
     let buf = Lexing.from_channel cin in
+    let (abs_tag, abs_printer) = Abstracts.define' "abs" [Inv] in
     let pparams = [
       Lists.printer_params' ; Bools.printer_params' ; Chars.printer_params' ;
-      Floats.printer_params' ; Strings.printer_params'
+      Floats.printer_params' ; Strings.printer_params' ; abs_printer
     ] |> Printer.merge_params in
     let rec test env =
       match IO.parse_command buf with
@@ -193,6 +196,7 @@ let%expect_test "tests_ext" =
     let env = { env with Ast.tagenv=Ast.StrMap.add "flt" Floats.tag env.tagenv } in
     let env = { env with Ast.tagenv=Ast.StrMap.add "str" Strings.tag env.tagenv } in
     let env = { env with Ast.tagenv=Ast.StrMap.add "chr" Chars.tag env.tagenv } in
+    let env = { env with Ast.tagenv=Ast.StrMap.add "abs" abs_tag env.tagenv } in
     Output.with_basic_output Format.std_formatter
       (fun () -> test env) () ;
     [%expect {|
@@ -210,5 +214,7 @@ let%expect_test "tests_ext" =
       float_invalid: flt(42)
       string_invalid: str(42)
       char_invalid: chr(something)
+      abs_any: abs
+      abs_invalid: abs(42)
       |}]
   

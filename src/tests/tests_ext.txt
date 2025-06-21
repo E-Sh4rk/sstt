@@ -24,3 +24,6 @@ type ba = lst(43,lst(42,list));;
 "float_invalid" flt(42) ;;
 "string_invalid" str(42) ;;
 "char_invalid" chr(something) ;;
+
+"abs_any" abs(any) ;;
+"abs_invalid" abs(42) ;;

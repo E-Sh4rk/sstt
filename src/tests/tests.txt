@@ -12,6 +12,8 @@ type bool = true | false ;;
 "tags2" tag1(true,false) | tag2(false,true) ;;
 "tags3" tag(empty) <= empty ;;
 "tags4" x where x=tag(x&tag(x))|42;;
+"tags5" ~tag(bool);;
+"tags6" ~tag1(bool) & ~tag2(int);;
 
 "tuple1" (bool,int) <= (int,bool) ;;
 "tuple2" (false,true) <= (bool,bool) ;;
