@@ -48,6 +48,9 @@ module TupleComp = struct
   let as_union t =
     TupleComp.dnf' t |> TupleComp.Dnf'.simplify |> List.map fst
 
+  let of_union n lst =
+    TupleComp.of_dnf' n (List.map (fun atom -> atom, true) lst)
+
   let approx t =
     mapn (fun _ -> raise EmptyAtom) Ty.disj (as_union t)
 
@@ -67,6 +70,9 @@ module Records = struct
     List.map (fun t ->
       { bindings=t.Records.Atom'.bindings ; opened=t.opened }
     )
+
+  let of_union lst =
+    Records.of_dnf (List.map (fun atom -> [atom],[],true) lst)
 
   let approx t =
     let open Records.Atom in

@@ -26,7 +26,10 @@ module TupleComp : sig
     (** [as_union t] expresses [t] as an union of non-empty atoms. *)
     val as_union : t -> atom list
 
-    (** [approx t] approximates [t] as a non-empty atom.
+    (** [of_union n atoms] returns the [n]-uple component composed of the union [atoms]. *)
+    val of_union : int -> atom list -> t
+
+    (** [approx t] over-approximates [t] as a non-empty atom.
     Raises: [EmptyAtom] if [t] is empty. *)
     val approx : t -> atom
 
@@ -43,10 +46,13 @@ module Records : sig
     type t = Records.t
     type atom = Records.Atom.t
 
-    (** [as_union t] expresses [t] as an union of non-empty atoms. *)
+    (** [as_union t] over-approximates [t] as an union of non-empty atoms. *)
     val as_union : t -> atom list
 
-    (** [approx t] approximates [t] as a non-empty atom.
+    (** [of_union atoms] returns the record component composed of the union [atoms]. *)
+    val of_union : atom list -> t
+
+    (** [approx t] over-approximates [t] as a non-empty atom.
     Raises: [EmptyAtom] if [t] is empty. *)
     val approx : t -> atom
 
