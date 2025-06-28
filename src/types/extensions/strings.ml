@@ -47,7 +47,7 @@ let print prec assoc fmt (pos, strs) =
   let pp_string fmt str = Format.fprintf fmt "%S" str in
   let aux prec assoc fmt strs =
     match strs with
-    | [] -> assert (not pos) ; Format.fprintf fmt "string"
+    | [] -> assert false
     | [elt] -> Format.fprintf fmt "%a" pp_string elt
     | strs ->
       let sym,_,_ as opinfo = varop_info Cup in
@@ -55,6 +55,8 @@ let print prec assoc fmt (pos, strs) =
   in
   if pos then
     aux prec assoc fmt strs
+  else if not pos && strs = [] then
+    Format.fprintf fmt "string"
   else
     let sym,prec',_ as opinfo = binop_info Diff in
     fprintf prec assoc opinfo fmt "string%s%a" sym (aux prec' Right) strs

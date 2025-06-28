@@ -99,7 +99,7 @@ let print prec assoc fmt t =
   let comp = components t in
   let aux prec assoc fmt comp =
     match comp with
-    | [] -> assert (not pos) ; Format.fprintf fmt "float"
+    | [] -> assert false
     | [elt] -> Format.fprintf fmt "%a" pp_k elt
     | comp ->
       let sym,_,_ as opinfo = varop_info Cup in
@@ -107,6 +107,8 @@ let print prec assoc fmt t =
   in
   if pos then
     aux prec assoc fmt comp
+  else if not pos && comp = [] then
+    Format.fprintf fmt "float"
   else
     let sym,prec',_ as opinfo = binop_info Diff in
     fprintf prec assoc opinfo fmt "float%s%a" sym (aux prec' Right) comp
