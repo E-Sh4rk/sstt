@@ -54,9 +54,8 @@ let extract_params vs ty =
     List.map convert_to_tuple
   in
   let extract_tuple ty =
-    match extract_tuples ty with
-    | [tup] -> tup
-    | _ -> raise Exit
+    Ty.get_descr ty |> Descr.get_records |> Op.Records.approx |>
+    convert_to_tuple
   in
   let aux (ls, rs) =
     let aux (v,(l,r)) =
@@ -86,16 +85,16 @@ let extract_params vs ty =
       Ty.cap ps ns
     ) |> Ty.disj
   in
-  if Ty.equiv ty ty' |> not then raise Exit ;
-  res
+  if Ty.equiv ty ty' then Some res else None
 
 let extract tag ty =
   let open Printer in
   match Hashtbl.find_opt atypes tag with
   | None -> None
   | Some vs ->
-    try
-      let ps = extract_params vs ty in
+    begin match extract_params vs ty with
+    | None -> None
+    | Some ps ->
       let ps = ps |> List.mapi (fun i (ps, ns) ->
         let ps = ps |> List.map (fun tys ->
           { pid=[i;0] ; pdef=List.map (fun ty -> PLeaf ty) tys }
@@ -106,7 +105,7 @@ let extract tag ty =
         { pid=[i] ; pdef=[] }::ps@ns
       ) |> List.flatten in
       Some ps
-    with Exit -> None
+    end
 
 type params = Printer.descr list
 type t = (params list * params list) list
