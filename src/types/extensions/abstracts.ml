@@ -87,25 +87,34 @@ let extract_params vs ty =
   in
   if Ty.equiv ty ty' then Some res else None
 
-let extract tag ty =
-  let open Printer in
+let destruct tag ty =
   match Hashtbl.find_opt atypes tag with
   | None -> None
   | Some vs ->
     begin match extract_params vs ty with
     | None -> None
-    | Some ps ->
-      let ps = ps |> List.mapi (fun i (ps, ns) ->
-        let ps = ps |> List.map (fun tys ->
-          { pid=[i;0] ; pdef=List.map (fun ty -> PLeaf ty) tys }
-        ) in
-        let ns = ns |> List.map (fun tys ->
-          { pid=[i;1] ; pdef=List.map (fun ty -> PLeaf ty) tys }
-        ) in
-        { pid=[i] ; pdef=[] }::ps@ns
-      ) |> List.flatten in
-      Some ps
+    | Some ts -> Some ts
     end
+
+let extract tag ty =
+  let open Printer in
+  match destruct tag ty with
+  | None -> None
+  | Some ps ->
+    let ps = ps |> List.mapi (fun i (ps, ns) ->
+      let ps = ps |> List.map (fun tys ->
+        { pid=[i;0] ; pdef=List.map (fun ty -> PLeaf ty) tys }
+      ) in
+      let ns = ns |> List.map (fun tys ->
+        { pid=[i;1] ; pdef=List.map (fun ty -> PLeaf ty) tys }
+      ) in
+      { pid=[i] ; pdef=[] }::ps@ns
+    ) |> List.flatten in
+    Some ps
+
+let destruct comp =
+  let (tag, ty) = TagComp.as_atom comp in
+  Option.map (fun x -> (tag, x)) (destruct tag ty)
 
 type params = Printer.descr list
 type t = (params list * params list) list
