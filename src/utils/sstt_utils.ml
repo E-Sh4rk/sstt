@@ -79,7 +79,7 @@ let subsets lst =
   aux [] [] lst
 
 let map_among_others' f lst =
-  let[@tail_mod_cons] rec aux left right =
+  let rec aux left right =
     match right with
       [] -> []
     | c :: right -> (f (List.rev left) c right)::(aux (c::left) right)
