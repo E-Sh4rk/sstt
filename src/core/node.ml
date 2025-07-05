@@ -19,6 +19,7 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
     neg : t ; (* Always generate the negation node as it is very easy to compute *)
     mutable def : VDescr.t option ;
     mutable simplified : bool ;
+    mutable dependencies : NSet.t option
   }
 
   let has_def t = Option.is_some t.def
@@ -38,11 +39,13 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
         id = next_id () ;
         def = None ;
         simplified = false ;
+        dependencies = None ;
         neg = {
           id = next_id () ;
           def = None ;
           simplified = false ;
-          neg = t
+          neg = t ;
+          dependencies = None
         }
       }
     in
@@ -107,8 +110,11 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
 
   let rec simplify t =
     if not t.simplified then begin
-      define ~simplified:true t (def t |> VDescr.simplify) ;
-      def t |> VDescr.direct_nodes |> List.iter simplify
+      let s_def = def t |> VDescr.simplify in
+      define ~simplified:true t s_def ;
+      t.dependencies <- None;
+      t.neg.dependencies <- None;
+      s_def |> VDescr.direct_nodes |> List.iter simplify
     end
 
   let dependencies t =
@@ -122,6 +128,11 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
       if NSet.equal ts ts' then ts' else aux ts'
     in
     aux (NSet.singleton t)
+
+  let dependencies t =
+    match t.dependencies with 
+    | Some d -> d
+    | None -> let d = dependencies t in t.dependencies <- Some d; d
 
   let vars_toplevel t = def t |> VDescr.direct_vars |> VarSet.of_list
   let vars t =
