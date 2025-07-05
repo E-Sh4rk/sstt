@@ -92,7 +92,7 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
           | effect SetCache c, k -> cache' := c ; continue k ()
         in
         let cache = if b then !cache' else VDMap.add def false cache in
-        perform (SetCache (VDMap.add def b cache)) ; b
+        perform (SetCache cache); b
       end
   let leq t1 t2 = diff t1 t2 |> is_empty
   let equiv t1 t2 = leq t1 t2 && leq t2 t1
