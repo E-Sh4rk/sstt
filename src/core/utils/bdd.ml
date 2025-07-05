@@ -35,8 +35,8 @@ end
 
 module Make(N:Atom)(L:Leaf) = struct
   type t =
-  | Node of N.t * t * t
-  | Leaf of L.t
+    | Node of N.t * t * t
+    | Leaf of L.t
 
   let empty = Leaf (L.empty)
   let any = Leaf (L.any)
@@ -46,6 +46,7 @@ module Make(N:Atom)(L:Leaf) = struct
   let mk_leaf l = Leaf l
 
   let rec equal t1 t2 =
+    t1 == t2 ||
     match t1, t2 with
     | Leaf l1, Leaf l2 -> L.equal l1 l2
     | Node _, Leaf _ | Leaf _, Node _ -> false
@@ -59,8 +60,8 @@ module Make(N:Atom)(L:Leaf) = struct
     | Node _, Leaf _ -> 1
     | Node (a1, p1, n1), Node (a2, p2, n2) ->
       N.compare a1 a2 |> ccmp
-      compare p1 p2 |> ccmp
-      compare n1 n2
+        compare p1 p2 |> ccmp
+        compare n1 n2
 
   let rec neg t =
     match t with
@@ -70,19 +71,18 @@ module Make(N:Atom)(L:Leaf) = struct
 
   let normalize t =
     match t with
-    | Leaf l -> Leaf l
     | Node (_, p, n) when equal p n -> p
-    | Node (a, p, n) -> Node (a, p, n)
+    | _ -> t
 
   let op lop t1 t2 =
     let rec op t1 t2 =
       let res =
         match t1, t2 with
         | Leaf l1, Leaf l2 -> Leaf (lop l1 l2)
-        | Leaf l, Node (a,p,n) ->
-          Node (a, op (Leaf l) p, op (Leaf l) n)
-        | Node (a,p,n), Leaf l ->
-          Node (a, op p (Leaf l), op n (Leaf l))
+        | Leaf _, Node (a,p,n) ->
+          Node (a, op t1 p, op t1 n)
+        | Node (a,p,n), Leaf _ ->
+          Node (a, op p t2, op n t2)
         | Node (a1,p1,n1), Node (a2,_,_) when N.compare a1 a2 < 0 ->
           Node (a1, op p1 t2, op n1 t2)
         | Node (a1,_,_), Node (a2,p2,n2) when N.compare a1 a2 > 0 ->
@@ -100,7 +100,7 @@ module Make(N:Atom)(L:Leaf) = struct
 
   let rec substitute f t =
     match t with
-    | Leaf l -> Leaf l
+    | Leaf _ -> t
     | Node (a,p,n) ->
       let p,n = substitute f p, substitute f n in
       let t = f a in
@@ -126,14 +126,26 @@ module Make(N:Atom)(L:Leaf) = struct
     in
     aux [] [] [] t
 
+  let for_all_lines f t =
+    let rec aux ps ns t =
+      match t with
+      | Leaf l -> if not (f (ps,ns,l)) then raise Exit
+      | Node (a,p,n) ->
+        aux (a::ps) ns p;
+        aux ps (a::ns) n
+    in
+    try aux [] [] t; true with Exit -> false
+
   let conj = List.fold_left cap any
   let disj = List.fold_left cup empty
+
+  let conj_map f l acc =
+    List.fold_left (fun acc e -> cap (f e) acc) acc l
+
   let of_dnf dnf =
     let line (ps,ns,l) =
-      let ps = ps |> List.map singleton in
-      let ns = ns |> List.map nsingleton in
       let l = mk_leaf l in
-      l::(ps@ns) |> conj
+      cap l (conj_map singleton ps (conj_map nsingleton ns any))
     in
     dnf |> List.map line |> disj
 
@@ -146,7 +158,7 @@ module Make(N:Atom)(L:Leaf) = struct
         let acc = aux acc p in
         let acc = aux acc n in
         acc
-      in aux [] t
+    in aux [] t
 
   let leaves t =
     let rec aux acc t =
@@ -159,14 +171,14 @@ module Make(N:Atom)(L:Leaf) = struct
     in aux [] t
 
   type ctx =
-  | CNode of N.t * ctx * ctx
-  | CT of t
-  | CHole
+    | CNode of N.t * ctx * ctx
+    | CT of t
+    | CHole
   let fill ctx t =
     let rec aux ctx =
       match ctx with
       | CNode (a, p, n) -> CNode (a, aux p, aux n)
-      | CT t -> CT t
+      | CT _ -> ctx
       | CHole -> t
     in
     aux ctx

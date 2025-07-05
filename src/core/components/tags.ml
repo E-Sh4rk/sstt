@@ -78,7 +78,7 @@ module MakeC(N:Node) = struct
     let merge_line (ps,ns,_) = ty_of_clause (ps,ns) in
     tag, dnf (tag,t) |> List.map merge_line |> N.disj
 
-  let direct_nodes (_,t) = Bdd.atoms t |> List.map Atom.direct_nodes |> List.concat
+  let direct_nodes (_,t) = Bdd.atoms t |> List.concat_map Atom.direct_nodes
   let map_nodes f (tag,t) = tag, Bdd.map_nodes (Atom.map_nodes f) t
 
   let simplify (tag,t) = (tag,Bdd.simplify equiv t)

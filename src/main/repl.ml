@@ -42,11 +42,11 @@ let rec compute_expr env e =
         let arrow = Ty.get_descr ty1 |> Descr.get_arrows in
         Op.Arrows.apply arrow ty2
       in
-      RTy (carthesian_product tys1 tys2 |> List.map apply)
+      RTy (cartesian_product tys1 tys2 |> List.map apply)
     | RSubst s1, RSubst s2 ->
-      RSubst (carthesian_product s1 s2 |> List.map (fun (s1, s2) -> Subst.compose s2 s1))
+      RSubst (cartesian_product s1 s2 |> List.map (fun (s1, s2) -> Subst.compose s2 s1))
     | RTy ty, RSubst s ->
-      RTy (carthesian_product ty s |> List.map (fun (ty, s) -> Subst.apply s ty))
+      RTy (cartesian_product ty s |> List.map (fun (ty, s) -> Subst.apply s ty))
     | _, _ -> failwith "Invalid application."
     in
     r, env
@@ -64,7 +64,7 @@ let rec compute_expr env e =
       | GEQ -> poly_leq env ty2 ty1
       | EQ -> poly_leq env ty1 ty2 && poly_leq env ty2 ty1
     in
-    RBool (carthesian_product tys1 tys2 |> List.map aux), env
+    RBool (cartesian_product tys1 tys2 |> List.map aux), env
 
 let params pparams env =
   let aliases =

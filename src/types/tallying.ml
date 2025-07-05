@@ -101,7 +101,7 @@ module Make(VO:VarOrder) = struct
     let cup t1 t2 = CSS.union t1 t2 |> normalize
     let cap t1 t2 =
       let t1, t2 = CSS.elements t1, CSS.elements t2 in
-      carthesian_product t1 t2 |> List.map (fun (cs1,cs2) -> CS.cap cs1 cs2)
+      cartesian_product t1 t2 |> List.map (fun (cs1,cs2) -> CS.cap cs1 cs2)
       |> CSS.of_list |> normalize
     let disj t = List.fold_left cup empty t |> normalize
     let conj t = List.fold_left cap any t |> normalize
@@ -139,9 +139,9 @@ module Make(VO:VarOrder) = struct
 
   module VDSet = Set.Make(VDescr)
 
-  let norm delta t =
+  let norm delta_ty delta t =
     let rec aux m t =
-      if Ty.vars t |> Base.VarSet.for_all (fun x -> VarSet.mem x delta) then
+      if Base.VarSet.subset (Ty.vars t) delta_ty then
         (* Optimisation: performing tallying on an expression with
            no polymorphic type variable should be as fast as subtyping. *)
         begin if Ty.is_empty t then NCSS.any else NCSS.empty end
@@ -255,7 +255,7 @@ module Make(VO:VarOrder) = struct
 
   (* TODO: Normalize using psi, in the same way as for subtyping *)
 
-  let merge delta cs =
+  let merge delta_ty delta cs =
     let rec merge m cs =
       cs |> NCS.to_list |> step1 |> step2 m []
     and step1 cs =
@@ -275,7 +275,7 @@ module Make(VO:VarOrder) = struct
           step2 m ((Right (t',v'))::(Left (v,t))::prev) cs
         else
           let m = VDSet.add (Ty.def ty) m in
-          let css = norm delta ty in
+          let css = norm delta_ty delta ty in
           let css' = (Left (v,t))::(Right (t',v'))::cs@prev |> NCS.of_list |> NCSS.singleton in
           let css = NCSS.cap css css' in
           css |> NCSS.to_list |> List.map (merge m) |> NCSS.disj
@@ -314,11 +314,12 @@ module Make(VO:VarOrder) = struct
     cs |> MCS.to_list |> List.map to_eq |> unify |> Subst.map (Subst.apply !renaming)
 
   let tally delta cs =
+    let delta_ty = Base.VarSet.of_list delta in
     let delta = VarSet.of_list delta in
     let ncss = cs
-      |> List.map (fun (s,t) -> norm delta (Ty.diff s t)) |> NCSS.conj in
+      |> List.map (fun (s,t) -> norm delta_ty delta (Ty.diff s t)) |> NCSS.conj in
     let mcss = ncss
-      |> NCSS.to_list |> List.map (merge delta) |> MCSS.disj in
+      |> NCSS.to_list |> List.map (merge delta_ty delta) |> MCSS.disj in
     mcss |> MCSS.to_list |> List.map solve
 end
 

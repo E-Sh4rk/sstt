@@ -160,22 +160,18 @@ module Make(N:Node) = struct
     let init = fun () -> List.init n (fun _ -> ON.empty ()) in
     mapn init ON.disj ps
 
-  let rec distribute_diff ss tt =
-    match ss, tt with
-    | [], [] -> []
-    | s::ss, t::tt ->
-      let res1 = distribute_diff ss tt
-                 |> List.map (fun ss -> s::ss) in
-      let res2 = (ON.diff s t)::ss in
-      res2::res1
-    | _, _ -> assert false
+  let forall_distribute_diff f ss tt =
+    try
+      iter_distribute_comb (fun e -> if not (f e) then raise Exit) ON.diff ss tt;
+      true
+    with Exit -> false
   let rec psi n ss ts =
     if List.exists2 ON.leq ss (disj n ts) |> not then false (* optimisation *)
     else match ts with
       | [] -> (* List.exists ON.is_empty ss *) true
       | tt::ts ->
         List.exists ON.is_empty ss || (* optimisation *)
-        distribute_diff ss tt |> List.for_all (fun ss -> psi n ss ts)
+        forall_distribute_diff (fun ss -> psi n ss ts) ss tt
   let is_clause_empty (ps,ns,b) =
     if b then
       let dom = List.fold_left
@@ -262,7 +258,7 @@ module Make(N:Node) = struct
   let of_dnf dnf = Dnf.mk dnf |> Bdd.of_dnf
   let of_dnf' dnf' = of_dnf (Dnf'.to_dnf dnf')
 
-  let direct_nodes t = Bdd.atoms t |> List.map Atom.direct_nodes |> List.concat
+  let direct_nodes t = Bdd.atoms t |> List.concat_map Atom.direct_nodes
   let map_nodes f t = Bdd.map_nodes (Atom.map_nodes f) t
 
   let simplify t = Bdd.simplify equiv t

@@ -136,14 +136,12 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
 
   let vars_toplevel t = def t |> VDescr.direct_vars |> VarSet.of_list
   let vars t =
-    dependencies t |> NSet.to_list |> List.map vars_toplevel
-    |> List.fold_left VarSet.union VarSet.empty
+    NSet.fold (fun n -> VarSet.union (vars_toplevel n)) (dependencies t) VarSet.empty
 
   let of_eqs eqs =
-    let deps = List.map snd eqs |> List.map dependencies
-    |> List.fold_left NSet.union NSet.empty in
-    let copies = NSet.to_list deps |>
-      List.fold_left (fun acc n -> NMap.add n (mk ()) acc) NMap.empty in
+    let deps = eqs
+              |> List.fold_left (fun acc (_, t) -> NSet.union (dependencies t) acc) NSet.empty in
+    let copies = NSet.fold (fun n acc -> NMap.add n (mk ()) acc) deps NMap.empty in
     let new_node n =
       match eqs |> List.find_opt (fun (v,_) ->
         VDescr.equal (VDescr.mk_var v) (def n)) with
@@ -176,7 +174,7 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
     eqs |> List.map (fun (v,n) -> v,new_node n)
 
   let substitute s t =
-    let dom = VarMap.bindings s |> List.map fst |> VarSet.of_list in
+    let dom = VarMap.fold (fun n _ -> VarSet.add n) s VarSet.empty in
     let s = s |> VarMap.map (fun n -> def n) in
     (* Optimisation: reuse nodes if possible *)
     let unchanged n = VarSet.disjoint (vars n) dom in
