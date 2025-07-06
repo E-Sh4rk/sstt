@@ -1,141 +1,158 @@
 open Sstt_utils
 
+module Number =
+struct
+  type t =
+    | NegInf
+    | PosInf
+    | Num of Z.t
+  let equal a b =
+    a == b
+    ||
+    match a, b with
+    | NegInf, NegInf | PosInf, PosInf -> true
+    | Num x, Num y -> Z.equal x y
+    | _ -> false
+
+  let compare a b =
+    match a, b with
+    | NegInf, NegInf | PosInf, PosInf -> 0
+    | NegInf, _ | _, PosInf -> -1
+    | PosInf, _ | _, NegInf -> 1
+    | Num x, Num y -> Z.compare x y
+
+  let succ = function
+      Num z -> Num (Z.succ z)
+    | _ -> failwith "Number.succ"
+  let pred = function
+      Num z -> Num (Z.pred z)
+    | _ -> failwith "Number.pred"
+
+
+  let ( < ) x1 x2 = compare x1 x2 < 0
+  let ( = ) x1 x2 = equal x1 x2
+  let ( > ) x1 x2 = compare x1 x2 > 0
+  let ( <= ) x1 x2 = compare x1 x2 <= 0
+  let ( >= ) x1 x2 = compare x1 x2 >= 0
+  let min x1 x2 = if x2 < x1 then x2 else x1
+  let max x1 x2 = if x2 > x1 then x2 else x1
+
+  let pp fmt =
+    let open Format in
+    function Num z -> fprintf fmt "%a" Z.pp_print z
+           | _ -> () (* don't print anything, see Interval.pp below *)
+
+end
+
 module Interval = struct
-  type t = Z.t option * Z.t option
-  let mk_bounded lb ub = 
-    if Z.leq lb ub then Some lb, Some ub
+  type t = Number.t * Number.t
+  let mk_bounded lb ub =
+    if Z.leq lb ub then Number.(Num lb, Num ub)
     else raise (Invalid_argument "Lower bound is greater than upper bound")
   let mk lb ub =
+    let open Number in
     match lb, ub with
-    | None, None -> None, None
-    | Some lb, None -> Some lb, None
-    | None, Some ub -> None, Some ub
+    | None, None -> NegInf, PosInf
+    | Some lb, None -> Num lb, PosInf
+    | None, Some ub -> NegInf, Num ub
     | Some lb, Some ub -> mk_bounded lb ub
   let mk_singl i = mk_bounded i i
-  let any = None, None
-  let get t = t
+  let any = Number.(NegInf, PosInf)
+  let to_option =
+    function
+      Number.Num z -> Some z
+    | _ -> None
+  let get (lb, ub) = (to_option lb, to_option ub)
 
-  let cmp_lb o1 o2 =
-    match o1, o2 with
-    | None, None -> 0
-    | None, Some _ -> -1
-    | Some _, None -> 1
-    | Some lb1, Some lb2 -> Z.compare lb1 lb2
-  let cmp_ub o1 o2 =
-    match o1, o2 with
-    | None, None -> 0
-    | None, Some _ -> 1
-    | Some _, None -> -1
-    | Some lb1, Some lb2 -> Z.compare lb1 lb2
   let compare (lb1, ub1) (lb2,ub2) =
-    cmp_lb lb1 lb2 |> ccmp
-      cmp_ub ub1 ub2
+    Number.compare lb1 lb2 |> ccmp
+      Number.compare ub1 ub2
+
   let equal t1 t2 = compare t1 t2 = 0
 
-  let min_lb o1 o2 =
-    match o1, o2 with
-    | None, _ | _, None -> None
-    | Some lb1, Some lb2 when Z.compare lb1 lb2 <= 0 -> Some lb1
-    | Some _, Some lb2 -> Some lb2
-  let max_ub o1 o2 =
-    match o1, o2 with
-    | None, _ | _, None -> None
-    | Some lb1, Some lb2 when Z.compare lb1 lb2 <= 0 -> Some lb2
-    | Some lb1, Some _ -> Some lb1
-  let max_lb o1 o2 =
-    match o1, o2 with
-    | None, o | o, None -> o
-    | Some lb1, Some lb2 when Z.compare lb1 lb2 <= 0 -> Some lb2
-    | Some lb1, Some _ -> Some lb1
-  let min_ub o1 o2 =
-    match o1, o2 with
-    | None, o | o, None -> o
-    | Some lb1, Some lb2 when Z.compare lb1 lb2 <= 0 -> Some lb1
-    | Some _, Some lb2 -> Some lb2
-  let inter (lb1,ub1) (lb2,ub2) =
-    try Some (mk (max_lb lb1 lb2) (min_ub ub1 ub2))
-    with Invalid_argument _ -> None
-  let combine (lb1, ub1) (lb2, ub2) =
-    let inter_lb = max_lb lb1 lb2 in
-    let inter_ub = min_ub ub1 ub2 in
-    let neighbor =
-      match inter_lb, inter_ub with
-      | None, _ | _, None -> true
-      | Some lb, Some ub -> Z.compare lb (Z.succ ub) <= 0
-    in
-    if neighbor then
-      Some (min_lb lb1 lb2, max_ub ub1 ub2)
-    else
-      None
   let pp fmt (o1,o2) =
-    match o1, o2 with
-    | None, None -> Format.fprintf fmt "(..)"
-    | Some i1, None -> Format.fprintf fmt "(%a..)" Z.pp_print i1
-    | None, Some i2 -> Format.fprintf fmt "(..%a)" Z.pp_print i2
-    | Some i1, Some i2 -> Format.fprintf fmt "(%a..%a)" Z.pp_print i1 Z.pp_print i2
+    Format.fprintf fmt "(%a..%a)" Number.pp o1 Number.pp o2
 end
 
 module Atom = Interval
 type node
-module ISet = Set.Make(Interval)
-type t = ISet.t
+type t = Interval.t list
 
-let empty = ISet.empty
-let any = ISet.singleton Interval.any
-let mk i = ISet.singleton i
+let empty = []
+let any = [Interval.any]
+let mk i = [i]
 
-let normalize t =
-  let rec try_combine acc lst =
-    match acc, lst with
-    | acc, [] -> acc
-    | [], cur::lst -> try_combine [cur] lst
-    | last::acc, cur::lst ->
-      begin match Interval.combine last cur with
-        | None -> try_combine (cur::last::acc) lst
-        | Some i -> try_combine (i::acc) lst
-      end
-  in
-  t |> ISet.elements |> try_combine [] |> ISet.of_list
-let of_list lst = lst |> ISet.of_list |> normalize
+let destruct t = t
+
+(* In all the function below, comparisons are
+   those of the Number module. *)
+
+let rec ( @:: ) (a, b) l =
+  let open Number in
+  match l with
+  | [] -> [ a, b ]
+  | (c, d) :: ll ->
+    (* invariant, b < c *)
+    if b = PosInf then [ a, b ]
+    else if succ b = c then (a, d) @:: ll
+    else (a, b) :: l
+
+
+let rec cup i1 i2 =
+  let open Number in
+  match i1, i2 with
+  | [], l | l, [] -> l
+  | ((a1, b1) as c1) :: ii1, ((a2, b2) as c2) :: ii2 ->
+    if a1 > b2 then c2 @:: cup i1 ii2
+    else if a2 > b1 then c1 @:: cup ii1 i2
+    else
+      let u = min a1 a2 in
+      if b1 < b2 then cup ii1 ((u, b2) @:: ii2)
+      else if b1 = b2 then (u, b1) @:: cup ii1 ii2
+      else cup ((u, b1) @:: ii1) ii2
+
+let rec cap i1 i2 =
+  let open Number in
+  match i1, i2 with
+  | [], _ | _, [] -> []
+  | (a1, b1) :: ii1, (a2, b2) :: ii2 ->
+    if a1 > b2 then cap i1 ii2
+    else if a2 > b1 then cap ii1 i2
+    else
+      let u = max a1 a2 in
+      if b1 < b2 then (u, b1) @:: cap ii1 ((succ b1, b2) @:: ii2)
+      else if b1 = b2 then (u, b1) @:: cap ii1 ii2
+      else (u, b2) @:: cap ((succ b2, b1) @:: ii1) ii2
+
+let rec diff i1 i2 =
+  let open Number in
+  match i1, i2 with
+  | ([] as l), _ | l, [] -> l
+  | ((a1, b1) as c1) :: ii1, (a2, b2) :: ii2 ->
+    if b1 < a2 then c1 @:: diff ii1 i2
+    else if b2 < a1 then diff i1 ii2
+    else if a2 <= a1 then
+      if b2 < b1 then diff ((succ b2, b1) @:: ii1) ii2 else diff ii1 i2
+    else if (* a1 < a2 *)
+      b2 >= b1 then diff ((a1, pred a2) @:: ii1) i2
+    else diff ((a1, pred a2) @:: (succ b2, b1) @:: ii1) ii2
+
+let neg i = diff any i
+let of_list l =
+  (* To avoid a quadratic behaviour if building from
+    the smallest interval to the largest *)
+  l |> List.sort (fun x y -> - Interval.compare x y)
+    |> List.fold_left (fun acc a -> a@::acc) empty
+
 let construct = of_list
 
-let neg t =
-  let ub next =
-    match next with
-    | [] -> None
-    | (Some lb,_)::_ -> Some (Z.pred lb)
-    | (None, _)::_ -> raise Exit
-  in
-  let lb prev =
-    match prev with
-    | [] -> None
-    | (_,Some ub)::_ -> Some (Z.succ ub)
-    | (_, None)::_ -> raise Exit
-  in
-  let rec aux prev next =
-    let cur =
-      try [lb prev, ub next] with Exit -> []
-    in
-    match next with
-    | [] -> cur
-    | hd::next -> cur@(aux (hd::prev) next)
-  in
-  aux [] (ISet.elements t) |> ISet.of_list
-let cup t1 t2 = ISet.union t1 t2 |> normalize
-let cap t1 t2 =
-  cartesian_product (ISet.elements t1) (ISet.elements t2)
-  |> List.filter_map (fun (i1, i2) -> Interval.inter i1 i2) |> of_list
-let diff t1 t2 = cap t1 (neg t2)
-
-let is_empty = ISet.is_empty
+let is_empty = function [] -> true | _ -> false
 
 let direct_nodes _ = []
 let map_nodes _ t = t
 let simplify t = t
 
-let destruct t = ISet.elements t
-let destruct_neg t = neg t |> ISet.elements
+let destruct_neg t = neg t |> destruct
 
-let compare = ISet.compare
-let equal = ISet.equal
-
+let compare = List.compare Interval.compare
+let equal l1 l2 = l1 == l2 || compare l1 l2 = 0
