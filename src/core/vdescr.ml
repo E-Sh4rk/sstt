@@ -32,7 +32,7 @@ module Make(N:Node) = struct
     Bdd.leaves t |> List.for_all Descr.is_empty
 
   let direct_nodes t =
-    Bdd.leaves t |> List.map Descr.direct_nodes |> List.concat
+    Bdd.leaves t |> List.concat_map Descr.direct_nodes
 
   let map f t =
     Bdd.map_leaves f t

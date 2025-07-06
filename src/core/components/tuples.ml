@@ -39,7 +39,7 @@ module MakeC(N:Node) = struct
   let cup (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.cup t1 t2
   let neg (tag, t) = tag, Bdd.neg t
   let diff (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.diff t1 t2
-    
+
   let conj n ps =
     let init = fun () -> List.init n (fun _ -> N.any ()) in
     mapn init N.conj ps
@@ -47,35 +47,31 @@ module MakeC(N:Node) = struct
     let init = fun () -> List.init n (fun _ -> N.empty ()) in
     mapn init N.disj ps
 
-  let rec distribute_diff ss tt =
-    match ss, tt with
-    | [], [] -> []
-    | s::ss, t::tt ->
-      let res1 = distribute_diff ss tt
-      |> List.map (fun ss -> s::ss) in
-      let res2 = (N.diff s t)::ss in
-      res2::res1
-    | _, _ -> assert false
+  let forall_distribute_diff f ss tt =
+    try
+      iter_distribute_comb (fun e -> if not (f e) then raise Exit) N.diff ss tt;
+      true
+    with Exit -> false
+
   let rec psi n ss ts =
     if List.exists2 N.leq ss (disj n ts) |> not then false (* optimisation *)
     else match ts with
-    | [] -> (* List.exists N.is_empty ss *) true
-    | tt::ts ->
-      List.exists N.is_empty ss || (* optimisation *)
-      distribute_diff ss tt |> List.for_all (fun ss -> psi n ss ts)
+      | [] -> (* List.exists N.is_empty ss *) true
+      | tt::ts ->
+        List.exists N.is_empty ss || (* optimisation *)
+        forall_distribute_diff (fun ss -> psi n ss ts) ss tt
   let is_clause_empty (ps,ns,b) =
     if b then
-      match ps@ns with
-      | [] -> false
-      | a::_ ->
+      match ps, ns with
+      | [], [] -> false
+      | a::_, _ | [], a::_ ->
         let n = List.length a in
         if n = 0 then
           ns <> [] (* optimisations in psi are not compatible with n = 0 *)
         else
           psi n (conj n ps) ns
     else true
-  let is_empty' t =
-    Bdd.dnf t |> List.for_all is_clause_empty
+  let is_empty' t = Bdd.for_all_lines is_clause_empty t
   let is_empty (_,t) = is_empty' t
 
   let leq t1 t2 = Bdd.diff t1 t2 |> is_empty'
@@ -117,13 +113,13 @@ module MakeC(N:Node) = struct
   let dnf' (n,t) = dnf (n,t) |> Dnf'.from_dnf (List.init n (fun _ -> N.any ()))
   let of_dnf tag dnf =
     dnf |> List.iter (fun (ps,ns,_) ->
-      ps |> List.iter (fun a -> check_tag tag (Atom.tag a)) ;
-      ns |> List.iter (fun a -> check_tag tag (Atom.tag a))
+        ps |> List.iter (fun a -> check_tag tag (Atom.tag a)) ;
+        ns |> List.iter (fun a -> check_tag tag (Atom.tag a))
       ) ;
     tag, Dnf.mk dnf |> Bdd.of_dnf
   let of_dnf' tag dnf' = of_dnf tag (Dnf'.to_dnf dnf')
 
-  let direct_nodes (_,t) = Bdd.atoms t |> List.map Atom.direct_nodes |> List.concat
+  let direct_nodes (_,t) = Bdd.atoms t |> List.concat_map Atom.direct_nodes
   let map_nodes f (tag,t) = tag, Bdd.map_nodes (Atom.map_nodes f) t
 
   let simplify (tag,t) = (tag,Bdd.simplify equiv t)

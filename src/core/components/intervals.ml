@@ -123,7 +123,7 @@ let neg t =
   aux [] (ISet.elements t) |> ISet.of_list
 let cup t1 t2 = ISet.union t1 t2 |> normalize
 let cap t1 t2 =
-  carthesian_product (ISet.elements t1) (ISet.elements t2)
+  cartesian_product (ISet.elements t1) (ISet.elements t2)
   |> List.filter_map (fun (i1, i2) -> Interval.inter i1 i2) |> of_list
 let diff t1 t2 = cap t1 (neg t2)
 

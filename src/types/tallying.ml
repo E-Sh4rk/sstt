@@ -13,106 +13,118 @@ module Make(VO:VarOrder) = struct
     let compare = VO.compare
   end
   module VarSet = Set.Make(Var)
+  module VarMap = Map.Make(Var)
 
-  type norm_constr = Left of Var.t * Ty.t | Right of Ty.t * Var.t
-  type merged_constr = Ty.t * Var.t * Ty.t
+  module Constr = struct
+    type t = Ty.t * Var.t * Ty.t (* s ≤ α ≤ t *)
 
-  module type Constr = sig
-    type t
-    val leq : t -> t -> bool
-    val compare : t -> t -> int
-    val pp : Format.formatter -> t -> unit
-  end
-
-  module NormConstr = struct
-    type t = norm_constr
-    let leq t1 t2 =
-      match t1, t2 with
-      | Left (v1,t1), Left (v2,t2) when Var.equal v1 v2 -> Ty.leq t1 t2
-      | Right (t1,v1), Right (t2,v2) when Var.equal v1 v2 -> Ty.leq t2 t1
-      | _, _ -> false
-    let compare c1 c2 =
-      let var = function Left (v,_) -> v | Right (_,v) -> v in
-      let ty = function Left (_,ty) -> ty | Right (ty,_) -> ty in
-      let cmp_constructor c1 c2 =
-        match c1, c2 with
-        | Left _, Left _ | Right _, Right _ -> 0
-        | Left _, Right _ -> -1
-        | Right _, Left _ -> 1
-      in
-      Var.compare (var c1) (var c2) |> ccmp
-      cmp_constructor c1 c2 |> ccmp
-      Ty.compare (ty c1) (ty c2)
-    let pp fmt t =
-      match t with
-      | Left (v,ty) -> Format.fprintf fmt "%a <= %a" Var.pp v Printer.print_ty' ty
-      | Right (ty,v) -> Format.fprintf fmt "%a <= %a" Printer.print_ty' ty Var.pp v
-  end
-
-  module MergedConstr = struct
-    type t = merged_constr
-    let leq (t1,v1,t1') (t2,v2,t2') =
+    (* C1 subsumes C2 they are on the same variable
+       and gives better bounds (larger lower bound and smaller upper bound)
+    *)
+    let subsumes (t1, v1, t1') (t2, v2, t2') =
       Var.equal v1 v2 &&
-        Ty.leq t2 t1 && Ty.leq t1' t2'
+      Ty.leq t2 t1 && Ty.leq t1' t2'
+
     let compare (t1,v1,t1') (t2,v2,t2')=
       Var.compare v1 v2 |> ccmp
-      Ty.compare t1 t2 |> ccmp
-      Ty.compare t1' t2'
-    let pp fmt (ty,v,ty') =
-      Format.fprintf fmt "%a <= %a <= %a"
-        Printer.print_ty' ty Var.pp v Printer.print_ty' ty'
+        Ty.compare t1 t2 |> ccmp
+        Ty.compare t1' t2'
   end
 
-  module ConstrSet(C:Constr) = struct
-    module CS = Set.Make(C)
-    type t = CS.t
-    let any : t = CS.empty
-    let singleton = CS.singleton
-    let normalize t =
-      let cs = CS.to_list t in
-      let cs = cs |> filter_among_others (fun c cs ->
-        cs |> List.exists (fun c' -> C.leq c' c) |> not
-        ) in
-      CS.of_list cs
-    let to_list = CS.to_list
-    let of_list lst = CS.of_list lst |> normalize
-    let add e t = CS.add e t |> normalize
-    let cap t1 t2 = CS.union t1 t2 |> normalize
-    let leq t1 t2 = t2 |> CS.for_all (fun cs2 ->
-      t1 |> CS.exists (fun cs1 -> C.leq cs1 cs2)
-      )
-    let compare = CS.compare
-    (* let pp fmt t = Format.fprintf fmt "%a" (print_seq C.pp " ; ") (CS.to_list t) *)
+  (* As in CDuce, we follow POPL'15 but keep constraint merged:
+     - A Constraint Set C, is a (sorted list of triples) (s, α, t)
+     - Adding a new constraint for an existing variable merges them.
+  *)
+  module ConstrSet = struct
+    type t = [] | (::) of Constr.t * t
+    let any = []
+    let singleton e = [e]
+    let merge (s, v, t) (s', _, t') = (Ty.cup s s', v, Ty.cap t t')
+
+    let rec add ((_, v, _) as c) l =
+      match l with
+        [] -> [ c ]
+      | ((_, v', _) as c') :: ll ->
+        let n = Var.compare v v' in
+        if n < 0 then c::l
+        else if n = 0 then (merge c c')::ll
+        else c' :: add c ll
+
+    let rec cap l1 l2 =
+      match l1, l2 with
+      | [],  _ -> l2
+      | _, []  -> l1
+      | ((_,v1, _) as c1)::ll1, ((_, v2, _) as c2)::ll2 ->
+        let n = Var.compare v1 v2 in
+        if n < 0 then c1 :: cap ll1 l2
+        else if n > 0 then c2 :: cap l1 ll2
+        else (merge c1 c2)::cap ll1 ll2
+
+    (* A constraint set l1 subsumes a constraint set l2 if
+       forall constraint c2 in m2, there exists
+       c1 in t1 such that c1 subsumes c2
+    *)
+    let rec subsumes l1 l2 =
+      match l1, l2 with
+      | _, [] -> true
+      | [], _ -> false
+      | ((_,v1, _) as c1)::ll1, ((_, v2, _) as c2)::ll2 ->
+        let n = Var.compare v1 v2 in
+        if n < 0 then subsumes ll1 l2
+        else if n > 0 then false
+        else Constr.subsumes c1 c2 && subsumes ll1 ll2
+
+    let rec compare l1 l2 =
+      match l1, l2 with
+        [], [] -> 0
+      | [], _ -> -1
+      | _, [] -> 1
+      | c1 :: ll1, c2 :: ll2 ->
+        Constr.compare c1 c2 |> ccmp
+          compare ll1 ll2
+
+    let rec to_list_map f = function
+        [] -> List.[]
+      | e :: ll -> (f e)::to_list_map f ll
   end
 
-  module ConstrSets(C:Constr) = struct
-    module CS = ConstrSet(C)
-    module CSS = Set.Make(CS)
-    type t = CSS.t
-    let empty : t = CSS.empty
-    let any : t = CSS.singleton CS.any
-    let singleton = CSS.singleton
-    let normalize t =
-      let css = CSS.to_list t in
-      let css = css |> filter_among_others (fun cs css ->
-        css |> List.exists (fun cs' -> CS.leq cs cs') |> not
-        ) in
-      CSS.of_list css
-    let cup t1 t2 = CSS.union t1 t2 |> normalize
+  module ConstrSets = struct
+    module CS = ConstrSet
+    (* Constraint sets are ordered list of non subsumable elements.
+       They represent union of constraints, so we maintain the invariant
+       that we don't want to add a constraint set that subsumes an already
+       existing one.
+    *)
+    type t = CS.t list
+    let empty : t = []
+    let any : t = [CS.any]
+    let singleton e = [e]
+    let single e = singleton (CS.singleton e)
+    let rec insert_aux c l =
+      match l with
+        [] -> [c]
+      | c' :: ll ->
+        if CS.subsumes c c' then raise Exit
+        else
+          let n = CS.compare c c' in
+          if n < 0 then (if List.exists (CS.subsumes c) ll then raise Exit else c::l)
+          else if n = 0 then l
+          else c' :: insert_aux c ll
+
+    let add c l = try insert_aux c l with Exit -> l
+
+    let cup t1 t2 = List.fold_left (fun acc cs -> add cs acc) t1 t2
     let cap t1 t2 =
-      let t1, t2 = CSS.elements t1, CSS.elements t2 in
-      carthesian_product t1 t2 |> List.map (fun (cs1,cs2) -> CS.cap cs1 cs2)
-      |> CSS.of_list |> normalize
-    let disj t = List.fold_left cup empty t |> normalize
-    let conj t = List.fold_left cap any t |> normalize
-    let to_list = CSS.to_list
-    (* let pp fmt t =
-      Format.fprintf fmt "%a" (print_seq_cut CS.pp) (CSS.to_list t) *)
+      (cartesian_product t1 t2)
+      |> List.fold_left (fun acc (cs1,cs2) -> add (CS.cap cs1 cs2) acc) empty
+
+    let disj t = List.fold_left cup empty t
+    let conj t = List.fold_left cap any t
+    let to_list l = l
+
   end
 
-  module NCSS = ConstrSets(NormConstr)
-  module NCS = NCSS.CS
-  module MCSS = ConstrSets(MergedConstr)
+  module MCSS = ConstrSets
   module MCS = MCSS.CS
 
   module Summand = struct
@@ -121,45 +133,54 @@ module Make(VO:VarOrder) = struct
     let of_line (pvs, nvs, d) : t =
       (VarSet.of_list pvs, VarSet.of_list nvs, d)
 
+
     let to_ty (pvs, nvs, d) =
       [(pvs |> VarSet.to_list, nvs |> VarSet.to_list, d)] |> VDescr.of_dnf |> Ty.of_def
 
-    let vars (pvs, nvs, _) = VarSet.union pvs nvs
+    let pos_var v (pvs, nvs, d) =
+      let t = (VarSet.remove v pvs, nvs, d) |> to_ty in
+      (Ty.empty, v, Ty.neg t)
 
-    let single v (pvs, nvs, d) =
-      if VarSet.mem v pvs then
-        let t = (VarSet.remove v pvs, nvs, d) |> to_ty in
-        Left (v, Ty.neg t) |> NCS.singleton
-      else if VarSet.mem v nvs then
-        let t = (pvs, VarSet.remove v nvs, d) |> to_ty in
-        Right (t, v) |> NCS.singleton
-      else
-        assert false
+    let neg_var v (pvs, nvs, d) =
+      let t = (pvs, VarSet.remove v nvs, d) |> to_ty in
+      (t, v, Ty.any)
+
+    let smallest_toplevel delta ((pvs, nvs, _) as s) =
+      match VarSet.(
+          min_elt_opt (diff pvs delta),
+          min_elt_opt (diff nvs delta))
+      with
+      | None, None -> None
+      | Some v, None -> Some (pos_var v s)
+      | None, Some v -> Some (neg_var v s)
+      | Some v1, Some v2 ->
+        if Var.compare v1 v2 <= 0 then Some (pos_var v1 s)
+        else Some (neg_var v2 s)
   end
 
   module VDSet = Set.Make(VDescr)
 
-  let norm delta t =
+  let norm delta_ty delta t =
     let rec aux m t =
-      if Ty.vars t |> Base.VarSet.for_all (fun x -> VarSet.mem x delta) then
+      if Base.VarSet.subset (Ty.vars t) delta_ty then
         (* Optimisation: performing tallying on an expression with
            no polymorphic type variable should be as fast as subtyping. *)
-        begin if Ty.is_empty t then NCSS.any else NCSS.empty end
+        begin if Ty.is_empty t then MCSS.any else MCSS.empty end
       else
         let vd = Ty.def t in
-        if VDSet.mem vd m then NCSS.any
+        if VDSet.mem vd m then MCSS.any
         else
           let m = VDSet.add vd m in
           let summands = vd |> VDescr.dnf |> VDescr.Dnf.simplify |> List.map Summand.of_line in
-          summands |> List.map (aux_summand m) |> NCSS.conj
+          summands |> List.map (aux_summand m) |> MCSS.conj
     and aux_summand m summand =
-      match VarSet.diff (Summand.vars summand) delta |> VarSet.elements with
-      | [] ->
+      match Summand.smallest_toplevel delta summand with
+      | None ->
         let (_,_,d) = summand in
         aux_descr m d
-      | v::_ -> Summand.single v summand |> NCSS.singleton
-    and aux_descr m d =
-      Descr.components d |> List.map (aux_comp m) |> NCSS.conj
+      | Some cs -> MCSS.single cs
+    and aux_descr m d  =
+      Descr.components d |> List.map (aux_comp m) |> MCSS.conj
     and aux_comp m c =
       let open Descr in
       match c with
@@ -171,128 +192,109 @@ module Make(VO:VarOrder) = struct
       | Records c -> aux_records m c
     and aux_atoms _ d =
       match Atoms.destruct d with
-      | true, [] -> NCSS.any
-      | _, _ -> NCSS.empty
+      | true, [] -> MCSS.any
+      | _, _ -> MCSS.empty
     and aux_intervals _ d =
       match Intervals.destruct d with
-      | [] -> NCSS.any
-      | _ -> NCSS.empty
+      | [] -> MCSS.any
+      | _ -> MCSS.empty
     and aux_tags m tag =
       let (cs, others) = tag |> Tags.components in
-      if others then NCSS.empty
+      if others then MCSS.empty
       else cs |>
-        List.map (fun c -> TagComp.as_atom c |> snd |> aux m)
-        |> NCSS.conj
+           List.map (fun c -> TagComp.as_atom c |> snd |> aux m)
+           |> MCSS.conj
     and aux_arrows m arr =
       arr |> Arrows.dnf |> Arrows.Dnf.simplify
-      |> List.map (aux_arrow m) |> NCSS.conj
+      |> List.map (aux_arrow m) |> MCSS.conj
     and aux_tuples m tup =
       let (comps, others) = tup |> Tuples.components in
-      if others then NCSS.empty
-      else comps |> List.map (aux_tuplecomp m) |> NCSS.conj
+      if others then MCSS.empty
+      else comps |> List.map (aux_tuplecomp m) |> MCSS.conj
     and aux_tuplecomp m tup =
       let n = TupleComp.len tup in
       tup |> TupleComp.dnf |> TupleComp.Dnf.simplify
-      |> List.map (aux_tuple m n) |> NCSS.conj
+      |> List.map (aux_tuple m n) |> MCSS.conj
     and aux_records m r =
       r |> Records.dnf |> Records.Dnf.simplify
-      |> List.map (aux_record m) |> NCSS.conj
+      |> List.map (aux_record m) |> MCSS.conj
     and aux_arrow m (ps, ns, _) =
       let pt, _ = List.split ps in
       let dom = Ty.disj pt in
       let aux_n (nt,nt') =
         let css1 = Ty.cap nt (Ty.neg dom) |> aux m in
         let aux_p (p1, p2) =
-          if p2 = [] then NCSS.any else
+          if p2 = [] then MCSS.any else
             let pt1, _ = List.split p1 in
             let dom1 = Ty.disj pt1 in
             let _, pt2' = List.split p2 in
             let codom2 = Ty.conj pt2' in
             let css1 = Ty.cap nt (Ty.neg dom1) |> aux m in
             let css2 = Ty.cap codom2 (Ty.neg nt') |> aux m in
-            NCSS.cup css1 css2
+            MCSS.cup css1 css2
         in
-        let css2 = subsets ps |> List.map aux_p |> NCSS.conj in
-        NCSS.cap css1 css2
+        let css2 = subsets ps |> List.map aux_p |> MCSS.conj in
+        MCSS.cap css1 css2
       in
-      ns |> List.map aux_n |> NCSS.disj
+      ns |> List.map aux_n |> MCSS.disj
     and aux_tuple m n (ps, ns, _) =
       let ps = mapn (fun () -> List.init n (fun _ -> Ty.any)) Ty.conj ps in
       let aux_n nss =
         let csss = nss |> List.mapi (fun i ns ->
-          let pcomp = List.nth ps i in
-          let ncomp = ns |> List.map (fun ns -> List.nth ns i) |> Ty.disj |> Ty.neg in
-          Ty.cap pcomp ncomp |> aux m
-        ) in
-        NCSS.disj csss
+            let pcomp = List.nth ps i in
+            let ncomp = ns |> List.map (fun ns -> List.nth ns i) |> Ty.disj |> Ty.neg in
+            Ty.cap pcomp ncomp |> aux m
+          ) in
+        MCSS.disj csss
       in
-      ns |> partitions n |> List.map aux_n |> NCSS.conj
+      ns |> partitions n |> List.map aux_n |> MCSS.conj
     and aux_record m (ps, ns, _) =
       let open Records in
       let open Atom in
       let dom = List.fold_left
-        (fun acc a -> LabelSet.union acc (dom a))
-        LabelSet.empty (ps@ns) |> LabelSet.to_list in
+          (fun acc a -> LabelSet.union acc (dom a))
+          LabelSet.empty (ps@ns) |> LabelSet.to_list in
       let ps, ns =
         ps |> List.map (to_tuple_with_default dom),
         ns |> List.map (to_tuple_with_default dom) in
       let n = List.length dom + 1 in
-    (* We reuse the same algorithm as for tuples *)
+      (* We reuse the same algorithm as for tuples *)
       let ps = mapn (fun () -> List.init n (fun _ -> Ty.O.any)) Ty.O.conj ps in
       let aux_n nss =
         let csss = nss |> List.mapi (fun i ns ->
-          let pcomp = List.nth ps i in
-          let ncomp = ns |> List.map (fun ns -> List.nth ns i) |> Ty.O.disj |> Ty.O.neg in
-          Ty.O.cap pcomp ncomp |> aux_oty m
-        ) in
-        NCSS.disj csss
+            let pcomp = List.nth ps i in
+            let ncomp = ns |> List.map (fun ns -> List.nth ns i) |> Ty.O.disj |> Ty.O.neg in
+            Ty.O.cap pcomp ncomp |> aux_oty m
+          ) in
+        MCSS.disj csss
       in
-      ns |> partitions n |> List.map aux_n |> NCSS.conj
+      ns |> partitions n |> List.map aux_n |> MCSS.conj
     and aux_oty m (n,o) =
-      if o then NCSS.empty else aux m n
+      if o then MCSS.empty else aux m n
     in
     aux (VDSet.empty) t
 
   (* TODO: Normalize using psi, in the same way as for subtyping *)
 
-  let merge delta cs =
-    let rec merge m cs =
-      cs |> NCS.to_list |> step1 |> step2 m []
-    and step1 cs =
+  let merge delta_ty delta cs =
+    (* Step1 from the paper is useless, since the ConstrSet maintains
+       merged constraints
+    *)
+    let rec step2 m prev (cs : MCS.t) =
       match cs with
-      | [] -> []
-      | (Left (v,t))::(Left (v',t'))::cs when Var.equal v v' ->
-        (Left (v, Ty.cap t t'))::cs |> step1
-      | (Right (t,v))::(Right (t',v'))::cs when Var.equal v v' ->
-        (Right (Ty.cup t t', v))::cs |> step1
-      | hd::tl -> hd::(step1 tl)
-    and step2 m prev cs =
-      match cs with
-      | [] -> NCS.of_list prev |> NCSS.singleton
-      | (Left (v,t))::(Right (t',v'))::cs when Var.equal v v' ->
+      | ConstrSet.[] -> prev |> MCSS.singleton
+      | ((t',_, t) as constr) :: cs' ->
         let ty = Ty.diff t' t in
         if VDSet.mem (Ty.def ty) m then
-          step2 m ((Right (t',v'))::(Left (v,t))::prev) cs
+          step2 m (MCS.add constr prev) cs'
         else
           let m = VDSet.add (Ty.def ty) m in
-          let css = norm delta ty in
-          let css' = (Left (v,t))::(Right (t',v'))::cs@prev |> NCS.of_list |> NCSS.singleton in
-          let css = NCSS.cap css css' in
-          css |> NCSS.to_list |> List.map (merge m) |> NCSS.disj
-      | hd::cs -> step2 m (hd::prev) cs
+          let css = norm delta_ty delta ty in
+          let css' = cs |> MCS.cap prev |> MCSS.singleton in
+          let css = MCSS.cap css css' in
+          css |> MCSS.to_list |> List.map (step2 m MCS.any) |> MCSS.disj
     in
-    let regroup cs =
-      let rec aux cs =
-        match cs with
-        | [] -> MCS.any
-        | (Left (v,t))::(Right (t',v'))::cs when Var.equal v v' ->
-            MCS.add (t', v, t) (aux cs)
-        | (Left (v,t))::cs -> MCS.add (Ty.empty, v, t) (aux cs)
-        | (Right (t,v))::cs -> MCS.add (t, v, Ty.any) (aux cs)
-      in
-      NCS.to_list cs |> aux |> MCSS.singleton
-    in
-    merge (VDSet.empty) cs |> NCSS.to_list |> List.map regroup |> MCSS.disj
+    step2 (VDSet.empty) MCS.any cs
 
   let solve cs =
     let renaming = ref Subst.identity in
@@ -311,14 +313,15 @@ module Make(VO:VarOrder) = struct
         let res = unify eqs' in
         Subst.add v (Subst.apply res ty') res
     in
-    cs |> MCS.to_list |> List.map to_eq |> unify |> Subst.map (Subst.apply !renaming)
+    cs |> MCS.to_list_map to_eq |> unify |> Subst.map (Subst.apply !renaming)
 
   let tally delta cs =
+    let delta_ty = Base.VarSet.of_list delta in
     let delta = VarSet.of_list delta in
     let ncss = cs
-      |> List.map (fun (s,t) -> norm delta (Ty.diff s t)) |> NCSS.conj in
+               |> List.map (fun (s,t) -> norm delta_ty delta (Ty.diff s t)) |> MCSS.conj in
     let mcss = ncss
-      |> NCSS.to_list |> List.map (merge delta) |> MCSS.disj in
+               |> MCSS.to_list |> List.map (merge delta_ty delta) |> MCSS.disj in
     mcss |> MCSS.to_list |> List.map solve
 end
 
@@ -332,8 +335,8 @@ let tally_with_order cmp delta =
 let tally_with_priority preserve =
   let cnt = ref 0 in
   let pmap = List.fold_left
-    (fun acc v -> cnt := !cnt + 1 ; VarMap.add v !cnt acc)
-    VarMap.empty preserve
+      (fun acc v -> cnt := !cnt + 1 ; VarMap.add v !cnt acc)
+      VarMap.empty preserve
   in
   let cmp v1 v2 =
     match VarMap.find_opt v1 pmap, VarMap.find_opt v2 pmap with

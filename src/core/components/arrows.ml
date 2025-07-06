@@ -47,8 +47,7 @@ module Make(N:Node) = struct
     psi_strict t1 (N.neg t2) ps
   let is_clause_empty (ps,ns,b) =
     if b then List.exists (is_clause_empty' ps) ns else true
-  let is_empty t =
-    Bdd.dnf t |> List.for_all is_clause_empty
+  let is_empty t = Bdd.for_all_lines is_clause_empty t
 
   let leq t1 t2 = diff t1 t2 |> is_empty
   let equiv t1 t2 = leq t1 t2 && leq t2 t1
@@ -64,7 +63,7 @@ module Make(N:Node) = struct
   let dnf t = Bdd.dnf t |> Dnf.mk
   let of_dnf dnf = Dnf.mk dnf |> Bdd.of_dnf
 
-  let direct_nodes t = Bdd.atoms t |> List.map Atom.direct_nodes |> List.concat
+  let direct_nodes t = Bdd.atoms t |> List.concat_map Atom.direct_nodes
   let map_nodes f t = Bdd.map_nodes (Atom.map_nodes f) t
 
   let simplify t = Bdd.simplify equiv t

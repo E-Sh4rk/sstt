@@ -60,14 +60,14 @@ module Make'(A:Atom)(A':Atom' with type t=A.t and type leaf=A.leaf)(N:Node) = st
       | (a, b)::c ->
         let a' = A'.to_t' (a, b) in
         let c' = aux c in
-        carthesian_product a' c' |> List.filter_map (fun (a, a') -> A'.combine a a')
+        cartesian_product a' c' |> List.filter_map (fun (a, a') -> A'.combine a a')
     in
     let dnf = dnf |> List.map (fun (cp, cn, l) ->
       let cp = cp |> List.map (fun a -> (a, true)) in
       let cn = cn |> List.map (fun a -> (a, false)) in
       cp@cn, l
     ) in
-    dnf |> List.map (fun (c,l) -> aux c |> List.map (fun c -> (c,l))) |> List.concat
+    dnf |> List.concat_map (fun (c,l) -> aux c |> List.map (fun c -> (c,l)))
   let from_dnf any dnf = combine any dnf
 
   let conv (a',l) = let ps,ns = A'.to_t a' in (ps,ns,l)
