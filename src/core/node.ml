@@ -76,18 +76,21 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
     let empty = empty () in
     fun t -> t == empty
   let cap t1 t2 =
-    if is_any_ t1 then t2
+    if is_empty_ t1 || is_empty_ t2 then empty ()
+    else if is_any_ t1 then t2
     else if is_any_ t2 then t1
     else
       VDescr.cap (def t1) (def t2) |> cons
   let cup t1 t2 =
-    if is_empty_ t1 then t2
+    if is_any_ t1 || is_any_ t2 then any ()
+    else if is_empty_ t1 then t2
     else if is_empty_ t2 then t1
     else
       VDescr.cup (def t1) (def t2) |> cons
   let neg t = t.neg
   let diff t1 t2 =
     if is_empty_ t1 || is_any_ t2 then empty ()
+    else if is_any_ t1 then neg t2 
     else if is_empty_ t2 then t1
     else
       VDescr.diff (def t1) (def t2) |> cons
