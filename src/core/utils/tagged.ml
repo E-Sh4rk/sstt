@@ -124,6 +124,6 @@ module Make(C : TaggedComp) = struct
     t1.others = t2.others &&
     TMap.equal C.equal t1.map t2.map
   let compare t1 t2 =
-    compare t1.others t2.others |> ccmp
+    Bool.compare t1.others t2.others |> ccmp
       (TMap.compare C.compare) t1.map t2.map
 end

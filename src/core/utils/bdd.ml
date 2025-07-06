@@ -22,8 +22,8 @@ module BoolLeaf : Leaf with type t = bool = struct
   let diff b1 b2 = b1 && not b2
   let neg = not
   let simplify b = b
-  let equal b1 b2 = (b1 = b2)
-  let compare b1 b2 = compare b1 b2
+  let equal b1 b2 = (b1 == b2)
+  let compare b1 b2 = Bool.compare b1 b2
 end
 
 module type Atom = sig
@@ -63,34 +63,32 @@ module Make(N:Atom)(L:Leaf) = struct
         compare p1 p2 |> ccmp
         compare n1 n2
 
+
+  (* Smart constructor *)
+  let node a p n =
+    if equal p n then p
+    else Node (a, p, n)
   let rec neg t =
     match t with
     | Leaf l -> Leaf (L.neg l)
     | Node (a, p, n) ->
-      Node (a, neg p, neg n)
+      node a (neg p) (neg n)
 
-  let normalize t =
-    match t with
-    | Node (_, p, n) when equal p n -> p
-    | _ -> t
 
   let op lop t1 t2 =
     let rec op t1 t2 =
-      let res =
-        match t1, t2 with
-        | Leaf l1, Leaf l2 -> Leaf (lop l1 l2)
-        | Leaf _, Node (a,p,n) ->
-          Node (a, op t1 p, op t1 n)
-        | Node (a,p,n), Leaf _ ->
-          Node (a, op p t2, op n t2)
-        | Node (a1,p1,n1), Node (a2,_,_) when N.compare a1 a2 < 0 ->
-          Node (a1, op p1 t2, op n1 t2)
-        | Node (a1,_,_), Node (a2,p2,n2) when N.compare a1 a2 > 0 ->
-          Node (a2, op t1 p2, op t1 n2)
-        | Node (a,p1,n1), Node (_,p2,n2) ->
-          Node (a, op p1 p2, op n1 n2)
-      in
-      normalize res
+      match t1, t2 with
+      | Leaf l1, Leaf l2 -> Leaf (lop l1 l2)
+      | Leaf _, Node (a,p,n) ->
+        node a (op t1 p) (op t1 n)
+      | Node (a,p,n), Leaf _ ->
+        node a (op p t2) (op n t2)
+      | Node (a1,p1,n1), Node (a2,p2,n2) ->
+        let n = N.compare a1 a2 in
+        if n < 0 then node a1 (op p1 t2) (op n1 t2)
+        else if n > 0 then node a2 (op t1 p2) (op t1 n2)
+        else
+          node a1 (op p1 p2) (op n1 n2)
     in
     op t1 t2
 
@@ -113,7 +111,7 @@ module Make(N:Atom)(L:Leaf) = struct
   let rec map_leaves f t =
     match t with
     | Leaf l -> Leaf (f l)
-    | Node (a,p,n) -> Node (a,map_leaves f p, map_leaves f n)
+    | Node (a,p,n) -> node a (map_leaves f p) (map_leaves f n)
 
   let dnf t =
     let rec aux acc ps ns t =
@@ -184,7 +182,7 @@ module Make(N:Atom)(L:Leaf) = struct
     aux ctx
   let rec to_t ctx =
     match ctx with
-    | CNode (a,p,n) -> Node (a, to_t p, to_t n)
+    | CNode (a,p,n) -> node a (to_t p) (to_t n)
     | CT t -> t
     | CHole -> assert false
   let test_equiv eq ctx t nt =
@@ -198,11 +196,11 @@ module Make(N:Atom)(L:Leaf) = struct
       | Node (a, p, n) ->
         let a = N.simplify a in
         let p = aux (fill ctx (CNode (a, CHole, CT n))) p in
-        let t = Node (a, p, n) in
+        let t = node a p n in
         if test_equiv eq ctx t p then p
         else
           let n = aux (fill ctx (CNode (a, CT p, CHole))) n in
-          let t = Node (a, p, n) in
+          let t = node a p n in
           if test_equiv eq ctx t n then n else t
     in
     aux CHole t

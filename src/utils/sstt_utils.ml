@@ -28,10 +28,8 @@ let print_seq_space f fmt l =
 
 let identity x = x
 
-let ccmp f e1 e2 r =
-  match r with
-  | 0 -> f e1 e2
-  | n -> n
+let[@inline always] ccmp f e1 e2 r =
+  if r <> 0 then r else f e1 e2
 
 let unwrap_or default = function
   | None -> default
@@ -83,7 +81,7 @@ let map_among_others' f lst =
     match right with
       [] -> []
     | c :: right -> (f (List.rev left) c right)::(aux (c::left) right)
-  in 
+  in
   aux [] lst
 
 let partitions n lst =
@@ -145,7 +143,7 @@ let find_among_others pred lst =
   lst |> add_others |> List.find_opt (fun (a,o) -> pred a o)
 
 let find_map_among_others f lst =
-  lst |> add_others |> List.find_map (fun (a,o) -> f a o)  
+  lst |> add_others |> List.find_map (fun (a,o) -> f a o)
 
 let merge_when_possible merge_opt lst =
   let merge_opt a b others =
