@@ -39,14 +39,7 @@ module Make(VO:VarOrder) = struct
     type t = [] | (::) of Constr.t * t
     let any = []
     let singleton e = [e]
-    let merge ((s, v, t) as c) ((s', _, t') as c') =
-      (* Don't create a new constraint if an existing one is
-         already better. This is only needed to have the
-         same resolution order of constraint solving and
-         check with the baseline. TODO: remove. *)
-      if Constr.subsumes c c' then c else
-      if Constr.subsumes c' c then c' else
-        (Ty.cup s s', v, Ty.cap t t')
+    let merge (s, v, t) (s', _, t') = (Ty.cup s s', v, Ty.cap t t')
 
     let rec add ((_, v, _) as c) l =
       match l with

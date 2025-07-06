@@ -166,3 +166,13 @@ let (--) i j =
   let rec aux n acc =
     if n < i then acc else aux (n-1) (n :: acc)
   in aux j []
+
+let find_opt_of_iter (type a) (f : a -> bool) it col =
+  let exception Found of a in
+  try it (fun e -> if f e then raise_notrace (Found e)) col; None with
+  | Found e -> Some e
+
+let find_opt_of_iter2 (type a b) (f : a -> b -> bool) it col =
+  let exception Found of (a*b) in
+  try it (fun x y -> if f x y then raise_notrace (Found (x,y))) col; None with
+  | Found e -> Some e

@@ -1,3 +1,4 @@
+open Sstt_utils
 open Base
 open Sigs
 open Effect.Deep
@@ -64,17 +65,32 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
   let of_def d = d |> cons
 
   let any, empty =
-    let any =  VDescr.any |> cons in
+    let any = VDescr.any |> cons in
     let empty = any.neg in
     (fun () -> any), (fun () -> empty)
 
+  let is_any_ =
+    let any = any () in
+    fun t -> t == any
+  let is_empty_ =
+    let empty = empty () in
+    fun t -> t == empty
   let cap t1 t2 =
-    VDescr.cap (def t1) (def t2) |> cons
+    if is_any_ t1 then t2
+    else if is_any_ t2 then t1
+    else
+      VDescr.cap (def t1) (def t2) |> cons
   let cup t1 t2 =
-    VDescr.cup (def t1) (def t2) |> cons
+    if is_empty_ t1 then t2
+    else if is_empty_ t2 then t1
+    else
+      VDescr.cup (def t1) (def t2) |> cons
   let neg t = t.neg
   let diff t1 t2 =
-    VDescr.diff (def t1) (def t2) |> cons
+    if is_empty_ t1 || is_any_ t2 then empty ()
+    else if is_empty_ t2 then t1
+    else
+      VDescr.diff (def t1) (def t2) |> cons
   let conj ts = List.fold_left cap (any ()) ts
   let disj ts = List.fold_left cup (empty ()) ts
 
@@ -85,17 +101,17 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
     else
       let cache = perform (GetCache ()) in
       begin match VDMap.find_opt def cache with
-      | Some b -> b
-      | None ->
-        let cache' = ref (VDMap.add def true cache) in
-        let b =
-          match VDescr.is_empty def with
-          | b -> b
-          | effect GetCache (), k -> continue k !cache'
-          | effect SetCache c, k -> cache' := c ; continue k ()
-        in
-        let cache = if b then !cache' else VDMap.add def false cache in
-        perform (SetCache cache); b
+        | Some b -> b
+        | None ->
+          let cache' = ref (VDMap.add def true cache) in
+          let b =
+            match VDescr.is_empty def with
+            | b -> b
+            | effect GetCache (), k -> continue k !cache'
+            | effect SetCache c, k -> cache' := c ; continue k ()
+          in
+          let cache = if b then !cache' else VDMap.add def false cache in
+          perform (SetCache cache); b
       end
   let leq t1 t2 = diff t1 t2 |> is_empty
   let equiv t1 t2 = leq t1 t2 && leq t2 t1
@@ -121,16 +137,16 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
     let direct_nodes t = def t |> VDescr.direct_nodes |> NSet.of_list in
     let rec aux ts =
       let ts' = ts
-      |> NSet.to_list
-      |> List.map direct_nodes
-      |> List.fold_left NSet.union ts
+                |> NSet.to_list
+                |> List.map direct_nodes
+                |> List.fold_left NSet.union ts
       in
       if NSet.equal ts ts' then ts' else aux ts'
     in
     aux (NSet.singleton t)
 
   let dependencies t =
-    match t.dependencies with 
+    match t.dependencies with
     | Some d -> d
     | None -> let d = dependencies t in t.dependencies <- Some d; d
 
@@ -140,11 +156,11 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
 
   let of_eqs eqs =
     let deps = eqs
-              |> List.fold_left (fun acc (_, t) -> NSet.union (dependencies t) acc) NSet.empty in
+               |> List.fold_left (fun acc (_, t) -> NSet.union (dependencies t) acc) NSet.empty in
     let copies = NSet.fold (fun n acc -> NMap.add n (mk ()) acc) deps NMap.empty in
     let new_node n =
       match eqs |> List.find_opt (fun (v,_) ->
-        VDescr.equal (VDescr.mk_var v) (def n)) with
+          VDescr.equal (VDescr.mk_var v) (def n)) with
       | None -> NMap.find n copies
       | Some (_,n) -> NMap.find n copies (* Optimisation to avoid introducing a useless node *)
     in
@@ -153,18 +169,18 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
         let deps_ok n =
           let vs = vars_toplevel n in
           eqs |> List.for_all (fun (v,n) ->
-            VarSet.mem v vs |> not || new_node n |> has_def
-          )
+              VarSet.mem v vs |> not || new_node n |> has_def
+            )
         in
-        match NSet.elements deps |> List.find_opt deps_ok with
+        match deps |> find_opt_of_iter deps_ok NSet.iter with
         | None -> raise (Invalid_argument "Set of equations is not contractive.")
         | Some n ->
           let nn = new_node n in
           if has_def nn |> not then begin
             let s = eqs |> List.filter_map (fun (v,n) ->
-              let nn = new_node n in
-              if has_def nn then Some (v, def nn) else None
-            ) |> VarMap.of_list in
+                let nn = new_node n in
+                if has_def nn then Some (v, def nn) else None
+              ) |> VarMap.of_list in
             let d = def n |> VDescr.map_nodes new_node |> VDescr.substitute s in
             define nn d
           end ;
@@ -178,18 +194,18 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
     let s = s |> VarMap.map (fun n -> def n) in
     (* Optimisation: reuse nodes if possible *)
     let unchanged n = VarSet.disjoint (vars n) dom in
-    let deps = dependencies t |> NSet.to_list
-      |> List.filter (fun n -> unchanged n |> not) in
-    let copies = List.fold_left (fun acc n -> NMap.add n (mk ()) acc) NMap.empty deps in
+    let deps = dependencies t
+               |> NSet.filter  (fun n -> unchanged n |> not) in
+    let copies = NSet.fold (fun n acc -> NMap.add n (mk ()) acc) deps NMap.empty in
     let new_node n =
       match NMap.find_opt n copies with
       | Some n -> n
       | None -> n
     in
-    deps |> List.iter (fun n ->
-      let d = def n |> VDescr.map_nodes new_node |> VDescr.substitute s in
-      define (new_node n) d
-    ) ;
+    deps |> NSet.iter (fun n ->
+        let d = def n |> VDescr.map_nodes new_node |> VDescr.substitute s in
+        define (new_node n) d
+      ) ;
     new_node t
 
   let factorize t =
@@ -198,15 +214,17 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
       match NMap.find_opt t !cache with
       | Some n -> n
       | None ->
-        begin match NMap.bindings !cache
-          |> List.find_opt (fun (t',_) -> equiv t t') with
-        | Some (_, n) -> n
-        | None ->
-          let n = mk () in
-          cache := NMap.add t n (!cache) ;
-          let vd = def t |> VDescr.map_nodes aux in
-          define n vd ;
-          n
+        begin match
+            !cache
+            |> find_opt_of_iter2 (fun t' _ -> equiv t t') NMap.iter
+          with
+          | Some (_, n) -> n
+          | None ->
+            let n = mk () in
+            cache := NMap.add t n (!cache) ;
+            let vd = def t |> VDescr.map_nodes aux in
+            define n vd ;
+            n
         end
     in
     aux t
