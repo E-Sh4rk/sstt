@@ -14,13 +14,13 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
 
   type vdescr = VDescr.t
   type descr = VDescr.Descr.t
-
   type t = {
     id : int ;
-    neg : t ; (* Always generate the negation node as it is very easy to compute *)
     mutable def : VDescr.t option ;
     mutable simplified : bool ;
-    mutable dependencies : NSet.t option
+    mutable dependencies : NSet.t option;
+    mutable neg : t option
+
   }
 
   let has_def t = Option.is_some t.def
@@ -35,29 +35,18 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
     fun () -> c := !c + 1 ; !c
 
   let mk () =
-    let rec t =
-      {
-        id = next_id () ;
-        def = None ;
-        simplified = false ;
-        dependencies = None ;
-        neg = {
-          id = next_id () ;
-          def = None ;
-          simplified = false ;
-          neg = t ;
-          dependencies = None
-        }
-      }
-    in
-    t
+    {
+      id = next_id () ;
+      def = None ;
+      simplified = false ;
+      dependencies = None;
+      neg = None;
+
+    }
 
   let define ?(simplified=false) t d =
     t.def <- Some d ;
-    t.simplified <- simplified ;
-    t.neg.def <- Some (VDescr.neg d) ;
-    t.neg.simplified <- simplified
-
+    t.simplified <- simplified
   let cons d =
     let t = mk () in
     define t d ; t
@@ -65,8 +54,10 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
   let of_def d = d |> cons
 
   let any, empty =
+    let empty = VDescr.empty |> cons in
     let any = VDescr.any |> cons in
-    let empty = any.neg in
+    empty.neg <- Some any;
+    any.neg <- Some empty;
     (fun () -> any), (fun () -> empty)
 
   let is_any_ =
@@ -87,10 +78,18 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
     else if is_empty_ t2 then t1
     else
       VDescr.cup (def t1) (def t2) |> cons
-  let neg t = t.neg
+  let neg t =
+    match t.neg with
+      Some s -> s
+    | None ->
+      let s = t |> def |> VDescr.neg |> cons in
+      t.neg <- Some s;
+      s.neg <- Some t;
+      s
+
   let diff t1 t2 =
     if is_empty_ t1 || is_any_ t2 then empty ()
-    else if is_any_ t1 then neg t2 
+    else if is_any_ t1 then neg t2
     else if is_empty_ t2 then t1
     else
       VDescr.diff (def t1) (def t2) |> cons
@@ -132,8 +131,14 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
       let s_def = def t |> VDescr.simplify in
       define ~simplified:true t s_def ;
       t.dependencies <- None;
-      t.neg.dependencies <- None;
-      s_def |> VDescr.direct_nodes |> List.iter simplify
+      s_def |> VDescr.direct_nodes |> List.iter simplify;
+      let nt = match t.neg with
+          None -> mk ()
+        | Some nt -> nt
+      in
+      define ~simplified:true nt (VDescr.neg s_def);
+      nt.dependencies <- None;
+      t.neg <- Some nt
     end
 
   let dependencies t =
