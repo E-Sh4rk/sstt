@@ -1,5 +1,3 @@
-open Sstt_utils
-
 module type Leaf = sig
   type t
   val any : t
@@ -59,9 +57,9 @@ module Make(N:Atom)(L:Leaf) = struct
     | Leaf _, Node _ -> -1
     | Node _, Leaf _ -> 1
     | Node (a1, p1, n1), Node (a2, p2, n2) ->
-      N.compare a1 a2 |> ccmp
-        compare p1 p2 |> ccmp
-        compare n1 n2
+      let c = N.compare a1 a2 in if c <> 0 then c else
+        let c = compare p1 p2 in if c <> 0 then c else
+          compare n1 n2
 
 
   (* Smart constructor *)
