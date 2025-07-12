@@ -46,16 +46,17 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
 
   let define ?(simplified=false) t d =
     t.def <- Some d ;
+    t.dependencies <- None ;
     t.simplified <- simplified
-  let cons d =
+  let cons ?(simplified=false) d =
     let t = mk () in
-    define t d ; t
+    define ~simplified t d ; t
 
   let of_def d = d |> cons
 
   let any, empty =
-    let empty = VDescr.empty |> cons in
-    let any = VDescr.any |> cons in
+    let empty = VDescr.empty |> cons ~simplified:true in
+    let any = VDescr.any |> cons ~simplified:true in
     empty.neg <- Some any;
     any.neg <- Some empty;
     (fun () -> any), (fun () -> empty)
@@ -80,9 +81,10 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
       VDescr.cup (def t1) (def t2) |> cons
   let neg t =
     match t.neg with
-      Some s -> s
+    | Some s -> s
     | None ->
-      let s = t |> def |> VDescr.neg |> cons in
+      let s = t |> def |> VDescr.neg
+        |> cons ~simplified:t.simplified in
       t.neg <- Some s;
       s.neg <- Some t;
       s
@@ -130,15 +132,10 @@ module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr
     if not t.simplified then begin
       let s_def = def t |> VDescr.simplify in
       define ~simplified:true t s_def ;
-      t.dependencies <- None;
-      s_def |> VDescr.direct_nodes |> List.iter simplify;
-      let nt = match t.neg with
-          None -> mk ()
-        | Some nt -> nt
-      in
-      define ~simplified:true nt (VDescr.neg s_def);
-      nt.dependencies <- None;
-      t.neg <- Some nt
+      s_def |> VDescr.direct_nodes |> List.iter simplify ;
+      match t.neg with
+      | None -> ()
+      | Some nt -> define ~simplified:true nt (VDescr.neg s_def)
     end
 
   let dependencies t =
