@@ -29,17 +29,43 @@ end
 module type SetTheoretic = sig
   type t
   val cap : t -> t -> t
+  (** [cap t1 t2] is the intersection {m t1 ∧ t2}. *)
+
   val cup : t -> t -> t
+  (** [cup t1 t2] is the union {m t1 ∧ t2}. *)
+
   val diff : t -> t -> t
+  (** [diff t1 t2] is the difference {m t1 \ t2}. *)
+
   val neg : t -> t
+  (** [neg t] is the negation of [t], {m ¬t}.*)
+
   val conj : t list -> t
+  (** [conj l] is the intersection of all the types in [l]. It returns [any] if
+      [l] is the empty list.
+  *)
+
   val disj : t list -> t
+  (** [disj l] is the union of all the types in [l]. It returns [empty] if
+      [l] is the empty list.
+  *)
 
   val is_empty : t -> bool
+  (** [is_empty t] returns [true] if and only if [t] is semantically equivalent
+      to [empty]. *)
+
   val is_any : t -> bool
+  (** [is_any t] returns [true] if and only if [t] is semantically equivalent
+      to [any]. *)
+
   val leq : t -> t -> bool
+  (** [leq t1 t2] returns [true] if and only if [t1] is a subtype of [t2]. *)
+
   val equiv : t -> t -> bool
+  (** [equiv t1 t2] returns [true] if and only if [leq t1 t2] and [leq t2 t1]. *)
+
   val disjoint : t -> t -> bool
+  (** [disjoint t1 t2] returns true if and only if [cap t1 t2] is empty. *)
 end
 
 (* DNF *)
@@ -484,19 +510,65 @@ end
 (* Ty *)
 
 module type Ty = sig
+  (** Set-theoretic types.*)
+
   type t
-  include TyBase with type t:=t and type node:=t
+  (** The type of (set-theoretic) types. A value of type [t] is a reference to a
+      descriptor that reflects the structure of the type (its variables,
+      components, …).
+  *)
+
+  val equal : t -> t -> bool
+  (** [equal t1 t2] returns [true] if and only if [t1] and [t2] denote the same
+      reference. It is provided e.g. to implement hash tables indexed by types
+      and does {b not} implement syntactic nor semantic equality.
+      The function runs in constant time.
+  *)
+
+  val compare : t -> t -> int
+  (** [compare t1 t2] implements a total order on types, seen as references.
+      [compare t1 t2 = 0] if and only if [equal t1 t2 = true].
+      The function runs in constant time.
+  *)
+
+  val hash : t -> int
+  (** [hash t] returns a hash for the given type. The function runs in constant time.*)
+
+  val empty : t
+  (** The empty type, {m 𝟘}. *)
+
+  val any : t
+  (** The top type, {m 𝟙}. *)
 
   module VDescr : VDescr with type node := t
+  (** Type descriptors. *)
 
   module O : sig
+    (** Optional types are subsets of {m 𝟙∨⊥}. They are used for the type of
+        record fields, to denote the fact that a field may be absent.
+    *)
+
     type node = t
+    (** An alias for the type {!Ty.t}. *)
+
     type t = node oty
-    include TyBase with type node := node and type t := t
+    (** The type of optional types. [t] is equal to [(node * bool)]. Whenever
+        the boolean component is [true], it means that the type contains the
+        absent element {m ⊥}. Otherwise, when the boolean component is [false],
+        the type is equivalent to a plain {!Ty.t} type. *)
+
+
+    include TyBase with type node := node and type t := t (** @inline *)
+
 
     val absent : t
+    (** [absent] is the singleton type containing the absent value, {m ⊥}. *)
+
     val required : node -> t
+    (** [required t] returns the type [t] (not absent). *)
+
     val optional : node -> t
+    (** [optional t] returns the type {m t∨⊥}. *)
 
     include SetTheoretic with type t := t
     val is_absent : t -> bool
@@ -504,45 +576,53 @@ module type Ty = sig
     val is_optional : t -> bool
     val get : t -> node
   end
+  (** Optional types. *)
 
-  val any : t
-  val empty : t
-
-  (** [def t] returns the full descriptor of [t]. For a given type [t],
+  val def : t -> VDescr.t
+  (** [def t] returns the full descriptor of [t]. For a given type (reference) [t],
       [def t] is not necessarily constant: it may change over time, for instance
       when the descriptor of [t] is simplified. *)
-  val def : t -> VDescr.t
 
-  (** [of_def d] creates a type from the full descriptor [d]. *)
   val of_def : VDescr.t -> t
+  (** [of_def d] creates a type from the full descriptor [d]. *)
 
   val mk_var : Var.t -> t
+  (** [mk_var v] creates a type from a type variable. *)
 
-  (** [mk_descr d] creates a type from the monomorphic descriptor [d]. *)
   val mk_descr : VDescr.Descr.t -> t
+  (** [mk_descr d] creates a type from the monomorphic descriptor [d]. *)
 
+  val get_descr : t -> VDescr.Descr.t
   (** [get_descr t] extracts a monomorphic descriptor from [t],
       which describes [t] by ignoring its top-level type variables. *)
-  val get_descr : t -> VDescr.Descr.t
 
   include SetTheoretic with type t := t
 
   val vars : t -> VarSet.t
+  (** [vars t] returns the set of all variables in [t].
+      Note that due to simplifications some variables may or may not be present.
+  *)
+
   val vars_toplevel : t -> VarSet.t
+  (** [vars_toplevel t] returns the top-level variables of [t], that is, occurrences
+      of variables that are not below a constructor.
+  *)
 
-  (** [nodes t] returns all the nodes appearing in [t] (including [t] itself). *)
   val nodes : t -> t list
+  (** [nodes t] returns all the nodes appearing in [t] (including [t] itself). *)
 
+  val of_eqs : (Var.t * t) list -> (Var.t * t) list
   (** [of_eqs [(x1,t1);...;(xn,tn)]] returns the types [x1], ..., [xn]
       satisfying the system of equations [x1=t1], ..., [xn=tn].
       Raises: [Invalid_argument] if the set of equations is not contractive. *)
-  val of_eqs : (Var.t * t) list -> (Var.t * t) list
 
-  (** [substitute s t] applies the type variable substitution [s] to [t]. *)
+
   val substitute : t VarMap.t -> t -> t
+  (** [substitute s t] applies the type variable substitution [s] to [t]. *)
 
-  (** [factorize t] factorizes equivalent nodes in [t]. *)
   val factorize : t -> t
+  (** [factorize t] factorizes equivalent nodes in [t].
+      This operation may be expensive since it calls {!equiv} internally.
+  *)
 
-  val hash : t -> int
 end
