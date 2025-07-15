@@ -23,16 +23,16 @@ run:
 	opam exec -- dune exec ./src/native.exe
 
 js:
-	opam exec -- dune build --profile release src/js.bc.js
-	cp _build/default/src/js.bc.js web/sstt.js
+	opam exec -- dune build --profile release src/bin/js.bc.js
+	cp _build/default/src/bin/js.bc.js web/sstt.js
 	chmod +w web/sstt.js
 	git describe --always --tags HEAD > web/version.txt
 	chmod +w web/version.txt
 
 wasm:
-	opam exec -- dune build --profile release src/wasm.bc.wasm.js
-	cp _build/default/src/wasm.bc.wasm.js web/sstt.js
-	cp -r _build/default/src/wasm.bc.wasm.assets web/
+	opam exec -- dune build --profile release src/bin/wasm.bc.wasm.js
+	cp _build/default/src/bin/wasm.bc.wasm.js web/sstt.js
+	cp -r _build/default/src/bin/wasm.bc.wasm.assets web/
 	chmod +w web/sstt.js web/wasm.bc.wasm.assets web/wasm.bc.wasm.assets/*
 	git describe --always --tags HEAD > web/version.txt
 	chmod +w web/version.txt

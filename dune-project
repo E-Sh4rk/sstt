@@ -26,7 +26,7 @@
 (package
  (name sstt-repl)
  (synopsis "Simple Set-Theoretic Types REPL library")
- (depends sstt menhir)
+ (depends sstt str menhir)
 )
 
 (package

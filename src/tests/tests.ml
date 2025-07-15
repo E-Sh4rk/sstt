@@ -1,6 +1,6 @@
-open Sstt_parsing
-open Sstt_types
-open Sstt_main
+open Sstt_repl.Parsing
+open Sstt.Types
+open Sstt_repl.Main
 
 let%expect_test "tests" =
   let fn = "tests.txt" in

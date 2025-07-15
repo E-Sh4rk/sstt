@@ -1,0 +1,7 @@
+
+(library
+ (name sstt_repl)
+ (public_name sstt-repl)
+ (libraries sstt str zarith))
+
+(include_subdirs unqualified)
