@@ -1,5 +1,5 @@
 open Core
-open Core.Utils
+open Sstt_utils
 
 module type VarOrder = sig
   val compare : Var.t -> Var.t -> int

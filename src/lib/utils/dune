@@ -1,0 +1,3 @@
+(library
+ (name sstt_utils)
+ (package sstt))

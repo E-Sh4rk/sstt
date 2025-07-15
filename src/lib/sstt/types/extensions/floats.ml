@@ -1,5 +1,5 @@
 open Core
-open Core.Utils
+open Sstt_utils
 
 let tag = TagComp.Tag.mk "flt"
 

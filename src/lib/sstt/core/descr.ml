@@ -1,5 +1,5 @@
 open Sigs
-open Utils
+open Sstt_utils
 
 module Make(N:Node) = struct
   module Arrows = Arrows.Make(N)

@@ -1,6 +1,6 @@
 (library
  (name sstt)
  (public_name sstt)
- (libraries zarith))
+ (libraries sstt_utils zarith))
 
 (include_subdirs unqualified)

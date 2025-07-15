@@ -1,5 +1,5 @@
 open Core
-open Core.Utils
+open Sstt_utils
 
 module VDMap = Map.Make(VDescr)
 

@@ -1,38 +1,17 @@
-(* PRINT *)
 
-let print_seq f sep fmt l =
-  let fst = ref true in
-  l |> List.iter
-    (fun e -> Format.fprintf fmt "%s%a" (if !fst then "" else sep) f e ; fst := false)
+let print_seq f sep =
+  Format.(pp_print_list  ~pp_sep:(fun fmt () -> pp_print_string fmt sep) f)
 
-let print_seq_cut f fmt l =
-  let fst = ref true in
-  l |> List.iter (fun e ->
-      if !fst then
-        (Format.fprintf fmt "%a" f e ; fst := false)
-      else
-        Format.fprintf fmt "@,%a" f e
-    )
+let print_seq_cut f =
+  Format.(pp_print_list ~pp_sep:pp_print_cut f)
 
-let print_seq_space f fmt l =
-  let fst = ref true in
-  l |> List.iter (fun e ->
-      if !fst then
-        (Format.fprintf fmt "%a" f e ; fst := false)
-      else
-        Format.fprintf fmt "@ %a" f e
-    )
+let print_seq_space f =
+  Format.(pp_print_list ~pp_sep:pp_print_space f)
 
 (* MISC *)
 
-let identity x = x
-
 let[@inline always] ccmp f e1 e2 r =
   if r <> 0 then r else f e1 e2
-
-let unwrap_or default = function
-  | None -> default
-  | Some x -> x
 
 (* LISTS *)
 
@@ -158,11 +137,6 @@ let merge_when_possible merge_opt lst =
       end
   in
   aux lst
-
-let (--) i j =
-  let rec aux n acc =
-    if n < i then acc else aux (n-1) (n :: acc)
-  in aux j []
 
 let find_opt_of_iter (type a) (f : a -> bool) it col =
   let exception Found of a in

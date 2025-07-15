@@ -1,5 +1,5 @@
 open Sigs
-open Utils
+open Sstt_utils
 
 module Tag = Id.NamedIdentifier()
 

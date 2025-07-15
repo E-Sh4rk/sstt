@@ -1,8 +1,8 @@
 open Effect.Deep
 open Effect
 
+open Sstt_utils
 open Base
-open Utils
 open Sigs
 
 module rec Node : Node with type vdescr = VDescr.t and type descr = VDescr.Descr.t = struct

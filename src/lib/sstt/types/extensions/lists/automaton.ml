@@ -1,4 +1,4 @@
-open Core.Utils
+open Sstt_utils
 
 module Make (R : Regexp.Regexp) = struct
   module State = Int
