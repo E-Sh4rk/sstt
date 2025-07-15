@@ -1,5 +1,5 @@
+open Sstt
 open Sstt_repl.Parsing
-open Sstt.Types
 open Sstt_repl.Main
 
 let%expect_test "tests" =

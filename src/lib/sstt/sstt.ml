@@ -1,2 +1,2 @@
-module Core = Core
-module Types = Types
+include Core
+include Types

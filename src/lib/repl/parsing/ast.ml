@@ -1,6 +1,5 @@
 
-open Sstt.Core
-open Sstt.Types
+open Sstt
 
 type builtin =
   | TEmpty | TAny | TAnyTuple | TAnyAtom | TAnyTag | TAnyInt
