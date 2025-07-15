@@ -10,7 +10,6 @@ bug-reports: "https://github.com/E-Sh4rk/sstt/issues"
 depends: [
   "dune" {>= "3.17"}
   "sstt"
-  "str"
   "menhir"
   "odoc" {with-doc}
 ]
