@@ -9,8 +9,8 @@ let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
 
 type k = Ninf | Neg | Nzero | Pzero | Pos | Pinf | Nan
 
-let atoms =
-  let open Atoms.Atom in
+let enums =
+  let open Enums.Atom in
   [
     Ninf, mk "ninf" ;
     Neg, mk "neg" ;
@@ -22,8 +22,8 @@ let atoms =
   ]
 
 let flt k =
-  let atom = List.assoc k atoms in
-  atom |> Descr.mk_atom |> Ty.mk_descr |> add_tag
+  let atom = List.assoc k enums in
+  atom |> Descr.mk_enum |> Ty.mk_descr |> add_tag
 
 let any =
   [Ninf;Neg;Nzero;Pzero;Pos;Pinf;Nan] |> List.map flt |> Ty.disj |> Transform.simplify
@@ -62,11 +62,11 @@ let to_t tstruct =
   let open Printer in
   match tstruct with
   | CDef (_, [{ pid=[] ; pdef=[PUnprocessed ty] }]) ->
-    let (pos, atoms') = ty |> Ty.get_descr |> Descr.get_atoms |> Atoms.destruct in
+    let (pos, enums') = ty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
     assert pos ;
     let has k =
-      let atom = List.assoc k atoms in
-      List.mem atom atoms'
+      let atom = List.assoc k enums in
+      List.mem atom enums'
     in
     {
       ninf = has Ninf ;

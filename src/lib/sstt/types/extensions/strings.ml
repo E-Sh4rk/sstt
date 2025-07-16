@@ -8,24 +8,24 @@ let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
 let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
   |> TagComp.as_atom |> snd
 
-let atoms = Hashtbl.create 256
+let enums = Hashtbl.create 256
 let strings = Hashtbl.create 256
 let str str =
-  match Hashtbl.find_opt atoms str with
-  | Some atom -> atom |> Descr.mk_atom |> Ty.mk_descr |> add_tag
+  match Hashtbl.find_opt enums str with
+  | Some atom -> atom |> Descr.mk_enum |> Ty.mk_descr |> add_tag
   | None ->
-    let atom = Atoms.Atom.mk str in
-    Hashtbl.add atoms str atom ;
+    let atom = Enums.Atom.mk str in
+    Hashtbl.add enums str atom ;
     Hashtbl.add strings atom str ;
-    atom |> Descr.mk_atom |> Ty.mk_descr |> add_tag
+    atom |> Descr.mk_enum |> Ty.mk_descr |> add_tag
 
-let any = Atoms.any |> Descr.mk_atoms |> Ty.mk_descr |> add_tag
+let any = Enums.any |> Descr.mk_enums |> Ty.mk_descr |> add_tag
 
 let extract ty =
   let open Printer in
   if Ty.leq ty (proj_tag any) && Ty.vars_toplevel ty |> VarSet.is_empty then
-    let (_, atoms) = ty |> Ty.get_descr |> Descr.get_atoms |> Atoms.destruct in
-    if List.for_all (Hashtbl.mem strings) atoms
+    let (_, enums) = ty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
+    if List.for_all (Hashtbl.mem strings) enums
     then Some [ { pid=[] ; pdef=[PUnprocessed ty] } ]
     else None
   else None
@@ -36,8 +36,8 @@ let to_t tstruct =
   let open Printer in
   match tstruct with
   | CDef (_, [{ pid=[] ; pdef=[PUnprocessed ty] }]) ->
-    let (pos, atoms) = ty |> Ty.get_descr |> Descr.get_atoms |> Atoms.destruct in
-    let strs = atoms |> List.map Atoms.Atom.name in
+    let (pos, enums) = ty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
+    let strs = enums |> List.map Enums.Atom.name in
     (pos, strs)
   | _ -> assert false
 

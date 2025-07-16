@@ -8,6 +8,7 @@ module Ty : Ty = struct
   type t = N.t
 
   module VDescr = Node.VDescr
+
   module O = struct
     include Records.OTy(N)
     let any, empty, absent = any (), empty (), absent ()
@@ -41,14 +42,15 @@ module Ty : Ty = struct
   let is_any t = N.with_own_cache N.is_any t
 
   let compare, equal, hash = N.compare, N.equal, N.hash
-end
+end 
 module VDescr = Ty.VDescr
 module Descr = VDescr.Descr
-module Arrows = Descr.Arrows
-module Atoms = Descr.Atoms
+
+module Intervals = Descr.Intervals
+module Enums = Descr.Enums
 module Tags = Descr.Tags
 module TagComp = Tags.TagComp
-module Intervals = Descr.Intervals
-module Records = Descr.Records
 module Tuples = Descr.Tuples
 module TupleComp = Tuples.TupleComp
+module Arrows = Descr.Arrows
+module Records = Descr.Records
