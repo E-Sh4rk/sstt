@@ -1,6 +1,5 @@
 open Sigs
 
-module Base = Base
 include Base
 
 module Ty : Ty = struct
