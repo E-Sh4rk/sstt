@@ -2,7 +2,7 @@
 open Sstt
 
 type builtin =
-  | TEmpty | TAny | TAnyTuple | TAnyAtom | TAnyTag | TAnyInt
+  | TEmpty | TAny | TAnyTuple | TAnyEnum | TAnyTag | TAnyInt
   | TAnyArrow | TAnyRecord | TAnyTupleComp of int | TAnyTagComp of TagComp.Tag.t
 type varop = TTuple
 type binop = TCap | TCup | TDiff | TArrow
@@ -42,7 +42,7 @@ type command = Elt of elt | End
 
 module StrMap = Map.Make(String)
 
-type env = { aenv : Atoms.Atom.t StrMap.t ;
+type env = { eenv : Enums.Atom.t StrMap.t ;
              tagenv : TagComp.Tag.t StrMap.t ;
              tenv : Ty.t StrMap.t ;
              venv : Var.t StrMap.t ;
@@ -52,7 +52,7 @@ type env = { aenv : Atoms.Atom.t StrMap.t ;
 }
 
 let empty_env = {
-  aenv = StrMap.empty ; tagenv = StrMap.empty ;
+  eenv = StrMap.empty ; tagenv = StrMap.empty ;
   tenv = StrMap.empty ;
   venv = StrMap.empty ; mvenv = StrMap.empty ;
   mono = VarSet.empty ; lenv = StrMap.empty
@@ -61,7 +61,7 @@ let empty_env = {
 let builtin t =
   match t with
   | TEmpty -> Ty.empty | TAny -> Ty.any
-  | TAnyAtom -> Descr.mk_atoms Atoms.any |> Ty.mk_descr
+  | TAnyEnum -> Descr.mk_enums Enums.any |> Ty.mk_descr
   | TAnyTag -> Descr.mk_tags Tags.any |> Ty.mk_descr
   | TAnyInt -> Descr.mk_intervals Intervals.any |> Ty.mk_descr
   | TAnyTuple -> Descr.mk_tuples Tuples.any |> Ty.mk_descr
@@ -105,13 +105,13 @@ let type_or_atom env str =
   match StrMap.find_opt str env.tenv with
   | Some t -> t, env
   | None ->
-    begin match StrMap.find_opt str env.aenv with
-    | Some a -> Descr.mk_atom a |> Ty.mk_descr, env
+    begin match StrMap.find_opt str env.eenv with
+    | Some a -> Descr.mk_enum a |> Ty.mk_descr, env
     | None ->
-      let a = Atoms.Atom.mk str in
-      let aenv = StrMap.add str a env.aenv in
-      let env = { env with aenv } in
-      Descr.mk_atom a |> Ty.mk_descr, env  
+      let a = Enums.Atom.mk str in
+      let eenv = StrMap.add str a env.eenv in
+      let env = { env with eenv } in
+      Descr.mk_enum a |> Ty.mk_descr, env  
     end
 
 let tag env str ty =

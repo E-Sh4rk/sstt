@@ -6,11 +6,11 @@ let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
 let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
   |> TagComp.as_atom |> snd
 
-let atrue = Atoms.Atom.mk "true"
-let afalse = Atoms.Atom.mk "false"
+let atrue = Enums.Atom.mk "true"
+let afalse = Enums.Atom.mk "false"
 
-let btrue = atrue |> Descr.mk_atom |> Ty.mk_descr |> add_tag
-let bfalse = afalse |> Descr.mk_atom |> Ty.mk_descr |> add_tag
+let btrue = atrue |> Descr.mk_enum |> Ty.mk_descr |> add_tag
+let bfalse = afalse |> Descr.mk_enum |> Ty.mk_descr |> add_tag
 let bool b = if b then btrue else bfalse
 
 let any = Ty.cup btrue bfalse |> Transform.simplify
@@ -35,11 +35,11 @@ let to_t tstruct =
   let open Printer in
   match tstruct with
   | CDef (_, [{ pid=[] ; pdef=[PUnprocessed ty] }]) ->
-    let (pos, atoms) = ty |> Ty.get_descr |> Descr.get_atoms |> Atoms.destruct in
+    let (pos, enums) = ty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
     assert pos ;
     {
-      t = List.mem atrue atoms ;
-      f = List.mem afalse atoms
+      t = List.mem atrue enums ;
+      f = List.mem afalse enums
     }
   | _ -> assert false
 
