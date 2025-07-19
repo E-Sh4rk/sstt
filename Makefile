@@ -17,10 +17,10 @@ promote:
 	opam exec -- dune runtest --auto-promote
 
 build:
-	opam exec -- dune build src/native.exe
+	opam exec -- dune build src/bin/native.exe
 
 run:
-	opam exec -- dune exec ./src/native.exe
+	opam exec -- dune exec ./src/bin/native.exe
 
 js:
 	opam exec -- dune build --profile release src/bin/js.bc.js
