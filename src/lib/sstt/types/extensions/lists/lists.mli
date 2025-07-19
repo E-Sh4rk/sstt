@@ -1,8 +1,6 @@
 open Core
 
 val tag : TagComp.Tag.t
-val add_tag : Ty.t -> Ty.t
-val proj_tag : Ty.t -> Ty.t
 
 val cons : Ty.t -> Ty.t -> Ty.t
 val nil : Ty.t

@@ -12,13 +12,13 @@ let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
 let cons hd tl = [hd;tl] |> Descr.mk_tuple |> Ty.mk_descr |> add_tag
 
 let nil = [] |> Descr.mk_tuple |> Ty.mk_descr |> add_tag
-
 let any =
   let v = Var.mk "" in
   let def = Ty.cup nil (cons Ty.any (Ty.mk_var v)) in
   Ty.of_eqs [(v,def)] |> List.hd |> snd |> Transform.simplify
 
 let any_non_empty = cons Ty.any any
+let cons a b = cons a (Ty.cap any b)
 
 let destruct ty =
   let union =
