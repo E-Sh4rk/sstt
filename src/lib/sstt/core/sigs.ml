@@ -478,13 +478,12 @@ module type VDescr' = sig
   val substitute : t VarMap.t -> t -> t
 end
 
-module type Node = sig
+module type PreNode = sig
   type t
   type vdescr
   type descr
 
-  include TyBaseRef with type t := t and type node := t
-
+  include Comparable with type t:=t
   val def : t -> vdescr
   val of_def : vdescr -> t
 
@@ -506,7 +505,11 @@ module type Node = sig
 
   val hash : t -> int
 end
-
+module type Node = sig
+  include PreNode
+  val any : t
+  val empty : t
+end
 (* Ty *)
 
 module type Ty = sig
