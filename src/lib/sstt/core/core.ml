@@ -11,7 +11,7 @@ module Ty : Ty = struct
   module O = struct
     include Records.OTy(N)
   end
-  let simpl t = N.with_own_cache N.simplify t ; t
+  let simpl t = N.with_own_cache N.simplify t
   let s f t = f t |> simpl
   let s' f t = simpl t |> f
 
