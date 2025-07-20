@@ -65,7 +65,7 @@ jobs:
           make web-deps
       - name: Build web version
         run: |
-          make js
+          make wasm
 
       # Upload artifact
       - name: Configure GitHub Pages

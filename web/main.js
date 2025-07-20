@@ -35,7 +35,9 @@ jQuery(function($, undefined) {
         prompt: '> '
     });
     term.focus(true);
-    getFile(version_file, (content) => {
-        term.echo("Version " + sstt.version() + " - Commit " + sstt.commit() + " (cached) / " + content.trim() + " (latest) - Compiler " + sstt.compiler());
-    });
+    function show_version(content) {
+        if (typeof sstt === 'undefined') setTimeout(() => show_version(content), 100);
+        else term.echo("Version " + sstt.version() + " - Commit " + sstt.commit() + " (cached) / " + content.trim() + " (latest) - Compiler " + sstt.compiler());
+    }
+    getFile(version_file, show_version);
 });
