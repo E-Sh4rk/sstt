@@ -211,8 +211,6 @@ include (struct
         | Some nt -> define ~simplified:true nt (VDescr.neg s_def)
       end
 
-    let simplify t = simplify t;t
-
     let dependencies t =
       let direct_nodes t = def t |> VDescr.direct_nodes |> NSet.of_list in
       let rec aux ts =
