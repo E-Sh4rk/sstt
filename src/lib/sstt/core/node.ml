@@ -5,21 +5,44 @@ open Sstt_utils
 open Base
 open Sigs
 
-(* The Node module is where we close the knot:
-   - a Node.t contains a VDescr.t
-   - a VDescr.t contains a Descr.t
-   - a Descr.t contains several components, e.g. Arrows, Records, …
-   - the Atoms of Arrows, Record contain Node.t
+(* There is intrinsicly a cycle in the definitions of set-theoretic types, since
+   they are co-inductive:
+   - a type is a reference pointing to a variable-descriptor (VDescr)
+   - a VDescr is a BDD where atoms are variables and leaves are descriptors
+     (Descr)
+   - a Descr is a disjoint union of components
+   - a component is either basic (like Intervals) or a constructor (like Arrows
+     or Tuples)
+   - constructors contain type references.
 
-   Since these modules form a cycle, one of them must be safe.
-   The problem is that they all contains top-level values that are not
-   closures, namely `any` and `empty`. We therefore split the definition
-   so that any and empty exist in a module outside of the cycle.
-   An delayed initialization function is called to populate their content.
-   Lastly, the whole mess is hidden via a top-level include with
-   a contstrained signature (at the end of the file) to only expose the
-   Node and VDescr modules, with abstract types.
+   This can be naturally encoded as mutually recursive modules. The caveat is
+   that all these modules must contain any/empty in their signatures, which are
+   just constants. Therefore none of the recursive modules is "safe" (according
+   to the OCaml manual), since none of them contain only functional values.
 
+   We work around this issue here, all other module are naturally expressed as
+   functors taking a Node as argument.
+
+
+  1. PreNode is our safe module. It is initialized with stubs.
+  2. AnyEmpty is initialized properly, the references to any/empty are created,
+     but not initialized
+  3. Node is initialized, it includes PreNode (stubs) and AnyEmpty
+  4. VDescr = Vdescr.Make(Node) is initialized as well as its content. In
+     particular, VDescr.Descr.Records.Atom.any and similar reference the
+     properly initialized top-level value AnyEmpty.any
+  5. Node is patched and its top-level expressions are evaluated
+
+  After all this, we finally initialize AnyEmpty.{any/empty} by calling the init
+  function (see at the bottom of the file). Client-code which lives in the cycle
+  (so VDescr, Descr or a component) must never dereference Node.any or
+  Node.empty in a toplevel definition, otherwise they will get an exception
+  since the type references are still not initialized.
+
+  Lastly, prevent external code to access the internal definition of TyRef.t
+  directly (as well as accessing internal functions), we use the trick to
+  include all the modules and constrain the signature, exposing only Node and
+  VDescr.
 *)
 
 
@@ -94,9 +117,6 @@ include (struct
     type t = TyRef.t
     open TyRef
     open AnyEmpty
-
-
-    let () = init VDescr.empty VDescr.any (* Delayed initialization *)
 
     let has_def t = Option.is_some t.def
     let def t = t.def |> Option.get
@@ -293,8 +313,9 @@ include (struct
     let nodes t = dependencies t |> NSet.to_list
   end
 
+ let () = AnyEmpty.init VDescr.empty VDescr.any (* Delayed initialization. *)
 
-end : sig
+end : sig (* Hide everything, we could also add that in a .mli file. *)
            module rec Node : (Node with type vdescr = VDescr.t and type descr = VDescr.Descr.t)
            and VDescr : VDescr with type node = Node.t
          end)
