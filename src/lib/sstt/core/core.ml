@@ -5,20 +5,18 @@ include Base
 
 module Ty : Ty = struct
   module N = Node.Node
-
   type t = N.t
 
   module VDescr = Node.VDescr
   module O = struct
     include Records.OTy(N)
-    let any, empty, absent = any (), empty (), absent ()
   end
-
   let simpl t = N.with_own_cache N.simplify t ; t
   let s f t = f t |> simpl
   let s' f t = simpl t |> f
 
-  let any, empty = N.any ()|> simpl, N.empty ()|> simpl
+  let any = N.any |> simpl
+  let empty =  N.empty |> simpl
   let def, of_def = s' N.def, s N.of_def
 
   let mk_var, mk_descr, get_descr = s N.mk_var, s N.mk_descr, s' N.get_descr
