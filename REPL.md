@@ -5,10 +5,10 @@
 ### Types
 
 Types are built with the following constructors:
-- `empty`, `any`, `tuple`, `arrow`, `record`, `int`
+- `empty`, `any`, `tuple`, `arrow`, `record`, `int`, `enum`
 - Monomorphic type variable `'x` (lowercase)
 - Polymorphic type variables `'X` (uppercase)
-- Atom `id`, where `id` is the identifier of an atom (atoms are created on-the-fly and do not need to be declared)
+- Enum `id`, where `id` is the identifier of an enum (enums are created on-the-fly and do not need to be declared)
 - Tag `id(t)`, where `id` is the identifier of a tag (tags are created on-the-fly and do not need to be declared)
 - Arrow `t -> t`
 - Tuple `(t, ..., t)`

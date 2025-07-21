@@ -3,14 +3,14 @@ open Sstt_utils
 
 module Make(N:Node) = struct
   module Arrows = Arrows.Make(N)
-  module Atoms = Atoms
+  module Enums = Enums
   module Intervals = Intervals
   module Records = Records.Make(N)
   module Tags = Tags.Make(N)
   module Tuples = Tuples.Make(N)
 
   type component =
-    | Atoms of Atoms.t
+    | Enums of Enums.t
     | Arrows of Arrows.t
     | Intervals of Intervals.t
     | Records of Records.t
@@ -18,7 +18,7 @@ module Make(N:Node) = struct
     | Tuples of Tuples.t
 
   type t = {
-    atoms : Atoms.t ;
+    enums : Enums.t ;
     tags : Tags.t ;
     tuples : Tuples.t ;
     arrows : Arrows.t ;
@@ -28,7 +28,7 @@ module Make(N:Node) = struct
   type node = N.t
 
   let any = {
-    atoms = Atoms.any ;
+    enums = Enums.any ;
     tags = Tags.any  ;
     tuples = Tuples.any ;
     arrows = Arrows.any ;
@@ -37,7 +37,7 @@ module Make(N:Node) = struct
   }
 
   let empty = {
-    atoms = Atoms.empty ;
+    enums = Enums.empty ;
     tags = Tags.empty;
     tuples = Tuples.empty;
     arrows = Arrows.empty;
@@ -45,14 +45,14 @@ module Make(N:Node) = struct
     intervals = Intervals.empty
   }
 
-  let mk_atoms a = { empty with atoms = a }
+  let mk_enums a = { empty with enums = a }
   let mk_tags a = { empty with tags = a }
   let mk_arrows a = { empty with arrows = a }
   let mk_tuples a = { empty with tuples = a }
   let mk_records a = { empty with records = a }
   let mk_intervals a = { empty with intervals = a }
 
-  let mk_atom a = Atoms.mk a |> mk_atoms
+  let mk_enum a = Enums.mk a |> mk_enums
   let mk_tagcomp a = Tags.mk_comp a |> mk_tags
   let mk_tag a = Tags.mk a |> mk_tags
   let mk_arrow a = Arrows.mk a |> mk_arrows
@@ -61,7 +61,7 @@ module Make(N:Node) = struct
   let mk_record a = Records.mk a |> mk_records
   let mk_interval a = Intervals.mk a |> mk_intervals
 
-  let get_atoms t = t.atoms
+  let get_enums t = t.enums
   let get_tags t = t.tags
   let get_arrows t = t.arrows
   let get_tuples t = t.tuples
@@ -69,11 +69,11 @@ module Make(N:Node) = struct
   let get_intervals t = t.intervals
 
   let components t =
-    [ Atoms t.atoms ; Arrows t.arrows ; Intervals t.intervals ;
+    [ Enums t.enums ; Arrows t.arrows ; Intervals t.intervals ;
       Tags t.tags ; Tuples t.tuples ; Records t.records ]
   let set_component t comp =
     match comp with
-    | Atoms atoms -> { t with atoms }
+    | Enums enums -> { t with enums }
     | Arrows arrows -> { t with arrows }
     | Intervals intervals -> { t with intervals }
     | Tags tags -> { t with tags }
@@ -83,7 +83,7 @@ module Make(N:Node) = struct
   let of_components = List.fold_left set_component empty
 
   let unop fato ftag ftup farr frec fint t = {
-    atoms = fato t.atoms ;
+    enums = fato t.enums ;
     tags = ftag t.tags ;
     tuples = ftup t.tuples ;
     arrows = farr t.arrows ;
@@ -92,7 +92,7 @@ module Make(N:Node) = struct
   }
 
   let binop fato ftag ftup farr frec fint t1 t2 = {
-    atoms = fato t1.atoms t2.atoms ;
+    enums = fato t1.enums t2.enums ;
     tags = ftag t1.tags t2.tags ;
     tuples = ftup t1.tuples t2.tuples ;
     arrows = farr t1.arrows t2.arrows ;
@@ -100,13 +100,13 @@ module Make(N:Node) = struct
     intervals = fint t1.intervals t2.intervals
   }
 
-  let cap = binop Atoms.cap Tags.cap Tuples.cap Arrows.cap Records.cap Intervals.cap
-  let cup = binop Atoms.cup Tags.cup Tuples.cup Arrows.cup Records.cup Intervals.cup
-  let diff = binop Atoms.diff Tags.diff Tuples.diff Arrows.diff Records.diff Intervals.diff
-  let neg = unop Atoms.neg Tags.neg Tuples.neg Arrows.neg Records.neg Intervals.neg
+  let cap = binop Enums.cap Tags.cap Tuples.cap Arrows.cap Records.cap Intervals.cap
+  let cup = binop Enums.cup Tags.cup Tuples.cup Arrows.cup Records.cup Intervals.cup
+  let diff = binop Enums.diff Tags.diff Tuples.diff Arrows.diff Records.diff Intervals.diff
+  let neg = unop Enums.neg Tags.neg Tuples.neg Arrows.neg Records.neg Intervals.neg
 
   let is_empty t =
-    Atoms.is_empty t.atoms &&
+    Enums.is_empty t.enums &&
     Intervals.is_empty t.intervals &&
     Tags.is_empty t.tags &&
     Tuples.is_empty t.tuples &&
@@ -114,7 +114,7 @@ module Make(N:Node) = struct
     Records.is_empty t.records
 
   let direct_nodes t =
-    [ Atoms.direct_nodes t.atoms ;
+    [ Enums.direct_nodes t.enums ;
       Tags.direct_nodes t.tags ;
       Tuples.direct_nodes t.tuples ;
       Arrows.direct_nodes t.arrows ;
@@ -122,13 +122,13 @@ module Make(N:Node) = struct
       Intervals.direct_nodes t.intervals
     ] |> List.concat
 
-  let simplify = unop Atoms.simplify Tags.simplify Tuples.simplify
+  let simplify = unop Enums.simplify Tags.simplify Tuples.simplify
       Arrows.simplify Records.simplify Intervals.simplify
-  let map_nodes f = unop (Atoms.map_nodes f) (Tags.map_nodes f) (Tuples.map_nodes f)
+  let map_nodes f = unop (Enums.map_nodes f) (Tags.map_nodes f) (Tuples.map_nodes f)
       (Arrows.map_nodes f) (Records.map_nodes f) (Intervals.map_nodes f)
 
   let compare t1 t2 =
-    Atoms.compare t1.atoms t2.atoms |> ccmp
+    Enums.compare t1.enums t2.enums |> ccmp
       Intervals.compare t1.intervals t2.intervals |> ccmp
       Tags.compare t1.tags t2.tags |> ccmp
       Tuples.compare t1.tuples t2.tuples |> ccmp
@@ -136,7 +136,7 @@ module Make(N:Node) = struct
       Records.compare t1.records t2.records
 
   let equal t1 t2 =
-    Atoms.equal t1.atoms t2.atoms &&
+    Enums.equal t1.enums t2.enums &&
     Intervals.equal t1.intervals t2.intervals &&
     Tags.equal t1.tags t2.tags &&
     Tuples.equal t1.tuples t2.tuples &&

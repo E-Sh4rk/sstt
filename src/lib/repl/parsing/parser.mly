@@ -8,7 +8,7 @@ let parse_atom_or_builtin str =
     | "tuple" -> TBuiltin TAnyTuple
     | "arrow" -> TBuiltin TAnyArrow
     | "record" -> TBuiltin TAnyRecord
-    | "atom" -> TBuiltin TAnyAtom
+    | "enum" -> TBuiltin TAnyEnum
     | "tag" -> TBuiltin TAnyTag
     | "int" -> TBuiltin TAnyInt
     | str ->

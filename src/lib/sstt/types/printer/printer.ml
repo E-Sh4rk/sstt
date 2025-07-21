@@ -38,7 +38,7 @@ and 'c op' =
 | Node of NodeId.t
 | Builtin of builtin
 | Var of Var.t
-| Atom of Atoms.Atom.t
+| Enum of Enums.Atom.t
 | Tag of TagComp.Tag.t * 'c descr'
 | Interval of Z.t option * Z.t option
 | Record of (Label.t * 'c descr' * bool) list * bool
@@ -85,7 +85,7 @@ let map_descr' fc f d = (* Assumes f preserves semantic equivalence *)
     | Node n -> Node n
     | Builtin b -> Builtin b
     | Var v -> Var v
-    | Atom atom -> Atom atom
+    | Enum enum -> Enum enum
     | Tag (tag, d) -> Tag (tag, aux d)
     | Interval (lb, ub) -> Interval (lb, ub)
     | Record (bindings, b) ->
@@ -212,8 +212,8 @@ let record bindings opened =
 let tag tag d =
   { op = Tag (tag,d) ; ty = D.mk_tag (tag, d.ty) |> Ty.mk_descr }
 
-let atom a =
-  { op = Atom a ; ty = D.mk_atom a |> Ty.mk_descr }
+let enum a =
+  { op = Enum a ; ty = D.mk_enum a |> Ty.mk_descr }
 
 let var v =
   { op = Var v ; ty = Ty.mk_var v }
@@ -288,10 +288,10 @@ let resolve_arrows ctx a =
   in
   dnf |> List.map resolve_dnf |> union
 
-let resolve_atoms _ a =
-  let (pos, atoms) = Atoms.destruct a in
-  let atoms = atoms |> List.map atom |> union in
-  if pos then atoms else neg atoms
+let resolve_enums _ a =
+  let (pos, enums) = Enums.destruct a in
+  let enums = enums |> List.map enum |> union in
+  if pos then enums else neg enums
 
 let resolve_intervals _ a =
   let pos =
@@ -399,9 +399,9 @@ let resolve_comp ctx c =
     | Some d -> d
   in
   match c with
-  | D.Atoms c ->
-    alias_or resolve_atoms c,
-    { op = Builtin AnyAtom ; ty = Atoms.any |> D.mk_atoms |> Ty.mk_descr }
+  | D.Enums c ->
+    alias_or resolve_enums c,
+    { op = Builtin AnyAtom ; ty = Enums.any |> D.mk_enums |> Ty.mk_descr }
   | D.Arrows c ->
     alias_or resolve_arrows c,
     { op = Builtin AnyArrow ; ty = Arrows.any |> D.mk_arrows |> Ty.mk_descr }
@@ -587,7 +587,7 @@ let rec print_descr prec assoc fmt d =
     | Node n -> Format.fprintf fmt "%a" NodeId.pp n
     | Builtin b -> print_builtin fmt b
     | Var v -> Format.fprintf fmt "%a" Var.pp v
-    | Atom a -> Format.fprintf fmt "%a" Atoms.Atom.pp a
+    | Enum a -> Format.fprintf fmt "%a" Enums.Atom.pp a
     | Tag (t,d) ->
       Format.fprintf fmt "%a(%a)"
         TagComp.Tag.pp t print_descr' d

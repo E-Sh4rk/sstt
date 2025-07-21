@@ -184,14 +184,14 @@ module Make(VO:VarOrder) = struct
     and aux_comp m c =
       let open Descr in
       match c with
-      | Atoms c -> aux_atoms m c
+      | Enums c -> aux_enums m c
       | Arrows c -> aux_arrows m c
       | Intervals c -> aux_intervals m c
       | Tags c -> aux_tags m c
       | Tuples c -> aux_tuples m c
       | Records c -> aux_records m c
-    and aux_atoms _ d =
-      match Atoms.destruct d with
+    and aux_enums _ d =
+      match Enums.destruct d with
       | true, [] -> MCSS.any
       | _, _ -> MCSS.empty
     and aux_intervals _ d =
