@@ -71,7 +71,6 @@ module Make(N:Atom)(L:Leaf) = struct
     | Node (a, p, n) ->
       node a (neg p) (neg n)
 
-
   let op lop t1 t2 =
     let rec op t1 t2 =
       match t1, t2 with
@@ -98,15 +97,6 @@ module Make(N:Atom)(L:Leaf) = struct
       Leaf _ -> -1
     | Node (b, _, _) -> N.compare a b
 
-  let node' a p n =
-    let pc = compare_to_atom a p in
-    let nc = compare_to_atom a n in
-    if pc < 0 && nc < 0 then node a p n
-    else if pc < 0 then cup (node a p empty) (cap (nsingleton a) n)
-    else if nc < 0 then cup (cap (singleton a) p) (node a empty n)
-    else cup (cap (singleton a) p)
-        (cap (nsingleton a) n)
-
   let rec substitute f t =
     match t with
     | Leaf _ -> t
@@ -115,6 +105,15 @@ module Make(N:Atom)(L:Leaf) = struct
       let t = f a in
       let p,n =  cap p t, cap n (neg t) in
       cup p n
+
+  let node' a p n =
+    let pc = compare_to_atom a p in
+    let nc = compare_to_atom a n in
+    if pc < 0 && nc < 0 then node a p n
+    else if pc < 0 then cup (node a p empty) (cap (nsingleton a) n)
+    else if nc < 0 then cup (cap (singleton a) p) (node a empty n)
+    else cup (cap (singleton a) p)
+        (cap (nsingleton a) n)
 
   let rec map_nodes f t =
     match t with
@@ -205,8 +204,8 @@ module Make(N:Atom)(L:Leaf) = struct
   let rec to_t ctx t =
     match ctx with
     | Root -> t
-    | Pos (a, n, ctx') -> to_t ctx' (node' a t n)
-    | Neg (a, p, ctx') -> to_t ctx' (node' a p t)
+    | Pos (a, n, ctx') -> to_t ctx' (Node (a, t, n))
+    | Neg (a, p, ctx') -> to_t ctx' (Node (a, p, t))
 
   let simplify eq t =
     let rec aux ctx t =
@@ -214,14 +213,14 @@ module Make(N:Atom)(L:Leaf) = struct
         match t with
         | Leaf l -> Leaf (L.simplify l)
         | Node (a, p, n) ->
-          let a = N.simplify a in
-          let p = aux (Pos (a, n, ctx)) p in
-          let t = node' a p n in
-          if eq (to_t ctx t) (to_t ctx p) then p
-          else
-            let n = aux (Neg (a, p, ctx)) n in
-            let t = node' a p n in
-            if eq (to_t ctx t) (to_t ctx n) then n else t
+          let p = aux (Pos (a, n, ctx)) p
+          and n = aux (Neg (a, p, ctx)) n in
+          if equal p n then p else
+            let t = Node (a, p, n) in
+            let ctx_t = to_t ctx t in
+            if eq ctx_t (to_t ctx p) then p
+            else if eq ctx_t (to_t ctx n) then n
+            else t
     in
-    aux Root t
+    aux Root (map_nodes N.simplify t)
 end
