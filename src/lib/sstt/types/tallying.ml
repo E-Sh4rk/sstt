@@ -11,8 +11,9 @@ type constr = Ty.t * Ty.t
 module Make(VO:VarOrder) = struct
   module Var = struct
     include Var
-    let equal (_:t) (_:t) = () (* prevent from using default comparison*)
-    let compare (_:t) (_:t) = () 
+    (* prevent from using default comparison*)
+    let equal (_:t) (_:t) = () [@@ocaml.warning "-32"] 
+    let compare (_:t) (_:t) = () [@@ocaml.warning "-32"]
   end
 
   module Constr = struct
