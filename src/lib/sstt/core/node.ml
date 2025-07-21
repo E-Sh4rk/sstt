@@ -24,25 +24,25 @@ open Sigs
    functors taking a Node as argument.
 
 
-  1. PreNode is our safe module. It is initialized with stubs.
-  2. AnyEmpty is initialized properly, the references to any/empty are created,
+   1. PreNode is our safe module. It is initialized with stubs.
+   2. AnyEmpty is initialized properly, the references to any/empty are created,
      but not initialized
-  3. Node is initialized, it includes PreNode (stubs) and AnyEmpty
-  4. VDescr = Vdescr.Make(Node) is initialized as well as its content. In
+   3. Node is initialized, it includes PreNode (stubs) and AnyEmpty
+   4. VDescr = Vdescr.Make(Node) is initialized as well as its content. In
      particular, VDescr.Descr.Records.Atom.any and similar reference the
      properly initialized top-level value AnyEmpty.any
-  5. Node is patched and its top-level expressions are evaluated
+   5. Node is patched and its top-level expressions are evaluated
 
-  After all this, we finally initialize AnyEmpty.{any/empty} by calling the init
-  function (see at the bottom of the file). Client-code which lives in the cycle
-  (so VDescr, Descr or a component) must never dereference Node.any or
-  Node.empty in a toplevel definition, otherwise they will get an exception
-  since the type references are still not initialized.
+   After all this, we finally initialize AnyEmpty.{any/empty} by calling the init
+   function (see at the bottom of the file). Client-code which lives in the cycle
+   (so VDescr, Descr or a component) must never dereference Node.any or
+   Node.empty in a toplevel definition, otherwise they will get an exception
+   since the type references are still not initialized.
 
-  Lastly, prevent external code to access the internal definition of TyRef.t
-  directly (as well as accessing internal functions), we use the trick to
-  include all the modules and constrain the signature, exposing only Node and
-  VDescr.
+   Lastly, to prevent external code to access the internal definition of TyRef.t
+   directly (as well as accessing internal functions), we use the trick to
+   include all the modules and constrain the signature, exposing only Node and
+   VDescr.
 *)
 
 
@@ -108,8 +108,7 @@ include (struct
     (* The PreNode module that contain the entry points of all functions on types. *)
     module NMap = Map.Make(PreNode)
     module VDMap = Map.Make(VDescr)
-    type _ Effect.t += GetCache: (bool VDMap.t) t
-    type _ Effect.t += SetCache: bool VDMap.t -> unit t
+    type _ Effect.t += GetCache: (bool VDMap.t ref) t
 
     type vdescr = VDescr.t
     type descr = VDescr.Descr.t
@@ -169,37 +168,34 @@ include (struct
     let conj ts = List.fold_left cap any ts
     let disj ts = List.fold_left cup empty ts
 
+    let get_cache () = perform GetCache
+
+    let with_own_cache f t =
+      let cache = ref VDMap.empty in
+      match f t with
+        x -> x
+      | effect GetCache, k -> continue k cache
+
     let is_empty t =
       let def = def t in
       if t.simplified then
         VDescr.equal def VDescr.empty
       else
-        let cache = perform GetCache in
-        begin match VDMap.find_opt def cache with
+        let cache = get_cache () in
+        let old_cache = !cache in
+        begin match VDMap.find_opt def old_cache with
           | Some b -> b
           | None ->
-            let cache' = ref (VDMap.add def true cache) in
-            let b =
-              match VDescr.is_empty def with
-              | b -> b
-              | effect GetCache , k -> continue k !cache'
-              | effect SetCache c, k -> cache' := c ; continue k ()
-            in
-            let cache = if b then !cache' else VDMap.add def false cache in
-            perform (SetCache cache); b
+            cache := VDMap.add def true old_cache;
+            let b = VDescr.is_empty def in
+            if not b then cache := VDMap.add def false old_cache;
+            b
         end
 
     let leq t1 t2 = diff t1 t2 |> is_empty
     let equiv t1 t2 = leq t1 t2 && leq t2 t1
     let is_any t = neg t |> is_empty
     let disjoint t1 t2 = cap t1 t2 |> is_empty
-
-    let with_own_cache f t =
-      let cache = ref VDMap.empty in
-      match f t with
-      | x -> x
-      | effect GetCache, k -> continue k !cache
-      | effect SetCache c, k -> cache := c ; continue k ()
 
     let rec simplify t =
       if not t.simplified then begin
@@ -313,7 +309,7 @@ include (struct
     let nodes t = dependencies t |> NSet.to_list
   end
 
- let () = AnyEmpty.init VDescr.empty VDescr.any (* Delayed initialization. *)
+  let () = AnyEmpty.init VDescr.empty VDescr.any (* Delayed initialization. *)
 
 end : sig (* Hide everything, we could also add that in a .mli file. *)
            module rec Node : (Node with type vdescr = VDescr.t and type descr = VDescr.Descr.t)
