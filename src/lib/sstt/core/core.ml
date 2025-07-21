@@ -44,7 +44,7 @@ end
 module VDescr = Ty.VDescr
 module Descr = VDescr.Descr
 module Arrows = Descr.Arrows
-module Atoms = Descr.Atoms
+module Enums = Descr.Enums
 module Tags = Descr.Tags
 module TagComp = Tags.TagComp
 module Intervals = Descr.Intervals

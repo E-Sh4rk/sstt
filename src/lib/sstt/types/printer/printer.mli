@@ -20,7 +20,7 @@ module type CustomNode = sig
 end
 
 type builtin =
-| Empty | Any | AnyTuple | AnyAtom | AnyTag | AnyInt
+| Empty | Any | AnyTuple | AnyEnum | AnyTag | AnyInt
 | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of TagComp.Tag.t
 type 'c t' = { main : 'c descr' ; defs : 'c def' list }
 and 'c def' = NodeId.t * 'c descr'
@@ -31,7 +31,7 @@ and 'c op' =
 | Node of NodeId.t
 | Builtin of builtin
 | Var of Var.t
-| Atom of Atoms.Atom.t
+| Enum of Enums.Atom.t
 | Tag of TagComp.Tag.t * 'c descr'
 | Interval of Z.t option * Z.t option
 | Record of (Label.t * 'c descr' * bool) list * bool

@@ -99,20 +99,20 @@ module type Dnf' = sig
   val simplify : t -> t
 end
 
-(* Atoms *)
+(* Enums *)
 
-module type AtomAtom = Id.NamedIdentifier
+module type EnumAtom = Id.NamedIdentifier
 
-module type Atoms = sig
+module type Enums = sig
   include TyBase
-  module Atom : AtomAtom
+  module Atom : EnumAtom
   val mk : Atom.t -> t
 
   val construct : bool * Atom.t list -> t
 
-  (** [destruct t] returns a pair [(b,atoms)] such that:
-      if [b] is true, then [t] contains exactly the atoms [atoms],
-      and if [b] is false, then [t] contains exactly the atoms not in [atoms]. *)
+  (** [destruct t] returns a pair [(b,enums)] such that:
+      if [b] is true, then [t] contains exactly the enums [enums],
+      and if [b] is false, then [t] contains exactly the enums not in [enums]. *)
   val destruct : t -> bool * Atom.t list
 end
 
@@ -387,22 +387,22 @@ module type Descr = sig
   include TyBase
 
   module Arrows : Arrows with type node := node
-  module Atoms : Atoms with type node := node
+  module Enums : Enums with type node := node
   module Intervals : Intervals with type node := node
   module Records : Records with type node := node
   module Tags : Tags with type node := node
   module Tuples : Tuples with type node := node
 
   type component =
-    | Atoms of Atoms.t
+    | Enums of Enums.t
     | Arrows of Arrows.t
     | Intervals of Intervals.t
     | Records of Records.t
     | Tags of Tags.t
     | Tuples of Tuples.t
 
-  val mk_atom : Atoms.Atom.t -> t
-  val mk_atoms : Atoms.t -> t
+  val mk_enum : Enums.Atom.t -> t
+  val mk_enums : Enums.t -> t
   val mk_tag : Tags.TagComp.Atom.t -> t
   val mk_tagcomp : Tags.TagComp.t -> t
   val mk_tags : Tags.t -> t
@@ -416,7 +416,7 @@ module type Descr = sig
   val mk_interval : Intervals.Atom.t -> t
   val mk_intervals : Intervals.t -> t
 
-  val get_atoms : t -> Atoms.t
+  val get_enums : t -> Enums.t
   val get_tags : t -> Tags.t
   val get_tuples : t -> Tuples.t
   val get_arrows : t -> Arrows.t

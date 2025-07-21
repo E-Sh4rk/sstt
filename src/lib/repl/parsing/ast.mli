@@ -1,7 +1,7 @@
 open Sstt
 
 type builtin =
-  | TEmpty | TAny | TAnyTuple | TAnyAtom | TAnyTag | TAnyInt
+  | TEmpty | TAny | TAnyTuple | TAnyEnum | TAnyTag | TAnyInt
   | TAnyArrow | TAnyRecord | TAnyTupleComp of int | TAnyTagComp of TagComp.Tag.t
 type varop = TTuple
 type binop = TCap | TCup | TDiff | TArrow
@@ -41,7 +41,7 @@ type command = Elt of elt | End
 
 module StrMap : Map.S with type key=string
 
-type env = { aenv : Atoms.Atom.t StrMap.t ;
+type env = { eenv : Enums.Atom.t StrMap.t ;
              tagenv : TagComp.Tag.t StrMap.t ;
              tenv : Ty.t StrMap.t ;
              venv : Var.t StrMap.t ;

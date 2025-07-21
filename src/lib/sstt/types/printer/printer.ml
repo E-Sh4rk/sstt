@@ -21,30 +21,30 @@ module NodeId = struct
 end
 
 module type CustomNode = sig
-    type t
-    val v : t
-    val print : int -> assoc -> Format.formatter -> t -> unit
+  type t
+  val v : t
+  val print : int -> assoc -> Format.formatter -> t -> unit
 end
 
 type builtin =
-| Empty | Any | AnyTuple | AnyAtom | AnyTag | AnyInt
-| AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of TagComp.Tag.t
+  | Empty | Any | AnyTuple | AnyEnum | AnyTag | AnyInt
+  | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of TagComp.Tag.t
 type 'c t' = { main : 'c descr' ; defs : 'c def' list }
 and 'c def' = NodeId.t * 'c descr'
 and 'c descr' = { op : 'c op' ; ty : Ty.t }
 and 'c op' =
-| Custom of 'c
-| Alias of string
-| Node of NodeId.t
-| Builtin of builtin
-| Var of Var.t
-| Atom of Atoms.Atom.t
-| Tag of TagComp.Tag.t * 'c descr'
-| Interval of Z.t option * Z.t option
-| Record of (Label.t * 'c descr' * bool) list * bool
-| Varop of varop * 'c descr' list
-| Binop of binop * 'c descr' * 'c descr'
-| Unop of unop * 'c descr'
+  | Custom of 'c
+  | Alias of string
+  | Node of NodeId.t
+  | Builtin of builtin
+  | Var of Var.t
+  | Enum of Enums.Atom.t
+  | Tag of TagComp.Tag.t * 'c descr'
+  | Interval of Z.t option * Z.t option
+  | Record of (Label.t * 'c descr' * bool) list * bool
+  | Varop of varop * 'c descr' list
+  | Binop of binop * 'c descr' * 'c descr'
+  | Unop of unop * 'c descr'
 
 type t = (module CustomNode) t'
 type descr = (module CustomNode) descr'
@@ -57,11 +57,11 @@ type ('u, 'l, 'r) cparams = { pid : int list ; pdef : ('u, 'l, 'r) cparam list }
 type custom = CDef of NodeId.t * (Ty.t, descr, custom) cparams list | CNode of NodeId.t
 type extracted_params = (Ty.t, Ty.t, Ty.t) cparams list
 module type PrinterExt = sig
-    type t
-    val tag : TagComp.Tag.t
-    val extractors : (Ty.t -> extracted_params option) list
-    val get : custom -> t
-    val print : int -> assoc -> Format.formatter -> t -> unit
+  type t
+  val tag : TagComp.Tag.t
+  val extractors : (Ty.t -> extracted_params option) list
+  val get : custom -> t
+  val print : int -> assoc -> Format.formatter -> t -> unit
 end
 type custom' = CDef of NodeId.t * (Ty.t, (TagComp.Tag.t * custom') descr', custom') cparams list | CNode of NodeId.t
 
@@ -80,19 +80,19 @@ module TagMap = Map.Make(TagComp.Tag)
 let map_descr' fc f d = (* Assumes f preserves semantic equivalence *)
   let rec aux d =
     let op = match d.op with
-    | Custom c -> Custom (fc aux c)
-    | Alias str -> Alias str
-    | Node n -> Node n
-    | Builtin b -> Builtin b
-    | Var v -> Var v
-    | Atom atom -> Atom atom
-    | Tag (tag, d) -> Tag (tag, aux d)
-    | Interval (lb, ub) -> Interval (lb, ub)
-    | Record (bindings, b) ->
-      Record (List.map (fun (l,d,b) -> l, aux d, b) bindings, b)
-    | Varop (v, ds) -> Varop (v, List.map aux ds)
-    | Binop (b, d1, d2) -> Binop (b, aux d1, aux d2)
-    | Unop (u, d) -> Unop (u, aux d)
+      | Custom c -> Custom (fc aux c)
+      | Alias str -> Alias str
+      | Node n -> Node n
+      | Builtin b -> Builtin b
+      | Var v -> Var v
+      | Enum enum -> Enum enum
+      | Tag (tag, d) -> Tag (tag, aux d)
+      | Interval (lb, ub) -> Interval (lb, ub)
+      | Record (bindings, b) ->
+        Record (List.map (fun (l,d,b) -> l, aux d, b) bindings, b)
+      | Varop (v, ds) -> Varop (v, List.map aux ds)
+      | Binop (b, d1, d2) -> Binop (b, aux d1, aux d2)
+      | Unop (u, d) -> Unop (u, aux d)
     in { d with op = f { d with op } }
   in
   aux d
@@ -121,8 +121,8 @@ let map_t = map_t' map_ic
 let nodes_in_descr d =
   let res = ref NISet.empty in
   let f d = match d.op with
-  | Node n -> res := NISet.add n !res ; Node n
-  | op -> op
+    | Node n -> res := NISet.add n !res ; Node n
+    | op -> op
   in
   map_descr f d |> ignore ;
   !res
@@ -135,8 +135,8 @@ let size_of_descr d =
 
 let size_t t =
   List.fold_left (fun n (_,d) ->
-    n + 3 + size_of_descr d
-  ) (size_of_descr t.main) t.defs
+      n + 3 + size_of_descr d
+    ) (size_of_descr t.main) t.defs
 
 let subst n d t =
   let aux d' =
@@ -205,15 +205,15 @@ let tuple lst =
 
 let record bindings opened =
   let nbindings = bindings |>
-    List.map (fun (l, d, b) -> (l, (d.ty, b))) |> LabelMap.of_list in
+                  List.map (fun (l, d, b) -> (l, (d.ty, b))) |> LabelMap.of_list in
   { op = Record (bindings, opened) ;
     ty = D.mk_record { bindings=nbindings ; opened } |> Ty.mk_descr }
 
 let tag tag d =
   { op = Tag (tag,d) ; ty = D.mk_tag (tag, d.ty) |> Ty.mk_descr }
 
-let atom a =
-  { op = Atom a ; ty = D.mk_atom a |> Ty.mk_descr }
+let enum a =
+  { op = Enum a ; ty = D.mk_enum a |> Ty.mk_descr }
 
 let var v =
   { op = Var v ; ty = Ty.mk_var v }
@@ -257,9 +257,9 @@ let tag_handlers ctx tag =
 let build_t (params:params) ty =
   let aliases = params.aliases |> List.map (fun (ty, s) -> (ty, Alias s)) in
   let extensions = params.extensions |> List.map (fun m ->
-    let module M = (val m : PrinterExt) in
-    M.tag, m
-  ) |> TagMap.of_list in
+      let module M = (val m : PrinterExt) in
+      M.tag, m
+    ) |> TagMap.of_list in
   let ctx = { nodes=VDMap.empty ; aliases ; extensions } in
   ctx, { main = node ctx ty ; defs = [] }
 
@@ -267,12 +267,12 @@ let build_t (params:params) ty =
 
 let resolve_alias ctx ty =
   begin match List.find_opt (fun (ty',_) -> Ty.equiv ty ty') ctx.aliases with
-  | None ->
-    begin match List.find_opt (fun (ty',_) -> Ty.equiv ty (Ty.neg ty')) ctx.aliases with
-    | None -> None
-    | Some (ty, op) -> Some (neg { op ; ty })
-    end
-  | Some (ty, op) -> Some { op ; ty }
+    | None ->
+      begin match List.find_opt (fun (ty',_) -> Ty.equiv ty (Ty.neg ty')) ctx.aliases with
+        | None -> None
+        | Some (ty, op) -> Some (neg { op ; ty })
+      end
+    | Some (ty, op) -> Some { op ; ty }
   end
 
 let resolve_arrows ctx a =
@@ -288,10 +288,10 @@ let resolve_arrows ctx a =
   in
   dnf |> List.map resolve_dnf |> union
 
-let resolve_atoms _ a =
-  let (pos, atoms) = Atoms.destruct a in
-  let atoms = atoms |> List.map atom |> union in
-  if pos then atoms else neg atoms
+let resolve_enums _ a =
+  let (pos, enums) = Enums.destruct a in
+  let enums = enums |> List.map enum |> union in
+  if pos then enums else neg enums
 
 let resolve_intervals _ a =
   let pos =
@@ -321,13 +321,13 @@ let resolve_tuplecomp ctx a =
 let resolve_tuples ctx a =
   let (pos, components) = Tuples.destruct a in
   let d = components |> List.map (fun p ->
-    let len = TupleComp.len p in
-    let elt = resolve_tuplecomp ctx p in
-    let any = { op = Builtin (AnyTupleComp len) ;
-                ty = TupleComp.any len |> D.mk_tuplecomp |> Ty.mk_descr }
-    in
-    cap' any elt
-  ) |> union in
+      let len = TupleComp.len p in
+      let elt = resolve_tuplecomp ctx p in
+      let any = { op = Builtin (AnyTupleComp len) ;
+                  ty = TupleComp.any len |> D.mk_tuplecomp |> Ty.mk_descr }
+      in
+      cap' any elt
+    ) |> union in
   if pos then d else neg d
 
 let resolve_records ctx a =
@@ -335,8 +335,8 @@ let resolve_records ctx a =
   let dnf = Records.dnf a |> Records.Dnf.simplify in
   let resolve_rec r =
     let bindings = r.bindings |> LabelMap.bindings |> List.map (fun (l,(n,b)) ->
-      (l, node ctx n, b)
-    ) in
+        (l, node ctx n, b)
+      ) in
     record bindings r.opened
   in
   let resolve_dnf (ps, ns, _) =
@@ -352,21 +352,21 @@ let rec resolve_custom_tagcomp f ctx env ty =
   | Some nid -> CNode nid
   | None ->
     begin match f ty with
-    | None -> raise Exit
-    | Some extracted ->
-      let nid = NodeId.mk () in
-      let env = VDMap.add vd nid env in
-      let treat_param param =
-        match param with
-        | PUnprocessed ty -> PUnprocessed ty
-        | PLeaf ty -> PLeaf (node ctx ty)
-        | PRec ty -> PRec (resolve_custom_tagcomp f ctx env ty)
-      in
-      let treat_params { pid ; pdef } =
-        { pid ; pdef=List.map treat_param pdef }
-      in
-      let union = List.map treat_params extracted in
-    CDef (nid, union)
+      | None -> raise Exit
+      | Some extracted ->
+        let nid = NodeId.mk () in
+        let env = VDMap.add vd nid env in
+        let treat_param param =
+          match param with
+          | PUnprocessed ty -> PUnprocessed ty
+          | PLeaf ty -> PLeaf (node ctx ty)
+          | PRec ty -> PRec (resolve_custom_tagcomp f ctx env ty)
+        in
+        let treat_params { pid ; pdef } =
+          { pid ; pdef=List.map treat_param pdef }
+        in
+        let union = List.map treat_params extracted in
+        CDef (nid, union)
     end
 
 let resolve_tagcomp ctx a =
@@ -399,9 +399,9 @@ let resolve_comp ctx c =
     | Some d -> d
   in
   match c with
-  | D.Atoms c ->
-    alias_or resolve_atoms c,
-    { op = Builtin AnyAtom ; ty = Atoms.any |> D.mk_atoms |> Ty.mk_descr }
+  | D.Enums c ->
+    alias_or resolve_enums c,
+    { op = Builtin AnyEnum ; ty = Enums.any |> D.mk_enums |> Ty.mk_descr }
   | D.Arrows c ->
     alias_or resolve_arrows c,
     { op = Builtin AnyArrow ; ty = Arrows.any |> D.mk_arrows |> Ty.mk_descr }
@@ -448,8 +448,8 @@ let resolve_def ctx def =
 let rec resolve_missing_defs ctx t =
   let used_defs = ctx.nodes |> VDMap.bindings in
   let to_define = used_defs |> List.find_opt (fun (_,nid) ->
-    t.defs |> List.exists (fun (nid',_) -> NodeId.equal nid nid') |> not
-  ) in
+      t.defs |> List.exists (fun (nid',_) -> NodeId.equal nid nid') |> not
+    ) in
   match to_define with
   | None -> t
   | Some (def,nid) ->
@@ -510,26 +510,26 @@ let simplify t =
 let transform_custom_tags ctx t =
   let aux map (tag, ts) =
     let m = TagMap.find tag ctx.extensions in
-      let module M = (val m : PrinterExt) in
-      let rec map_ts ts : custom =
-        match ts with
-        | CDef (nid,params) ->
-          CDef (nid, List.map map_params params)
-        | CNode nid -> CNode nid
-      and map_params { pid; pdef } =
-        { pid ; pdef=List.map map_param pdef }
-      and map_param p =
-        match p with
-        | PUnprocessed ty -> PUnprocessed ty
-        | PLeaf d -> PLeaf (map d)
-        | PRec ts -> PRec (map_ts ts)
-      in
-      let module M' = struct
-        type t = M.t
-        let v = M.get (map_ts ts)
-        let print = M.print
-      end in
-      (module M' : CustomNode)
+    let module M = (val m : PrinterExt) in
+    let rec map_ts ts : custom =
+      match ts with
+      | CDef (nid,params) ->
+        CDef (nid, List.map map_params params)
+      | CNode nid -> CNode nid
+    and map_params { pid; pdef } =
+      { pid ; pdef=List.map map_param pdef }
+    and map_param p =
+      match p with
+      | PUnprocessed ty -> PUnprocessed ty
+      | PLeaf d -> PLeaf (map d)
+      | PRec ts -> PRec (map_ts ts)
+    in
+    let module M' = struct
+      type t = M.t
+      let v = M.get (map_ts ts)
+      let print = M.print
+    end in
+    (module M' : CustomNode)
   in
   let op d = d.op in
   map_t' aux op t
@@ -543,7 +543,7 @@ let rename_nodes t =
     "x"^(string_of_int !c)
   in
   t.defs |> List.iter (fun (n,_) ->
-    NodeId.rename n (next_name ())
+      NodeId.rename n (next_name ())
     )
 
 (* Step 7 : Print *)
@@ -554,7 +554,7 @@ let print_builtin fmt b =
     | Empty -> "empty"
     | Any -> "any"
     | AnyTuple -> "tuple"
-    | AnyAtom -> "atom"
+    | AnyEnum -> "enum"
     | AnyTag -> "tag"
     | AnyInt -> "int"
     | AnyArrow -> "arrow"
@@ -587,7 +587,7 @@ let rec print_descr prec assoc fmt d =
     | Node n -> Format.fprintf fmt "%a" NodeId.pp n
     | Builtin b -> print_builtin fmt b
     | Var v -> Format.fprintf fmt "%a" Var.pp v
-    | Atom a -> Format.fprintf fmt "%a" Atoms.Atom.pp a
+    | Enum a -> Format.fprintf fmt "%a" Enums.Atom.pp a
     | Tag (t,d) ->
       Format.fprintf fmt "%a(%a)"
         TagComp.Tag.pp t print_descr' d

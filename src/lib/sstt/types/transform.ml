@@ -111,7 +111,7 @@ let simpl_descr d =
   let open Descr in
   d |> components |> List.map (function
     | Intervals i -> Intervals i
-    | Atoms a -> Atoms a
+    | Enums e -> Enums e
     | Tags t -> Tags (simpl_tags t)
     | Arrows a -> Arrows (simpl_arrows a)
     | Tuples t -> Tuples (simpl_tuples t)
