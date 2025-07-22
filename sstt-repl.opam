@@ -2,8 +2,8 @@
 opam-version: "2.0"
 version: "0.1.0"
 synopsis: "Simple Set-Theoretic Types REPL library"
-maintainer: ["Mickael Laurent"]
-authors: ["Mickael Laurent"]
+maintainer: ["Mickael Laurent" "Kim Nguyen"]
+authors: ["Mickael Laurent" "Kim Nguyen"]
 license: "MIT"
 homepage: "https://github.com/E-Sh4rk/sstt"
 bug-reports: "https://github.com/E-Sh4rk/sstt/issues"

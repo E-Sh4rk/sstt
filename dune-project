@@ -7,9 +7,15 @@
 
 (generate_opam_files true)
 
-(authors "Mickael Laurent")
+(authors
+ "Mickael Laurent"
+ "Kim Nguyen"
+)
 
-(maintainers "Mickael Laurent")
+(maintainers
+ "Mickael Laurent"
+ "Kim Nguyen"
+)
 
 (homepage "https://github.com/E-Sh4rk/sstt")
 

@@ -52,4 +52,4 @@ opam pin sstt-bin https://github.com/E-Sh4rk/sstt.git#main
 
 This software is distributed under the MIT license.
 See [`LICENSE`](LICENSE) for more info.  
-*This work is funded by the ERC CZ LL2325 grant.*
+*This work is funded by the ERC CZ LL2325 grant and Université Paris-Saclay.*
