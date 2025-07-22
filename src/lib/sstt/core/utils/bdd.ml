@@ -210,17 +210,11 @@ module Make(N:Atom)(L:Leaf) = struct
         acc
     in aux [] t
 
-  (* Huet's zipper *)
-  type ctx =
-    | Root
-    | Pos of N.t * t * ctx
-    | Neg of N.t * t * ctx
-
   let rec to_t ctx t =
     match ctx with
-    | Root -> t
-    | Pos (a, n, ctx') -> to_t ctx' (Node (a, t, n))
-    | Neg (a, p, ctx') -> to_t ctx' (Node (a, p, t))
+    | [] -> t
+    | (false, a)::ctx -> to_t ctx (Node (a, t, empty))
+    | (true, a)::ctx -> to_t ctx (Node (a, empty, t))
 
   let simplify eq t =
     let rec aux ctx t =
@@ -228,8 +222,8 @@ module Make(N:Atom)(L:Leaf) = struct
         match t with
         | Leaf l -> Leaf (L.simplify l)
         | Node (a, p, n) ->
-          let p = aux (Pos (a, n, ctx)) p
-          and n = aux (Neg (a, p, ctx)) n in
+          let p = aux ((false, a)::ctx) p
+          and n = aux ((true, a)::ctx) n in
           if equal p n then p else
             let t = Node (a, p, n) in
             let ctx_t = to_t ctx t in
@@ -237,5 +231,5 @@ module Make(N:Atom)(L:Leaf) = struct
             else if eq ctx_t (to_t ctx n) then n
             else t
     in
-    aux Root (map_nodes N.simplify t)
+    aux [] (map_nodes N.simplify t)
 end
