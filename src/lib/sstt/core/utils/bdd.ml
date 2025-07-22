@@ -60,7 +60,7 @@ module Make(N:Atom)(L:Leaf) = struct
       let c = N.compare a1 a2 in if c <> 0 then c else
         let c = compare p1 p2 in if c <> 0 then c else
           compare n1 n2
-          
+
   (* Smart constructor *)
   let node a p n =
     if equal p n then p
@@ -71,26 +71,41 @@ module Make(N:Atom)(L:Leaf) = struct
     | Node (a, p, n) ->
       node a (neg p) (neg n)
 
-  let op lop t1 t2 =
-    let rec op t1 t2 =
+  let rec op lop fbase t1 t2 =
+    match fbase t1 t2 with
+    | Some t -> t
+    | None ->
       match t1, t2 with
       | Leaf l1, Leaf l2 -> Leaf (lop l1 l2)
       | Leaf _, Node (a,p,n) ->
-        node a (op t1 p) (op t1 n)
+        node a (op lop fbase t1 p) (op lop fbase t1 n)
       | Node (a,p,n), Leaf _ ->
-        node a (op p t2) (op n t2)
+        node a (op lop fbase p t2) (op lop fbase n t2)
       | Node (a1,p1,n1), Node (a2,p2,n2) ->
         let n = N.compare a1 a2 in
-        if n < 0 then node a1 (op p1 t2) (op n1 t2)
-        else if n > 0 then node a2 (op t1 p2) (op t1 n2)
+        if n < 0 then node a1 (op lop fbase p1 t2) (op lop fbase n1 t2)
+        else if n > 0 then node a2 (op lop fbase t1 p2) (op lop fbase t1 n2)
         else
-          node a1 (op p1 p2) (op n1 n2)
-    in
-    op t1 t2
+          node a1 (op lop fbase p1 p2) (op lop fbase n1 n2)
 
-  let cap = op L.cap
-  let cup = op L.cup
-  let diff = op L.diff
+  let cap = 
+    op L.cap (fun t1 t2 ->
+        if t1 == empty || t2 == empty then Some empty
+        else if t2 == any || t1 == t2 then Some t1
+        else if t1 == any then Some t2
+        else None)
+  let cup =
+    op L.cup (fun t1 t2 ->
+        if t1 == any || t2 == any then Some any
+        else if t2 == empty || t1 == t2 then Some t1
+        else if t1 == empty then Some t2
+        else None)
+  let diff = 
+    op L.diff (fun t1 t2 ->
+        if t1 == empty || t2 == any || t1 == t2 then Some empty
+        else if t2 == empty then Some t1
+        else if t1 == any then Some (neg t2)
+        else None)
 
   let compare_to_atom a t =
     match t with
@@ -103,7 +118,7 @@ module Make(N:Atom)(L:Leaf) = struct
     | Node (a,p,n) ->
       let p,n = substitute f p, substitute f n in
       let t = f a in
-      let p,n =  cap p t, cap n (neg t) in
+      let p,n = cap p t, diff n t in
       cup p n
 
   let node' a p n =

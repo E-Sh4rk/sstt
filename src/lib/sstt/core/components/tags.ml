@@ -50,8 +50,7 @@ module MakeC(N:Node) = struct
   let is_clause_empty (ps,ns,b) =
     if b then ty_of_clause (ps,ns) |> N.is_empty
     else true
-  let is_empty' t =
-    Bdd.dnf t |> List.for_all is_clause_empty
+  let is_empty' t = t |> Bdd.for_all_lines is_clause_empty
   let is_empty (_,t) = is_empty' t
 
   let leq t1 t2 = Bdd.diff t1 t2 |> is_empty'

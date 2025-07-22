@@ -187,8 +187,7 @@ module Make(N:Node) = struct
         let n = List.length a in
         psi n (conj n ps) ns
     else true
-  let is_empty t =
-    Bdd.dnf t |> List.for_all is_clause_empty
+  let is_empty t = t |> Bdd.for_all_lines is_clause_empty
 
   let leq t1 t2 = Bdd.diff t1 t2 |> is_empty
   let equiv t1 t2 = leq t1 t2 && leq t2 t1
