@@ -7,24 +7,24 @@
   (best exe))
  (modules native))
 
-(executable
- (name js)
- ;  (public_name sstt)
- ;  (package sstt-js)
- (libraries sstt_repl zarith_js)
- (modes js)
+(library
+ (name web)
+ (wrapped false)
+ (libraries sstt_repl)
  (preprocess
   (pps js_of_ocaml-ppx))
+ (modules web))
+
+(executable
+ (name js)
+ (libraries web zarith_js)
+ (modes js)
  (modules js))
 
 (executable
  (name wasm)
- ;  (public_name sstt)
- ;  (package sstt-wasm)
- (libraries sstt_repl zarith_wasm)
+ (libraries web zarith_wasm)
  (modes wasm)
- (preprocess
-  (pps js_of_ocaml-ppx))
  (modules wasm))
 
 (env
