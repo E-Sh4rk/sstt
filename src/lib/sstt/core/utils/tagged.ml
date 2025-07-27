@@ -24,21 +24,17 @@ module type TaggedComp = sig
 end
 
 module Make(C : TaggedComp) = struct
-  module TMap = Map.Make(C.Tag)
 
-  type t = { map : (C.Tag.t * C.t) list ; others : bool }
+  type t = { map : C.t list; others : bool }
+  (* When others is [true], missing tags are mapped to Any
+     When others is [false], missing tags are mapped to Empty
+  *)
 
   let mk a =
-    let t = C.tag a in
-    { map = [t, a] ; others = false }
+    { map = [a] ; others = false }
 
-  let of_comp_list l =
-    l
-    |> List.map (fun a -> (C.tag a, a))
-    |> List.sort_uniq (fun (ta, _) (tb, _) -> C.Tag.compare ta tb)
-
-  let map_on_snd f l = List.map (fun (e, a) -> (e, f a)) l
-  let snd_map f l = List.map (fun (_, a) -> f a) l
+  let of_comp_list =
+    List.sort_uniq (fun a b -> C.(Tag.compare (tag a) (tag b)))
 
   let of_components (ts, others) =
     let map = of_comp_list ts in
@@ -48,89 +44,115 @@ module Make(C : TaggedComp) = struct
       let map = of_comp_list cs in
       { map ; others=false }
     else
-      let map = of_comp_list cs |> map_on_snd C.neg in
+      let map = of_comp_list cs |> List.map C.neg in
       { map ; others=true }
 
   let any = { map = [] ; others = true }
   let empty = { map = [] ; others = false }
 
-  let cap t1 t2 =
-    let others = t1.others && t2.others in
-    let rec loop l1 l2 =
-      match l1, l2 with
-      | [], _ -> if t1.others then l2 else []
-      | _, [] -> if t2.others then l1 else []
-      | ((e1, a1) as v1):: ll1, ((e2, a2) as v2) :: ll2 ->
-        let c = C.Tag.compare e1 e2 in
-        if c < 0 then if t2.others then v1 :: loop ll1 l2 else loop ll1 l2
-        else if c > 0 then if t1.others then v2 :: loop l1 ll2 else loop l1 ll2
-        else (e1, C.cap a1 a2):: loop ll1 ll2
-    in
-    { map = loop t1.map t2.map; others }
-  let cup t1 t2 =
-    let others = t1.others || t2.others in
-    let rec loop l1 l2 =
-      match l1, l2 with
-      | [], _ -> if t1.others then [] else l2
-      | _, [] -> if t2.others then [] else l1
-      | ((e1, a1) as v1):: ll1, ((e2, a2) as v2) :: ll2 ->
-        let c = C.Tag.compare e1 e2 in
-        if c < 0 then if t2.others then loop ll1 l2 else v1 :: loop ll1 l2
-        else if c > 0 then if t1.others then loop l1 ll2 else v2 :: loop l1 ll2
-        else (e1, C.cup a1 a2):: loop ll1 ll2
-    in
-    { map = loop t1.map t2.map; others }
-
   let neg t =
     let others = not t.others in
-    let map = map_on_snd C.neg t.map in
+    let map = List.map C.neg t.map in
     { map ; others }
-  let diff t1 t2 = cap t1 (neg t2)
 
+  let [@inline always] (@?) o l =
+    match o with
+      None -> l
+    | Some e -> e :: l
+
+  let[@inline always] op empty1 empty2 missing1 missing2 comb12 combo t1 t2 =
+    let rec loop l1 l2 =
+      match l1, l2 with
+      | [], _ -> empty1 l2
+      | _, [] -> empty2 l1
+      | a1 :: ll1, a2 :: ll2 ->
+        let e1 = C.tag a1 in
+        let e2 = C.tag a2 in
+        let c = C.Tag.compare e1 e2 in
+        if c < 0 then (missing2 a1) @? loop ll1 l2
+        else if c > 0 then (missing1 a2) @? loop l1 ll2
+        else (comb12 a1 a2)::loop ll1 ll2
+    in
+    let others = combo t1.others t2.others in
+    { map = loop t1.map t2.map; others }
+
+  let cst_nil _ = []
+  let cst_none _ = None
+  let cap t1 t2 =
+    op 
+      (if t1.others then Fun.id else cst_nil)
+      (if t2.others then Fun.id else cst_nil)
+      (if t1.others then Option.some else cst_none)
+      (if t2.others then Option.some else cst_none)
+      C.cap
+      (&&) t1 t2
+  let cup t1 t2 =
+    op 
+      (if t1.others then cst_nil else Fun.id)
+      (if t2.others then cst_nil else Fun.id)
+      (if t1.others then cst_none else Option.some)
+      (if t2.others then cst_none else Option.some)
+      C.cup
+      (||) t1 t2
+  let diff t1 t2 =
+    op 
+      (if t1.others then List.map C.neg else cst_nil)
+      (if not t2.others then Fun.id else cst_nil)
+      (if t1.others then (fun x -> Some (C.neg x)) else cst_none)
+      (if not t2.others then Option.some else cst_none)
+      C.diff
+      (fun b1 b2 -> b1 && not b2) t1 t2
   let is_empty t =
-    not t.others && List.for_all (fun (_, a) -> C.is_empty a) t.map
+    not t.others && List.for_all C.is_empty t.map
 
   let direct_nodes t =
-    List.concat_map (fun (_, t) -> C.direct_nodes t) t.map
+    List.concat_map C.direct_nodes t.map
 
   let map_nodes f t =
-    let map = map_on_snd (C.map_nodes f) t.map in
+    let map = List.map (C.map_nodes f) t.map in
     { map ; others=t.others }
 
   let simplify t =
     let t_is_empty t = C.is_empty t in
     let t_is_any t = C.neg t |> C.is_empty in
-    let map = map_on_snd C.simplify t.map in
+    let map = List.map C.simplify t.map in
     let p = if t.others then t_is_any else t_is_empty in
-    let map = List.filter (fun (_, t) -> p t |> not) map in
+    let map = List.filter (fun t -> p t |> not) map in
     { map ; others = t.others }
 
-  let components t =
-    let cs = List.map snd t.map in
-    (cs, t.others)
+  let components t = (t.map, t.others)
 
   let destruct t =
     if t.others then
-      (false, snd_map C.neg t.map)
+      (false, List.map C.neg t.map)
     else
-      (true, List.map snd t.map)
+      (true,  t.map)
 
+  let rec find_tag tag l =
+    match l with
+      [] -> None
+    | a :: ll -> 
+      let c = C.Tag.compare (C.tag a) tag in
+      if c < 0 then find_tag tag ll
+      else if c > 0 then None
+      else Some a
   let get tag t =
-    match List.find_map (fun (e, a) -> if C.Tag.equal e tag then Some a else None) t.map with
+    match find_tag tag t.map with
     | Some a -> a
-    | None when t.others -> C.any tag
-    | None -> C.empty tag
+    | None -> 
+      if t.others then C.any tag
+      else  C.empty tag
 
   let map f t =
-    let map = map_on_snd f t.map in
+    let map = List.map f t.map in
     { t with map }
 
   let equal t1 t2 =
     Bool.equal t1.others t2.others &&
     try
-      List.for_all2 (fun (e1, a1) (e2, a2) -> C.Tag.equal e1 e2 && C.equal a1 a2) t1.map t2.map
+      List.for_all2 C.equal t1.map t2.map
     with _ -> false
   let compare t1 t2 =
     Bool.compare t1.others t2.others |> ccmp
-      (List.compare (fun (e1, a1) (e2, a2) -> C.Tag.compare e1 e2 |> ccmp C.compare a1 a2)) t1.map t2.map
+      (List.compare C.compare) t1.map t2.map
 end
