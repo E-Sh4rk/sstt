@@ -21,8 +21,8 @@ module Arrows = struct
             let aux (e,ps) = certain_outputs (e::current_set) ps in
             take_one ps |> List.map aux |> List.flatten
           end
-      in
-      certain_outputs [] ps |> Ty.conj
+        in
+        certain_outputs [] ps |> Ty.conj
     end |> Ty.disj
 
   let worra t out =
@@ -55,7 +55,10 @@ module TupleComp = struct
     mapn (fun _ -> raise EmptyAtom) Ty.disj (as_union t)
 
   let proj i t =
-    as_union t |> List.map (fun lst -> List.nth lst i) |> Ty.disj
+    as_union t |> List.map (fun lst -> 
+        match List.nth_opt lst i with
+          Some v -> v
+        | None -> invalid_arg "Op.TupleComp.proj") |> Ty.disj
 
   let merge a1 a2 = a1@a2
 end
@@ -68,8 +71,8 @@ module Records = struct
     let open Records.Atom in
     Records.dnf' t |> Records.Dnf'.simplify |> List.map fst |>
     List.map (fun t ->
-      { bindings=t.Records.Atom'.bindings ; opened=t.opened }
-    )
+        { bindings=t.Records.Atom'.bindings ; opened=t.opened }
+      )
 
   let of_union lst =
     Records.of_dnf (List.map (fun atom -> [atom],[],true) lst)
@@ -79,8 +82,8 @@ module Records = struct
     let union_a a1 a2 =
       let dom = LabelSet.union (dom a1) (dom a2) in
       let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
-        (lbl, Ty.O.cup (find lbl a1) (find lbl a2))
-      ) |> LabelMap.of_list in
+          (lbl, Ty.O.cup (find lbl a1) (find lbl a2))
+        ) |> LabelMap.of_list in
       { bindings ; opened = a1.opened || a2.opened }
     in
     match as_union t with
@@ -94,10 +97,10 @@ module Records = struct
     let open Records.Atom in
     let dom = LabelSet.union (dom a1) (dom a2) in
     let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
-      let oty1, oty2 = find lbl a1, find lbl a2 in
-      let oty = if snd oty2 then Ty.O.cup oty1 (fst oty2, false) else oty2 in
-      (lbl, oty)
-    ) |> LabelMap.of_list in
+        let oty1, oty2 = find lbl a1, find lbl a2 in
+        let oty = if snd oty2 then Ty.O.cup oty1 (fst oty2, false) else oty2 in
+        (lbl, oty)
+      ) |> LabelMap.of_list in
     { bindings ; opened = a1.opened && a2.opened } |> Records.mk
 
   let remove a lbl =

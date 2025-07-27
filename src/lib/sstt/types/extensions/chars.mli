@@ -1,6 +1,6 @@
 open Core
 
-val tag : TagComp.Tag.t
+val tag : Tag.t
 
 type interval = char * char
 

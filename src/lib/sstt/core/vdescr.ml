@@ -58,7 +58,7 @@ module Make(N:Node) = struct
     let undesirable_leaf l = Descr.equal l Descr.empty
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
   end
-  module Dnf = Dnf.Make(DnfAtom)(N)
+  module Dnf = DNF.Make(DnfAtom)(N)
 
   let dnf t = Bdd.dnf t |> Dnf.mk
   let of_dnf dnf = Dnf.mk dnf |> Bdd.of_dnf

@@ -1,5 +1,5 @@
-
-module type NamedIdentifier = sig
+module type NamedIdentifier =
+sig
   type t
 
   (** [mk name] makes a new identifier of name [name].
@@ -22,13 +22,14 @@ module type NamedIdentifier = sig
   val pp_unique : Format.formatter -> t -> unit
 end
 
-module NamedIdentifier() : NamedIdentifier = struct
+module NamedIdentifier () : NamedIdentifier = struct
   type t = int * string
-  let next_id =
-    let c = ref 0 in
-    fun () -> c := !c + 1 ; !c
 
-  let mk name = (next_id (), name)
+    let next_id =
+      let c = ref 0 in
+      fun () -> c := !c + 1 ; !c
+
+  let mk name =  (next_id (), name)
   let name (_, name) = name
   let hash (i,_) = Hashtbl.hash i
   let compare (i1,_) (i2,_) = Int.compare i1 i2

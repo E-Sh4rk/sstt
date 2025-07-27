@@ -23,6 +23,7 @@ module MakeC(N:Node) = struct
   module Atom = Atom(N)
   module Bdd = Bdd.Make(Atom)(Bdd.BoolLeaf)
   module Tag = Atom.Tag
+  module Index = Tag
 
   type t = Tag.t * Bdd.t
   type node = N.t
@@ -33,7 +34,8 @@ module MakeC(N:Node) = struct
   let mk a = Atom.tag a, Bdd.singleton a
 
   let tag (tag,_) = tag
-
+  let index = tag
+  
   let check_tag tag tag' =
     if Tag.equal tag tag' |> not then
       raise (Invalid_argument "Heterogeneous tags.")
@@ -63,7 +65,7 @@ module MakeC(N:Node) = struct
     let undesirable_leaf = not
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
   end
-  module Dnf = Dnf.Make(DnfAtom)(N)
+  module Dnf = DNF.Make(DnfAtom)(N)
 
   let dnf (_,t) = Bdd.dnf t |> Dnf.mk
   let of_dnf tag dnf =
@@ -87,9 +89,9 @@ module MakeC(N:Node) = struct
 end
 
 module Make(N:Node) = struct
-  module TagComp = MakeC(N)
-  include Tagged.Make(TagComp)
+  module Comp = MakeC(N)
+  include Indexed.Make(Comp)
 
   let mk_comp p = mk p
-  let mk a = mk (TagComp.mk a)
+  let mk a = mk (Comp.mk a)
 end

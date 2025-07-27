@@ -28,7 +28,7 @@ end
 
 type builtin =
   | Empty | Any | AnyTuple | AnyEnum | AnyTag | AnyInt
-  | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of TagComp.Tag.t
+  | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of Tag.t
 type 'c t' = { main : 'c descr' ; defs : 'c def' list }
 and 'c def' = NodeId.t * 'c descr'
 and 'c descr' = { op : 'c op' ; ty : Ty.t }
@@ -39,7 +39,7 @@ and 'c op' =
   | Builtin of builtin
   | Var of Var.t
   | Enum of Enums.Atom.t
-  | Tag of TagComp.Tag.t * 'c descr'
+  | Tag of Tag.t * 'c descr'
   | Interval of Z.t option * Z.t option
   | Record of (Label.t * 'c descr' * bool) list * bool
   | Varop of varop * 'c descr' list
@@ -58,12 +58,12 @@ type custom = CDef of NodeId.t * (Ty.t, descr, custom) cparams list | CNode of N
 type extracted_params = (Ty.t, Ty.t, Ty.t) cparams list
 module type PrinterExt = sig
   type t
-  val tag : TagComp.Tag.t
+  val tag : Tag.t
   val extractors : (Ty.t -> extracted_params option) list
   val get : custom -> t
   val print : int -> assoc -> Format.formatter -> t -> unit
 end
-type custom' = CDef of NodeId.t * (Ty.t, (TagComp.Tag.t * custom') descr', custom') cparams list | CNode of NodeId.t
+type custom' = CDef of NodeId.t * (Ty.t, (Tag.t * custom') descr', custom') cparams list | CNode of NodeId.t
 
 type aliases = (Ty.t * string) list
 type extensions = (module PrinterExt) list
@@ -75,7 +75,7 @@ module VDMap = Map.Make(VD)
 
 module NIMap = Map.Make(NodeId)
 module NISet = Set.Make(NodeId)
-module TagMap = Map.Make(TagComp.Tag)
+module TagMap = Map.Make(Tag)
 
 let map_descr' fc f d = (* Assumes f preserves semantic equivalence *)
   let rec aux d =
