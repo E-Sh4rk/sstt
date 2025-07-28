@@ -3,7 +3,7 @@ export COMMIT = $(shell git describe --always --tags HEAD)
 all: build run
 
 deps:
-	opam install . --deps-only
+	opam install . --deps-only --with-test --with-doc
 
 test:
 	opam exec -- dune runtest
