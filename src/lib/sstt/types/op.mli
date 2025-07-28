@@ -1,70 +1,90 @@
+(** High-level operations on types. *)
+
 open Core
 
+
 exception EmptyAtom
+(** Exception raised by some operations on tuples and records. *)
 
 module Arrows : sig
-    type t = Arrows.t
+  (** Operations on arrow types. *)
 
-    (** [dom t] returns the domain of the arrow component [t]. *)
-    val dom : t -> Ty.t
+  type t = Arrows.t
 
-    (** [apply t arg] returns the type resulting from the application
-    of an argument of type [arg] to a function [t]. An argument not
-    in the domain will yield the resulting type [any]. *)
-    val apply : t -> Ty.t -> Ty.t
+  (** [dom t] returns the domain of the arrow component [t]. *)
+  val dom : t -> Ty.t
 
-    (** [worra t res] returns the type that must necessarily have an argument
-    applied to the function [t] for the result to have type [res]
-    (assuming the application did not diverge). *)
-    val worra : t -> Ty.t -> Ty.t
+  (** [apply t arg] returns the type resulting from the application
+      of an argument of type [arg] to a function [t]. An argument not
+      in the domain will yield the resulting type [any]. *)
+  val apply : t -> Ty.t -> Ty.t
+
+  (** [worra t res] returns the type that must necessarily have an argument
+      applied to the function [t] for the result to have type [res] (assuming
+      the application did not diverge). For instance, for an arrow type 
+      {m t\equiv (\texttt{int}\rightarrow\texttt{bool})\cap(\texttt{string}\rightarrow\texttt{int})},
+      {m \texttt{worra} t \texttt{bool}} returns {m \texttt{int}} ([worra] is
+      [arrow] in reverse).
+  *)
+  val worra : t -> Ty.t -> Ty.t
 end
 
 module TupleComp : sig
-    type t = TupleComp.t
-    type atom = TupleComp.Atom.t
+  (** Operations on tuple types. *)
 
-    (** [as_union t] expresses [t] as an union of non-empty atoms. *)
-    val as_union : t -> atom list
+  type t = TupleComp.t
+  type atom = TupleComp.Atom.t
 
-    (** [of_union n atoms] returns the [n]-uple component composed of the union [atoms]. *)
-    val of_union : int -> atom list -> t
+  (** [as_union t] expresses [t] as an union of non-empty atoms. *)
+  val as_union : t -> atom list
 
-    (** [approx t] over-approximates [t] as a non-empty atom.
-    Raises: [EmptyAtom] if [t] is empty. *)
-    val approx : t -> atom
+  (** [of_union n atoms] returns the [n]-uple component composed of the union [atoms]. *)
+  val of_union : int -> atom list -> t
 
-    (** [proj n t] returns the type resulting from the projection on the
-    [n]-th component (0-indexed) of [t]. *)
-    val proj : int -> t -> Ty.t
+  (** [approx t] over-approximates [t] as a non-empty atom.
+      {%html: <style>ul.at-tags > li > p { display: inline }</style>%}
+      @raise EmptyAtom if [t] is empty. *)
+  val approx : t -> atom
 
-    (** [merge t1 t2] returns the atom resulting from the concatenation of
-    [t1] and [t2]. *)
-    val merge : atom -> atom -> atom
+  (** [proj n t] returns the type resulting from the projection on the
+      [n]-th component (0-indexed) of [t]. 
+      {%html: <style>ul.at-tags > li > p { display: inline }</style>%}
+      @raise Invalid_argument if [n] is negative or greater than the arity of [t].
+  *)
+  val proj : int -> t -> Ty.t
+
+  (** [merge t1 t2] returns the atom resulting from the concatenation of
+      [t1] and [t2]. *)
+  val merge : atom -> atom -> atom
 end
 
 module Records : sig
-    type t = Records.t
-    type atom = Records.Atom.t
+  (** Operations on record types. *)
 
-    (** [as_union t] over-approximates [t] as an union of non-empty atoms. *)
-    val as_union : t -> atom list
+  type t = Records.t
+  type atom = Records.Atom.t
 
-    (** [of_union atoms] returns the record component composed of the union [atoms]. *)
-    val of_union : atom list -> t
+  (** [as_union t] over-approximates [t] as an union of non-empty atoms. *)
+  val as_union : t -> atom list
 
-    (** [approx t] over-approximates [t] as a non-empty atom.
-    Raises: [EmptyAtom] if [t] is empty. *)
-    val approx : t -> atom
+  (** [of_union atoms] returns the record component composed of the union [atoms]. *)
+  val of_union : atom list -> t
 
-    (** [proj l t] returns the (possibly absent) type resulting
-    from the projection on the label [l] of [t]. *)
-    val proj : Label.t -> t -> Ty.O.t
+  (** [approx t] over-approximates [t] as a non-empty atom.
+      {%html: <style>ul.at-tags > li > p { display: inline }</style>%}
+      @raise EmptyAtom if [t] is empty. *)
+  val approx : t -> atom
 
-    (** [merge t1 t2] returns the atom resulting from the merging of
-    [t1] and [t2] (non-absent fields in [t2] override those in [t1]). *)
-    val merge : atom -> atom -> t
+  (** [proj l t] returns the (possibly absent) type resulting
+      from the projection on the label [l] of [t]. 
+  *)
+  val proj : Label.t -> t -> Ty.O.t
 
-    (** [remove t l] returns the atom obtained by making the field [l]
-    absent in [t]. *)
-    val remove : atom -> Label.t -> t
+  (** [merge t1 t2] returns the atom resulting from the merging of
+      [t1] and [t2] (non-absent fields in [t2] override those in [t1]). *)
+  val merge : atom -> atom -> t
+
+  (** [remove t l] returns the atom obtained by making the field [l]
+      absent in [t]. *)
+  val remove : atom -> Label.t -> t
 end

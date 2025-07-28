@@ -1,9 +1,25 @@
+(** {1 Operations on types }*)
+
+module Subst = Subst
+
+module Op = Op
+
+module Transform = Transform
+
+module Tallying = Tallying
+
+(** {1 Pretty-printing of types} *)
+
 module Prec = Prec
 module Printer = Printer
-module Tallying = Tallying
-module Subst = Subst
-module Op = Op
-module Transform = Transform
+
+(** {1 Extensions } 
+
+This modules provides several common data-types, encoded as tagged type with a
+particular tag.
+*)
+
+
 module Extensions = struct
   module Lists = Lists
   module Strings = Strings

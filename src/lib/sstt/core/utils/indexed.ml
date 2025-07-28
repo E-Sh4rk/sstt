@@ -5,13 +5,13 @@ module type Tag = sig
   include Comparable
 end
 
-module type TaggedComp = sig
+module type IdxComp = sig
   type t
   type node
-  module Tag : Tag
-  val any : Tag.t -> t
-  val empty : Tag.t -> t
-  val tag : t -> Tag.t
+  module Index : Comparable
+  val any : Index.t -> t
+  val empty : Index.t -> t
+  val index : t -> Index.t
   val cap : t -> t -> t
   val cup : t -> t -> t
   val diff : t -> t -> t
@@ -23,7 +23,7 @@ module type TaggedComp = sig
   include Comparable with type t := t
 end
 
-module Make(C : TaggedComp) = struct
+module Make(C : IdxComp) = struct
 
   type t = { map : C.t list; others : bool }
   (* When others is [true], missing tags are mapped to Any
@@ -34,7 +34,7 @@ module Make(C : TaggedComp) = struct
     { map = [a] ; others = false }
 
   let of_comp_list =
-    List.sort_uniq (fun a b -> C.(Tag.compare (tag a) (tag b)))
+    List.sort_uniq (fun a b -> C.(Index.compare (index a) (index b)))
 
   let of_components (ts, others) =
     let map = of_comp_list ts in
@@ -66,9 +66,9 @@ module Make(C : TaggedComp) = struct
       | [], _ -> empty1 l2
       | _, [] -> empty2 l1
       | a1 :: ll1, a2 :: ll2 ->
-        let e1 = C.tag a1 in
-        let e2 = C.tag a2 in
-        let c = C.Tag.compare e1 e2 in
+        let e1 = C.index a1 in
+        let e2 = C.index a2 in
+        let c = C.Index.compare e1 e2 in
         if c < 0 then (missing2 a1) @? loop ll1 l2
         else if c > 0 then (missing1 a2) @? loop l1 ll2
         else (comb12 a1 a2)::loop ll1 ll2
@@ -132,7 +132,7 @@ module Make(C : TaggedComp) = struct
     match l with
       [] -> None
     | a :: ll -> 
-      let c = C.Tag.compare (C.tag a) tag in
+      let c = C.Index.compare (C.index a) tag in
       if c < 0 then find_tag tag ll
       else if c > 0 then None
       else Some a

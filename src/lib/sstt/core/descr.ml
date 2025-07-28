@@ -2,28 +2,28 @@ open Sigs
 open Sstt_utils
 
 module Make(N:Node) = struct
-  module Arrows = Arrows.Make(N)
-  module Enums = Enums
   module Intervals = Intervals
+  module Enums = Enums
+  module Arrows = Arrows.Make(N)
   module Records = Records.Make(N)
-  module Tags = Tags.Make(N)
   module Tuples = Tuples.Make(N)
+  module Tags = Tags.Make(N)
 
   type component =
+    | Intervals of Intervals.t
     | Enums of Enums.t
     | Arrows of Arrows.t
-    | Intervals of Intervals.t
     | Records of Records.t
-    | Tags of Tags.t
     | Tuples of Tuples.t
+    | Tags of Tags.t
 
   type t = {
+    intervals : Intervals.t;
     enums : Enums.t ;
-    tags : Tags.t ;
-    tuples : Tuples.t ;
     arrows : Arrows.t ;
     records : Records.t ;
-    intervals : Intervals.t
+    tuples : Tuples.t ;
+    tags : Tags.t ;
   }
   type node = N.t
 

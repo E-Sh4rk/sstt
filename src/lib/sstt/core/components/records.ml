@@ -47,7 +47,7 @@ module Atom(N:Node) = struct
   module OTy = OTy(N)
 
   type node = N.t
-  type nonrec oty = node oty
+  type nonrec oty = node * bool
   type t = { bindings : oty LabelMap.t ; opened : bool }
   let map_nodes f t =
     { t with bindings = LabelMap.map (OTy.map_nodes f) t.bindings }
@@ -86,7 +86,7 @@ module Atom'(N:Node) = struct
   module OTy = OTy(N)
 
   type node = N.t
-  type nonrec oty = node oty
+  type nonrec oty = node * bool
   type t = { bindings : oty LabelMap.t ; opened : bool ; required : LabelSet.t option }
   let dom t = LabelMap.bindings t.bindings |> List.map fst |> LabelSet.of_list
   let find lbl t =
@@ -248,8 +248,8 @@ module Make(N:Node) = struct
       let res = { bindings ; opened ; required } in
       if is_empty res then None else Some (simplify res)
   end
-  module Dnf' = Dnf.Make'(DnfAtom)(DnfAtom')(N)
-  module Dnf = Dnf.Make(DnfAtom)(N)
+  module Dnf' = DNF.Make'(DnfAtom)(DnfAtom')(N)
+  module Dnf = DNF.Make(DnfAtom)(N)
 
   let dnf t = Bdd.dnf t |> Dnf.mk
   let dnf' t = dnf t |> Dnf'.from_dnf

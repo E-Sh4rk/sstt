@@ -18,7 +18,7 @@ end
 module MakeC(N:Node) = struct
   module Atom = Atom(N)
   module Bdd = Bdd.Make(Atom)(Bdd.BoolLeaf)
-  module Tag = Int
+  module Index = Int
 
   type t = int * Bdd.t
   type node = N.t
@@ -28,17 +28,17 @@ module MakeC(N:Node) = struct
 
   let mk a = Atom.tag a, Bdd.singleton a
 
-  let tag (tag,_) = tag
-  let len = tag
+  let index (tag,_) = tag
+  let len = index
 
-  let check_tag tag tag' =
-    if Tag.equal tag tag' |> not then
+  let check_length len len' =
+    if Index.equal len len' |> not then
       raise (Invalid_argument "Heterogeneous tuple lengths.")
 
-  let cap (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.cap t1 t2
-  let cup (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.cup t1 t2
-  let neg (tag, t) = tag, Bdd.neg t
-  let diff (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.diff t1 t2
+  let cap (len1, t1) (len2, t2) = check_length len1 len2 ; len1, Bdd.cap t1 t2
+  let cup (len1, t1) (len2, t2) = check_length len1 len2 ; len1, Bdd.cup t1 t2
+  let neg (len, t) = len, Bdd.neg t
+  let diff (len1, t1) (len2, t2) = check_length len1 len2 ; len1, Bdd.diff t1 t2
 
   let conj n ps =
     let init = fun () -> List.init n (fun _ -> N.any) in
@@ -106,15 +106,15 @@ module MakeC(N:Node) = struct
       let res = List.map2 N.cap ns1 ns2 in
       if Atom.is_empty res then None else Some res
   end
-  module Dnf' = Dnf.Make'(DnfAtom)(DnfAtom')(N)
-  module Dnf = Dnf.Make(DnfAtom)(N)
+  module Dnf' = DNF.Make'(DnfAtom)(DnfAtom')(N)
+  module Dnf = DNF.Make(DnfAtom)(N)
 
   let dnf (_,t) = Bdd.dnf t |> Dnf.mk
   let dnf' (n,t) = dnf (n,t) |> Dnf'.from_dnf (List.init n (fun _ -> N.any))
   let of_dnf tag dnf =
     dnf |> List.iter (fun (ps,ns,_) ->
-        ps |> List.iter (fun a -> check_tag tag (Atom.tag a)) ;
-        ns |> List.iter (fun a -> check_tag tag (Atom.tag a))
+        ps |> List.iter (fun a -> check_length tag (Atom.tag a)) ;
+        ns |> List.iter (fun a -> check_length tag (Atom.tag a))
       ) ;
     tag, Dnf.mk dnf |> Bdd.of_dnf
   let of_dnf' tag dnf' = of_dnf tag (Dnf'.to_dnf dnf')
@@ -129,9 +129,8 @@ module MakeC(N:Node) = struct
 end
 
 module Make(N:Node) = struct
-  module TupleComp = MakeC(N)
-  include Tagged.Make (TupleComp)
-
+  module Comp = MakeC(N)
+  include Indexed.Make (Comp)
   let mk_comp p = mk p
-  let mk a = mk (TupleComp.mk a)
+  let mk a = mk (Comp.mk a)
 end

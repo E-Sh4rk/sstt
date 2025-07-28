@@ -1,0 +1,136 @@
+{0 sstt index}
+
+{1 The {{!module-Sstt}sstt} library }
+
+The Simple Set-Theoretic Types library implements set-theoretic
+types and all related operations (set-theoretic operations, subtyping,
+type-substitution, tallying). The entry point of this library is the module 
+{!module-Sstt}.
+
+
+{1 Examples}
+
+{2 Building types}
+
+To build types, one needs to first build descriptors:
+{@ocaml[
+# open Sstt
+# #install_printer Printer.print_ty' ;;
+
+# let int = Descr.mk_intervals Intervals.any |> Ty.mk_descr ;;
+val int : Ty.t = int
+# let true_ = Descr.mk_enum (Enums.Atom.mk "true") |> Ty.mk_descr ;;
+val true_ : Ty.t = true
+# let false_ = Descr.mk_enum (Enums.Atom.mk "false") |> Ty.mk_descr ;;
+val false_ : Ty.t = false
+# let bool = Ty.cup true_ false_ ;;
+val bool : Ty.t = true | false
+# let int_x_bool = Descr.mk_tuple [ int; bool ] |> Ty.mk_descr ;;
+val int_x_bool : Ty.t = int, true | false
+]}
+Polymorphic types are just types built around variables. For instance, to build the type {m \alpha \rightarrow \beta}:
+{@ocaml[
+
+# let alpha = Ty.mk_var (Var.mk "'a") ;;
+val alpha : Ty.t = 'a
+# let beta = Ty.mk_var (Var.mk "'b") ;;
+val beta : Ty.t = 'b
+
+# let fun_a_b = Descr.mk_arrow (alpha, beta) |> Ty.mk_descr ;;
+val fun_a_b : Ty.t = 'a -> 'b
+]}
+
+Recursive types are built using systems of equations:
+
+{@ocaml[
+# #install_printer Var.pp ;;
+
+# let vx = Var.mk "'x" ;;
+val vx : VarSet.elt = 'x
+# let tx = Ty.mk_var vx ;;
+val tx : Ty.t = 'x
+# let vy = Var.mk "'y" ;;
+val vy : VarSet.elt = 'y
+# let ty = Ty.mk_var vy ;;
+val ty : Ty.t = 'y
+# let nil = Descr.mk_enum (Enums.Atom.mk "nil") |> Ty.mk_descr ;;
+val nil : Ty.t = nil
+# let int = Descr.mk_intervals Intervals.any |> Ty.mk_descr ;;
+val int : Ty.t = int
+# let int_x_ty = Descr.mk_tuple [ int; ty ] |> Ty.mk_descr ;;
+val int_x_ty : Ty.t = int, 'y
+# let bool_x_tx = Descr.mk_tuple [ bool; tx ] |> Ty.mk_descr ;;
+val bool_x_tx : Ty.t = true | false, 'x
+# let bool_x_tx_nil = Ty.cup nil bool_x_tx ;;
+val bool_x_tx_nil : Ty.t = nil | (true | false, 'x)
+]}
+We can now build and solve the system of equations:
+{math 
+\begin{array}{ccl}
+    X & = & (\texttt{int}\times Y)\\
+    Y & = & (\texttt{bool}\times X) \cup \texttt{nil}
+\end{array}
+}
+{@ocaml[
+# let solved = Ty.of_eqs [ (vx, int_x_ty);  (vy, bool_x_tx_nil) ] ;;
+val solved : (VarSet.elt * Ty.t) list =
+  [('x, x1 where x1 = int, nil | (true | false, x1));
+   ('y, x1 where x1 = nil | (true | false, (int, x1)))]
+
+# let int_bool_list = solved |> VarMap.of_list |> VarMap.find vx ;;
+val int_bool_list : Ty.t = x1 where x1 = int, nil | (true | false, x1)
+]}
+The type [int_bool_list] is now the recursive type encoding non empty lists (as nested pairs)
+of even length with integers at even positions and booleans at odd positions.
+
+{2 High level operations}
+
+{3 Subtyping and tallying}
+
+The subtyping test is [Ty.leq]. Continuing or example with lists:
+{@ocaml[
+# let mk_list ty =
+    let v = Var.mk "" in (* a fresh variable *)
+    let tv = Ty.mk_var v in
+    let ty_x_v = Descr.mk_tuple [ty; tv] |> Ty.mk_descr in
+    let ty_x_v_nil = Ty.cup nil ty_x_v in
+    [v, ty_x_v_nil ]
+    |> Ty.of_eqs |> List.hd |> snd ;;
+val mk_list : Ty.t -> Ty.t = <fun>
+
+# let any_list = mk_list Ty.any ;;
+val any_list : Ty.t = x1 where x1 = nil | (any, x1)
+]}
+We can now test for subtyping:
+{@ocaml[
+# Ty.leq int_bool_list any_list ;;
+- : bool = true
+]}
+
+As for tallying, one first needs to build a tallying instance (a set of constraint to be solved together):
+{@ocaml[
+# #install_printer Printer.print_subst' ;;
+# let alpha_list = mk_list Ty.(mk_var (Var.mk "'a")) ;;
+val alpha_list : Ty.t = x1 where x1 = nil | ('a, x1)
+
+# let int_list = mk_list int ;;
+val int_list : Ty.t = x1 where x1 = nil | (int, x1)
+
+# let t42_list = mk_list (Intervals.Atom.mk_singl (Z.of_int 42) |> Descr.mk_interval |> Ty.mk_descr)
+val t42_list : Ty.t = x1 where x1 = nil | (42, x1)
+
+# let constrs = [ (t42_list, alpha_list); (alpha_list, int_list) ] ;;
+val constrs : (Ty.t * Ty.t) list =
+  [(x1 where x1 = nil | (42, x1), x1 where x1 = nil | ('a, x1));
+   (x1 where x1 = nil | ('a, x1), x1 where x1 = nil | (int, x1))]
+
+# Tallying.tally VarSet.empty constrs ;;
+- : Subst.t list = [[
+                      'a: 42 | 'a & int
+                    ]]
+]} 
+
+Here, we solve the set of problems asking that a list of {m \alpha} must be
+larger than a list of (singleton type) [42] and must be smaller than a list of
+integers. It yields the unique solution 
+{m \alpha\mapsto \texttt{42}\cup\alpha\cap\texttt{int}}.

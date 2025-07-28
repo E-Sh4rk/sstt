@@ -1,27 +1,26 @@
+
 open Base
 
 module type Comparable = sig
   type t
   val compare : t -> t -> int
+  (** Comparison working on the internal representation of {!t}. *)
+
   val equal : t -> t -> bool
+  (** Equality, [equal a b] is equivalent to [compare a b = 0]. *)
 end
 
 module type TyBase = sig
   type t
+
   type node
+  (** An alias for {!Sstt.Ty.t}. *)
 
   val any : t
+  (** The top element of {!t} (the set of all values of type {!t}). *)
+
   val empty : t
-
-  include Comparable with type t := t
-end
-
-module type TyBaseRef = sig
-  type t
-  type node
-
-  val any : unit -> t
-  val empty : unit -> t
+  (** The bottom element of {!t} (the empty set of values of type {!t}). *)
 
   include Comparable with type t := t
 end
@@ -29,16 +28,16 @@ end
 module type SetTheoretic = sig
   type t
   val cap : t -> t -> t
-  (** [cap t1 t2] is the intersection {m t1 ∧ t2}. *)
+  (** The intersection of two types, {m t_1 \cap t_2}. *)
 
   val cup : t -> t -> t
-  (** [cup t1 t2] is the union {m t1 ∧ t2}. *)
+  (** The union of two types, {m t_1 \cup t_2}. *)
 
   val diff : t -> t -> t
-  (** [diff t1 t2] is the difference {m t1 \ t2}. *)
+  (** The difference of two types, {m t_1 \setminus t_2}. *)
 
   val neg : t -> t
-  (** [neg t] is the negation of [t], {m ¬t}.*)
+  (** The negation of a type, {m \lnot t}.*)
 
   val conj : t list -> t
   (** [conj l] is the intersection of all the types in [l]. It returns [any] if
@@ -51,26 +50,28 @@ module type SetTheoretic = sig
   *)
 
   val is_empty : t -> bool
-  (** [is_empty t] returns [true] if and only if [t] is semantically equivalent
+  (** Emptyness test. [is_empty t] returns [true] if and only if [t] is semantically equivalent
       to [empty]. *)
 
   val is_any : t -> bool
-  (** [is_any t] returns [true] if and only if [t] is semantically equivalent
+  (** Fullness test. [is_any t] returns [true] if and only if [t] is semantically equivalent
       to [any]. *)
 
   val leq : t -> t -> bool
-  (** [leq t1 t2] returns [true] if and only if [t1] is a subtype of [t2]. *)
+  (** Subtyping test. [leq t1 t2] returns [true] if and only if [t1] is a subtype of [t2]. *)
 
   val equiv : t -> t -> bool
-  (** [equiv t1 t2] returns [true] if and only if [leq t1 t2] and [leq t2 t1]. *)
+  (** Type equivalence test. [equiv t1 t2] returns [true] if and only if [leq t1 t2] and [leq t2 t1]. *)
 
   val disjoint : t -> t -> bool
-  (** [disjoint t1 t2] returns true if and only if [cap t1 t2] is empty. *)
+  (** Disjointedness test. [disjoint t1 t2] returns true if and only if [cap t1 t2] is empty. *)
 end
 
 (* DNF *)
 
 module type Dnf = sig
+  (** An explicit DNF of atoms. *)
+
   type atom
   type leaf
 
@@ -86,6 +87,8 @@ module type Dnf = sig
 end
 
 module type Dnf' = sig
+  (** An condensed explicit DNF of atoms. *)
+
   type atom
   type leaf
 
@@ -94,160 +97,458 @@ module type Dnf' = sig
       If set to false, the corresponding atom will be ignored. *)
   type t = (atom * leaf) list
 
-  (** [simplify t] removes from [t] useless summands.
+  (** [simplify t] useless summands removes from [t].
       In particular, [simplify t] is ensured not to contain any [empty] summand. *)
   val simplify : t -> t
+end
+
+module type ComponentBase = sig
+
+  (** {1 Basics}*)
+
+  (** The minimal signature of a component. *)
+
+  module type Atom
+  module Atom : Atom
+  (* The abstract module representing atoms, which is refined in explicit signatures. *)
+
+  include TyBase
+end
+
+module type BasicComponentOps = sig
+
+  (** {1 Operations on basic components} *)
+
+  type t
+  type atom
+  type repr
+  val mk : atom -> t
+  (** Creates a component from an atom. *)
+
+  val construct : repr -> t
+  (** Builds a component from its explicit representation. *)
+
+  val destruct : t -> repr
+  (** Returns the explicit representation of component. *)
+end
+
+module type ConstrComponentOps = sig
+
+  (** {1 Explicit DNF, construction and extraction}*)
+
+  type t
+  type node
+  type atom
+  module Dnf : Dnf with type atom = atom and type leaf = bool
+
+  val dnf : t -> Dnf.t
+  (** [dnf t] returns a disjunctive normal form of [t]. *)
+
+  val of_dnf : Dnf.t -> t
+  (** [dnf d] builds a component from a disjunctive normal form [d]. *)
+
+  val mk : atom -> t
+  (** Creates a component from an atom. *)
+
+  val map_nodes : (node -> node) -> t -> t
+  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
+end
+
+module type OptComponent = sig
+
+  (** {1 Condensed DNF}*)
+
+  type t
+  type node
+  module type Atom'
+  module Atom' : Atom'
+  (** The abstract module representing condensed atoms. *)
+
+end
+
+module type OptComponentOps = sig
+  (** Operations on condensed components. *)
+
+  type t
+  type node
+  type atom'
+  module Dnf' : Dnf' with type atom = atom' and type leaf = bool
+  (** Explicit DNF over condensed atoms. *)
+
+  val dnf' : t -> Dnf'.t
+  (** [dnf t] returns the condensed DNF of [t]. *)
+
+  val of_dnf' : Dnf'.t -> t
+  (** [of_dnf' d] builds a component from an condensed DNF [d]. *)
+end
+
+module type IndexedComponentOps = sig
+
+  (** {1 Operations for indexed components}*)
+
+  (** Operations on components that are indexed by a type, such as tuples
+      (indexed by integers) or tagged types (indexed by a symbolic tag). *)
+
+  type t
+  type index
+  (** The type of indices. *)
+
+  type dnf
+  (** The type of the explicity DNF. *)
+
+  val any : index -> t
+  (** The top element for the given index. *)
+
+  val empty : index -> t
+  (** The bottom element for the given index. *)
+
+  val of_dnf : index -> dnf -> t
+  (** [of_dnf idx d] builds a component for the given index and DNF. *)
+end
+
+module type OptIndexedComponentOps = sig
+
+  (** Operations on optimzed indexed components *)
+
+  type t
+  type index
+  (** The type of indices. *)
+
+  type dnf'
+  (** The type of optimzed DNF. *)
+
+  val of_dnf' : index -> dnf' -> t
+  (** [of_dnf' idx d] builds a component for the given index and optimized DNF. *)
+
+end
+
+module type ComponentFamily = sig
+  (** {1 Basics }*)
+
+  (** A compononet {i family } is a set of components indexed by a values. For
+      instances, tuples constitute a family of components indexed by their size.
+      For instance, 3-tuples and 4-tuples behave similarly, but are distinct
+      components that cannot be mixed (their intersection is empty).
+  *)
+
+
+  include TyBase
+  module type Comp
+  module Comp : Comp
+end
+
+module type ComponentFamilyOps = sig
+
+  (** {1 Indexed component and misc. operations}*)
+
+  type t
+  (** The type {!t} represents the a disjoint union of components of the family.
+      For instance, in the case of tuples, it can represent a set
+      of all 2-tuples and 3-tuples (but nothing else), or the set
+      of all tuples that are not 4-tuples.
+  *)
+
+  type node
+  type atom
+  type comp
+  type index
+  val mk : atom -> t
+  val mk_comp : comp -> t
+
+  val components : t -> comp list * bool
+  (** [components t] returns a pair [(cs,b)] where [cs] are the tuple components
+       explicitely present in [t], and [b] is a boolean indicating whether components
+       of other cardinalities are [any] (if [b] is [true]) or [empty] (if [b] is [false]). *)
+
+  val of_components : comp list * bool -> t
+
+  val get : index -> t -> comp
+  (** [get n t] returns the tuple component of cardinality [n] in [t]. *)
+
+
+  (** [map f t] replaces every tuple component [p] in [t] by [f p]. *)
+  val map : (comp -> comp) -> t -> t
+
+  val construct : bool * comp list -> t
+
+  (** [destruct t] returns a pair [(b,cs)] such that:
+      if [b] is true, then [t] contains exactly the tuple components [cs],
+      and if [b] is false, then the negation of [t] contains exactly
+      the tuple components [cs]. *)
+  val destruct : t -> bool * comp list
+
+  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
+  val map_nodes : (node -> node) -> t -> t
 end
 
 (* Enums *)
 
 module type EnumAtom = Id.NamedIdentifier
 
-module type Enums = sig
-  include TyBase
-  module Atom : EnumAtom
-  val mk : Atom.t -> t
+module type Enums =
+sig
 
-  val construct : bool * Atom.t list -> t
+  type t
+  (** Enums represents sets of symbolic constants. These sets can be either finite or cofinite. *)
 
-  (** [destruct t] returns a pair [(b,enums)] such that:
-      if [b] is true, then [t] contains exactly the enums [enums],
-      and if [b] is false, then [t] contains exactly the enums not in [enums]. *)
-  val destruct : t -> bool * Atom.t list
+  type node
+
+
+  include ComponentBase
+    with type t := t
+     and type node := node
+     and module type Atom := EnumAtom
+  (** @inline
+      Symbolic constants are implemented by {!Sstt.NamedIdentifier}.
+  *)
+
+  include BasicComponentOps
+    with type t:= t
+     and type atom := Atom.t
+     and type repr := bool * Atom.t list
+     (**
+        @inline
+
+        The explicit representation of an {!Enums.t} is a pair of a
+        boolean, and a list of {{!Atom.t} constants}. If the boolean is [true],
+        the set if finite and contains all the elements in the list. If the
+        boolean is [false], the set is co-finite and contains all the elements
+        not in the list.
+     *)
+
 end
+
 
 (* Intervals *)
 
 module type IntervalAtom = sig
-  (** [t] represents a non-empty integer interval. *)
+  (** Possibly unbounded integer interval. *)
+
   type t
+  (** [t] represents a non-empty integer interval. The interval can be unbounded
+      to the left and to the right. Bounds are arbitrary-precision integers
+      provided by the {{!Z}zarith} library.
+  *)
 
-  (** [mk b1 b2] creates an interval from bound [b1]
-      (inclusive, -infinity if [None]) to bound [b2]
-      (inclusive, +infinity if [None]).
-      Raises: [Invalid_argument] if the interval is empty. *)
   val mk : Z.t option -> Z.t option -> t
+  (** [mk b1 b2] creates an interval from bound [b1]
+      (inclusive, {m -\infty } if [None]) to bound [b2]
+      (inclusive, {m +\infty } if [None]).
+      {%html: <style>ul.at-tags > li > p { display: inline }</style>%}
+      @raise Invalid_argument if the interval is empty. *)
 
+  val mk_bounded : Z.t -> Z.t -> t
   (** [mk_bounded i1 i2] creates an interval from bound [i1]
       (inclusive) to bound [i2] (inclusive).
-      Raises: [Invalid_argument] if the interval is empty. *)
-  val mk_bounded : Z.t -> Z.t -> t
+      {%html: <style>ul.at-tags > li > p { display: inline }</style>%}
+      @raise Invalid_argument if the interval is empty. *)
 
-  (** [mk_singl i] creates an interval containing exactly [i]. *)
   val mk_singl : Z.t -> t
+  (** [mk_singl i] creates an interval containing exactly [i]. *)
 
-  (** [get t] returns the boundaries (inclusive) of the interval [t]. *)
   val get : t -> Z.t option * Z.t option
+  (** [get t] returns the boundaries (inclusive) of the interval [t]. *)
 
   include Comparable with type t := t
+  (**/**)
+
+  (** {@ocaml[
+      # open Sstt.Intervals.Atom
+      # #install_printer pp;;
+      ]}*)
+  (**/**)
   val pp : Format.formatter -> t -> unit
+  (** Prints the interval to the given formatter. An interval is printed as [(b1..b2)] where
+      [bi] is the bound if it is finite, and the empty string if it is infinite.
+  *)
 end
 
 module type Intervals = sig
-  include TyBase
-  module Atom : IntervalAtom
-  val mk : Atom.t -> t
-  val construct : Atom.t list -> t
-  val destruct : t -> Atom.t list
 
-  (** [destruct_neg t] destructs the negation of [t].
+  type t
+  (** The type of integers, that is a set of disjoint intervals, possibly unbounded intervals.
+      An atom is a possibly unbounded, non-empty interval of integers. *)
+
+  type node
+  include ComponentBase with type t := t
+                         and type node := node
+                         and module type Atom := IntervalAtom
+  (** @inline *)
+
+  include BasicComponentOps with type t := t
+                             and type atom := Atom.t
+                             and type repr := Atom.t list
+  (** @inline
+
+      The explicit representation of an {!Intervals.t} is a list of {!Atom.t}. *)
+
+  val destruct_neg : t -> Atom.t list
+  (** [destruct_neg t] returns the explicit representation of the negation of [t].
       The negation of [t] is sometimes simpler than [t] itself,
       which may justify working on this negative form
-      (for instance when pretty-printing). *)
-  val destruct_neg : t -> Atom.t list
+      (for instance when pretty-printing).
+  *)
+
 end
 
 (* Arrows *)
 
 module type ArrowAtom = sig
   type node
+  (** An alias for the type {!Sstt.Ty.t}. *)
+
   type t = node * node
+  (** Function atoms represents a single function type, given by its domain and co-domain. *)
+
   include Comparable with type t := t
+
   val map_nodes : (node -> node) -> t -> t
+  (** [map_nodes f a] is [(f (fst a), f (snd a))]. *)
+
 end
 
 module type Arrows = sig
-  include TyBase
-  module Atom : ArrowAtom with type node := node
-  module Dnf : Dnf with type atom = Atom.t and type leaf = bool
-  val mk : Atom.t -> t
 
-  (** [dnf t] returns a disjunctive normal form of [t]. *)
-  val dnf : t -> Dnf.t
+  type t
+  (** A function type is union of intersection of positive and negative arrows:
+      {math
+      \bigcup_{i=1\ldots m} \bigcap_{j=1 \ldots p} t_{ij}^1 \rightarrow t_{ij}^2 \cap \bigcap_{j=1 \ldots n} \lnot(t_{ij}^1 \rightarrow t_{ij}^2)
+      }
+  *)
 
-  val of_dnf : Dnf.t -> t
+  type node
 
-  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
-  val map_nodes : (node -> node) -> t -> t
+  include ComponentBase with type t := t
+                         and type node := node
+                         and module type Atom := (ArrowAtom with type node := node)
+  (** @inline
+      {!Atom}s are single arrows denote by its domain and codomain.
+  *)
+
+  include ConstrComponentOps with type t := t
+                              and type node := node
+                              and type atom := Atom.t
+                              (** @inline *)
 end
 
 (* Records *)
 
-type 'node oty = 'node * bool
-
 module type RecordAtom = sig
   type node
-  type nonrec oty = node oty
+  (** An alias for the type {!Sstt.Ty.t}. *)
 
-  type t = { bindings : oty LabelMap.t ; opened : bool }
+  type oty = node * bool
+  (** An optional type (see {!Sstt.Ty.O}). *)
 
+  type t = { bindings : oty LabelMap.t;(** mapping from labels to optional types *)
+             opened : bool (** if [true], denotes an open record *)
+           }
+  (** A single record type.  *)
+
+  val dom : t -> LabelSet.t
   (** [dom t] returns the set of explicit labels in [t].
       Note that this does not mean that labels in [dom t] are present in
       the record values captured by [t]: even if a binding is present
       in [t], it could be associated with a possibly absent type. *)
-  val dom : t -> LabelSet.t
 
+  val find : Label.t -> t -> oty
   (** [find l t] returns the type associated with the label [l] in [t],
       even if [t] does not have an explicit binding for [l]. *)
-  val find : Label.t -> t -> oty
 
   val to_tuple : Label.t list -> t -> oty list
+  (** [to_tuple lst r] returns the list of {!oty} associated with each
+      label of [lst] in [r]. Each type is computed using {!find}. *)
+
   val to_tuple_with_default : Label.t list -> t -> oty list
+  (** [to_tuple_with_default lst r] returns the list [d :: to_tuple lst r] where
+      - [d] is {!Sstt.Ty.O.any} if [r] is an open record
+      - [d] is {!Sstt.Ty.O.absent} if [r] is a closed record
+  *)
+
   include Comparable with type t := t
   val map_nodes : (node -> node) -> t -> t
+  (** [map_nodes f r] applies [f] to all nodes in [r.bindings]. *)
+
 end
 
 module type RecordAtom' = sig
   type node
-  type nonrec oty = node oty
+  type oty = node * bool
 
-  (** When the field [required] is equal to [Some labels],
-      it means that [t] requires at least one field not in [labels] to be present. *)
   type t = { bindings : oty LabelMap.t ; opened : bool ; required : LabelSet.t option }
+  (** A compact representation for record types.
+      The [bindings] and [opened] field have the same meaning as in {!Records.Atom.t}.
+      When the field [required] is equal to [Some labels],
+      it means that [t] requires at least one field not in [labels] to be present. *)
 
+
+  val dom : t -> LabelSet.t
   (** [dom t] returns the set of explicit labels in [t].
       Note that this does not mean that labels in [dom t] are present in
       the record values captured by [t]: even if a binding is present
       in [t], it could be associated with a possibly absent type. *)
-  val dom : t -> LabelSet.t
 
+  val find : Label.t -> t -> oty
   (** [find l t] returns the type associated with the label [l] in [t],
       even if [t] does not have an explicit binding for [l]. *)
-  val find : Label.t -> t -> oty
 
   include Comparable with type t := t
 end
 
 module type Records = sig
-  include TyBase
-  module Atom : RecordAtom with type node := node
-  module Atom' : RecordAtom' with type node := node
-  module Dnf : Dnf with type atom = Atom.t and type leaf = bool
-  module Dnf' : Dnf' with type atom = Atom'.t and type leaf = bool
-  val mk : Atom.t -> t
 
-  (** [dnf t] returns a disjunctive normal form of [t]. *)
-  val dnf : t -> Dnf.t
+  type t
+  (** Record types is a union of intersection of positive and negative records:
+      {math
+        \bigcup_{i=1\ldots m} \bigcap_{j=1 \ldots p} \texttt{\{}l_{j}{^1}:o_{j}^1,\ldots,l_{j}^k:o_{j}^{k} ~~ b_j\texttt{\}} \cap
+        \bigcap_{j=1 \ldots n} \lnot(\{l_{j}{^1}:o_{j}^1,\ldots,l_{j}^l:o_{j}^{l} ~~ b_j\})
+      }
+      with {m b_j \in \{\texttt{..},~ \epsilon\}}.
 
-  (** [dnf' t] returns a condensed disjunctive form of [t]
-      where each clause is a positive literal. *)
-  val dnf' : t -> Dnf'.t
+  *)
 
-  val of_dnf : Dnf.t -> t
-  val of_dnf' : Dnf'.t -> t
+  type node
 
-  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
-  val map_nodes : (node -> node) -> t -> t
+  (** @inline*)
+  include ComponentBase with type t := t
+                         and type node := node
+                         and module type Atom := (RecordAtom with type node := node)
+
+
+  (** @inline*)
+  include ConstrComponentOps with type t := t
+                              and type node := node
+                              and type atom := Atom.t
+
+
+  (** @inline
+
+      Records have a condensed representation where each record atom requires the existence
+      of extra labels.
+      For instance, given the (closed) record
+      {math
+      \texttt{\{} x:t, y:s \texttt{\}}
+      }
+      its negation can be written as a union of positive condensed atoms:
+      {math
+      \texttt{\{} x:\lnot t, \texttt{.. \}}\cup
+      \texttt{\{} y:\lnot s, \texttt{.. \}}\cup
+      \texttt{\{} x:t, y:s, \overline{\{x, y\}}~\texttt{.. \}}
+      }
+      meaning any record which has label {m x} associated to a type that is not {m t}, or
+      any record which has label {m y} associated to a type that is not {m s}, or
+      any record which has both labels associated to their original type but which {i also has an
+      extra label} that is neither {m x} nor {m y}.
+  *)
+  include OptComponent with type t := t
+                        and type node := node
+                        and module type Atom' := (RecordAtom' with type node := node)
+
+  (** @inline*)
+  include OptComponentOps with type t := t
+                           and type node := node
+                           and type atom' := Atom'.t
+
 end
 
 (* Tuples *)
@@ -260,173 +561,293 @@ module type TupleAtom = sig
 end
 
 module type TupleComp = sig
-  include TyBase
-  module Atom : TupleAtom with type node := node
-  module Dnf : Dnf with type atom = Atom.t and type leaf = bool
-  module Dnf' : Dnf' with type atom = Atom.t and type leaf = bool
-  val any : int -> t
-  val empty : int -> t
-  val mk : Atom.t -> t
+  (** Component for a tuple of a particular fixed arity. *)
 
-  (** [len t] returns the cardinality of tuples in [t]. *)
+  type t
+  (** The component of n-tuples is a union of intersections of positive and negative n-tuples. *)
+
+  type node
+
+  (** @inline
+
+      An atom for a tuple of arity [n] si simply an (orederd) list of [n] nodes.
+  *)
+  include ComponentBase
+    with type t := t
+     and type node := node
+     and module type Atom := (TupleAtom with type node := node)
+
+  (** @inline *)
+  include ConstrComponentOps with type t := t
+                              and type node := node
+                              and type atom := Atom.t
+
+  (** @inline *)
+  include IndexedComponentOps with type t := t
+                               and type dnf := Dnf.t
+                               and type index := int
+
   val len : t -> int
+  (** [len t] returns the common arity of all tuple types in [t]. *)
 
-  (** [dnf t] returns a disjunctive normal form of [t]. *)
-  val dnf : t -> Dnf.t
+  (** @inline *)
+  include OptComponent with type t := t
+                        and type node := node
+                        and module type Atom' := (TupleAtom with type node := node)
+                        and module Atom' := Atom
 
-  (** [dnf' t] returns a condensed disjunctive form of [t]
-      where each clause is a positive literal. *)
-  val dnf' : t -> Dnf'.t
+  (** @inline
 
-  val of_dnf : int -> Dnf.t -> t
-  val of_dnf' : int -> Dnf'.t -> t
+      Tuples commute with intersection, so a union of intersection of tuples can
+      be compactly represented as a union of products.
 
-  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
-  val map_nodes : (node -> node) -> t -> t
+  *)
+  include OptComponentOps with type t := t
+                           and type node := node
+                           and type atom' := Atom.t
+
+  (** @inline *)
+  include OptIndexedComponentOps with type t := t
+                                  and type index := int
+                                  and type dnf' := Dnf'.t
+
 end
 
 module type Tuples = sig
-  include TyBase
-  module TupleComp : TupleComp with type node := node
-  val mk : TupleComp.Atom.t -> t
-  val mk_comp : TupleComp.t -> t
 
-  (** [components t] returns a pair [(cs,b)] where [cs] are the tuple components
-      explicitely present in [t], and [b] is a boolean indicating whether components
-      of other cardinalities are [any] (if [b] is [true]) or [empty] (if [b] is [false]). *)
-  val components : t -> TupleComp.t list * bool
+  type t
+  (** Tuples are a family of components indexed by an integer (the arity of the tuple).
+      Type {!t} represents sets finite or co-finite sets of tuple components of distinct
+      arities. For instance, it can represent the type of all tuples execpt those
+      of arity 2 and 4.
+  *)
 
-  val of_components : TupleComp.t list * bool -> t
 
-  (** [get n t] returns the tuple component of cardinality [n] in [t]. *)
-  val get : int -> t -> TupleComp.t
+  type node
 
-  (** [map f t] replaces every tuple component [p] in [t] by [f p]. *)
-  val map : (TupleComp.t -> TupleComp.t) -> t -> t
+  (** @inline *)
+  include ComponentFamily with type t := t
+                           and type node := node
+                           and module type Comp := (TupleComp with type node := node)
 
-  val construct : bool * TupleComp.t list -> t
+  (** @inline *)
+  include ComponentFamilyOps with type t := t
+                              and type node := node
+                              and type index := int
+                              and type atom := Comp.Atom.t
+                              and type comp := Comp.t
 
-  (** [destruct t] returns a pair [(b,cs)] such that:
-      if [b] is true, then [t] contains exactly the tuple components [cs],
-      and if [b] is false, then the negation of [t] contains exactly
-      the tuple components [cs]. *)
-  val destruct : t -> bool * TupleComp.t list
-
-  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
-  val map_nodes : (node -> node) -> t -> t
 end
-
 (* Tags *)
 
 module type TagAtom = sig
   type node
+
   module Tag : Id.NamedIdentifier
+
   type t = Tag.t * node
   include Comparable with type t := t
   val map_nodes : (node -> node) -> t -> t
 end
 
 module type TagComp = sig
-  include TyBase
-  module Atom : TagAtom with type node := node
+  (** Component for a type tagged with a particular tag. *)
+
+  type t
+  (** The type of types tagged with a particular fixed tag. *)
+
+  type node
+
+  (**@inline*)
+  include ComponentBase with type t := t
+                         and type node := node
+                         and module type Atom := (TagAtom with type node := node)
+
   module Tag = Atom.Tag
-  module Dnf : Dnf with type atom = Atom.t and type leaf = bool
-  val any : Tag.t -> t
-  val empty : Tag.t -> t
-  val mk : Atom.t -> t
 
-  (** [tag t] returns the tag of the component [t]. *)
+  (**@inline*)
+  include ConstrComponentOps with type t := t
+                              and type node := node
+                              and type atom := Atom.t
+
+  (**@inline*)
+  include IndexedComponentOps with type t := t
+                               and type dnf := Dnf.t
+                               and type index := Tag.t
+
   val tag : t -> Tag.t
+  (** [tag t] returns the common tag of all the tagged-types in this component. *)
 
-  (** [dnf t] returns a disjunctive normal form of [t]. *)
-  val dnf : t -> Dnf.t
-
-  val of_dnf : Tag.t -> Dnf.t -> t
-
-  (** [as_atom t] returns an atom equivalent to [t]. *)
   val as_atom : t -> Atom.t
-
-  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
-  val map_nodes : (node -> node) -> t -> t
+  (** [as_atom t] returns [t] as a pair of its tag and a plain type. *)
 end
 
 module type Tags = sig
-  include TyBase
-  module TagComp : TagComp with type node := node
-  val mk : TagComp.Atom.t -> t
-  val mk_comp : TagComp.t -> t
 
-  (** [components t] returns a pair [(cs,b)] where [cs] are the tag components
-      explicitely present in [t], and [b] is a boolean indicating whether components
-      of other tags are [any] (if [b] is [true]) or [empty] (if [b] is [false]). *)
-  val components : t -> TagComp.t list * bool
+  type t
+  (** This family of component encode tagged types, that is type decoreted with
+      a "tag" (e.g. {m \texttt{foo}(\texttt{int})}, which represent integers tagged with the tag [foo]).
+      These type are only comparable with
+      {%html: <span style='font-size:large'>𝟙</span>%},
+      {%html: <span style='font-size:large'>𝟘</span>%},
+      and tagged type with the same tag. In particular type {m \texttt{foo}(\texttt{int})} is disinct
+      from {m \texttt{bar}(\texttt{int})} or {m \texttt{int}} but is a subtype of
+      {m \texttt{foo}(\texttt{int}\cup\texttt{\{ .. \}})} for instance.
+  *)
 
-  val of_components : TagComp.t list * bool -> t
+  type node
 
-  (** [get tag t] returns the tag component [tag] in [t]. *)
-  val get : TagComp.Tag.t -> t -> TagComp.t
+  (** @inline *)
+  include ComponentFamily with type t := t
+                           and type node := node
+                           and module type Comp := (TagComp with type node := node)
 
-  (** [map f t] replaces every tags component [c] in [t] by [f c]. *)
-  val map : (TagComp.t -> TagComp.t) -> t -> t
+  (** @inline *)
+  include ComponentFamilyOps with type t := t
+                              and type node := node
+                              and type index := Comp.Tag.t
+                              and type atom := Comp.Atom.t
+                              and type comp := Comp.t
 
-  val construct : bool * TagComp.t list -> t
-
-  (** [destruct t] returns a pair [(b,cs)] such that:
-      if [b] is true, then [t] contains exactly the components [cs],
-      and if [b] is false, then the negation of [t] contains exactly
-      the components [cs]. *)
-  val destruct : t -> bool * TagComp.t list
-
-  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
-  val map_nodes : (node -> node) -> t -> t
 end
 
 (* Descr *)
 
 module type Descr = sig
-  include TyBase
+  (** Monomorphic type descriptors. *)
+
+  (** {1 Basics }*)
+
+  type t
+  (** The type of monomorphics descriptors. It represents a disjoint union of components. *)
+
+  include TyBase with type t := t
+
+  (** {1 Components} *)
+
+  module Intervals : Intervals with type node := node
+  (** Integer components. *)
+
+  module Enums : Enums with type node := node
+  (** Enums components. *)
 
   module Arrows : Arrows with type node := node
-  module Enums : Enums with type node := node
-  module Intervals : Intervals with type node := node
-  module Records : Records with type node := node
-  module Tags : Tags with type node := node
-  module Tuples : Tuples with type node := node
+  (** Arrow components. *)
 
+  module Records : Records with type node := node
+  (** Record components. *)
+
+  module Tuples : Tuples with type node := node
+  (** Tuple components. *)
+
+  module Tags : Tags with type node := node
+  (** Tagged types components. *)
+
+  (** {2 Extracting components }*)
+
+  (**/**)
+  (**
+     {@ocaml[
+     open Sstt.VDescr.Descr
+     ]}*)
+  (**/**)
+
+  (** A uniform representation of components, tagged with their kind. It can be usefull if some components
+      have a uniform behaviour. For instance:
+      {@ocaml[
+
+      let map_arrow_records fr fa = function
+      | Arrows a -> Arrows (Arrows.map_nodes fa a)
+      | Records r -> Records (Records.map_nodes fr r)
+      | c -> c
+      ]}
+
+  *)
   type component =
+    | Intervals of Intervals.t
     | Enums of Enums.t
     | Arrows of Arrows.t
-    | Intervals of Intervals.t
     | Records of Records.t
-    | Tags of Tags.t
     | Tuples of Tuples.t
-
-  val mk_enum : Enums.Atom.t -> t
-  val mk_enums : Enums.t -> t
-  val mk_tag : Tags.TagComp.Atom.t -> t
-  val mk_tagcomp : Tags.TagComp.t -> t
-  val mk_tags : Tags.t -> t
-  val mk_tuple : Tuples.TupleComp.Atom.t -> t
-  val mk_tuplecomp : Tuples.TupleComp.t -> t
-  val mk_tuples : Tuples.t -> t
-  val mk_arrow : Arrows.Atom.t -> t
-  val mk_arrows : Arrows.t -> t
-  val mk_record : Records.Atom.t -> t
-  val mk_records : Records.t -> t
-  val mk_interval : Intervals.Atom.t -> t
-  val mk_intervals : Intervals.t -> t
-
-  val get_enums : t -> Enums.t
-  val get_tags : t -> Tags.t
-  val get_tuples : t -> Tuples.t
-  val get_arrows : t -> Arrows.t
-  val get_records : t -> Records.t
-  val get_intervals : t -> Intervals.t
+    | Tags of Tags.t
 
   val components : t -> component list
+  (** Break down a type into its list of components. *)
+
   val set_component : t -> component -> t
-  val of_component : component -> t
+  (** [set_component t c] returns the type {m t ~\setminus~}{%html: <span style='font-size:large'>𝟙</span>%}{_{m c}}{m ~\cup~ c}, where
+      {%html: <span style='font-size:large'>𝟙</span>%}{_{m c}} is the top of component {m c}. *)
+
   val of_components : component list -> t
+  (** [of_components [c1; ...; cn]] returns {m \bigcup_{i=1\ldots n} c_i} *)
+
+  val of_component : component -> t
+  (** [of_component c] is equivalent to [of_components [c]]. *)
+
+  val get_intervals : t -> Intervals.t
+  (** Returns the {!Sstt.Intervals} component of a descriptor. *)
+
+  val get_enums : t -> Enums.t
+  (** Returns the {!Sstt.Enums} component of a descriptor. *)
+
+  val get_arrows : t -> Arrows.t
+  (** Returns the {!Sstt.Arrows} component of a descriptor. *)
+
+  val get_records : t -> Records.t
+  (** Returns the {!Sstt.Records} component of a descriptor. *)
+
+  val get_tuples : t -> Tuples.t
+  (** Returns the {!Sstt.Tuples} component of a descriptor. *)
+
+  val get_tags : t -> Tags.t
+  (** Returns the {!Sstt.Tags} component of a descriptor. *)
+
+
+  (** {2 Building descriptors from components} *)
+
+  val mk_enum : Enums.Atom.t -> t
+  (** Creates a singleton type descriptor from a single enum. *)
+
+  val mk_enums : Enums.t -> t
+  (** Creates a type descriptor from an {!Sstt.Enums} component. *)
+
+  val mk_interval : Intervals.Atom.t -> t
+  (** Creates a type descriptor from a single interval. *)
+
+  val mk_intervals : Intervals.t -> t
+  (** Creates a type descriptor from an {!Sstt.Intervals} component. *)
+
+  val mk_arrow : Arrows.Atom.t -> t
+  (** Creates a type descriptor from a single arrow. *)
+
+  val mk_arrows : Arrows.t -> t
+  (** Creates a type descriptor from an {!Sstt.Arrows} component. *)
+
+  val mk_record : Records.Atom.t -> t
+  (** Creates a type descriptor from a single record. *)
+
+  val mk_records : Records.t -> t
+  (** Creates a type descriptor from an {!Sstt.Records} component. *)
+
+  val mk_tuple : Tuples.Comp.Atom.t -> t
+  (** Creates a type descriptor from a single tuple. *)
+
+  val mk_tuplecomp : Tuples.Comp.t -> t
+  (** Creates a type descriptor from a tuple component of a fixed arity tuple. *)
+
+  val mk_tuples : Tuples.t -> t
+  (** Creates a type descriptor from a {!Sstt.Tuples} component family, mixing several tuple arities. *)
+
+  val mk_tag : Tags.Comp.Atom.t -> t
+  (** Creates a type descriptor from a single tagged type. *)
+
+  val mk_tagcomp : Tags.Comp.t -> t
+  (** Creates a type descriptor from a tagged component of a fixed tag. *)
+
+  val mk_tags : Tags.t -> t
+  (** Creates a type descriptor from a {!Sstt.Tags} component family, mixing several tuple arities. *)
+
+  (** {1 Misc. operations } *)
 
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
   val map_nodes : (node -> node) -> t -> t
@@ -435,28 +856,59 @@ end
 (* VDescr *)
 
 module type VDescr = sig
-  include TyBase
+  (** Full descriptors with top-level variables. *)
+
+  (** {1 Basics }*)
+
+  type t
+  (** The type of descriptors with top-level variables (vdescr). It represents a union of intersections of
+      positive and negative variables together with type descriptors of type {!Descr.t}:
+
+      {math
+      v = \bigcup_{i=i\ldots n} ~~\bigcap_{j=1\ldots m} \alpha_{ij} \cap \bigcap_{j=1\ldots l} \lnot\beta_{ij} ~~\cap~~ d_i
+      }
+  *)
+
+  (**@inline*)
+  include TyBase with type t := t
+
+  (** {1 Descriptors } *)
 
   module Descr : Descr with type node := node
-  module Dnf : Dnf with type atom = Var.t and type leaf = Descr.t
 
   val mk_var : Var.t -> t
+  (** [mk_var v] builds a full descriptor from a given type variable. *)
 
-  (** [mk_descr d] creates a full descriptor from the monomorphic descriptor [d]. *)
   val mk_descr : Descr.t -> t
+  (** [mk_descr d] creates a full descriptor from the monomorphic descriptor [d]. *)
 
+  val get_descr : t -> Descr.t
   (** [get_descr t] extracts a monomorphic descriptor from [t],
       which describes [t] by ignoring its top-level type variables. *)
-  val get_descr : t -> Descr.t
 
-  (** [map f t] replaces every descriptor [d] in [t] by the descriptor [f d]. *)
-  val map : (Descr.t -> Descr.t) -> t -> t
+  (** {1 Explicit Disjunctive Normal Form }*)
 
-  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
-  val map_nodes : (node -> node) -> t -> t
+  module Dnf : sig 
+    (** Explicit Disjunctive Normal Forms (DNF) of variables and monomorphic descriptors. *)
 
+    (** @inline *)
+    include Dnf with type atom = Var.t and type leaf = Descr.t
+  end
   val dnf : t -> Dnf.t
+  (** Return an explicit DNF representation from a full descriptor. *)
+
   val of_dnf : Dnf.t -> t
+  (** Builds a full descriptor from a DNF. *)
+
+  (** {1 Misc. operations }*)
+
+  val map : (Descr.t -> Descr.t) -> t -> t
+  (** [map f t] replaces every descriptor [d] in [t] by the descriptor [f d]. *)
+
+  val map_nodes : (node -> node) -> t -> t
+  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
+
+
 end
 
 (* Nodes (internal signature, not exposed to the user) *)
@@ -513,12 +965,18 @@ end
 (* Ty *)
 
 module type Ty = sig
-  (** Set-theoretic types.*)
+  (** Set-theoretic types (type references).*)
 
+  (** {1 Basics } *)
+
+  (** @canonical Sstt.Ty.t *)
   type t
-  (** The type of (set-theoretic) types. A value of type [t] is a reference to a
-      descriptor that reflects the structure of the type (its variables,
+  (**
+     The type of (set-theoretic) types. A value of type [t] is a reference to a
+      descriptor that represent its structure (its variables,
       components, …).
+     Each value of type {!t} contains a unique internal identifier which is used
+     for equality
   *)
 
   val equal : t -> t -> bool
@@ -537,49 +995,22 @@ module type Ty = sig
   val hash : t -> int
   (** [hash t] returns a hash for the given type. The function runs in constant time.*)
 
+  (** {1 Set-theoretic operations }*)
+
   val empty : t
-  (** The empty type, {m 𝟘}. *)
+  (** The empty type, {%html: <span style='font-size:large'>𝟘</span>%}. *)
 
   val any : t
-  (** The top type, {m 𝟙}. *)
+  (** The top type, {%html: <span style='font-size:large'>𝟙</span>%}. *)
+
+  include SetTheoretic with type t := t
+
+  (** {1 Full descriptors }
+
+      The {!VDescr} module and its operations allow one to access the internal structure of a type.
+  *)
 
   module VDescr : VDescr with type node := t
-  (** Type descriptors. *)
-
-  module O : sig
-    (** Optional types are subsets of {m 𝟙∨⊥}. They are used for the type of
-        record fields, to denote the fact that a field may be absent.
-    *)
-
-    type node = t
-    (** An alias for the type {!Ty.t}. *)
-
-    type t = node oty
-    (** The type of optional types. [t] is equal to [(node * bool)]. Whenever
-        the boolean component is [true], it means that the type contains the
-        absent element {m ⊥}. Otherwise, when the boolean component is [false],
-        the type is equivalent to a plain {!Ty.t} type. *)
-
-
-    include TyBase with type node := node and type t := t (** @inline *)
-
-
-    val absent : t
-    (** [absent] is the singleton type containing the absent value, {m ⊥}. *)
-
-    val required : node -> t
-    (** [required t] returns the type [t] (not absent). *)
-
-    val optional : node -> t
-    (** [optional t] returns the type {m t∨⊥}. *)
-
-    include SetTheoretic with type t := t
-    val is_absent : t -> bool
-    val is_required : t -> bool
-    val is_optional : t -> bool
-    val get : t -> node
-  end
-  (** Optional types. *)
 
   val def : t -> VDescr.t
   (** [def t] returns the full descriptor of [t]. For a given type (reference) [t],
@@ -597,13 +1028,15 @@ module type Ty = sig
 
   val get_descr : t -> VDescr.Descr.t
   (** [get_descr t] extracts a monomorphic descriptor from [t],
-      which describes [t] by ignoring its top-level type variables. *)
+      which describes [t] by ignoring its top-level type variables.s *)
 
-  include SetTheoretic with type t := t
+  (** {1 Misc. operations }*)
 
   val vars : t -> VarSet.t
   (** [vars t] returns the set of all variables in [t].
       Note that due to simplifications some variables may or may not be present.
+      For instance,
+      if {m t_1 \equiv \alpha } and {m t_2 \equiv \lnot \alpha}
   *)
 
   val vars_toplevel : t -> VarSet.t
@@ -627,5 +1060,54 @@ module type Ty = sig
   (** [factorize t] factorizes equivalent nodes in [t].
       This operation may be expensive since it calls {!equiv} internally.
   *)
+
+
+  (** {1 Optional types }*)
+
+  module O : sig
+    (** Optional types are subsets of {%html: <span style='font-size:large'>𝟙</span>%}{m \cup\bot}. They are used for the type of
+        record fields, to denote the fact that a field may be absent.
+    *)
+
+    type node = t
+    (** An alias for the type {!Ty.t}. *)
+
+    type t = node * bool
+    (** The type of optional types. Whenever
+        the boolean component is [true], it means that the type contains the
+        undefined element {m \bot}. Otherwise, when the boolean component is [false],
+        the type is equivalent to a plain {!Ty.t} type. *)
+
+
+    include TyBase with type node := node and type t := t (** @inline *)
+
+
+    val absent : t
+    (** [absent] is the singleton type containing the undefined value, {m \bot}. *)
+
+    val required : node -> t
+    (** [required t] returns the type [t, false]. *)
+
+    val optional : node -> t
+    (** [optional t] returns [t, true] which represents the type {m t\cup \bot}. *)
+
+    (** @inline *)
+    include SetTheoretic with type t := t
+
+    val is_absent : t -> bool
+    (** Tests whether {m \bot \equiv t}. *)
+
+    val is_required : t -> bool
+    (** Tests whether {m \bot \not\in t}. *)
+
+    val is_optional : t -> bool
+    (** Tests whether {m \bot \in t}*)
+
+    val get : t -> node
+    (** Returns [get (t, b)] returns [t]. *)
+  end
+
+
+
 
 end

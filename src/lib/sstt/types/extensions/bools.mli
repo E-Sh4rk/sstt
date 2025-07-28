@@ -1,6 +1,6 @@
 open Core
 
-val tag : TagComp.Tag.t
+val tag : Tag.t
 
 val btrue : Ty.t
 val bfalse : Ty.t

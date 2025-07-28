@@ -1,0 +1,6 @@
+(documentation
+ (package sstt))
+
+(mdx
+ (package sstt)
+ (libraries sstt zarith))

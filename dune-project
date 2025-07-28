@@ -1,5 +1,6 @@
 (lang dune 3.17)
 (using menhir 3.0)
+(using mdx 0.4)
 
 (name sstt)
 
@@ -26,7 +27,7 @@
 (package
  (name sstt)
  (synopsis "Simple Set-Theoretic Types library")
- (depends (ocaml (>= 5.3.0)) dune zarith)
+ (depends (ocaml (>= 5.3.0)) (mdx :with-test) dune zarith)
 )
 
 (package
