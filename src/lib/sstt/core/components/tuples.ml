@@ -54,7 +54,7 @@ module MakeC(N:Node) = struct
     with Exit -> false
 
   let rec psi ss ts =
-    List.exists N.is_empty ss || (* optimisation *)
+    List.exists N.is_empty ss ||
     match ts with
     | [] -> false
     | tt::ts ->
@@ -66,10 +66,7 @@ module MakeC(N:Node) = struct
       | [], [] -> false
       | a::_, _ | [], a::_ ->
         let n = List.length a in
-        if n = 0 then
-          ns <> [] (* optimisations in psi are not compatible with n = 0 *)
-        else
-          psi (conj n ps) ns
+        psi (conj n ps) ns
     else true
   let is_empty' t = Bdd.for_all_lines is_clause_empty t
   let is_empty (_,t) = is_empty' t
