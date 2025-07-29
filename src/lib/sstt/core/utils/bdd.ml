@@ -41,7 +41,6 @@ module Make(N:Atom)(L:Leaf) = struct
 
   let singleton a = Node (a, any, empty)
   let nsingleton a = Node (a, empty, any)
-  let mk_leaf l = Leaf l
 
   let rec equal t1 t2 =
     t1 == t2 ||
@@ -52,60 +51,64 @@ module Make(N:Atom)(L:Leaf) = struct
       N.equal a1 a2 && equal p1 p2 && equal n1 n2
 
   let rec compare t1 t2 =
-    match t1, t2 with
-    | Leaf l1, Leaf l2 -> L.compare l1 l2
-    | Leaf _, Node _ -> 1
-    | Node _, Leaf _ -> -1
-    | Node (a1, p1, n1), Node (a2, p2, n2) ->
-      let c = N.compare a1 a2 in if c <> 0 then c else
-        let c = compare p1 p2 in if c <> 0 then c else
-          compare n1 n2
+    if t1 == t2 then 0 else
+      match t1, t2 with
+      | Leaf l1, Leaf l2 -> L.compare l1 l2
+      | Leaf _, Node _ -> 1
+      | Node _, Leaf _ -> -1
+      | Node (a1, p1, n1), Node (a2, p2, n2) ->
+        let c = N.compare a1 a2 in if c <> 0 then c else
+          let c = compare p1 p2 in if c <> 0 then c else
+            compare n1 n2
 
   (* Smart constructor *)
   let node a p n =
     if equal p n then p
     else Node (a, p, n)
+
+  let leaf l =
+    let t = Leaf l in
+    if equal t empty then empty
+    else if equal t any then any
+    else t
+
   let rec neg t =
-    match t with
-    | Leaf l -> Leaf (L.neg l)
-    | Node (a, p, n) ->
-      node a (neg p) (neg n)
+    if t == empty then any
+    else if t == any then empty
+    else
+      match t with
+      | Leaf l -> leaf (L.neg l)
+      | Node (a, p, n) ->
+        node a (neg p) (neg n)
 
-  let rec op lop fbase t1 t2 =
-    match fbase t1 t2 with
-    | Some t -> t
-    | None ->
-      match t1, t2 with
-      | Leaf l1, Leaf l2 -> Leaf (lop l1 l2)
-      | Leaf _, Node (a,p,n) ->
-        node a (op lop fbase t1 p) (op lop fbase t1 n)
-      | Node (a,p,n), Leaf _ ->
-        node a (op lop fbase p t2) (op lop fbase n t2)
-      | Node (a1,p1,n1), Node (a2,p2,n2) ->
-        let n = N.compare a1 a2 in
-        if n < 0 then node a1 (op lop fbase p1 t2) (op lop fbase n1 t2)
-        else if n > 0 then node a2 (op lop fbase t1 p2) (op lop fbase t1 n2)
-        else
-          node a1 (op lop fbase p1 p2) (op lop fbase n1 n2)
-
-  let cap = 
-    op L.cap (fun t1 t2 ->
-        if t1 == empty || t2 == empty then Some empty
-        else if t2 == any || t1 == t2 then Some t1
-        else if t1 == any then Some t2
-        else None)
-  let cup =
-    op L.cup (fun t1 t2 ->
-        if t1 == any || t2 == any then Some any
-        else if t2 == empty || t1 == t2 then Some t1
-        else if t1 == empty then Some t2
-        else None)
-  let diff = 
-    op L.diff (fun t1 t2 ->
-        if t1 == empty || t2 == any || t1 == t2 then Some empty
-        else if t2 == empty then Some t1
-        else if t1 == any then Some (neg t2)
-        else None)
+  let rec op t1 t2 lop nop =
+    match t1, t2 with
+    | Leaf l1, Leaf l2 -> leaf (lop l1 l2)
+    | Leaf _, Node (a,p,n) ->
+      node a (nop t1 p) (nop t1 n)
+    | Node (a,p,n), Leaf _ ->
+      node a (nop p t2) (nop n t2)
+    | Node (a1,p1,n1), Node (a2,p2,n2) ->
+      let n = N.compare a1 a2 in
+      if n < 0 then node a1 (nop p1 t2) (nop n1 t2)
+      else if n > 0 then node a2 (nop t1 p2) (nop t1 n2)
+      else
+        node a1 (nop p1 p2) (nop n1 n2)
+  and cap t1 t2 =
+    if t1 == empty || t2 == empty then empty
+    else if t2 == any || t1 == t2 then t1
+    else if t1 == any then t2
+    else op t1 t2 L.cap cap
+  and cup t1 t2 =
+    if t1 == any || t2 == any then any
+    else if t2 == empty || t1 == t2 then t1
+    else if t1 == empty then t2
+    else op t1 t2 L.cup cup
+  and diff t1 t2 =
+    if t1 == empty || t2 == any || t1 == t2 then empty
+    else if t2 == empty then t1
+    else if t1 == any then neg t2
+    else op t1 t2 L.diff diff
 
   let compare_to_atom a t =
     match t with
@@ -134,15 +137,20 @@ module Make(N:Atom)(L:Leaf) = struct
     match t with
       Leaf _ -> t
     | Node (a, p, n) ->
-      let p = map_nodes f p in
-      let n = map_nodes f n in
-      let a = f a in
-      node' a p n
+      let p' = map_nodes f p in
+      let n' = map_nodes f n in
+      let a' = f a in
+      if a == a' && p == p' && n == n' then t else
+        node' a' p' n'
 
   let rec map_leaves f t =
     match t with
-    | Leaf l -> Leaf (f l)
-    | Node (a,p,n) -> node a (map_leaves f p) (map_leaves f n)
+    | Leaf l -> let l' = f l in if l == l' then t else leaf l'
+    | Node (a,p,n) ->
+      let p' = map_leaves f p in
+      let n' = map_leaves f n in
+      if p == p' && n == n' then t
+      else node a p' n'
 
   let dnf t =
     let rec aux acc ps ns t =
@@ -184,7 +192,7 @@ module Make(N:Atom)(L:Leaf) = struct
 
   let of_dnf dnf =
     let line (ps,ns,l) =
-      let l = mk_leaf l in
+      let l = leaf l in
       cap l (conj_map singleton ps (conj_map nsingleton ns any))
     in
     dnf |> List.map line |> disj
@@ -220,7 +228,7 @@ module Make(N:Atom)(L:Leaf) = struct
     let rec aux ctx t =
       if t == empty || t == any then t else
         match t with
-        | Leaf l -> Leaf (L.simplify l)
+        | Leaf l -> leaf (L.simplify l)
         | Node (a, p, n) ->
           let p = aux ((false, a)::ctx) p
           and n = aux ((true, a)::ctx) n in

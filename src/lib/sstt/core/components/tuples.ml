@@ -53,13 +53,13 @@ module MakeC(N:Node) = struct
       true
     with Exit -> false
 
-  let rec psi n ss ts =
-    if List.exists2 N.leq ss (disj n ts) |> not then false (* optimisation *)
-    else match ts with
-      | [] -> (* List.exists N.is_empty ss *) true
-      | tt::ts ->
-        List.exists N.is_empty ss || (* optimisation *)
-        forall_distribute_diff (fun ss -> psi n ss ts) ss tt
+  let rec psi ss ts =
+    List.exists N.is_empty ss || (* optimisation *)
+    match ts with
+    | [] -> false
+    | tt::ts ->
+      forall_distribute_diff (fun ss -> psi ss ts) ss tt
+
   let is_clause_empty (ps,ns,b) =
     if b then
       match ps, ns with
@@ -69,7 +69,7 @@ module MakeC(N:Node) = struct
         if n = 0 then
           ns <> [] (* optimisations in psi are not compatible with n = 0 *)
         else
-          psi n (conj n ps) ns
+          psi (conj n ps) ns
     else true
   let is_empty' t = Bdd.for_all_lines is_clause_empty t
   let is_empty (_,t) = is_empty' t

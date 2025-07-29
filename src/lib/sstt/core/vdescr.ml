@@ -18,7 +18,7 @@ module Make(N:Node) = struct
   let empty = Bdd.empty
 
   let mk_var a = Bdd.singleton a
-  let mk_descr d = Bdd.mk_leaf d
+  let mk_descr d = Bdd.leaf d
   let get_descr t = Bdd.leaves t |> List.fold_left Descr.cup Descr.empty
 
   let cap = Bdd.cap

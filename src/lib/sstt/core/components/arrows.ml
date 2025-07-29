@@ -11,7 +11,7 @@ module Atom(N:Node) = struct
     N.equal s1 s2 && N.equal t1 t2
   let compare (s1,t1) (s2,t2) =
     N.compare s1 s2 |> ccmp
-    N.compare t1 t2
+      N.compare t1 t2
 end
 
 module Make(N:Node) = struct
@@ -31,17 +31,18 @@ module Make(N:Node) = struct
   let diff = Bdd.diff
 
   let rec psi t1 t2 ps =
+    N.is_empty t1 || N.is_empty t2 ||
     match ps with
-    | [] -> N.is_empty t1 || N.is_empty t2
+    | [] -> false
     | (s1,s2)::ps ->
-      N.is_empty t1 || N.is_empty t2 || (* optimisation *)
       (N.leq t1 s1 || N.leq (List.map snd ps |> N.conj) (N.neg t2)) && (* optimisation *)
       psi t1 (N.cap t2 s2) ps &&
       psi (N.diff t1 s1) t2 ps
   let psi_strict t1 t2 ps =
     match ps with
     | [] -> true
-    | (s1,s2)::ps -> psi t1 (N.cap t2 s2) ps && psi (N.diff t1 s1) t2 ps
+    | (s1,s2)::ps ->
+      psi t1 (N.cap t2 s2) ps && psi (N.diff t1 s1) t2 ps
   let is_clause_empty' ps (t1,t2) =
     N.leq t1 (List.map fst ps |> N.disj) &&
     psi_strict t1 (N.neg t2) ps

@@ -165,13 +165,12 @@ module Make(N:Node) = struct
       iter_distribute_comb (fun e -> if not (f e) then raise Exit) ON.diff ss tt;
       true
     with Exit -> false
-  let rec psi n ss ts =
-    if List.exists2 ON.leq ss (disj n ts) |> not then false (* optimisation *)
-    else match ts with
-      | [] -> (* List.exists ON.is_empty ss *) true
-      | tt::ts ->
-        List.exists ON.is_empty ss || (* optimisation *)
-        forall_distribute_diff (fun ss -> psi n ss ts) ss tt
+  let rec psi ss ts =
+    List.exists ON.is_empty ss ||
+    match ts with
+    | [] -> false
+    | tt::ts ->
+      forall_distribute_diff (fun ss -> psi ss ts) ss tt
   let is_clause_empty (ps,ns,b) =
     if b then
       let dom = List.fold_left
@@ -181,11 +180,11 @@ module Make(N:Node) = struct
         ps |> List.map (Atom.to_tuple_with_default dom),
         ns |> List.map (Atom.to_tuple_with_default dom) in
       (* We reuse the same algorithm as for tuples *)
-      match ps@ns with
-      | [] -> false
-      | a::_ ->
+      match ps, ns with
+      | [],[] -> false
+      | a::_,_ | [], a::_ ->
         let n = List.length a in
-        psi n (conj n ps) ns
+        psi (conj n ps) ns
     else true
   let is_empty t = t |> Bdd.for_all_lines is_clause_empty
 

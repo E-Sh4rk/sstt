@@ -32,13 +32,21 @@ let cartesian_product l1 l2 =
     | e1::ll1 -> loop_one e2 ll1 ll ((e1, e2)::acc)
   in
   loop l2 []
+
+
+let rec map_split f l =
+  match l with
+    [] -> [], []
+  | e :: ll -> let a, b = f e in
+    let lla, llb = map_split f ll in
+    a::lla, b :: llb
+
 let mapn default f lst =
   let rec aux f lst =
-    match List.hd lst with
-    | [] -> []
-    | _::_ ->
-      let hds = List.map List.hd lst in
-      let tls = List.map List.tl lst in
+    match lst with
+    | []::_ -> []
+    | _ ->
+      let hds, tls = map_split (function (e::l) -> e, l | _ -> assert false) lst in
       (f hds)::(aux f tls)
   in
   if lst = [] then default () else aux f lst
