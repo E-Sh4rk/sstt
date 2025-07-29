@@ -29,7 +29,7 @@ let destruct ty =
   | [elt;tl] -> elt, tl
   | _ -> assert false)
 
-let destruct' ty =
+let proj ty =
   try
     let comps =
       proj_tag ty |> Ty.get_descr |> Descr.get_tuples

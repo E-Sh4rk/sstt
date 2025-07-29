@@ -35,9 +35,9 @@ val destruct : Ty.t -> (Ty.t * Ty.t) list
     }
 *)
 
-val destruct' : Ty.t -> Ty.t * Ty.t
-(** [destruct' t] returns the approximation such
-    that [t] is equovalent to
+val proj : Ty.t -> Ty.t * Ty.t
+(** [proj t] returns the approximation such
+    that [t] is equivalent to
     {math
 
     \bigcup_{i=1\ldots n} \texttt{hd}_i ~~~\times~~~ 
