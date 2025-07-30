@@ -40,6 +40,8 @@ module OTy(N:Node) = struct
   let compare (n1,b1) (n2,b2) = compare b1 b2 |> ccmp N.compare n1 n2
 
   let map_nodes f (n,b) = (f n, b)
+
+  let hash (n, b) = Hash.(mix (bool b) (N.hash n))
 end
 
 module Atom(N:Node) = struct
@@ -48,6 +50,9 @@ module Atom(N:Node) = struct
   type node = N.t
   type nonrec oty = node * bool
   type t = { bindings : oty LabelMap.t ; opened : bool }
+
+  let hash t = (* TODO FIX *)
+    Hash.(mix (bool t.opened) (Hashtbl.hash t.bindings))
   let map_nodes f t =
     { t with bindings = LabelMap.map (OTy.map_nodes f) t.bindings }
 
@@ -86,6 +91,9 @@ module Atom'(N:Node) = struct
   type node = N.t
   type nonrec oty = node * bool
   type t = { bindings : oty LabelMap.t ; opened : bool ; required : LabelSet.t option }
+  let hash t = (* TODO FIX *)
+    Hash.(mix3 (bool t.opened) (Hashtbl.hash t.bindings) (Hashtbl.hash t.required))
+
   let dom t = LabelMap.bindings t.bindings |> List.map fst |> LabelSet.of_list
   let find lbl t =
     match LabelMap.find_opt lbl t.bindings with
@@ -261,4 +269,5 @@ module Make(N:Node) = struct
 
   let equal = Bdd.equal
   let compare = Bdd.compare
+  let hash = Bdd.hash
 end

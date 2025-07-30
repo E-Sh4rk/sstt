@@ -1,3 +1,5 @@
+open Sstt_utils
+
 module type Leaf = sig
   type t
   val any : t
@@ -9,6 +11,7 @@ module type Leaf = sig
   val simplify : t -> t
   val equal : t -> t -> bool
   val compare : t -> t -> int
+  val hash : t -> int
 end
 
 module BoolLeaf : Leaf with type t = bool = struct
@@ -22,6 +25,7 @@ module BoolLeaf : Leaf with type t = bool = struct
   let simplify b = b
   let equal b1 b2 = (b1 == b2)
   let compare b1 b2 = Bool.compare b1 b2
+  let hash b = if b then Hash.const1 else Hash.const0
 end
 
 module type Atom = sig
@@ -29,45 +33,55 @@ module type Atom = sig
   val simplify : t -> t
   val compare : t -> t -> int
   val equal : t -> t -> bool
+  val hash : t -> int
 end
 
 module Make(N:Atom)(L:Leaf) = struct
   type t =
-    | Node of N.t * t * t
-    | Leaf of L.t
+    | Node of N.t * t * t * int
+    | Leaf of L.t * int
 
-  let empty = Leaf (L.empty)
-  let any = Leaf (L.any)
+  let hash = function
+      Leaf (_, h) -> h
+    | Node (_, _, _, h) -> h
 
-  let singleton a = Node (a, any, empty)
-  let nsingleton a = Node (a, empty, any)
+  let hleaf l = Leaf (l, Hash.mix Hash.const2 (L.hash l))
+  let hnode a p n = Node (a, p, n, 
+                          Hash.mix3 (N.hash a) (hash p) (hash n) )
+  let empty = hleaf L.empty
+  let any = hleaf L.any
 
+
+  let singleton a = hnode a any empty
+  let nsingleton a = hnode a empty any
   let rec equal t1 t2 =
     t1 == t2 ||
     match t1, t2 with
-    | Leaf l1, Leaf l2 -> L.equal l1 l2
+    | Leaf (l1, h1) , Leaf (l2, h2) -> h1 == h2 && L.equal l1 l2
     | Node _, Leaf _ | Leaf _, Node _ -> false
-    | Node (a1, p1, n1), Node (a2, p2, n2) ->
+    | Node (a1, p1, n1, h1), Node (a2, p2, n2, h2) ->
+      h1 == h2 &&
       N.equal a1 a2 && equal p1 p2 && equal n1 n2
 
   let rec compare t1 t2 =
     if t1 == t2 then 0 else
       match t1, t2 with
-      | Leaf l1, Leaf l2 -> L.compare l1 l2
+      | Leaf (l1, h1), Leaf (l2, h2)  -> Int.compare h1 h2 |> ccmp L.compare l1 l2
       | Leaf _, Node _ -> 1
       | Node _, Leaf _ -> -1
-      | Node (a1, p1, n1), Node (a2, p2, n2) ->
-        let c = N.compare a1 a2 in if c <> 0 then c else
-          let c = compare p1 p2 in if c <> 0 then c else
-            compare n1 n2
+      | Node (a1, p1, n1, h1), Node (a2, p2, n2, h2) ->
+        let c = Int.compare h1 h2 in if c <> 0 then c else
+          let c = N.compare a1 a2 in if c <> 0 then c else
+            let c = compare p1 p2 in if c <> 0 then c else
+              compare n1 n2
 
   (* Smart constructor *)
   let node a p n =
     if equal p n then p
-    else Node (a, p, n)
+    else hnode a p n
 
   let leaf l =
-    let t = Leaf l in
+    let t = hleaf l in
     if equal t empty then empty
     else if equal t any then any
     else t
@@ -77,18 +91,18 @@ module Make(N:Atom)(L:Leaf) = struct
     else if t == any then empty
     else
       match t with
-      | Leaf l -> leaf (L.neg l)
-      | Node (a, p, n) ->
+      | Leaf (l, _) -> leaf (L.neg l)
+      | Node (a, p, n, _) ->
         node a (neg p) (neg n)
 
   let rec op t1 t2 lop nop =
     match t1, t2 with
-    | Leaf l1, Leaf l2 -> leaf (lop l1 l2)
-    | Leaf _, Node (a,p,n) ->
+    | Leaf (l1, _), Leaf (l2,_) -> leaf (lop l1 l2)
+    | Leaf _, Node (a,p,n, _) ->
       node a (nop t1 p) (nop t1 n)
-    | Node (a,p,n), Leaf _ ->
+    | Node (a,p,n, _), Leaf _ ->
       node a (nop p t2) (nop n t2)
-    | Node (a1,p1,n1), Node (a2,p2,n2) ->
+    | Node (a1,p1,n1, _), Node (a2,p2,n2, _) ->
       let n = N.compare a1 a2 in
       if n < 0 then node a1 (nop p1 t2) (nop n1 t2)
       else if n > 0 then node a2 (nop t1 p2) (nop t1 n2)
@@ -113,12 +127,12 @@ module Make(N:Atom)(L:Leaf) = struct
   let compare_to_atom a t =
     match t with
       Leaf _ -> -1
-    | Node (b, _, _) -> N.compare a b
+    | Node (b, _, _, _) -> N.compare a b
 
   let rec substitute f t =
     match t with
     | Leaf _ -> t
-    | Node (a,p,n) ->
+    | Node (a,p,n, _) ->
       let p,n = substitute f p, substitute f n in
       let t = f a in
       let p,n = cap p t, diff n t in
@@ -136,7 +150,7 @@ module Make(N:Atom)(L:Leaf) = struct
   let rec map_nodes f t =
     match t with
       Leaf _ -> t
-    | Node (a, p, n) ->
+    | Node (a, p, n, _) ->
       let p' = map_nodes f p in
       let n' = map_nodes f n in
       let a' = f a in
@@ -145,8 +159,8 @@ module Make(N:Atom)(L:Leaf) = struct
 
   let rec map_leaves f t =
     match t with
-    | Leaf l -> let l' = f l in if l == l' then t else leaf l'
-    | Node (a,p,n) ->
+    | Leaf (l, _) -> let l' = f l in if l == l' then t else leaf l'
+    | Node (a,p,n, _) ->
       let p' = map_leaves f p in
       let n' = map_leaves f n in
       if p == p' && n == n' then t
@@ -155,8 +169,8 @@ module Make(N:Atom)(L:Leaf) = struct
   let dnf t =
     let rec aux acc ps ns t =
       match t with
-      | Leaf l -> (ps,ns,l)::acc
-      | Node (a,p,n) ->
+      | Leaf (l, _) -> (ps,ns,l)::acc
+      | Node (a,p,n, _) ->
         let acc = aux acc (a::ps) ns p in
         let acc = aux acc ps (a::ns) n in
         acc
@@ -166,8 +180,8 @@ module Make(N:Atom)(L:Leaf) = struct
   let fold_lines f acc t =
     let rec aux acc ps ns t =
       match t with
-        Leaf l -> f acc (ps, ns, l)
-      | Node (a, p, n) ->
+        Leaf (l, _) -> f acc (ps, ns, l)
+      | Node (a, p, n, _) ->
         let acc = aux acc (a :: ps) ns p in
         aux acc ps (a :: ns) n
     in
@@ -201,7 +215,7 @@ module Make(N:Atom)(L:Leaf) = struct
     let rec aux acc t =
       match t with
       | Leaf _ -> acc
-      | Node (a,p,n) ->
+      | Node (a,p,n, _) ->
         let acc = a::acc in
         let acc = aux acc p in
         let acc = aux acc n in
@@ -211,8 +225,8 @@ module Make(N:Atom)(L:Leaf) = struct
   let leaves t =
     let rec aux acc t =
       match t with
-      | Leaf l -> l::acc
-      | Node (_,p,n) ->
+      | Leaf (l, _) -> l::acc
+      | Node (_,p,n, _) ->
         let acc = aux acc p in
         let acc = aux acc n in
         acc
@@ -221,22 +235,28 @@ module Make(N:Atom)(L:Leaf) = struct
   let rec to_t ctx t =
     match ctx with
     | [] -> t
-    | (false, a)::ctx -> to_t ctx (Node (a, t, empty))
-    | (true, a)::ctx -> to_t ctx (Node (a, empty, t))
+    | (false, a)::ctx -> to_t ctx (hnode a t empty)
+    | (true, a)::ctx -> to_t ctx (hnode a empty t)
+
+  module Memo = Hashtbl.Make(struct type nonrec t = t * t 
+      let equal (t1, t2) (s1, s2) = equal t1 s1 && equal s2 t2
+      let hash (t1, t2) = Hash.mix (hash t1) (hash t2) 
+    end)
 
   let simplify eq t =
     let rec aux ctx t =
       if t == empty || t == any then t else
         match t with
-        | Leaf l -> leaf (L.simplify l)
-        | Node (a, p, n) ->
-          let p = aux ((false, a)::ctx) p
-          and n = aux ((true, a)::ctx) n in
-          if equal p n then p else
-            let t = Node (a, p, n) in
+        | Leaf (l,_) -> let l' = L.simplify l in if l == l' then t else leaf l'
+        | Node (a, p, n, _) ->
+          let p' = aux ((false, a)::ctx) p
+          and n' = aux ((true, a)::ctx) n in
+          if equal p' n' then p' else
+            let t = if p' == p && n' == n then t
+              else hnode a p' n' in
             let ctx_t = to_t ctx t in
-            if eq ctx_t (to_t ctx p) then p
-            else if eq ctx_t (to_t ctx n) then n
+            if eq ctx_t (to_t ctx p') then p'
+            else if eq ctx_t (to_t ctx n') then n'
             else t
     in
     aux [] (map_nodes N.simplify t)

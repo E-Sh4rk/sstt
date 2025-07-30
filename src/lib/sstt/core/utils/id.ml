@@ -31,7 +31,7 @@ module NamedIdentifier () : NamedIdentifier = struct
 
   let mk name =  (next_id (), name)
   let name (_, name) = name
-  let hash (i,_) = Hashtbl.hash i
+  let hash (i,_) = Hash.int i
   let compare (i1,_) (i2,_) = Int.compare i1 i2
   let equal (i1,_) (i2,_) = (i1 == i2)
   let pp fmt (_,name) = Format.fprintf fmt "%s" name

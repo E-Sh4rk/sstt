@@ -8,6 +8,18 @@ module type Comparable = sig
 
   val equal : t -> t -> bool
   (** Equality, [equal a b] is equivalent to [compare a b = 0]. *)
+
+  val hash : t -> int
+  (** Hashing, [hash] is consistent with equality, that is
+      [equal a b] implies [hash a = hash b].
+  *)
+end
+
+module type ComparableH = sig
+  type t
+  include Comparable with type t := t
+  val hash : t -> int
+
 end
 
 module type TyBase = sig

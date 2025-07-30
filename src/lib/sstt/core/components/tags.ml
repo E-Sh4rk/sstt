@@ -14,7 +14,8 @@ module Atom(N:Node) = struct
     Tag.equal t1 t2 && N.equal n1 n2
   let compare (t1,n1) (t2,n2) =
     Tag.compare t1 t2 |> ccmp
-    N.compare n1 n2
+      N.compare n1 n2
+  let hash (t, n) = Hash.mix (Tag.hash t) (N.hash n)
 end
 
 module MakeC(N:Node) = struct
@@ -25,6 +26,7 @@ module MakeC(N:Node) = struct
   type t = Tag.t * Bdd.t
   type node = N.t
 
+  let hash (tag, t) = Hash.mix (Tag.hash tag) (Bdd.hash t)
   let any n = n, Bdd.any
   let empty n = n, Bdd.empty
 
@@ -32,7 +34,7 @@ module MakeC(N:Node) = struct
 
   let tag (tag,_) = tag
   let index = tag
-  
+
   let check_tag tag tag' =
     if Tag.equal tag tag' |> not then
       raise (Invalid_argument "Heterogeneous tags.")
@@ -67,8 +69,8 @@ module MakeC(N:Node) = struct
   let dnf (_,t) = Bdd.dnf t |> Dnf.mk
   let of_dnf tag dnf =
     dnf |> List.iter (fun (ps,ns,_) ->
-      ps |> List.iter (fun a -> check_tag tag (Atom.tag a)) ;
-      ns |> List.iter (fun a -> check_tag tag (Atom.tag a))
+        ps |> List.iter (fun a -> check_tag tag (Atom.tag a)) ;
+        ns |> List.iter (fun a -> check_tag tag (Atom.tag a))
       ) ;
     tag, Dnf.mk dnf |> Bdd.of_dnf
 

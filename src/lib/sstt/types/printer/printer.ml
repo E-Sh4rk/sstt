@@ -11,7 +11,7 @@ module NodeId = struct
   let has_name t = t.name <> None
   let name t = Option.get t.name
   let rename t name = t.name <- Some name
-  let hash t = Hashtbl.hash t.id
+  let hash t = Hash.int t.id
   let compare t1 t2 = compare t1.id t2.id
   let equal t1 t2 = (t1.id = t2.id)
   let pp fmt t =
@@ -71,7 +71,7 @@ type params = { aliases : aliases ; extensions : extensions }
 
 module VD = VDescr
 module D = Descr
-module VDMap = Map.Make(VD)
+module VDHash = Hashtbl.Make(VD)
 
 module NIMap = Map.Make(NodeId)
 module NISet = Set.Make(NodeId)
@@ -233,18 +233,18 @@ let merge_params p1 p2 =
 let merge_params = List.fold_left merge_params empty_params
 
 type ctx = {
-  mutable nodes : NodeId.t VDMap.t ;
+  nodes : NodeId.t VDHash.t ;
   aliases : (Ty.t * (Tag.t * custom') op') list ;
   extensions : (module PrinterExt) TagMap.t ;
 }
 
 let node ctx ty =
   let def = Ty.def ty in
-  match VDMap.find_opt def ctx.nodes with
+  match VDHash.find_opt ctx.nodes def  with
   | Some nid -> { op = Node nid ; ty }
   | None ->
     let nid = NodeId.mk () in
-    ctx.nodes <- VDMap.add def nid ctx.nodes ;
+    VDHash.add ctx.nodes def nid  ;
     { op = Node nid ; ty }
 
 let tag_handlers ctx tag =
@@ -260,7 +260,7 @@ let build_t (params:params) ty =
       let module M = (val m : PrinterExt) in
       M.tag, m
     ) |> TagMap.of_list in
-  let ctx = { nodes=VDMap.empty ; aliases ; extensions } in
+  let ctx = { nodes=VDHash.create 16 ; aliases ; extensions } in
   ctx, { main = node ctx ty ; defs = [] }
 
 (* Step 2 : Resolve missing definitions (and recognize custom type aliases) *)
@@ -348,14 +348,14 @@ let resolve_records ctx a =
 
 let rec resolve_custom_tagcomp f ctx env ty =
   let vd = Ty.def ty in
-  match VDMap.find_opt vd env with
+  match VDHash.find_opt env vd with
   | Some nid -> CNode nid
   | None ->
     begin match f ty with
       | None -> raise Exit
       | Some extracted ->
         let nid = NodeId.mk () in
-        let env = VDMap.add vd nid env in
+        VDHash.add env vd nid;
         let treat_param param =
           match param with
           | PUnprocessed ty -> PUnprocessed ty
@@ -380,7 +380,7 @@ let resolve_tagcomp ctx a =
       match handlers with
       | [] -> tag t (node ctx ty')
       | f::handlers ->
-        try { op = Custom (t, resolve_custom_tagcomp f ctx VDMap.empty ty') ; ty }
+        try { op = Custom (t, resolve_custom_tagcomp f ctx (VDHash.create 8) ty') ; ty }
         with Exit -> aux handlers
     in
     aux handlers
@@ -446,7 +446,7 @@ let resolve_def ctx def =
   | Some d -> d
 
 let rec resolve_missing_defs ctx t =
-  let used_defs = ctx.nodes |> VDMap.bindings in
+  let used_defs = ctx.nodes |> VDHash.to_seq |> List.of_seq in
   let to_define = used_defs |> List.find_opt (fun (_,nid) ->
       t.defs |> List.exists (fun (nid',_) -> NodeId.equal nid nid') |> not
     ) in

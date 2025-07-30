@@ -67,4 +67,5 @@ module Make(N:Node) = struct
 
   let equal = Bdd.equal
   let compare = Bdd.compare
+  let hash = Bdd.hash
 end

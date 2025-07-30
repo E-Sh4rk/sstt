@@ -171,16 +171,15 @@ module Make(VO:VarOrder) = struct
 
   end
 
-  module VDSet = Set.Make(VDescr)
-  module VDMap = Map.Make(VDescr)
+  module VDHash = Hashtbl.Make (VDescr)
 
   let norm memo delta t =
     let rec norm_ty t =
       let vd = Ty.def t in
-      match VDMap.find_opt vd !memo with
+      match VDHash.find_opt memo vd  with
       | Some cstr -> cstr
       | None -> 
-        memo := VDMap.add vd CSS.any !memo;
+        VDHash.add memo vd CSS.any;
         let res =
           if VarSet.subset (Ty.vars t) delta then
             (* Optimisation: performing tallying on an expression with
@@ -190,7 +189,7 @@ module Make(VO:VarOrder) = struct
             let summands = vd |> VDescr.dnf |> VDescr.Dnf.simplify in
             summands |> CSS.map_conj delta norm_summand
         in
-        memo := VDMap.add vd res !memo; res
+        VDHash.replace memo vd res; res
     and norm_summand summand =
       match Toplevel.extract_smallest delta summand with
       | None ->
@@ -297,21 +296,23 @@ module Make(VO:VarOrder) = struct
     (* Step1 from the paper is useless, since the ConstrSet maintains
        merged constraints
     *)
-    let rec step2 m prev (cs : CS.t) =
+    let memo_ty = VDHash.create 8 in
+    let rec step2 prev (cs : CS.t) =
       match cs with
       | CS.[] -> prev |> CSS.singleton
       | ((t',_, t) as constr) :: cs' ->
         let ty = Ty.diff t' t in
-        if VDSet.mem (Ty.def ty) m then
-          step2 m (CS.add delta constr prev) cs'
+        if VDHash.mem memo_ty (Ty.def ty) then
+          step2 (CS.add delta constr prev) cs'
         else
-          let m = VDSet.add (Ty.def ty) m in
+          let () = VDHash.add memo_ty (Ty.def ty) () in
           let css = norm memo delta ty in
           let css' = cs |> CS.cap delta prev |> CSS.singleton in
           let css = CSS.cap delta css css' in
-          css |> CSS.to_list |> List.map (step2 m CS.any) |> CSS.disj
+          let res = css |> CSS.to_list |> List.map (step2 CS.any) |> CSS.disj in
+          VDHash.remove memo_ty (Ty.def ty); res
     in
-    step2 (VDSet.empty) CS.any cs
+    step2 CS.any cs
 
   let solve cs =
     let renaming = ref Subst.identity in
@@ -334,7 +335,7 @@ module Make(VO:VarOrder) = struct
 
   let tally delta cs =
     let delta = VarSet.of_list delta in
-    let memo = ref VDMap.empty in
+    let memo = VDHash.create 16 in
     let ncss = cs
                |> CSS.map_conj delta (fun (s,t) -> norm memo delta (Ty.diff s t)) in
     let mcss = ncss

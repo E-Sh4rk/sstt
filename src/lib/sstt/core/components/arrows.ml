@@ -12,6 +12,7 @@ module Atom(N:Node) = struct
   let compare (s1,t1) (s2,t2) =
     N.compare s1 s2 |> ccmp
       N.compare t1 t2
+  let hash (n1, n2) = Hash.mix (N.hash n1) (N.hash n2)
 end
 
 module Make(N:Node) = struct
@@ -29,7 +30,6 @@ module Make(N:Node) = struct
   let cup = Bdd.cup
   let neg = Bdd.neg
   let diff = Bdd.diff
-
   let rec psi t1 t2 ps =
     N.is_empty t1 || N.is_empty t2 ||
     match ps with
@@ -71,4 +71,6 @@ module Make(N:Node) = struct
 
   let equal = Bdd.equal
   let compare = Bdd.compare
+  let hash = Bdd.hash
+
 end
