@@ -1,6 +1,5 @@
 open Js_of_ocaml
-open Sstt_repl.Main
-open Sstt_repl.Parsing
+open Sstt_repl
 open Output
 
 module Html = Dom_html

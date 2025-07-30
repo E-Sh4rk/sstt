@@ -1,4 +1,4 @@
-open Parsing.Ast
+open Ast
 open Sstt
 
 val empty_env : env

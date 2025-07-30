@@ -1,5 +1,4 @@
-open Sstt_repl.Main
-open Sstt_repl.Parsing
+open Sstt_repl
 open Output
 
 let () =

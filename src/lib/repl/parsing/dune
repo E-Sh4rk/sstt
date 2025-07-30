@@ -5,10 +5,3 @@
  (explain true)
  ; (flags --table)
  )
-
-(rule
- (target version.ml)
- (action
-  (write-file
-   %{target}
-   "let version = \"%{version:sstt}\"\nlet compiler = \"%{ocaml_version}\"\nlet commit = \"%{env:COMMIT=N/A}\"\n")))

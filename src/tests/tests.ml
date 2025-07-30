@@ -1,6 +1,5 @@
 open Sstt
-open Sstt_repl.Parsing
-open Sstt_repl.Main
+open Sstt_repl
 
 let%expect_test "tests" =
   let fn = "tests.txt" in
