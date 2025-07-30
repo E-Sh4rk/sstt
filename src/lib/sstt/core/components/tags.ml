@@ -1,10 +1,8 @@
+open Base
 open Sigs
 open Sstt_utils
 
-module Tag = Id.NamedIdentifier()
-
 module Atom(N:Node) = struct
-  module Tag = Tag
   type node = N.t
   type t = Tag.t * node
   let tag (tag,_) = tag
@@ -22,7 +20,6 @@ end
 module MakeC(N:Node) = struct
   module Atom = Atom(N)
   module Bdd = Bdd.Make(Atom)(Bdd.BoolLeaf)
-  module Tag = Atom.Tag
   module Index = Tag
 
   type t = Tag.t * Bdd.t

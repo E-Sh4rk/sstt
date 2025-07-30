@@ -638,12 +638,11 @@ module type Tuples = sig
                               and type comp := Comp.t
 
 end
+
 (* Tags *)
 
 module type TagAtom = sig
   type node
-
-  module Tag : Id.NamedIdentifier
 
   type t = Tag.t * node
   include Comparable with type t := t
@@ -662,8 +661,6 @@ module type TagComp = sig
   include ComponentBase with type t := t
                          and type node := node
                          and module type Atom := (TagAtom with type node := node)
-
-  module Tag = Atom.Tag
 
   (**@inline*)
   include ConstrComponentOps with type t := t
@@ -705,7 +702,7 @@ module type Tags = sig
   (** @inline *)
   include ComponentFamilyOps with type t := t
                               and type node := node
-                              and type index := Comp.Tag.t
+                              and type index := Tag.t
                               and type atom := Comp.Atom.t
                               and type comp := Comp.t
 
@@ -908,7 +905,6 @@ module type VDescr = sig
   val map_nodes : (node -> node) -> t -> t
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
 
-
 end
 
 (* Nodes (internal signature, not exposed to the user) *)
@@ -962,6 +958,7 @@ module type Node = sig
   val any : t
   val empty : t
 end
+
 (* Ty *)
 
 module type Ty = sig

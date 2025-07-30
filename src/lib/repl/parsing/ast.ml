@@ -3,7 +3,7 @@ open Sstt
 
 type builtin =
   | TEmpty | TAny | TAnyTuple | TAnyEnum | TAnyTag | TAnyInt
-  | TAnyArrow | TAnyRecord | TAnyTupleComp of int | TAnyTagComp of TagComp.Tag.t
+  | TAnyArrow | TAnyRecord | TAnyTupleComp of int | TAnyTagComp of Tag.t
 type varop = TTuple
 type binop = TCap | TCup | TDiff | TArrow
 type unop = TNeg
@@ -43,7 +43,7 @@ type command = Elt of elt | End
 module StrMap = Map.Make(String)
 
 type env = { eenv : Enums.Atom.t StrMap.t ;
-             tagenv : TagComp.Tag.t StrMap.t ;
+             tagenv : Tag.t StrMap.t ;
              tenv : Ty.t StrMap.t ;
              venv : Var.t StrMap.t ;
              mvenv : Var.t StrMap.t ;
@@ -118,7 +118,7 @@ let tag env str ty =
   match StrMap.find_opt str env.tagenv with
   | Some t -> Descr.mk_tag (t, ty) |> Ty.mk_descr, env
   | None ->
-    let t = TagComp.Tag.mk str in
+    let t = Tag.mk str in
     let tagenv = StrMap.add str t env.tagenv in
     let env = { env with tagenv } in
     Descr.mk_tag (t, ty) |> Ty.mk_descr, env  

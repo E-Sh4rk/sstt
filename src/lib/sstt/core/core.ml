@@ -133,7 +133,3 @@ module type NamedIdentifier = Id.NamedIdentifier
 
 (** @inline *) 
 include Base
-
-(** @canonical Sstt.Tag *)
-module Tag = Tags.Comp.Atom.Tag
-(** Tags used for tagged type (an alias of {!TagComp.Atom.Tag}). *)

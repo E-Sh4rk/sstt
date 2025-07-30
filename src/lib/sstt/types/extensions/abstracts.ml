@@ -142,12 +142,12 @@ let to_t tstruct : t =
 
 open Prec
 
-type printer = TagComp.Tag.t -> int -> assoc -> Format.formatter -> t -> unit
+type printer = Tag.t -> int -> assoc -> Format.formatter -> t -> unit
 
 let print tag prec assoc fmt t =
   let print_atom fmt params =
     let sym,prec',_ = varop_info Tuple in
-    Format.fprintf fmt "%a(%a)" TagComp.Tag.pp tag
+    Format.fprintf fmt "%a(%a)" Tag.pp tag
       (print_seq (Printer.print_descr_ctx prec' NoAssoc) sym) params
   in
   let print_lit prec assoc fmt (pos,params) =
@@ -161,7 +161,7 @@ let print tag prec assoc fmt t =
     let ps, ns = List.map (fun d -> true, d) ps, List.map (fun d -> false, d) ns in
     let sym,prec',_ as opinfo = varop_info Cap in
     fprintf prec assoc opinfo fmt "%s%s%a"
-      (if ps = [] then TagComp.Tag.name tag else "")
+      (if ps = [] then Tag.name tag else "")
       (if ps = [] && ns <> [] then sym else "")
       (print_seq (print_lit prec' NoAssoc) sym) (ps@ns)
   in
@@ -169,7 +169,7 @@ let print tag prec assoc fmt t =
   fprintf prec assoc opinfo fmt "%a" (print_seq (print_line prec' NoAssoc) sym) t
 
 let define printer name (vs:variance list) =
-  let tag = TagComp.Tag.mk name in
+  let tag = Tag.mk name in
   Hashtbl.add atypes tag vs ;
   let printer_params = {
     Printer.aliases = [] ;

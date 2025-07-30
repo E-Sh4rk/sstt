@@ -43,7 +43,6 @@ module OTy(N:Node) = struct
 end
 
 module Atom(N:Node) = struct
-  module Label = Label
   module OTy = OTy(N)
 
   type node = N.t
@@ -82,7 +81,6 @@ module Atom(N:Node) = struct
 end
 
 module Atom'(N:Node) = struct
-  module Label = Label
   module OTy = OTy(N)
 
   type node = N.t

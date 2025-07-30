@@ -11,6 +11,12 @@ module LabelSet = Set.Make(Label)
 module LabelMap = Map.Make(Label)
 (** Maps indexed by labels. *)
 
+
+(** @canonical Sstt.Tag *)
+module Tag = Id.NamedIdentifier()
+(** Tags used for tagged type. *)
+
+
 (** @canonical Sstt.Var *)
 module Var = Id.NamedIdentifier()
 (** Type variables. *)

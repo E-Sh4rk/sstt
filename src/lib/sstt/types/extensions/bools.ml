@@ -1,6 +1,6 @@
 open Core
 
-let tag = TagComp.Tag.mk "bool"
+let tag = Tag.mk "bool"
 
 let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
 let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag

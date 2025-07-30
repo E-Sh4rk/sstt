@@ -234,7 +234,7 @@ let merge_params = List.fold_left merge_params empty_params
 
 type ctx = {
   mutable nodes : NodeId.t VDMap.t ;
-  aliases : (Ty.t * (TagComp.Tag.t * custom') op') list ;
+  aliases : (Ty.t * (Tag.t * custom') op') list ;
   extensions : (module PrinterExt) TagMap.t ;
 }
 
@@ -560,7 +560,7 @@ let print_builtin fmt b =
     | AnyArrow -> "arrow"
     | AnyRecord -> "record"
     | AnyTupleComp i -> "tuple"^(string_of_int i)
-    | AnyTagComp t -> (TagComp.Tag.name t)^"(any)"
+    | AnyTagComp t -> (Tag.name t)^"(any)"
   in
   Format.fprintf fmt "%s" str
 
@@ -590,7 +590,7 @@ let rec print_descr prec assoc fmt d =
     | Enum a -> Format.fprintf fmt "%a" Enums.Atom.pp a
     | Tag (t,d) ->
       Format.fprintf fmt "%a(%a)"
-        TagComp.Tag.pp t print_descr' d
+        Tag.pp t print_descr' d
     | Interval (lb,ub) -> Format.fprintf fmt "%a" print_interval (lb,ub)
     | Record (bindings,opened) ->
       let print_binding fmt (l,d,b) =
