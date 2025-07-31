@@ -135,19 +135,12 @@ include (struct
 
     let of_def d = d |> cons
 
-    let cap t1 t2 =
-      if t1 == empty || t2 == empty then empty
-      else if t1 == any then t2
-      else if t2 == any then t1
-      else
-        VDescr.cap (def t1) (def t2) |> cons
+    let dcap t1 t2 = VDescr.cap (def t1) (def t2) |> cons
+    let cap = fcap ~empty ~any ~cap:dcap
 
-    let cup t1 t2 =
-      if t1 == any || t2 == any then any
-      else if t1 == empty then t2
-      else if t2 == empty then t1
-      else
-        VDescr.cup (def t1) (def t2) |> cons
+    let dcup t1 t2 = VDescr.cup (def t1) (def t2) |> cons
+    let cup = fcup ~empty ~any ~cup:dcup
+
     let neg t =
       match t.neg with
       | Some s -> s
@@ -157,13 +150,10 @@ include (struct
         t.neg <- Some s;
         s.neg <- Some t;
         s
+    let neg = fneg ~empty ~any ~neg
 
-    let diff t1 t2 =
-      if t1 == empty || t2 == any then empty
-      else if t1 == any then neg t2
-      else if t2 == empty then t1
-      else
-        VDescr.diff (def t1) (def t2) |> cons
+    let fdiff t1 t2 = VDescr.diff (def t1) (def t2) |> cons
+    let diff = fdiff_neg ~empty ~any ~neg ~diff:fdiff
 
     let conj ts = List.fold_left cap any ts
     let disj ts = List.fold_left cup empty ts

@@ -1,3 +1,4 @@
+open Sstt_utils
 module Atom = Id.NamedIdentifier ()
 
 type t = Pos of (Atom.t*int) list | Neg of (Atom.t * int) list
@@ -54,16 +55,20 @@ let cap t1 t2 =
   | Pos p1, Pos p2 -> Pos (inter_list p1 p2)
   | Neg n1, Neg n2 -> Neg (union_list n1 n2)
   | Pos p, Neg n | Neg n, Pos p -> Pos (diff_list p n)
+let cap = fcap ~empty ~any ~cap
 let cup t1 t2 =
   match t1, t2 with
   | Pos p1, Pos p2 -> Pos (union_list p1 p2)
   | Neg n1, Neg n2 -> Neg (inter_list n1 n2)
   | Pos p, Neg n | Neg n, Pos p -> Neg (diff_list n p)
+
+let cup = fcup ~empty ~any ~cup
 let neg = function
   | Pos s -> Neg s
   | Neg s -> Pos s
+let neg t = fneg t ~empty ~any ~neg
 let diff t1 t2 = cap t1 (neg t2)
-
+let diff = fdiff ~empty ~any ~diff 
 let is_any = function
   | Neg [] -> true
   | _  -> false

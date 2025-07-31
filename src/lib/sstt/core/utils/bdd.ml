@@ -86,16 +86,14 @@ module Make(N:Atom)(L:Leaf) = struct
     else if equal t any then any
     else t
 
-  let rec neg t =
-    if t == empty then any
-    else if t == any then empty
-    else
-      match t with
-      | Leaf (l, _) -> leaf (L.neg l)
-      | Node (a, p, n, _) ->
-        node a (neg p) (neg n)
+  let rec neg_rec t =
+    match t with
+    | Leaf (l, _) -> leaf (L.neg l)
+    | Node (a, p, n, _) ->
+      node a (neg p) (neg n)
+  and neg t = fneg ~empty ~any ~neg:neg_rec t
 
-  let rec op t1 t2 lop nop =
+  let rec op lop nop t1 t2 =
     match t1, t2 with
     | Leaf (l1, _), Leaf (l2,_) -> leaf (lop l1 l2)
     | Leaf _, Node (a,p,n, _) ->
@@ -108,21 +106,12 @@ module Make(N:Atom)(L:Leaf) = struct
       else if n > 0 then node a2 (nop t1 p2) (nop t1 n2)
       else
         node a1 (nop p1 p2) (nop n1 n2)
-  and cap t1 t2 =
-    if t1 == empty || t2 == empty then empty
-    else if t2 == any || t1 == t2 then t1
-    else if t1 == any then t2
-    else op t1 t2 L.cap cap
-  and cup t1 t2 =
-    if t1 == any || t2 == any then any
-    else if t2 == empty || t1 == t2 then t1
-    else if t1 == empty then t2
-    else op t1 t2 L.cup cup
-  and diff t1 t2 =
-    if t1 == empty || t2 == any || t1 == t2 then empty
-    else if t2 == empty then t1
-    else if t1 == any then neg t2
-    else op t1 t2 L.diff diff
+  and ocap t1 t2 = op L.cap cap t1 t2
+  and cap t1 t2 = fcap ~empty ~any ~cap:ocap t1 t2
+  and ocup t1 t2 = op L.cup cup t1 t2
+  and cup t1 t2 = fcup ~empty ~any ~cup:ocup t1 t2
+  and odiff t1 t2 = op L.diff diff t1 t2
+  and diff t1 t2 = fdiff_neg ~empty ~any ~neg ~diff:odiff t1 t2
 
   let compare_to_atom a t =
     match t with

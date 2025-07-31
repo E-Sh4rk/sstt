@@ -109,7 +109,7 @@ let rec ( @:: ) (a, b) l =
     else  (a,b) $:: l
 
 
-let rec cup i1 i2 =
+let rec cup_rec i1 i2 =
   let open Number in
   match i1, i2 with
   | [], l | l, [] -> l
@@ -121,8 +121,9 @@ let rec cup i1 i2 =
       if b1 < b2 then cup ii1 ((u, b2) @:: ii2)
       else if b1 = b2 then (u, b1) @:: cup ii1 ii2
       else cup ((u, b1) @:: ii1) ii2
+and cup t1 t2 = fcup ~empty ~any ~cup:cup_rec t1 t2 
 
-let rec cap i1 i2 =
+let rec cap_rec i1 i2 =
   let open Number in
   match i1, i2 with
   | [], _ | _, [] -> []
@@ -134,8 +135,9 @@ let rec cap i1 i2 =
       if b1 < b2 then (u, b1) @:: cap ii1 ((succ b1, b2) @:: ii2)
       else if b1 = b2 then (u, b1) @:: cap ii1 ii2
       else (u, b2) @:: cap ((succ b2, b1) @:: ii1) ii2
+and cap t1 t2 = fcap ~empty ~any ~cap:cap_rec t1 t2
 
-let rec diff i1 i2 =
+let rec diff_rec i1 i2 =
   let open Number in
   match i1, i2 with
   | ([] as l), _ | l, [] -> l
@@ -147,8 +149,11 @@ let rec diff i1 i2 =
     else if (* a1 < a2 *)
       b2 >= b1 then diff ((a1, pred a2) @:: ii1) i2
     else diff ((a1, pred a2) @:: (succ b2, b1) @:: ii1) ii2
+and diff t1 t2 = fdiff ~empty ~any ~diff:diff_rec t1 t2 
 
 let neg i = diff any i
+let neg = fneg ~empty ~any ~neg
+
 let of_list l =
   (* To avoid a quadratic behaviour if building from
      the smallest interval to the largest *)

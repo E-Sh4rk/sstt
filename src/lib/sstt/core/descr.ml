@@ -104,12 +104,11 @@ module Make(N:Node) = struct
     intervals = fint t1.intervals t2.intervals
   }
 
-  let cap = binop Enums.cap Tags.cap Tuples.cap Arrows.cap Records.cap Intervals.cap
-  let cup = binop Enums.cup Tags.cup Tuples.cup Arrows.cup Records.cup Intervals.cup
-  let diff = binop Enums.diff Tags.diff Tuples.diff Arrows.diff Records.diff Intervals.diff
-  let neg = unop Enums.neg Tags.neg Tuples.neg Arrows.neg Records.neg Intervals.neg
-
-  let is_empty t =
+  let cap = fcap ~empty ~any ~cap:(binop Enums.cap Tags.cap Tuples.cap Arrows.cap Records.cap Intervals.cap)
+  let cup = fcup ~empty ~any ~cup:(binop Enums.cup Tags.cup Tuples.cup Arrows.cup Records.cup Intervals.cup)
+  let diff = fdiff ~empty ~any ~diff:(binop Enums.diff Tags.diff Tuples.diff Arrows.diff Records.diff Intervals.diff)
+  let neg = fneg ~empty ~any ~neg:(unop Enums.neg Tags.neg Tuples.neg Arrows.neg Records.neg Intervals.neg)
+  let is_empty t = t == empty ||
     Enums.is_empty t.enums &&
     Intervals.is_empty t.intervals &&
     Tags.is_empty t.tags &&

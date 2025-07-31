@@ -155,3 +155,29 @@ let find_opt_of_iter2 (type a b) (f : a -> b -> bool) it col =
   let exception Found of (a*b) in
   try it (fun x y -> if f x y then raise_notrace (Found (x,y))) col; None with
   | Found e -> Some e
+
+let[@inline always] fcup ~empty ~any ~cup t1 t2 =
+  if t1 == any || t1 == t2 || t2 == empty then t1
+  else if t2 == any || t1 == empty then t2
+  else cup t1 t2
+
+let[@inline always] fcap ~empty ~any ~cap t1 t2 =
+  if t1 == empty || t1 == t2 || t2 == any then t1
+  else if t2 == empty || t1 == any then t2
+  else cap t1 t2
+
+let[@inline always] fneg ~empty ~any ~neg t =
+  if t == empty then any
+  else if t == any then empty
+  else neg t
+
+let[@inline always] fdiff ~empty ~any ~diff t1 t2 =
+  if t1 == empty || t1 == t2 || t2 == any then empty
+  else if t2 == empty then t1
+  else diff t1 t2
+
+let[@inline always] fdiff_neg ~empty ~any ~neg ~diff t1 t2 =
+  if t1 == empty || t1 == t2 || t2 == any then empty
+  else if t2 == empty then t1
+  else if t1 == any then neg t2
+  else diff t1 t2

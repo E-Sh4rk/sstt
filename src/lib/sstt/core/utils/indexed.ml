@@ -57,6 +57,7 @@ module Make(C : IdxComp) = struct
     let map = HList.map C.neg t.map in
     { map ; others }
 
+  let neg = fneg ~empty ~any ~neg
   let [@inline always] (@?) o l =
     match o with
       None -> l
@@ -88,6 +89,7 @@ module Make(C : IdxComp) = struct
       (if t2.others then Option.some else cst_none)
       C.cap
       (&&) t1 t2
+  let cap = fcap ~empty ~any ~cap
   let cup t1 t2 =
     op 
       (if t1.others then cst_nil else Fun.id)
@@ -96,6 +98,7 @@ module Make(C : IdxComp) = struct
       (if t2.others then cst_none else Option.some)
       C.cup
       (||) t1 t2
+  let cup = fcup  ~empty ~any ~cup
   let diff t1 t2 =
     op 
       (if t1.others then HList.map C.neg else cst_nil)
@@ -104,6 +107,8 @@ module Make(C : IdxComp) = struct
       (if not t2.others then Option.some else cst_none)
       C.diff
       (fun b1 b2 -> b1 && not b2) t1 t2
+
+  let diff = fdiff_neg ~empty ~any ~neg ~diff
   let is_empty t =
     not t.others && HList.for_all C.is_empty t.map
 
