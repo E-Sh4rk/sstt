@@ -1,25 +1,25 @@
 open Core
 open Sstt_utils
 
-module VDMap = Map.Make(VDescr)
+module VDHash = Hashtbl.Make(VDescr)
 
 type ctx = {
-  mutable cache : Var.t VDMap.t ;
+  cache : Var.t VDHash.t ;
   mutable eqs : (Var.t * Ty.t) list
 }
 
 let transform f t =
   let ctx = {
-    cache = VDMap.empty ;
+    cache = VDHash.create 8 ;
     eqs = []
   } in
   let rec aux t =
     let vd = Ty.def t in
-    match VDMap.find_opt vd ctx.cache with
+    match VDHash.find_opt ctx.cache vd with
     | Some v -> v
     | None ->
       let v = Var.mk "" in
-      ctx.cache <- VDMap.add vd v ctx.cache ;
+      VDHash.add ctx.cache vd v ;
       let vd = f vd |> VDescr.map_nodes aux_ty in
       ctx.eqs <- (v, Ty.of_def vd)::ctx.eqs ;
       v
@@ -32,11 +32,11 @@ let transform f t =
 
 let regroup_arrows conjuncts =
   let merge_conjuncts (l,r) (l',r') =
-      if Ty.equiv l l'
-      then Some (l, Ty.cap r r')
-      else if Ty.equiv r r'
-      then Some (Ty.cup l l', r)
-      else None
+    if Ty.equiv l l'
+    then Some (l, Ty.cap r r')
+    else if Ty.equiv r r'
+    then Some (Ty.cup l l', r)
+    else None
   in
   merge_when_possible merge_conjuncts conjuncts
 let regroup_arrows (ps,ns,b) =
@@ -58,11 +58,11 @@ let regroup_records (ps,ns,b) =
   let open Records.Atom in
   (* Convert negative atoms to positive ones when possible *)
   let ps',ns = ns |> List.partition_map (fun r ->
-    match LabelMap.to_list r.bindings with
-    | [lbl,oty] when r.opened ->
-      Either.Left ({ r with bindings=LabelMap.singleton lbl (Ty.O.neg oty) })
-    | _ -> Either.Right r
-  ) in
+      match LabelMap.to_list r.bindings with
+      | [lbl,oty] when r.opened ->
+        Either.Left ({ r with bindings=LabelMap.singleton lbl (Ty.O.neg oty) })
+      | _ -> Either.Right r
+    ) in
   (* Regroup positive conjuncts *)
   (regroup_records (ps'@ps), ns, b)
 let merge_record_lines (ps1,ns1,b1) (ps2,ns2,b2) =
@@ -70,9 +70,9 @@ let merge_record_lines (ps1,ns1,b1) (ps2,ns2,b2) =
   match ps1, ps2, ns1, ns2 with
   | [p1], [p2], [], [] when b1=b2 && p1.opened=p2.opened ->
     begin match LabelMap.to_list p1.bindings, LabelMap.to_list p2.bindings with
-    | [lbl1,oty1], [lbl2,oty2] when Label.equal lbl1 lbl2 ->
-      Some ([{ p1 with bindings=LabelMap.singleton lbl1 (Ty.O.cup oty1 oty2) }],[],b1)
-    | _, _ -> None
+      | [lbl1,oty1], [lbl2,oty2] when Label.equal lbl1 lbl2 ->
+        Some ([{ p1 with bindings=LabelMap.singleton lbl1 (Ty.O.cup oty1 oty2) }],[],b1)
+      | _, _ -> None
     end
   | _, _, _, _ -> None
 
@@ -82,10 +82,10 @@ let regroup_tuples conjuncts =
 let regroup_tuples (ps,ns,b) =
   (* Convert negative atoms to positive ones when possible *)
   let ps',ns = ns |> List.partition_map (fun lst ->
-    match lst with
-    | [ty] -> Either.Left [Ty.neg ty]
-    | _ -> Either.Right lst
-  ) in
+      match lst with
+      | [ty] -> Either.Left [Ty.neg ty]
+      | _ -> Either.Right lst
+    ) in
   (* Regroup positive conjuncts *)
   (regroup_tuples (ps'@ps), ns, b)
 let merge_tuple_lines (ps1,ns1,b1) (ps2,ns2,b2) =
@@ -110,13 +110,13 @@ let simpl_tags t = Tags.map (fun c -> TagComp.as_atom c |> TagComp.mk) t
 let simpl_descr d =
   let open Descr in
   d |> components |> List.map (function
-    | Intervals i -> Intervals i
-    | Enums e -> Enums e
-    | Tags t -> Tags (simpl_tags t)
-    | Arrows a -> Arrows (simpl_arrows a)
-    | Tuples t -> Tuples (simpl_tuples t)
-    | Records r -> Records (simpl_records r)
-  ) |>  Descr.of_components
+      | Intervals i -> Intervals i
+      | Enums e -> Enums e
+      | Tags t -> Tags (simpl_tags t)
+      | Arrows a -> Arrows (simpl_arrows a)
+      | Tuples t -> Tuples (simpl_tuples t)
+      | Records r -> Records (simpl_records r)
+    ) |>  Descr.of_components
 
 let simpl_vdescr = VDescr.map simpl_descr
 

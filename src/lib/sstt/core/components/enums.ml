@@ -1,45 +1,51 @@
-module Atom = Id.NamedIdentifier( )
+module Atom = Id.NamedIdentifier ()
 
-type t = Pos of Atom.t list | Neg of Atom.t list
+type t = Pos of (Atom.t*int) list | Neg of (Atom.t * int) list
 
+module HList = Hash.List(Atom)
+let hash = function
+    Neg l -> Hash.(mix const1 (HList.hash l))
+  | Pos l -> Hash.(mix const2 (HList.hash l))
 let any = Neg []
 let empty = Pos []
 
-let mk e = Pos [e]
+let ($::) = HList.($::)
+let mk e = Pos (e $:: [])
 let construct (n,es) =
-  let es = List.sort_uniq Atom.compare es in
+  let es = List.sort_uniq (fun a b -> Atom.compare b a) es in
+  let es = List.fold_left (fun acc e -> e $:: acc) [] es in
   if n then Pos es else Neg es
 
 let destruct t = match t with
-  | Pos s -> true, s
-  | Neg s -> false, s
+  | Pos s -> true, List.map fst s
+  | Neg s -> false, List.map fst s
 
 let rec union_list l1 l2 =
   match l1, l2 with
     [], _ -> l2
   | _, [] -> l1
-  | a1 :: ll1, a2 :: ll2 ->
+  | (a1,_) :: ll1, (a2,_) :: ll2 ->
     let n = Atom.compare a1 a2 in
-    if n < 0 then a1 :: union_list ll1 l2
-    else if n = 0 then a1 :: union_list ll1 ll2
-    else a2 :: union_list l1 ll2
+    if n < 0 then a1 $:: union_list ll1 l2
+    else if n = 0 then a1 $:: union_list ll1 ll2
+    else a2 $:: union_list l1 ll2
 
 let rec inter_list l1 l2 =
   match l1, l2 with
     [], _ | _, [] -> []
-  | a1 :: ll1, a2::ll2 ->
+  | (a1,_) :: ll1, (a2,_)::ll2 ->
     let n = Atom.compare a1 a2 in
     if n < 0 then inter_list ll1 l2
-    else if n = 0 then a1 :: inter_list ll1 ll2
+    else if n = 0 then a1 $:: inter_list ll1 ll2
     else inter_list l1 ll2
 
 let rec diff_list l1 l2 =
   match l1, l2 with
     [], _ -> []
   | _, [] -> l1
-  | a1 :: ll1, a2 :: ll2 ->
+  | (a1,_) :: ll1, (a2,_) :: ll2 ->
     let n = Atom.compare a1 a2 in
-    if n < 0 then a1 :: diff_list ll1 l2
+    if n < 0 then a1 $:: diff_list ll1 l2
     else if n = 0 then diff_list ll1 ll2
     else diff_list l1 ll2
 
@@ -65,12 +71,11 @@ let is_any = function
 let is_empty = function
   | Pos [] -> true
   | _ -> false
-
 let compare t1 t2 =
   match t1, t2 with
   | Pos _, Neg _ -> 1
   | Neg _, Pos _ -> -1
-  | Pos s1, Pos s2 | Neg s1, Neg s2 -> List.compare Atom.compare s1 s2
+  | Pos s1, Pos s2 | Neg s1, Neg s2 -> HList.compare s1 s2
 let equal t1 t2 = compare t1 t2 == 0
 
 let direct_nodes _ = []

@@ -45,6 +45,10 @@ module Make(N:Node) = struct
     intervals = Intervals.empty
   }
 
+  let hash t =
+    Hash.(mix 
+            (mix3 (Enums.hash t.enums) (Intervals.hash t.intervals) (Arrows.hash t.arrows))    
+            (mix3 (Records.hash t.records) (Tuples.hash t.tuples) (Tags.hash t.tags)))
   let mk_enums a = { empty with enums = a }
   let mk_tags a = { empty with tags = a }
   let mk_arrows a = { empty with arrows = a }

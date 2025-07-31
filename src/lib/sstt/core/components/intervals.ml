@@ -42,6 +42,10 @@ struct
     function Num z -> fprintf fmt "%a" Z.pp_print z
            | _ -> () (* don't print anything, see Interval.pp below *)
 
+  let hash = function
+      NegInf -> Hash.const1
+    | PosInf -> Hash.const2
+    | Num z -> Z.hash z
 end
 
 module Interval = struct
@@ -72,17 +76,24 @@ module Interval = struct
 
   let pp fmt (o1,o2) =
     Format.fprintf fmt "(%a..%a)" Number.pp o1 Number.pp o2
+
+  let hash (b1, b2) = Hash.mix (Number.hash b1) (Number.hash b2)
 end
 
 module Atom = Interval
 type node
-type t = Interval.t list
+
+include Hash.List(Interval)
+
+let hash = function
+    [] -> Hash.const2
+  | (_, h) :: _ -> h
 
 let empty = []
-let any = [Interval.any]
-let mk i = [i]
+let any = Interval.any $:: []
+let mk i = i $:: []
 
-let destruct t = t
+let destruct t = List.map fst t 
 
 (* In all the function below, comparisons are
    those of the Number module. *)
@@ -90,19 +101,19 @@ let destruct t = t
 let rec ( @:: ) (a, b) l =
   let open Number in
   match l with
-  | [] -> [ a, b ]
-  | (c, d) :: ll ->
+  | [] -> (a,b) $:: []
+  | ((c, d),_) :: ll ->
     (* invariant, b < c *)
-    if b = PosInf then [ a, b ]
+    if b = PosInf then (a,b) $:: []
     else if succ b = c then (a, d) @:: ll
-    else (a, b) :: l
+    else  (a,b) $:: l
 
 
 let rec cup i1 i2 =
   let open Number in
   match i1, i2 with
   | [], l | l, [] -> l
-  | ((a1, b1) as c1) :: ii1, ((a2, b2) as c2) :: ii2 ->
+  | ((a1, b1) as c1,_) :: ii1, ((a2, b2) as c2,_) :: ii2 ->
     if a1 > b2 then c2 @:: cup i1 ii2
     else if a2 > b1 then c1 @:: cup ii1 i2
     else
@@ -115,7 +126,7 @@ let rec cap i1 i2 =
   let open Number in
   match i1, i2 with
   | [], _ | _, [] -> []
-  | (a1, b1) :: ii1, (a2, b2) :: ii2 ->
+  | ((a1, b1),_) :: ii1, ((a2, b2),_) :: ii2 ->
     if a1 > b2 then cap i1 ii2
     else if a2 > b1 then cap ii1 i2
     else
@@ -128,7 +139,7 @@ let rec diff i1 i2 =
   let open Number in
   match i1, i2 with
   | ([] as l), _ | l, [] -> l
-  | ((a1, b1) as c1) :: ii1, (a2, b2) :: ii2 ->
+  | ((a1, b1) as c1,_) :: ii1, ((a2, b2),_) :: ii2 ->
     if b1 < a2 then c1 @:: diff ii1 i2
     else if b2 < a1 then diff i1 ii2
     else if a2 <= a1 then
@@ -140,9 +151,9 @@ let rec diff i1 i2 =
 let neg i = diff any i
 let of_list l =
   (* To avoid a quadratic behaviour if building from
-    the smallest interval to the largest *)
+     the smallest interval to the largest *)
   l |> List.sort (fun x y -> - Interval.compare x y)
-    |> List.fold_left (fun acc a -> a@::acc) empty
+  |> List.fold_left (fun acc a -> a@::acc) empty
 
 let construct = of_list
 
@@ -153,6 +164,3 @@ let map_nodes _ t = t
 let simplify t = t
 
 let destruct_neg t = neg t |> destruct
-
-let compare = List.compare Interval.compare
-let equal l1 l2 = l1 == l2 || compare l1 l2 = 0

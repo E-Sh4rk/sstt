@@ -8,6 +8,11 @@ module type Comparable = sig
 
   val equal : t -> t -> bool
   (** Equality, [equal a b] is equivalent to [compare a b = 0]. *)
+
+  val hash : t -> int
+  (** Hashing, [hash] is consistent with equality, that is
+      [equal a b] implies [hash a = hash b].
+  *)
 end
 
 module type TyBase = sig
@@ -951,7 +956,6 @@ module type PreNode = sig
   val factorize : t -> t
   val simplify : t -> unit
 
-  val hash : t -> int
 end
 module type Node = sig
   include PreNode

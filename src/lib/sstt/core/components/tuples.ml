@@ -13,6 +13,8 @@ module Atom(N:Node) = struct
     List.equal N.equal t1 t2
   let compare t1 t2 =
     List.compare N.compare t1 t2
+
+  let hash = Hash.list N.hash 
 end
 
 module MakeC(N:Node) = struct
@@ -22,6 +24,7 @@ module MakeC(N:Node) = struct
 
   type t = int * Bdd.t
   type node = N.t
+  let hash (len, t) = Hash.mix (Hash.int len) (Bdd.hash t)
 
   let any n = n, Bdd.any
   let empty n = n, Bdd.empty
