@@ -72,8 +72,6 @@ type params = { aliases : aliases ; extensions : extensions }
 module VD = VDescr
 module D = Descr
 module VDHash = Hashtbl.Make(VD)
-
-module NIMap = Map.Make(NodeId)
 module NISet = Set.Make(NodeId)
 module TagMap = Map.Make(Tag)
 
