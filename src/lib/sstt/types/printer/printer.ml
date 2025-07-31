@@ -344,29 +344,33 @@ let resolve_records ctx a =
   in
   dnf |> List.map resolve_dnf |> union
 
-let rec resolve_custom_tagcomp f ctx env ty =
-  let vd = Ty.def ty in
-  match VDHash.find_opt env vd with
-  | Some nid -> CNode nid
-  | None ->
-    begin match f ty with
-      | None -> raise Exit
-      | Some extracted ->
-        let nid = NodeId.mk () in
-        VDHash.add env vd nid;
-        let treat_param param =
-          match param with
-          | PUnprocessed ty -> PUnprocessed ty
-          | PLeaf ty -> PLeaf (node ctx ty)
-          | PRec ty -> PRec (resolve_custom_tagcomp f ctx env ty)
-        in
-        let treat_params { pid ; pdef } =
-          { pid ; pdef=List.map treat_param pdef }
-        in
-        let union = List.map treat_params extracted in
-        VDHash.remove env vd;
-        CDef (nid, union)
-    end
+let resolve_custom_tagcomp f ctx ty =
+  let env = VDHash.create 8 in
+  let rec aux ty =
+    let vd = Ty.def ty in
+    match VDHash.find_opt env vd with
+    | Some nid -> CNode nid
+    | None ->
+      begin match f ty with
+        | None -> raise Exit
+        | Some extracted ->
+          let nid = NodeId.mk () in
+          VDHash.add env vd nid;
+          let treat_param param =
+            match param with
+            | PUnprocessed ty -> PUnprocessed ty
+            | PLeaf ty -> PLeaf (node ctx ty)
+            | PRec ty -> PRec (aux ty)
+          in
+          let treat_params { pid ; pdef } =
+            { pid ; pdef=List.map treat_param pdef }
+          in
+          let union = List.map treat_params extracted in
+          VDHash.remove env vd;
+          CDef (nid, union)
+      end
+  in
+  aux ty
 
 let resolve_tagcomp ctx a =
   let ty = Tags.mk_comp a |> D.mk_tags |> Ty.mk_descr in
@@ -379,7 +383,7 @@ let resolve_tagcomp ctx a =
       match handlers with
       | [] -> tag t (node ctx ty')
       | f::handlers ->
-        try { op = Custom (t, resolve_custom_tagcomp f ctx (VDHash.create 8) ty') ; ty }
+        try { op = Custom (t, resolve_custom_tagcomp f ctx ty') ; ty }
         with Exit -> aux handlers
     in
     aux handlers
