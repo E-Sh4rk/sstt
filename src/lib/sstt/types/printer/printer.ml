@@ -366,6 +366,7 @@ let rec resolve_custom_tagcomp f ctx env ty =
           { pid ; pdef=List.map treat_param pdef }
         in
         let union = List.map treat_params extracted in
+        VDHash.remove env vd;
         CDef (nid, union)
     end
 
