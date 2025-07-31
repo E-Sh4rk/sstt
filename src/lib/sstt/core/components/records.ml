@@ -51,7 +51,9 @@ module Atom(N:Node) = struct
   type nonrec oty = node * bool
   type t = { bindings : oty LabelMap.t ; opened : bool }
 
-  let hash t = (* TODO FIX *)
+  let hash t = (* This hashing is not incremental and could hurt performances
+                  if we make heavy use of records (t.bindings is traversed by
+                  the polymorphic Hash function) *)
     Hash.(mix (bool t.opened) (Hashtbl.hash t.bindings))
   let map_nodes f t =
     { t with bindings = LabelMap.map (OTy.map_nodes f) t.bindings }
@@ -91,7 +93,7 @@ module Atom'(N:Node) = struct
   type node = N.t
   type nonrec oty = node * bool
   type t = { bindings : oty LabelMap.t ; opened : bool ; required : LabelSet.t option }
-  let hash t = (* TODO FIX *)
+  let hash t = (* Same remark as OTY.hash *)
     Hash.(mix3 (bool t.opened) (Hashtbl.hash t.bindings) (Hashtbl.hash t.required))
 
   let dom t = LabelMap.bindings t.bindings |> List.map fst |> LabelSet.of_list

@@ -15,13 +15,6 @@ module type Comparable = sig
   *)
 end
 
-module type ComparableH = sig
-  type t
-  include Comparable with type t := t
-  val hash : t -> int
-
-end
-
 module type TyBase = sig
   type t
 
@@ -963,7 +956,6 @@ module type PreNode = sig
   val factorize : t -> t
   val simplify : t -> unit
 
-  val hash : t -> int
 end
 module type Node = sig
   include PreNode

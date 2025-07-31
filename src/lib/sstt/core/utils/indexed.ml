@@ -4,7 +4,7 @@ open Sstt_utils
 module type IdxComp = sig
   type t
   type node
-  module Index : ComparableH
+  module Index : Comparable
   val any : Index.t -> t
   val empty : Index.t -> t
   val index : t -> Index.t

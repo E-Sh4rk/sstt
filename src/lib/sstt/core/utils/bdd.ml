@@ -238,10 +238,6 @@ module Make(N:Atom)(L:Leaf) = struct
     | (false, a)::ctx -> to_t ctx (hnode a t empty)
     | (true, a)::ctx -> to_t ctx (hnode a empty t)
 
-  module Memo = Hashtbl.Make(struct type nonrec t = t * t 
-      let equal (t1, t2) (s1, s2) = equal t1 s1 && equal s2 t2
-      let hash (t1, t2) = Hash.mix (hash t1) (hash t2) 
-    end)
 
   let simplify eq t =
     let rec aux ctx t =
