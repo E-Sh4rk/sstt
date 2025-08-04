@@ -108,7 +108,8 @@ include (struct
     (* The PreNode module that contain the entry points of all functions on types. *)
     module NMap = Map.Make(PreNode)
     module VDMap = Map.Make(VDescr)
-    type _ Effect.t += GetCache: (bool VDMap.t ref) t
+    module Table = Bttable.Make(VDescr)(Bool)
+    type _ Effect.t += GetCache: (Table.t) t
 
     type vdescr = VDescr.t
     type descr = VDescr.Descr.t
@@ -159,9 +160,8 @@ include (struct
     let disj ts = List.fold_left cup empty ts
 
     let get_cache () = perform GetCache
-
     let with_own_cache f t =
-      let cache = ref VDMap.empty in
+      let cache = Table.create () in
       match f t with
         x -> x
       | effect GetCache, k -> continue k cache
@@ -172,13 +172,11 @@ include (struct
         VDescr.equal def VDescr.empty
       else
         let cache = get_cache () in
-        let old_cache = !cache in
-        begin match VDMap.find_opt def old_cache with
+        begin match Table.find ~default:true cache def with
           | Some b -> b
           | None ->
-            cache := VDMap.add def true old_cache;
             let b = VDescr.is_empty def in
-            if not b then cache := VDMap.add def false old_cache;
+            Table.update cache def b;
             b
         end
 
