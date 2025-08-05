@@ -2,6 +2,8 @@ open Core
 open Sstt_utils
 
 type variance = Cov | Contrav | Inv
+type 't params = 't list
+type 't t = ('t params list * 't params list) list
 
 let atypes = Hashtbl.create 256
 
@@ -112,14 +114,14 @@ let extract tag ty =
     ) |> List.flatten in
     Some ps
 
-let destruct comp =
+let destruct_tagcomp comp =
   let (tag, ty) = TagComp.as_atom comp in
   Option.map (fun x -> (tag, x)) (destruct tag ty)
+let destruct tag ty =
+  let ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag |> TagComp.as_atom |> snd in
+  destruct tag ty
 
-type params = Printer.descr list
-type t = (params list * params list) list
-
-let to_t tstruct : t =
+let to_t tstruct =
   let open Printer in
   let aux_i defs i =
     let ps, ns = defs |> List.filter_map (fun {pid;pdef} ->
@@ -142,7 +144,7 @@ let to_t tstruct : t =
 
 open Prec
 
-type printer = Tag.t -> int -> assoc -> Format.formatter -> t -> unit
+type printer = Tag.t -> int -> Prec.assoc -> Format.formatter -> Printer.descr t -> unit
 
 let print tag prec assoc fmt t =
   let print_atom fmt params =
@@ -175,7 +177,7 @@ let define printer name (vs:variance list) =
     Printer.aliases = [] ;
     Printer.extensions =
       let module M = struct
-        type nonrec t = t
+        type nonrec t = Printer.descr t
         let tag = tag
         let extractors = [extract tag]
         let get = to_t
