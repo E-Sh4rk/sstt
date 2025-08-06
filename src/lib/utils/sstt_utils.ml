@@ -15,11 +15,11 @@ let[@inline always] ccmp f e1 e2 r =
 
 (* LISTS *)
 
-let rec take_one lst =
-  match lst with
-  | [] -> []
-  | e::lst ->
-    (e, lst)::(List.map (fun (e',lst) -> (e',e::lst)) (take_one lst))
+let take_one lst =
+  let[@tail_mod_cons] rec loop acc = function
+      [] -> []
+    | e :: lst -> (e, List.rev_append acc lst)::loop(e::acc) lst
+  in loop [] lst
 
 let cartesian_product l1 l2 =
   let rec loop l acc =
@@ -52,21 +52,20 @@ let mapn default f lst =
   if lst = [] then default () else aux f lst
 
 let subsets lst =
-  let rec aux s1 s2 lst =
+  let rec aux acc s1 s2 lst =
     match lst with
-    | [] -> [List.rev s1, List.rev s2]
+    | [] -> (List.rev s1, List.rev s2)::acc
     | e::lst ->
-      let res1 = aux (e::s1) s2 lst in
-      let res2 = aux s1 (e::s2) lst in
-      res1@res2
+      let acc' = aux acc s1 (e::s2) lst in
+      aux acc' (e::s1) s2 lst
   in
-  aux [] [] lst
+  aux [] [] [] lst
 
 let map_among_others' f lst =
   let rec aux left right =
     match right with
       [] -> []
-    | c :: right -> (f (List.rev left) c right)::(aux (c::left) right)
+    | c :: right -> (f left c right)::(aux (c::left) right)
   in
   aux [] lst
 
@@ -75,29 +74,31 @@ let partitions n lst =
     match lst with
     | [] -> [List.map List.rev part]
     | e::lst ->
-      let parts = part |> map_among_others' (fun left s right -> left@[e::s]@right) in
+      let parts = part |> map_among_others' (fun left s right -> List.rev_append left ((e::s) :: right)) in
       parts |> List.concat_map (fun part -> aux part lst)
   in
   aux (List.init n (fun _ -> [])) lst
 
 (*
-  iter_distribute_comb f comb [x1;x2;...;xn] [y1;y2;...;yn]
+  forall_distribute_comb f comb [x1;x2;...;xn] [y1;y2;...;yn]
   computes
-  f [comb x1 y1; x2; ...; xn]
-  f [x1; comb x2 y2; ...; xn]
+  f [comb x1 y1; x2; ...; xn] &&
+  f [x1; comb x2 y2; ...; xn] &&
   ...
-  f [x1;x2; ....; comb xn yn]
+  f [x1;x2; ....; comb xn yn] 
 
 *)
-let iter_distribute_comb f comb ss tt =
+let forall_distribute_comb f comb ss tt =
   let rec loop acc ss tt =
     match ss, tt with
-    | [], [] -> ()
+    | [], [] -> true
     | s::ss, t::tt ->
-      let line = List.rev_append acc ((comb s t)::ss) in
-      f line;
-      loop (s::acc) ss tt
-    | _ -> failwith "iter_distribute_comb: invalid list length"
+      begin match comb s t with
+          None -> loop (s :: acc) ss tt
+        | Some c -> let line = List.rev_append acc (c::ss) in
+          f line && loop (s::acc) ss tt
+      end
+    | _ -> failwith "forall_distribute_comb: invalid list length"
   in
   loop [] ss tt
 
@@ -115,21 +116,17 @@ let filter_among_others pred =
 let map_among_others f =
   fold_acc_rem (fun c acc rem -> (f c (acc@rem))::acc)
 
-let add_others lst =
-  let rec aux treated lst =
-    match lst with
-    | [] -> []
-    | a::lst ->
-      let others = treated@lst in
-      (a,others)::(aux (treated@[a]) lst)
-  in
-  aux [] lst
+let find_map_among_others f lst =
+  let rec loop acc = function
+    | [] -> None
+    | e :: l -> 
+      match f e (List.rev_append acc l) with
+        None ->  loop (e::acc) l
+      | o -> o
+  in loop [] lst
 
 let find_among_others pred lst =
-  lst |> add_others |> List.find_opt (fun (a,o) -> pred a o)
-
-let find_map_among_others f lst =
-  lst |> add_others |> List.find_map (fun (a,o) -> f a o)
+  find_map_among_others (fun e l  -> if pred e l then Some (e, l) else None) lst
 
 let merge_when_possible merge_opt lst =
   let merge_opt a b others =

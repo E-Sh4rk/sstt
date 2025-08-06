@@ -34,10 +34,7 @@ module Make(N:Node) = struct
     N.is_empty t1 || N.is_empty t2 ||
     match ps with
     | [] -> false
-    | (s1,s2)::ps ->
-      (N.leq t1 s1 || N.leq (List.map snd ps |> N.conj) (N.neg t2)) && (* optimisation *)
-      psi t1 (N.cap t2 s2) ps &&
-      psi (N.diff t1 s1) t2 ps
+    | (s1,s2)::ps ->  psi t1 (N.cap t2 s2) ps &&  psi (N.diff t1 s1) t2 ps
   let psi_strict t1 t2 ps =
     match ps with
     | [] -> true

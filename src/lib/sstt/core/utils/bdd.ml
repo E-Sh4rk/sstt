@@ -128,13 +128,12 @@ module Make(N:Atom)(L:Leaf) = struct
       cup p n
 
   let node' a p n =
-    let pc = compare_to_atom a p in
-    let nc = compare_to_atom a n in
-    if pc < 0 && nc < 0 then node a p n
-    else if pc < 0 then cup (node a p empty) (cap (nsingleton a) n)
-    else if nc < 0 then cup (cap (singleton a) p) (node a empty n)
-    else cup (cap (singleton a) p)
-        (cap (nsingleton a) n)
+    let pc = compare_to_atom a p < 0 in
+    let nc = compare_to_atom a n < 0 in
+    if pc && nc then node a p n
+    else if pc then cup (node a p empty) (cap (nsingleton a) n)
+    else if nc then cup (cap (singleton a) p) (node a empty n)
+    else cup (cap (singleton a) p) (cap (nsingleton a) n)
 
   let rec map_nodes f t =
     match t with
@@ -177,10 +176,14 @@ module Make(N:Atom)(L:Leaf) = struct
     aux acc [] [] t
 
   let for_all_lines f t =
-    try
-      fold_lines (fun () l -> if not (f l) then raise_notrace Exit) () t;
-      true
-    with Exit -> false
+    let rec aux ps ns t =
+      match t with
+        Leaf (l, _) -> f (ps, ns, l)
+      | Node (a, p, n, _) ->
+        aux (a :: ps) ns p &&
+        aux ps (a :: ns) n
+    in
+    aux [] [] t
 
   let big_op op default = function
     | [ ] -> default
@@ -221,12 +224,16 @@ module Make(N:Atom)(L:Leaf) = struct
         acc
     in aux [] t
 
+  type ctx =
+      Pos of N.t * ctx
+    | Neg of N.t * ctx
+    | Root
+
   let rec to_t ctx t =
     match ctx with
-    | [] -> t
-    | (false, a)::ctx -> to_t ctx (hnode a t empty)
-    | (true, a)::ctx -> to_t ctx (hnode a empty t)
-
+    | Root -> t
+    | Pos (a, ctx) -> to_t ctx (hnode a t empty)
+    | Neg (a, ctx) -> to_t ctx (hnode a empty t)
 
   let simplify eq t =
     let rec aux ctx t =
@@ -234,8 +241,8 @@ module Make(N:Atom)(L:Leaf) = struct
         match t with
         | Leaf (l,_) -> let l' = L.simplify l in if l == l' then t else leaf l'
         | Node (a, p, n, _) ->
-          let p' = aux ((false, a)::ctx) p
-          and n' = aux ((true, a)::ctx) n in
+          let p' = aux (Pos (a, ctx)) p
+          and n' = aux (Neg (a, ctx)) n in
           if equal p' n' then p' else
             let t = if p' == p && n' == n then t
               else hnode a p' n' in
@@ -244,5 +251,7 @@ module Make(N:Atom)(L:Leaf) = struct
             else if eq ctx_t (to_t ctx n') then n'
             else t
     in
-    aux [] (map_nodes N.simplify t)
+    aux Root (map_nodes N.simplify t)
+
+
 end
