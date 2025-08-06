@@ -27,4 +27,5 @@ module Extensions = struct
   module Bools = Bools
   module Chars = Chars
   module Abstracts = Abstracts
+  module Maps = Maps
 end

@@ -180,7 +180,8 @@ let%expect_test "tests_ext" =
     let (abs_tag, abs_printer) = Abstracts.define' "abs" [Inv] in
     let pparams = [
       Lists.printer_params' ; Bools.printer_params' ; Chars.printer_params' ;
-      Floats.printer_params' ; Strings.printer_params' ; abs_printer
+      Floats.printer_params' ; Strings.printer_params' ; Maps.printer_params' ;
+      abs_printer
     ] |> Printer.merge_params in
     let rec test env =
       match IO.parse_command buf with
@@ -195,6 +196,7 @@ let%expect_test "tests_ext" =
     let env = { env with Ast.tagenv=Ast.StrMap.add "flt" Floats.tag env.tagenv } in
     let env = { env with Ast.tagenv=Ast.StrMap.add "str" Strings.tag env.tagenv } in
     let env = { env with Ast.tagenv=Ast.StrMap.add "chr" Chars.tag env.tagenv } in
+    let env = { env with Ast.tagenv=Ast.StrMap.add "map" Maps.tag env.tagenv } in
     let env = { env with Ast.tagenv=Ast.StrMap.add "abs" abs_tag env.tagenv } in
     Output.with_basic_output Format.std_formatter
       (fun () -> test env) () ;
@@ -208,11 +210,18 @@ let%expect_test "tests_ext" =
       char_any: char
       char_union: ('\000'-'1') | ('e'-'\255')
       char_singl: '*'
+      map_any: {{  }}
+      map_ib: {{ int => bool }}
+      not_map_ib: ~({{ int => bool }})
+      map_not_ib: {{ int ~> bool }}
+      map_ib_not_ib: empty
+      map_ib_ii: {{ int => int ; int => bool }}
       list_invalid: lst(int, lst(int, int))
       bool_invalid: bool(42)
       float_invalid: flt(42)
       string_invalid: str(42)
       char_invalid: chr(something)
+      map_invalid: map(arrow)
       abs_any: abs
       abs_invalid: abs(42)
       |}]

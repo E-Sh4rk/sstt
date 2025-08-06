@@ -19,11 +19,19 @@ type ba = lst(43,lst(42,list));;
 "char_union" chr((0..255)) \ chr((50..100)) ;;
 "char_singl" chr(42) ;;
 
+"map_any" map(any -> any) ;;
+"map_ib" map((int -> bool) & (~int -> any)) ;;
+"not_map_ib" ~map((int -> bool) & (~int -> any)) ;;
+"map_not_ib" map(~(int -> bool) & (any -> any)) ;;
+"map_ib_not_ib" map((int -> bool) & (~int -> any)) & map(~(int -> bool) & (any -> any)) ;;
+"map_ib_ii" map((int -> bool) & (~int -> any)) & map((int -> int) & (any -> any)) ;;
+
 "list_invalid" lst(int,lst(int,int)) ;;
 "bool_invalid" bool(42) ;;
 "float_invalid" flt(42) ;;
 "string_invalid" str(42) ;;
 "char_invalid" chr(something) ;;
+"map_invalid" map(empty -> any) ;;
 
 "abs_any" abs(any) ;;
 "abs_invalid" abs(42) ;;

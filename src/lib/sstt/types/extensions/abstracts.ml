@@ -92,11 +92,7 @@ let extract_params vs ty =
 let destruct tag ty =
   match Hashtbl.find_opt atypes tag with
   | None -> None
-  | Some vs ->
-    begin match extract_params vs ty with
-    | None -> None
-    | Some ts -> Some ts
-    end
+  | Some vs -> extract_params vs ty
 
 let extract tag ty =
   let open Printer in
