@@ -80,28 +80,27 @@ let partitions n lst =
   aux (List.init n (fun _ -> [])) lst
 
 (*
-  forall_distribute_comb f comb [x1;x2;...;xn] [y1;y2;...;yn]
+  fold_distribute_comb f comb acc [x1;x2;...;xn] [y1;y2;...;yn]
   computes
-  f [comb x1 y1; x2; ...; xn] &&
-  f [x1; comb x2 y2; ...; xn] &&
+  let acc = f acc [comb x1 y1; x2; ...; xn] in
+  let acc = f acc [x1; comb x2 y2; ...; xn] in
   ...
-  f [x1;x2; ....; comb xn yn] 
+  let acc = f [x1;x2; ....; comb xn yn] in
+  acc
 
 *)
-let forall_distribute_comb f comb ss tt =
-  let rec loop acc ss tt =
+
+let fold_distribute_comb f comb accv ss tt  =
+  let rec loop accl ss tt accv =
     match ss, tt with
-    | [], [] -> true
+    | [], [] -> accv
     | s::ss, t::tt ->
-      begin match comb s t with
-          None -> loop (s :: acc) ss tt
-        | Some c -> let line = List.rev_append acc (c::ss) in
-          f line && loop (s::acc) ss tt
-      end
+      let line = List.rev_append accl ((comb s t)::ss) in
+      let accv' = f accv line in
+      loop (s::accl) ss tt accv'
     | _ -> failwith "forall_distribute_comb: invalid list length"
   in
-  loop [] ss tt
-
+  loop [] ss tt accv
 let fold_acc_rem f lst =
   let rec aux acc rem =
     match rem with

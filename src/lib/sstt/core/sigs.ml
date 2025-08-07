@@ -525,6 +525,15 @@ module type Records = sig
                               and type node := node
                               and type atom := Atom.t
 
+  val dnf_line_to_tuple : (Atom.t list * Atom.t list * bool) -> (Atom.oty list list * Atom.oty list list * bool) * int
+  (** [dnf_line_to_tuple (ps, ns, b)] converts a line of a [Record] DNF to
+      a line of tuples. Each record is projected to a tuple that has as many components
+      as the number of distinct labels in [ps] and [ns]. The function also returns the size of the tuples
+      in the result (which is the number of labels plus one).
+
+      If the line is trivially empty, then the returned result is an empty line, with no
+      tuple elements and a size of 0.
+  *)
 
   (** @inline
 
@@ -553,7 +562,6 @@ module type Records = sig
   include OptComponentOps with type t := t
                            and type node := node
                            and type atom' := Atom'.t
-
 end
 
 (* Tuples *)
@@ -890,7 +898,7 @@ module type VDescr = sig
 
   (** {1 Explicit Disjunctive Normal Form }*)
 
-  module Dnf : sig 
+  module Dnf : sig
     (** Explicit Disjunctive Normal Forms (DNF) of variables and monomorphic descriptors. *)
 
     (** @inline *)

@@ -12,7 +12,7 @@ module Make(VO:VarOrder) = struct
   module Var = struct
     include Var
     (* prevent from using default comparison*)
-    let equal (_:t) (_:t) = () [@@ocaml.warning "-32"] 
+    let equal (_:t) (_:t) = () [@@ocaml.warning "-32"]
     let compare (_:t) (_:t) = () [@@ocaml.warning "-32"]
   end
 
@@ -52,7 +52,7 @@ module Make(VO:VarOrder) = struct
       then raise_notrace Unsat
     let any = []
     let singleton delta ((s, _, t) as e) = assert_sat delta s t; [e]
-    let merge delta (s, v, t) (s', _, t') = 
+    let merge delta (s, v, t) (s', _, t') =
       let ss = Ty.cup s s' in
       let tt = Ty.cap t t' in
       assert_sat delta ss tt;
@@ -113,6 +113,7 @@ module Make(VO:VarOrder) = struct
     *)
     type t = CS.t list
     let empty : t = []
+    let is_empty = function [] -> true | _ -> false
     let any : t = [CS.any]
     let singleton e = [e]
     let single delta e = try singleton (CS.singleton delta e) with CS.Unsat -> empty
@@ -133,6 +134,10 @@ module Make(VO:VarOrder) = struct
     let cap delta t1 t2 =
       (cartesian_product t1 t2)
       |> List.fold_left (fun acc (cs1,cs2) -> try add (CS.cap delta cs1 cs2) acc with CS.Unsat -> acc) empty
+
+    let cap_lazy delta t1 t2 =
+      if is_empty t1 then empty
+      else cap delta t1 (t2 ())
 
     let disj t = List.fold_left cup empty t
     let map_conj delta f t = List.fold_left (fun acc e -> cap delta (f e) acc) any t
@@ -172,13 +177,28 @@ module Make(VO:VarOrder) = struct
   end
 
   module VDHash = Hashtbl.Make (VDescr)
-
+  let norm_tuple_gen ~any ~conj ~diff ~norm delta n (ps, ns, _) =
+    (* Same algorithm as for subtyping tuples.
+       We define it outside norm below so that its type can be
+       generalized and we can apply it to different ~any/~conj/...
+    *)
+    let ps = mapn (fun () -> List.init n (fun _ -> any)) conj ps in
+    let rec psi acc ss ts () =
+      List.map norm ss |> CSS.disj
+      |> CSS.cup (
+        match ts with
+          [] -> CSS.empty
+        | tt :: ts ->
+          fold_distribute_comb (fun acc ss ->
+              CSS.cap_lazy delta acc (psi acc ss ts)) diff acc ss tt
+      )
+    in psi CSS.any ps ns ()
   let norm memo delta t =
     let rec norm_ty t =
       let vd = Ty.def t in
       match VDHash.find_opt memo vd  with
       | Some cstr -> cstr
-      | None -> 
+      | None ->
         VDHash.add memo vd CSS.any;
         let res =
           if VarSet.subset (Ty.vars t) delta then
@@ -234,57 +254,34 @@ module Make(VO:VarOrder) = struct
     and norm_records r =
       r |> Records.dnf |> Records.Dnf.simplify
       |> CSS.map_conj delta norm_record
-    and norm_arrow (ps, ns, _) =
-      let pt, _ = List.split ps in
-      let dom = Ty.disj pt in
-      let norm_n (nt,nt') =
-        let css1 = Ty.cap nt (Ty.neg dom) |> norm_ty in
-        let norm_p (p1, p2) =
-          if p2 = [] then CSS.any else
-            let pt1, _ = List.split p1 in
-            let dom1 = Ty.disj pt1 in
-            let _, pt2' = List.split p2 in
-            let codom2 = Ty.conj pt2' in
-            let css1 = Ty.cap nt (Ty.neg dom1) |> norm_ty in
-            let css2 = Ty.cap codom2 (Ty.neg nt') |> norm_ty in
-            CSS.cup css1 css2
-        in
-        let css2 = subsets ps |> CSS.map_conj delta norm_p in
-        CSS.cap delta css1 css2
+    and norm_arrow (ps, ns, _ ) =
+      let rec psi t1 t2 ps () =
+        if Ty.is_empty t1 then CSS.any else
+          let cstr_1 = norm_ty t1 in
+          let cstr_2 = norm_ty t2 in
+          let cstr_rec = match ps with
+              [] -> CSS.empty
+            | (s1, s2) :: ps ->
+              CSS.cap_lazy delta
+                (psi (Ty.diff t1 s1) t2 ps ())
+                (psi t1 (Ty.cap t2 s2) ps)
+          in
+          CSS.cup cstr_1 (CSS.cup cstr_2 cstr_rec)
       in
-      ns |> List.map norm_n |> CSS.disj
-    and norm_tuple n (ps, ns, _) =
-      let ps = mapn (fun () -> List.init n (fun _ -> Ty.any)) Ty.conj ps in
-      let norm_n nss =
-        let csss = nss |> List.mapi (fun i ns ->
-            let pcomp = List.nth ps i in
-            let ncomp = ns |> List.map (fun ns -> List.nth ns i) |> Ty.disj |> Ty.neg in
-            Ty.cap pcomp ncomp |> norm_ty
-          ) in
-        CSS.disj csss
+      let norm_single_neg_arrow ps (t1, t2) =
+        let cstr_domain = Ty.diff t1 (List.map fst ps |> Ty.disj) |> norm_ty in
+        if CSS.is_empty cstr_domain then CSS.empty
+        else
+          let cstr_struct () = if ps == [] then CSS.any else psi t1 (Ty.neg t2) ps () in
+          CSS.cap_lazy delta cstr_domain cstr_struct
       in
-      ns |> partitions n |> CSS.map_conj delta norm_n
-    and norm_record (ps, ns, _) =
-      let open Records in
-      let open Atom in
-      let dom = List.fold_left
-          (fun acc a -> LabelSet.union acc (dom a))
-          LabelSet.empty (ps@ns) |> LabelSet.to_list in
-      let ps, ns =
-        ps |> List.map (to_tuple_with_default dom),
-        ns |> List.map (to_tuple_with_default dom) in
-      let n = List.length dom + 1 in
-      (* We reuse the same algorithm as for tuples *)
-      let ps = mapn (fun () -> List.init n (fun _ -> Ty.O.any)) Ty.O.conj ps in
-      let norm_n nss =
-        let csss = nss |> List.mapi (fun i ns ->
-            let pcomp = List.nth ps i in
-            let ncomp = ns |> List.map (fun ns -> List.nth ns i) |> Ty.O.disj |> Ty.O.neg in
-            Ty.O.cap pcomp ncomp |> norm_oty
-          ) in
-        CSS.disj csss
-      in
-      ns |> partitions n |> CSS.map_conj delta norm_n
+      List.map (norm_single_neg_arrow ps) ns |> CSS.disj
+    and norm_tuple n line = norm_tuple_gen ~any:Ty.any ~conj:Ty.conj
+        ~diff:Ty.diff ~norm:norm_ty delta n line
+    and norm_record (ps, ns, b) =
+      let line, n = Records.dnf_line_to_tuple (ps, ns, b) in
+      norm_tuple_gen ~any:Ty.O.any ~conj:Ty.O.conj
+        ~diff:Ty.O.diff ~norm:norm_oty delta n line
     and norm_oty (n,o) =
       if o then CSS.empty else norm_ty n
     in
@@ -307,8 +304,8 @@ module Make(VO:VarOrder) = struct
         else
           let () = VDHash.add memo_ty (Ty.def ty) () in
           let css = norm memo delta ty in
-          let css' = cs |> CS.cap delta prev |> CSS.singleton in
-          let css = CSS.cap delta css css' in
+          let css' () = cs |> CS.cap delta prev |> CSS.singleton in
+          let css = CSS.cap_lazy delta css css' in
           let res = css |> CSS.to_list |> List.map (step2 CS.any) |> CSS.disj in
           VDHash.remove memo_ty (Ty.def ty); res
     in
