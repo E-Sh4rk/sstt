@@ -75,8 +75,8 @@ let extract_params vs ty =
   in
   let res = Ty.get_descr ty |> Descr.get_arrows |> Arrows.dnf |> Arrows.Dnf.simplify
   |> List.map (fun (ps, ns, _) ->
-    List.map aux ps |> List.flatten,
-    List.map aux ns |> List.flatten
+    List.concat_map aux ps,
+    List.concat_map aux ns
   ) in
   (* We check that the encoding of the result is equivalent to the initial type [ty]
   (otherwise it means that [ty] is not a valid encoding of an abstract type) *)
@@ -107,7 +107,7 @@ let extract tag ty =
         { pid=[i;1] ; pdef=List.map (fun ty -> PLeaf ty) tys }
       ) in
       { pid=[i] ; pdef=[] }::ps@ns
-    ) |> List.flatten in
+    ) |> List.concat in
     Some ps
 
 let destruct_tagcomp comp =

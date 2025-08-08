@@ -19,7 +19,7 @@ module Arrows = struct
           if Ty.leq s t then [List.map snd current_set |> Ty.disj]
           else begin
             let aux (e,ps) = certain_outputs (e::current_set) ps in
-            take_one ps |> List.map aux |> List.flatten
+            take_one ps |> List.concat_map aux
           end
         in
         certain_outputs [] ps |> Ty.conj
@@ -34,7 +34,7 @@ module Arrows = struct
           if Ty.leq out (Ty.neg t) then [List.map fst current_set |> Ty.conj]
           else begin
             let aux (e,ps) = impossible_inputs (e::current_set) ps in
-            take_one ps |> List.map aux |> List.flatten
+            take_one ps |> List.concat_map aux
           end
         in
         impossible_inputs [] ps |> Ty.disj |> Ty.neg

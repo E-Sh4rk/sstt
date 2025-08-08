@@ -35,13 +35,13 @@ let extract ty =
   if Ty.leq ty (proj_tag any) && Ty.vars_toplevel ty |> VarSet.is_empty
   then
     let fields_to_pdef fs =
-      List.map (fun f -> [PLeaf f.dom ; PLeaf f.codom]) fs |> List.flatten
+      List.concat_map (fun f -> [PLeaf f.dom ; PLeaf f.codom]) fs
     in
-    let ps = destruct ty |> List.map (fun (ps, ns) ->
+    let ps = destruct ty |> List.concat_map (fun (ps, ns) ->
       let ps = { pid=[] ; pdef=fields_to_pdef ps } in
       let ns = { pid=[] ; pdef=fields_to_pdef ns } in
       [ps;ns]
-    ) |> List.flatten in
+    ) in
     Some ps
   else None
 
@@ -77,14 +77,14 @@ let proj ~dom t =
 
 let merge t {dom ; codom} =
   let merge_line (ps,_,_) =
-    let ps = ps |> List.map (fun (fdom, fcodom) ->
+    let ps = ps |> List.concat_map (fun (fdom, fcodom) ->
       if Ty.leq codom fcodom
       then [(fdom, fcodom)]
       else
         let arr1 = (Ty.cap fdom dom, Ty.cup fcodom codom) in
         let arr2 = (Ty.diff fdom dom, fcodom) in
         [arr1;arr2]
-      ) |> List.concat in
+      ) in
     (ps,[],true)
   in
   let dnf = proj_tag t |> Ty.get_descr |> Descr.get_arrows

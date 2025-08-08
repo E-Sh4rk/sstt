@@ -214,7 +214,7 @@ let build_subst env s =
 
 let build_tally env cs =
   let env = ref env in
-  let cs = cs |> List.map (fun (ty1,op,ty2) ->
+  let cs = cs |> List.concat_map (fun (ty1,op,ty2) ->
       let ty1, env' = build_ty !env ty1 in
       let ty2, env' = build_ty env' ty2 in
       env := env' ;
@@ -222,6 +222,6 @@ let build_tally env cs =
       | LEQ -> [ty1,ty2]
       | GEQ -> [ty2,ty1]
       | EQ -> [ty1,ty2 ; ty2,ty1]
-    ) |> List.concat
+    )
   in
   cs, !env
