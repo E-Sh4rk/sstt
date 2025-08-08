@@ -34,18 +34,11 @@ module Make(N:Node) = struct
     N.is_empty t1 || N.is_empty t2 ||
     match ps with
     | [] -> false
-    | (s1,s2)::ps ->
-      (N.leq t1 s1 || N.leq (List.map snd ps |> N.conj) (N.neg t2)) && (* optimisation *)
-      psi t1 (N.cap t2 s2) ps &&
-      psi (N.diff t1 s1) t2 ps
-  let psi_strict t1 t2 ps =
-    match ps with
-    | [] -> true
-    | (s1,s2)::ps ->
-      psi t1 (N.cap t2 s2) ps && psi (N.diff t1 s1) t2 ps
+    | (s1,s2)::ps ->  psi (N.diff t1 s1) t2 ps && psi t1 (N.cap t2 s2) ps
+
   let is_clause_empty' ps (t1,t2) =
     N.leq t1 (List.map fst ps |> N.disj) &&
-    psi_strict t1 (N.neg t2) ps
+    (List.is_empty ps || psi t1 (N.neg t2) ps)
   let is_clause_empty (ps,ns,b) =
     if b then List.exists (is_clause_empty' ps) ns else true
   let is_empty t = Bdd.for_all_lines is_clause_empty t

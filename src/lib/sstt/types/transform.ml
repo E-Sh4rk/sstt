@@ -25,8 +25,10 @@ let transform f t =
       v
   and aux_ty t = aux t |> Ty.mk_var in
   let v = aux t in
-  let res = Ty.of_eqs ctx.eqs |> VarMap.of_list in
-  VarMap.find v res
+  let res = Ty.of_eqs ctx.eqs in
+  res 
+  |> List.find_map (fun (v', t) -> if Var.equal v v' then Some t else None)
+  |> Option.get
 
 (* Type simplification *)
 

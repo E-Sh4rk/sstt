@@ -86,15 +86,19 @@ module Make(N:Node) = struct
   let of_component = set_component empty
   let of_components = List.fold_left set_component empty
 
-  let unop fato ftag ftup farr frec fint t = {
-    enums = fato t.enums ;
-    tags = ftag t.tags ;
-    tuples = ftup t.tuples ;
-    arrows = farr t.arrows ;
-    records = frec t.records ;
-    intervals = fint t.intervals
-  }
-
+  let unop fenu ftag ftup farr frec fint t = 
+    let enums = fenu t.enums in
+    let tags = ftag t.tags in
+    let tuples = ftup t.tuples in
+    let arrows = farr t.arrows in
+    let records = frec t.records in
+    let intervals = fint t.intervals in
+    if enums == t.enums && tags == t.tags && tuples == t.tuples &&
+       arrows = t.arrows && records == t.records && intervals == t.intervals
+    then t
+    else
+      { enums; tags; tuples; arrows; records; intervals }
+      
   let binop fato ftag ftup farr frec fint t1 t2 = {
     enums = fato t1.enums t2.enums ;
     tags = ftag t1.tags t2.tags ;
@@ -109,12 +113,12 @@ module Make(N:Node) = struct
   let diff = fdiff ~empty ~any ~diff:(binop Enums.diff Tags.diff Tuples.diff Arrows.diff Records.diff Intervals.diff)
   let neg = fneg ~empty ~any ~neg:(unop Enums.neg Tags.neg Tuples.neg Arrows.neg Records.neg Intervals.neg)
   let is_empty t = t == empty ||
-    Enums.is_empty t.enums &&
-    Intervals.is_empty t.intervals &&
-    Tags.is_empty t.tags &&
-    Tuples.is_empty t.tuples &&
-    Arrows.is_empty t.arrows &&
-    Records.is_empty t.records
+                   Enums.is_empty t.enums &&
+                   Intervals.is_empty t.intervals &&
+                   Tags.is_empty t.tags &&
+                   Tuples.is_empty t.tuples &&
+                   Arrows.is_empty t.arrows &&
+                   Records.is_empty t.records
 
   let direct_nodes t =
     [ Enums.direct_nodes t.enums ;

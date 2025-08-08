@@ -14,7 +14,7 @@ module Atom(N:Node) = struct
   let compare t1 t2 =
     List.compare N.compare t1 t2
 
-  let hash = Hash.list N.hash 
+  let hash = Hash.list N.hash
 end
 
 module MakeC(N:Node) = struct
@@ -50,26 +50,19 @@ module MakeC(N:Node) = struct
     let init = fun () -> List.init n (fun _ -> N.empty) in
     mapn init N.disj ps
 
-  let forall_distribute_diff f ss tt =
-    try
-      iter_distribute_comb (fun e -> if not (f e) then raise Exit) N.diff ss tt;
-      true
-    with Exit -> false
-
-  let rec psi ss ts =
+  let rec psi acc ss ts =
     List.exists N.is_empty ss ||
     match ts with
     | [] -> false
     | tt::ts ->
-      forall_distribute_diff (fun ss -> psi ss ts) ss tt
-
+      fold_distribute_comb (fun acc ss -> acc && psi acc ss ts) N.diff acc ss tt
   let is_clause_empty (ps,ns,b) =
     if b then
       match ps, ns with
       | [], [] -> false
       | a::_, _ | [], a::_ ->
         let n = List.length a in
-        psi (conj n ps) ns
+        psi true (conj n ps) ns
     else true
   let is_empty' t = Bdd.for_all_lines is_clause_empty t
   let is_empty (_,t) = is_empty' t
@@ -122,7 +115,9 @@ module MakeC(N:Node) = struct
   let direct_nodes (_,t) = Bdd.atoms t |> List.concat_map Atom.direct_nodes
   let map_nodes f (tag,t) = tag, Bdd.map_nodes (Atom.map_nodes f) t
 
-  let simplify (tag,t) = (tag,Bdd.simplify equiv t)
+  let simplify ((tag,t) as n) =
+    let t' = Bdd.simplify equiv t in
+    if t == t' then n else (tag, t')
 
   let equal (_,t1) (_,t2) = Bdd.equal t1 t2
   let compare (_,t1) (_,t2) = Bdd.compare t1 t2

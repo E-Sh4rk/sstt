@@ -13,13 +13,14 @@ module OTy(N:Node) = struct
   let optional t = (t, true)
   let get (t,_) = t
 
-  let cap (n1, b1) (n2, b2) =
-    (N.cap n1 n2, b1 && b2)
-  let cup (n1, b1) (n2, b2) =
-    (N.cup n1 n2, b1 || b2)
-  let diff (n1, b1) (n2, b2) =
-    (N.diff n1 n2, b1 && not b2)
+  let cap (n1, b1) (n2, b2) = (N.cap n1 n2, b1 && b2)
+  let cap = fcap ~empty ~any ~cap
+  let cup (n1, b1) (n2, b2) = (N.cup n1 n2, b1 || b2)
+  let cup = fcup ~empty ~any ~cup
+  let diff (n1, b1) (n2, b2) = (N.diff n1 n2, b1 && not b2)
+  let diff = fdiff ~empty ~any ~diff
   let neg (n, b) = (N.neg n, not b)
+  let neg = fneg ~empty ~any ~neg
   let conj lst =
     let ns, bs = List.split lst in
     (N.conj ns, List.fold_left (&&) true bs)
@@ -71,14 +72,14 @@ module Atom(N:Node) = struct
     if t.opened then
       OTy.any::(to_tuple dom t)
     else
-      OTy.absent::(to_tuple dom t)  
+      OTy.absent::(to_tuple dom t)
   let simplify t =
-    let not_any _ on = OTy.is_any on |> not in
-    let not_absent _ on = OTy.is_absent on |> not in
-    if t.opened then
-      { t with bindings = LabelMap.filter not_any t.bindings }
-    else
-      { t with bindings = LabelMap.filter not_absent t.bindings }
+    let is_default =
+      if t.opened then OTy.is_any
+      else OTy.is_absent
+    in
+    let bindings = LabelMap.filter (fun _ on -> not (is_default on)) t.bindings in
+    if bindings == t.bindings then t else { t with bindings }
   let equal t1 t2 =
     t1.opened = t2.opened &&
     LabelMap.equal OTy.equal t1.bindings t2.bindings
@@ -103,13 +104,12 @@ module Atom'(N:Node) = struct
     | None when t.opened -> OTy.any
     | None -> OTy.absent
   let simplify t =
-    let bindings =
-      let not_any _ on = OTy.is_any on |> not in
-      let not_absent _ on = OTy.is_absent on |> not in
-      if t.opened
-      then LabelMap.filter not_any t.bindings
-      else LabelMap.filter not_absent t.bindings
+    let is_default =
+      if t.opened then OTy.is_any
+      else OTy.is_absent
     in
+    let bindings = LabelMap.filter (fun _ on -> not (is_default on)) t.bindings in
+
     let required =
       match t.required with
       | None -> None
@@ -118,7 +118,8 @@ module Atom'(N:Node) = struct
         then None
         else Some (lbls |> LabelSet.filter (fun l -> find l t |> OTy.is_absent |> not))
     in
-    { t with bindings ; required }
+    if bindings == t.bindings && required == t.required then t else
+      { t with bindings ; required }
   let is_empty t =
     let is_empty_binding (_,on) = OTy.is_empty on in
     let required_ok =
@@ -167,32 +168,34 @@ module Make(N:Node) = struct
   let disj n ps =
     let init = fun () -> List.init n (fun _ -> ON.empty) in
     mapn init ON.disj ps
+  let dnf_line_to_tuple (ps, ns, b) =
+    if b then
+      let dom = List.fold_left
+          (fun acc a -> LabelSet.union acc (Atom.dom a))
+          LabelSet.empty (ps@ns) |> LabelSet.to_list
+      in
+      let ps, ns =
+        ps |> List.map (Atom.to_tuple_with_default dom),
+        ns |> List.map (Atom.to_tuple_with_default dom) in
+      (ps, ns, true), List.length dom + 1
+    else
+      ([],[], false), 0
 
-  let forall_distribute_diff f ss tt =
-    try
-      iter_distribute_comb (fun e -> if not (f e) then raise Exit) ON.diff ss tt;
-      true
-    with Exit -> false
-  let rec psi ss ts =
+  let rec psi acc ss ts =
     List.exists ON.is_empty ss ||
     match ts with
     | [] -> false
     | tt::ts ->
-      forall_distribute_diff (fun ss -> psi ss ts) ss tt
+      fold_distribute_comb (fun acc ss -> acc && psi acc ss ts) ON.diff acc ss tt
   let is_clause_empty (ps,ns,b) =
     if b then
-      let dom = List.fold_left
-          (fun acc a -> LabelSet.union acc (Atom.dom a))
-          LabelSet.empty (ps@ns) |> LabelSet.to_list in
-      let ps, ns =
-        ps |> List.map (Atom.to_tuple_with_default dom),
-        ns |> List.map (Atom.to_tuple_with_default dom) in
+      let (ps, ns, _), n = dnf_line_to_tuple (ps, ns, b) in
       (* We reuse the same algorithm as for tuples *)
       match ps, ns with
       | [],[] -> false
-      | a::_,_ | [], a::_ ->
-        let n = List.length a in
-        psi (conj n ps) ns
+      | _ ->
+        psi true (conj n ps) ns
+
     else true
   let is_empty t = t |> Bdd.for_all_lines is_clause_empty
 
