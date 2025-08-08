@@ -190,6 +190,9 @@ include (struct
         let s_def = def t |> VDescr.simplify in
         define ~simplified:true t s_def;
         s_def |> VDescr.direct_nodes |> List.iter simplify;
+        match t.neg with
+          None -> ()
+        | Some nt -> define ~simplified:true nt (VDescr.neg s_def);
       end
 
     let dependencies t =
@@ -227,11 +230,11 @@ include (struct
         if NSet.is_empty deps |> not then
           let deps_ok n =
             let vs = vars_toplevel n in
-            eqs |> List.for_all (fun (v,n) ->
+            if eqs |> List.for_all (fun (v,n) ->
                 VarSet.mem v vs |> not || new_node n |> has_def
-              )
+              ) then Some n else None
           in
-          match deps |> find_opt_of_iter deps_ok NSet.iter with
+          match deps |> NSet.to_seq |> Seq.find_map deps_ok with
           | None -> raise (Invalid_argument "Set of equations is not contractive.")
           | Some n ->
             let nn = new_node n in
@@ -269,18 +272,19 @@ include (struct
 
     let factorize t =
       let cache = ref NMap.empty in
+      let nodes = ref [] in
       let rec aux t =
         match NMap.find_opt t !cache with
         | Some n -> n
         | None ->
           begin match
-              !cache
-              |> find_opt_of_iter2 (fun t' _ -> equiv t t') NMap.iter
+              List.find_opt (fun (t', _) -> equiv t t') !nodes
             with
             | Some (_, n) -> n
             | None ->
               let n = mk () in
-              cache := NMap.add t n (!cache) ;
+              cache := NMap.add t n (!cache);
+              nodes := (t, n) :: !nodes;
               let vd = def t |> VDescr.map_nodes aux in
               define n vd ;
               n

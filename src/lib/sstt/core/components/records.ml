@@ -181,11 +181,6 @@ module Make(N:Node) = struct
     else
       ([],[], false), 0
 
-
-  let odiff n1 n2 =
-    let d = ON.diff n1 n2 in
-    if ON.is_empty d then None else Some d
-
   let rec psi acc ss ts =
     List.exists ON.is_empty ss ||
     match ts with

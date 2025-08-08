@@ -51,34 +51,6 @@ let mapn default f lst =
   in
   if lst = [] then default () else aux f lst
 
-let subsets lst =
-  let rec aux acc s1 s2 lst =
-    match lst with
-    | [] -> (List.rev s1, List.rev s2)::acc
-    | e::lst ->
-      let acc' = aux acc s1 (e::s2) lst in
-      aux acc' (e::s1) s2 lst
-  in
-  aux [] [] [] lst
-
-let map_among_others' f lst =
-  let rec aux left right =
-    match right with
-      [] -> []
-    | c :: right -> (f left c right)::(aux (c::left) right)
-  in
-  aux [] lst
-
-let partitions n lst =
-  let rec aux part lst =
-    match lst with
-    | [] -> [List.map List.rev part]
-    | e::lst ->
-      let parts = part |> map_among_others' (fun left s right -> List.rev_append left ((e::s) :: right)) in
-      parts |> List.concat_map (fun part -> aux part lst)
-  in
-  aux (List.init n (fun _ -> [])) lst
-
 (*
   fold_distribute_comb f comb acc [x1;x2;...;xn] [y1;y2;...;yn]
   computes
@@ -115,43 +87,23 @@ let filter_among_others pred =
 let map_among_others f =
   fold_acc_rem (fun c acc rem -> (f c (acc@rem))::acc)
 
-let find_map_among_others f lst =
-  let rec loop acc = function
-    | [] -> None
-    | e :: l -> 
-      match f e (List.rev_append acc l) with
-        None ->  loop (e::acc) l
-      | o -> o
-  in loop [] lst
-
-let find_among_others pred lst =
-  find_map_among_others (fun e l  -> if pred e l then Some (e, l) else None) lst
-
 let merge_when_possible merge_opt lst =
-  let merge_opt a b others =
-    merge_opt a b |> Option.map (fun a -> (a, others))
+  let rec find_map_in_tail acc e l =
+    match l with
+    | [] -> None
+    | e' :: l -> match merge_opt e e' with
+        None -> find_map_in_tail (e' :: acc) e l
+      | Some a -> Some (a :: List.rev_append acc l)
   in
   let rec aux lst =
     match lst with
-    | [] -> []
-    | e::lst ->
-      begin match find_map_among_others (fun e' lst -> merge_opt e e' lst) lst with
-        | None -> e::(aux lst)
-        | Some (e, lst) -> aux (e::lst)
-      end
-  in
-  aux lst
+      [] -> []
+    | e :: lst -> match find_map_in_tail [] e lst with
+        None -> e :: aux lst
+      | Some l -> aux l
+  in aux lst
 
-let find_opt_of_iter (type a) (f : a -> bool) it col =
-  let exception Found of a in
-  try it (fun e -> if f e then raise_notrace (Found e)) col; None with
-  | Found e -> Some e
-
-let find_opt_of_iter2 (type a b) (f : a -> b -> bool) it col =
-  let exception Found of (a*b) in
-  try it (fun x y -> if f x y then raise_notrace (Found (x,y))) col; None with
-  | Found e -> Some e
-
+(* Base case of set-theoretic operations. *)
 let[@inline always] fcup ~empty ~any ~cup t1 t2 =
   if t1 == any || t1 == t2 || t2 == empty then t1
   else if t2 == any || t1 == empty then t2

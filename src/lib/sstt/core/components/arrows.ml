@@ -38,7 +38,7 @@ module Make(N:Node) = struct
 
   let is_clause_empty' ps (t1,t2) =
     N.leq t1 (List.map fst ps |> N.disj) &&
-    (ps == [] || psi t1 (N.neg t2) ps)
+    (List.is_empty ps || psi t1 (N.neg t2) ps)
   let is_clause_empty (ps,ns,b) =
     if b then List.exists (is_clause_empty' ps) ns else true
   let is_empty t = Bdd.for_all_lines is_clause_empty t
