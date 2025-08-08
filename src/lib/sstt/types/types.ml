@@ -28,4 +28,5 @@ module Extensions = struct
   module Chars = Chars
   module Abstracts = Abstracts
   module Maps = Maps
+  module Hierarchy = Hierarchy
 end
