@@ -18,14 +18,14 @@ let label_of_position i =
 let encode_params vs ps =
   let (ls, rs) =
     List.combine vs ps |> List.mapi (fun i (v,p) ->
-      let lbl = label_of_position i in
-      let constr = (lbl, Ty.O.optional p) in
-      let noconstr = (lbl, Ty.O.any) in
-      match v with
-      | Cov -> noconstr, constr
-      | Contrav -> constr, noconstr
-      | Inv -> constr, constr
-  ) |> List.split
+        let lbl = label_of_position i in
+        let constr = (lbl, Ty.O.optional p) in
+        let noconstr = (lbl, Ty.O.any) in
+        match v with
+        | Cov -> noconstr, constr
+        | Contrav -> constr, noconstr
+        | Inv -> constr, constr
+      ) |> List.split
   in
   let mk_record bs =
     let open Records.Atom in
@@ -74,73 +74,47 @@ let extract_params vs ty =
     uls |> List.map (fun ls -> (ls,rs)) |> List.map aux
   in
   let res = Ty.get_descr ty |> Descr.get_arrows |> Arrows.dnf |> Arrows.Dnf.simplify
-  |> List.map (fun (ps, ns, _) ->
-    List.concat_map aux ps,
-    List.concat_map aux ns
-  ) in
+            |> List.map (fun (ps, ns, _) ->
+                List.concat_map aux ps,
+                List.concat_map aux ns
+              ) in
   (* We check that the encoding of the result is equivalent to the initial type [ty]
-  (otherwise it means that [ty] is not a valid encoding of an abstract type) *)
+     (otherwise it means that [ty] is not a valid encoding of an abstract type) *)
   let ty' =
     res |> List.map (fun (ps, ns) ->
-      let ps = ps |> List.map (encode_params vs) |> Ty.conj in
-      let ns = ns |> List.map (encode_params vs) |> List.map Ty.neg |> Ty.conj in
-      Ty.cap ps ns
-    ) |> Ty.disj
+        let ps = ps |> List.map (encode_params vs) |> Ty.conj in
+        let ns = ns |> List.map (encode_params vs) |> List.map Ty.neg |> Ty.conj in
+        Ty.cap ps ns
+      ) |> Ty.disj
   in
   if Ty.equiv ty ty' then Some res else None
+
+let proj_tag tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
+                      |> TagComp.as_atom |> snd
 
 let destruct tag ty =
   match Hashtbl.find_opt atypes tag with
   | None -> None
   | Some vs -> extract_params vs ty
 
-let extract tag ty =
-  let open Printer in
-  match destruct tag ty with
-  | None -> None
-  | Some ps ->
-    let ps = ps |> List.mapi (fun i (ps, ns) ->
-      let ps = ps |> List.map (fun tys ->
-        { pid=[i;0] ; pdef=List.map (fun ty -> PLeaf ty) tys }
-      ) in
-      let ns = ns |> List.map (fun tys ->
-        { pid=[i;1] ; pdef=List.map (fun ty -> PLeaf ty) tys }
-      ) in
-      { pid=[i] ; pdef=[] }::ps@ns
-    ) |> List.concat in
-    Some ps
-
 let destruct_tagcomp comp =
   let (tag, ty) = TagComp.as_atom comp in
   Option.map (fun x -> (tag, x)) (destruct tag ty)
-let destruct tag ty =
-  let ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag |> TagComp.as_atom |> snd in
-  destruct tag ty
 
-let to_t tstruct =
-  let open Printer in
-  let aux_i defs i =
-    let ps, ns = defs |> List.filter_map (fun {pid;pdef} ->
-      match pid with
-      | [j;neg] ->
-        if j = i then
-          Some (neg=0, List.map (function PLeaf d -> d | _ -> assert false) pdef)
-        else None
-      | [_] -> None
-      | _ -> assert false
-    ) |> List.partition fst in
-    List.map snd ps, List.map snd ns
-  in
-  match tstruct with
-  | CDef (_, defs) ->
-    let ids = defs |> List.filter_map
-      (fun {pid;_} -> match pid with [i] -> Some i | _ -> None) in
-    List.map (aux_i defs) ids
-  | _ -> assert false
+let to_t tag node ctx ty =
+  destruct tag (proj_tag tag ty) |> Option.map (fun params ->
+      let map_node l = List.map (node ctx) l in
+      List.map (fun (p1, p2) ->
+          List.map map_node p1, List.map map_node p2
+        ) params)
+
+let map f l =
+  l |> List.map (fun (p1, p2) ->
+      (List.map (List.map f) p1,
+       List.map (List.map f) p2)
+    )
 
 open Prec
-
-type printer = Tag.t -> int -> Prec.assoc -> Format.formatter -> Printer.descr t -> unit
 
 let print tag prec assoc fmt t =
   let print_atom fmt params =
@@ -166,21 +140,12 @@ let print tag prec assoc fmt t =
   let sym,prec',_ as opinfo = varop_info Cup in
   fprintf prec assoc opinfo fmt "%a" (print_seq (print_line prec' NoAssoc) sym) t
 
-let define printer name (vs:variance list) =
+let printer_builder tag =
+  Printer.builder ~any:(mk_any tag) ~to_t:(to_t tag) ~map ~print:(print tag)
+
+let printer_params tag = Printer.{ aliases = []; extensions = [(tag, printer_builder tag)]}
+
+let define name (vs:variance list) =
   let tag = Tag.mk name in
   Hashtbl.add atypes tag vs ;
-  let printer_params = {
-    Printer.aliases = [] ;
-    Printer.extensions =
-      let module M = struct
-        type nonrec t = Printer.descr t
-        let tag = tag
-        let extractors = [extract tag]
-        let get = to_t
-        let print = printer tag
-      end
-    in [(module M : Printer.PrinterExt)]
-  } in
-  tag, printer_params
-
-let define' = define print
+  tag, printer_params tag

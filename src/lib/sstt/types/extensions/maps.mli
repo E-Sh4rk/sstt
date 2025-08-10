@@ -11,8 +11,6 @@ val destruct : Ty.t -> Ty.t t
 val proj : dom:Ty.t -> Ty.t -> Ty.t
 val merge : Ty.t -> Ty.t field -> Ty.t
 
-type printer = int -> Prec.assoc -> Format.formatter -> Printer.descr t -> unit
-val print : printer
 
-val printer_params : printer -> Printer.params
-val printer_params' : Printer.params
+val printer_builder : Printer.extension_builder
+val printer_params : Printer.params

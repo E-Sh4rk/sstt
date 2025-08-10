@@ -177,10 +177,10 @@ let%expect_test "tests_ext" =
     let fn = "tests_ext.txt" in
     let cin = open_in fn in
     let buf = Lexing.from_channel cin in
-    let (abs_tag, abs_printer) = Abstracts.define' "abs" [Inv] in
+    let (abs_tag, abs_printer) = Abstracts.define "abs" [Inv] in
     let pparams = [
-      Lists.printer_params' ; Bools.printer_params' ; Chars.printer_params' ;
-      Floats.printer_params' ; Strings.printer_params' ; Maps.printer_params' ;
+      Lists.printer_params ; Bools.printer_params ; Chars.printer_params ;
+      Floats.printer_params ; Strings.printer_params ; Maps.printer_params ;
       abs_printer
     ] |> Printer.merge_params in
     let rec test env =
