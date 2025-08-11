@@ -6,7 +6,11 @@ type 't params = 't list
 type 't t = ('t params list * 't params list) list
 
 let atypes = Hashtbl.create 256
-
+let is_abstract tag = Hashtbl.mem atypes tag
+let check_abstract tag =
+  if not (is_abstract tag) then
+    invalid_arg 
+      (Format.asprintf "Unregistered abstract type '%a'" Tag.pp tag)
 let labels = Hashtbl.create 10
 let label_of_position i =
   match Hashtbl.find_opt labels i with
@@ -36,6 +40,7 @@ let encode_params vs ps =
   Descr.mk_arrow (lhs,rhs) |> Ty.mk_descr
 
 let mk tag ps =
+  check_abstract tag;
   let vs = Hashtbl.find atypes tag in
   let ty = encode_params vs ps in
   (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
@@ -43,8 +48,9 @@ let mk tag ps =
 let mk_any tag = (tag, Ty.any) |> Descr.mk_tag |> Ty.mk_descr
 
 let is_abstract tag = Hashtbl.mem atypes tag
-let params_of tag = Hashtbl.find atypes tag
-
+let params_of tag =
+  check_abstract tag;
+  Hashtbl.find atypes tag
 let extract_params vs ty =
   let n = List.length vs in
   let convert_to_tuple r =
@@ -87,26 +93,28 @@ let extract_params vs ty =
         Ty.cap ps ns
       ) |> Ty.disj
   in
-  if Ty.equiv ty ty' then Some res else None
+  if Ty.equiv ty ty' then res else invalid_arg "Malformed abstract type"
 
 let proj_tag tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
                       |> TagComp.as_atom |> snd
 
 let destruct tag ty =
-  match Hashtbl.find_opt atypes tag with
-  | None -> None
-  | Some vs -> extract_params vs ty
+  check_abstract tag;
+  let vs = Hashtbl.find atypes tag in
+  extract_params vs ty
 
 let destruct_tagcomp comp =
   let (tag, ty) = TagComp.as_atom comp in
-  Option.map (fun x -> (tag, x)) (destruct tag ty)
+  (tag, destruct tag ty)
 
 let to_t tag node ctx ty =
-  destruct tag (proj_tag tag ty) |> Option.map (fun params ->
-      let map_node l = List.map (node ctx) l in
-      List.map (fun (p1, p2) ->
-          List.map map_node p1, List.map map_node p2
-        ) params)
+  try 
+    let params = destruct tag (proj_tag tag ty) in
+    let map_node l = List.map (node ctx) l in
+    List.map (fun (p1, p2) ->
+        List.map map_node p1, List.map map_node p2
+      ) params |> Option.some
+  with _ -> None
 
 let map f l =
   l |> List.map (fun (p1, p2) ->
@@ -141,7 +149,7 @@ let print tag prec assoc fmt t =
   fprintf prec assoc opinfo fmt "%a" (print_seq (print_line prec' NoAssoc) sym) t
 
 let printer_builder tag =
-  Printer.builder ~any:(mk_any tag) ~to_t:(to_t tag) ~map ~print:(print tag)
+  Printer.builder ~to_t:(to_t tag) ~map ~print:(print tag)
 
 let printer_params tag = Printer.{ aliases = []; extensions = [(tag, printer_builder tag)]}
 

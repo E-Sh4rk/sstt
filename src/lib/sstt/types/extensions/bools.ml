@@ -3,6 +3,8 @@ open Core
 let tag = Tag.mk "bool"
 
 let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
+let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
+                  |> TagComp.as_atom |> snd
 
 let atrue = Enums.Atom.mk "true"
 let afalse = Enums.Atom.mk "false"
@@ -24,9 +26,12 @@ let components { t ; f } =
   ] |> List.filter_map (fun (b,k) -> if b then Some k else None)
 
 let to_t _ _ ty =
-  let t = Ty.leq btrue ty in
-  let f = Ty.leq bfalse ty in
-  Some { t; f }
+  if Ty.leq ty any && (Ty.vars_toplevel (proj_tag ty) |> VarSet.is_empty)
+  then
+    let t = Ty.leq btrue ty in
+    let f = Ty.leq bfalse ty in
+    Some { t; f }
+  else None
 
 let map _f v = v
 let print _ _ fmt {t; f} =
@@ -36,5 +41,5 @@ let print _ _ fmt {t; f} =
   | true, false -> Format.fprintf fmt "true"
   | false, true -> Format.fprintf fmt "false"
 
-let printer_builder = Printer.builder ~any ~to_t ~map ~print
+let printer_builder = Printer.builder ~to_t ~map ~print
 let printer_params = Printer.{ aliases = []; extensions = [tag, printer_builder]}

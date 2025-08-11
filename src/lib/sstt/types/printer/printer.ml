@@ -529,14 +529,11 @@ and print_t fmt t =
     Format.fprintf fmt " where %a" (print_seq print_def " and ") defs
 
 (* MAIN *)
-let builder ~any ~to_t ~map ~print =
+let builder ~to_t ~map ~print =
   (fun ctx ty ->
-     if not (Ty.is_empty ty) && Ty.leq ty any && Ty.vars_toplevel ty |> VarSet.is_empty
-     then
-       match to_t node ctx ty with
-         None -> None
-       | Some value -> Some (E {value; map; print})
-     else None
+     match to_t node ctx ty with
+       None -> None
+     | Some value -> Some (E {value; map; print})
   )
 
 let get customs ty =

@@ -47,26 +47,24 @@ type extension_builder = ctx -> Ty.t -> extension_node option
     or [None] if it does not *)
 
 val builder :
-  any:Ty.t ->
   to_t:((ctx -> Ty.t -> descr) -> ctx -> Ty.t -> 'a option) ->
   map:((descr -> descr) -> 'a -> 'a) ->
   print:(int -> assoc -> Format.formatter -> 'a -> unit) ->
   extension_builder
-(** [builder ~any ~to_t ~map ~print] returns an extension builder that knows how
-      to print values which are:
-    - non-empty
-    - a subtype of [any]
-    - without toplevel variables.
+(** [builder ~to_t ~map ~print] returns an extension builder that knows how
+      to print values of a particular extension.
 
     [to_t] is a function such that [to_t node ctx ty] converts [ty] into [Some
     e], where [e] is some arbitrary representation of [ty]. The function can use
-    the parameter [node ctx ty'] if wishes to convert [ty'] to an algebraic
+    the parameter [node ctx ty'] if it wishes to convert [ty'] to an algebraic
     representation (of type [descr]). The sharing and aliases of [ty'] is
     controled by the pretty-printing context [ctx]. If the conversion fails,
     [to_t] returns [None].
 
     [map f e] traverses the representation [e], applying [f] to every [descr] it
-    contains. [print ctx assoc fmt e] pretty-prints the representation [e] at
+    contains.
+    
+    [print ctx assoc fmt e] pretty-prints the representation [e] at
     precedence [ctx] and associativity [assoc], using the formatter [fmt].
 *)
 

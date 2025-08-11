@@ -24,10 +24,13 @@ let any = Enums.any |> Descr.mk_enums |> Ty.mk_descr |> add_tag
 type t = bool * string list
 
 let to_t _ _ ty =
-  let (pos, enums) = ty |> proj_tag |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
-  let strs = enums |> List.map Enums.Atom.name in
-  Some (pos, strs)
-
+  let pty = proj_tag ty in
+  if Ty.leq ty any && (Ty.vars_toplevel pty |> VarSet.is_empty) then
+    let (pos, enums) = pty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
+    let strs = enums |> List.map Enums.Atom.name in
+    Some (pos, strs)
+  else
+    None
 let map _ v = v
 
 open Prec
@@ -51,5 +54,5 @@ let print prec assoc fmt (pos, strs) =
     fprintf prec assoc opinfo fmt "string%s%a" sym (aux prec' Right) strs
 
 
-let printer_builder = Printer.builder ~any ~to_t ~map ~print
+let printer_builder = Printer.builder ~to_t ~map ~print
 let printer_params = Printer.{aliases =[]; extensions = [(tag, printer_builder)]}

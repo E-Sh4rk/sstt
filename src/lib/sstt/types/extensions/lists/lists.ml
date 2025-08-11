@@ -41,18 +41,21 @@ let proj ty =
   with Op.EmptyAtom -> Ty.empty, Ty.empty
 
 let tuple_comp n t = Tuples.get n t |> Op.TupleComp.as_union
-let basic_extract ty =
-  let tuples =
-    ty |> proj_tag |> Ty.get_descr
-    |> Descr.get_tuples
+let of_tuple_comp n c =
+   c |> Op.TupleComp.of_union n |> Descr.mk_tuplecomp |> Ty.mk_descr
+let check_extract ty =
+  let pty = ty |> proj_tag in
+  let tuples = pty |> Ty.get_descr |> Descr.get_tuples
   in
-  let has_nil = tuple_comp 0 tuples |> List.is_empty |> not
-  in
-  let cons_comps =
-    tuple_comp 2 tuples
-    |> List.map (function [hd; tl] -> (hd, tl) | _ -> assert false)
-  in
-  has_nil, cons_comps
+  let nil_comps = tuple_comp 0 tuples in
+  let cons_comps = tuple_comp 2 tuples in
+  let ty_nil = of_tuple_comp 0 nil_comps in
+  let ty_cons = of_tuple_comp 2 cons_comps in
+
+  if Ty.(equiv pty (cup ty_nil ty_cons)) then
+    nil_comps |> List.is_empty |> not,
+    (cons_comps |> List.map (function [x;y] -> x,y | _ -> assert false))
+  else invalid_arg "Invalid list type"
 
 type node = { id : int; mutable graph : graph list}
 and graph = RNil | RCons of Printer.descr * node
@@ -82,12 +85,12 @@ let to_repr node ctx ty =
       n
   and try_graph ty =
     if Ty.vars_toplevel ty |> VarSet.is_empty |> not then raise Exit;
-    let has_nil, cons_comps = basic_extract ty in
+    let has_nil, cons_comps = check_extract ty in
     (if has_nil then [RNil] else []) @
     List.map (fun (hd, tl) -> RCons(descr hd, try_graph_node tl)) cons_comps
   in
   let basic ty =
-    let has_nil, cons_comps = basic_extract ty in
+    let has_nil, cons_comps = check_extract ty in
     (if has_nil then [Nil] else []) @
     (List.map (fun (hd, tl) -> Cons(descr hd, descr tl))
        cons_comps)
@@ -160,9 +163,11 @@ let to_regexp automaton =
   |> Regexp.to_ext |> convert_regexp
 
 let to_t node ctx ty =
-  Some (match to_repr node ctx ty with
-      | R r -> Regexp (r |> to_automaton |> to_regexp)
-      | B bs -> Basic bs)
+  try
+    Some (match to_repr node ctx ty with
+        | R r -> Regexp (r |> to_automaton |> to_regexp)
+        | B bs -> Basic bs)
+  with _ -> None
 
 let rec map_re f = function
   | Epsilon -> Epsilon
@@ -236,7 +241,7 @@ let print prec assoc fmt t =
     let sym,_,_ as opinfo = varop_info Cup in
     fprintf prec assoc opinfo fmt "%a" (print_seq print_line sym) union
 
-let printer_builder = Printer.builder ~any ~to_t ~map ~print
+let printer_builder = Printer.builder ~to_t ~map ~print
 
 let printer_params = Printer.{ aliases = [];  extensions = [(tag, printer_builder)]}
 

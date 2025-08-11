@@ -54,8 +54,9 @@ let components { ninf ; neg ; nzero ; pzero ; pos ; pinf ; nan } =
   ] |> List.filter_map (fun (b,k) -> if b then Some k else None)
 
 let to_t _ _ ty =
-    let (pos, enums') = ty |> proj_tag |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
-    assert pos ;
+  let pty = proj_tag ty in
+  let (pos, enums') = pty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
+  if pos && Ty.leq ty any && (Ty.vars_toplevel pty |> VarSet.is_empty) then
     let has k =
       let enum = List.assoc k enums in
       List.mem enum enums'
@@ -69,6 +70,7 @@ let to_t _ _ ty =
       pinf = has Pinf ;
       nan = has Nan
     }
+  else None
 open Prec
 
 let map _ v = v
@@ -103,6 +105,6 @@ let print prec assoc fmt t =
     let sym,prec',_ as opinfo = binop_info Diff in
     fprintf prec assoc opinfo fmt "float%s%a" sym (aux prec' Right) comp
 
-let printer_builder = Printer.builder ~any ~to_t ~map ~print
+let printer_builder = Printer.builder ~to_t ~map ~print
 
 let printer_params = Printer.{aliases =[]; extensions = [(tag, printer_builder)]}

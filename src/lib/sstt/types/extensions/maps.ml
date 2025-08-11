@@ -34,8 +34,11 @@ let map f l =
   List.map (fun (ps, ns) -> List.map ff ps, List.map ff ns) l
 
 let to_t node ctx ty =
-  let l = ty |> proj_tag |> destruct in
-  Some (map (node ctx) l)
+  let pty = proj_tag ty in
+  if Ty.leq ty any && Ty.vars_toplevel pty |> VarSet.is_empty then
+    let l = pty |> destruct in
+    Some (map (node ctx) l)
+  else None
 let proj ~dom t =
   let arr = proj_tag t |> Ty.get_descr |> Descr.get_arrows in
   Op.Arrows.apply arr dom
@@ -73,5 +76,5 @@ let print prec assoc fmt t =
   let sym,_,_ as opinfo = varop_info Cup in
   fprintf prec assoc opinfo fmt "%a" (print_seq print_line sym) t
 
-let printer_builder = Printer.builder ~any ~to_t ~map ~print
+let printer_builder = Printer.builder ~to_t ~map ~print
 let printer_params = Printer.{ aliases = []; extensions = [(tag, printer_builder)]}

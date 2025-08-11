@@ -46,26 +46,27 @@ let mk h n =
     (h.tag, ty) |> Descr.mk_tag |> Ty.mk_descr
   with Not_found -> raise (Invalid_argument "subnodes must be part of the hierarchy")
 
-let any_enum = Enums.any |> Descr.mk_enums |> Ty.mk_descr
-
 type t = line list
 and line = L of Node.t * t
 let proj_tag tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
                       |> TagComp.as_atom |> snd
 
 let to_t h _ _ ty =
-  let (pos, enums) = ty |> proj_tag h.tag |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
-  if not (pos && List.for_all (EHT.mem h.atoms) enums) then None
+  let pty = proj_tag h.tag ty in
+  if Ty.vars_toplevel pty |> VarSet.is_empty |> not then None
   else
-    let enums = ESet.of_list enums in
-    let rec aux pos n =
-      let ni = NHT.find h.nodes n in
-      let sub = NSet.to_list ni.sub in
-      if (ESet.mem ni.atom enums) = pos
-      then [L (n, List.concat_map (aux (not pos)) sub)]
-      else List.concat_map (aux pos) sub
-    in
-    Some (h.top_nodes |> NSet.to_list |> List.concat_map (aux true))
+    let (pos, enums) = pty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
+    if not (pos && List.for_all (EHT.mem h.atoms) enums) then None
+    else
+      let enums = ESet.of_list enums in
+      let rec aux pos n =
+        let ni = NHT.find h.nodes n in
+        let sub = NSet.to_list ni.sub in
+        if (ESet.mem ni.atom enums) = pos
+        then [L (n, List.concat_map (aux (not pos)) sub)]
+        else List.concat_map (aux pos) sub
+      in
+      Some (h.top_nodes |> NSet.to_list |> List.concat_map (aux true))
 
 open Prec
 
@@ -88,9 +89,7 @@ let print prec assoc fmt t =
   print_t prec assoc fmt t
 
 let printer_builder h =
-  let any = (h.tag, any_enum) |> Tags.mk |> Descr.mk_tags |> Ty.mk_descr in
-  let to_t = to_t h in
-  Printer.builder ~any ~to_t ~map ~print
+  Printer.builder ~to_t:(to_t h) ~map ~print
 
 let printer_params h = Printer.{ aliases = [];
                                  extensions = [(h.tag, printer_builder h)]}

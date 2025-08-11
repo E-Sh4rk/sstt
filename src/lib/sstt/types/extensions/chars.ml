@@ -25,9 +25,10 @@ let any =
 type t = interval list
 
 let to_t _ _ ty =
-  if not (Ty.is_empty ty) && Ty.leq ty any && Ty.vars_toplevel ty |> VarSet.is_empty
+  let pty = proj_tag ty in
+  if Ty.leq ty any && Ty.vars_toplevel pty |> VarSet.is_empty
   then
-    Some (ty |> proj_tag |> Ty.get_descr |> Descr.get_intervals |> Intervals.destruct
+    Some (pty |> Ty.get_descr |> Descr.get_intervals |> Intervals.destruct
           |> List.map (fun a-> match Intervals.Atom.get a with
                 Some z1, Some z2 -> Z.(to_int z1 |> Char.chr, to_int z2 |> Char.chr)
               | _ -> assert false))
@@ -53,5 +54,5 @@ let print prec assoc fmt ints =
       let sym,_,_ as opinfo = varop_info Cup in
       fprintf prec assoc opinfo fmt "%a" (print_seq pp_chars sym) ints
 
-let printer_builder = Printer.builder ~any ~to_t ~map ~print
+let printer_builder = Printer.builder ~to_t ~map ~print
 let printer_params = Printer.{aliases =[]; extensions = [(tag, printer_builder)]}
