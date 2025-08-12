@@ -10,8 +10,5 @@ val mk : hierarchy -> Node.t -> Ty.t
 type t = line list
 and line = L of Node.t * t
 
-type printer = int -> Prec.assoc -> Format.formatter -> t -> unit
-val print : printer
-
-val printer_params : printer -> hierarchy -> Printer.params
-val printer_params' : hierarchy -> Printer.params
+val printer_builder : hierarchy -> Printer.extension_builder
+val printer_params : hierarchy -> Printer.params

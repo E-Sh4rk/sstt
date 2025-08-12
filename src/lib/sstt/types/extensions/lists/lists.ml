@@ -7,7 +7,7 @@ let tag = Tag.mk "lst"
 
 let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
 let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
-  |> TagComp.as_atom |> snd
+                  |> TagComp.as_atom |> snd
 
 let cons hd tl = [hd;tl] |> Descr.mk_tuple |> Ty.mk_descr |> add_tag
 
@@ -26,8 +26,8 @@ let destruct ty =
     |> Tuples.get 2 |> Op.TupleComp.as_union
   in
   union |> List.map (fun comps -> match comps with
-  | [elt;tl] -> elt, tl
-  | _ -> assert false)
+      | [elt;tl] -> elt, tl
+      | _ -> assert false)
 
 let proj ty =
   try
@@ -40,80 +40,64 @@ let proj ty =
     | _ -> assert false
   with Op.EmptyAtom -> Ty.empty, Ty.empty
 
-let basic_extract ty =
-  let open Printer in
-  if Ty.leq ty (proj_tag any) && Ty.vars_toplevel ty |> VarSet.is_empty then
-    let tuples = Ty.get_descr ty |> Descr.get_tuples in
-    let nil_comps = Tuples.get 0 tuples |> Op.TupleComp.as_union
-      |> List.map (fun _ -> { pid=[0] ; pdef=[] })
-    in
-    let cons_comps = Tuples.get 2 tuples |> Op.TupleComp.as_union
-      |> List.map (fun tys -> { pid=[1] ; pdef=List.map (fun ty -> PLeaf ty) tys })
-    in
-    Some (nil_comps@cons_comps)
-  else None
+let tuple_comp n t = Tuples.get n t |> Op.TupleComp.as_union
+let of_tuple_comp n c =
+   c |> Op.TupleComp.of_union n |> Descr.mk_tuplecomp |> Ty.mk_descr
+let check_extract ty =
+  let pty = ty |> proj_tag in
+  let tuples = pty |> Ty.get_descr |> Descr.get_tuples
+  in
+  let nil_comps = tuple_comp 0 tuples in
+  let cons_comps = tuple_comp 2 tuples in
+  let ty_nil = of_tuple_comp 0 nil_comps in
+  let ty_cons = of_tuple_comp 2 cons_comps in
 
-let extract ty =
-  let open Printer in
-  try
-    if Ty.vars_toplevel ty |> VarSet.is_empty |> not then raise Exit ;
-    let pair = TupleComp.any 2 |> Descr.mk_tuplecomp |> Ty.mk_descr in
-    let nil = TupleComp.any 0 |> Descr.mk_tuplecomp |> Ty.mk_descr in
-    if Ty.leq ty (Ty.cup pair nil) |> not then raise Exit ;
-    let tuples = Ty.get_descr ty |> Descr.get_tuples in
-    let nil_comps =
-      Tuples.get 0 tuples |> Op.TupleComp.as_union
-      |> List.map (fun _ -> { pid=[2] ; pdef=[] })
-    in
-    let cons_comps =
-      Tuples.get 2 tuples |> Op.TupleComp.as_union
-      |> List.map (fun pair ->
-        match pair with
-        | [l;r] ->
-          let ty = proj_tag r in
-          if Ty.equiv r (Descr.mk_tag (tag, ty) |> Ty.mk_descr) |> not then raise Exit ;
-          { pid=[3] ; pdef=[PLeaf l ; PRec ty] }
-        | _ -> assert false  
-      )
-    in
-    Some (nil_comps@cons_comps)
-  with Exit -> None
+  if Ty.(equiv pty (cup ty_nil ty_cons)) then
+    nil_comps |> List.is_empty |> not,
+    (cons_comps |> List.map (function [x;y] -> x,y | _ -> assert false))
+  else invalid_arg "Invalid list type"
 
-type params_r = RNode of Printer.NodeId.t * params_rd list | RLoop of Printer.NodeId.t
-and params_rd = RCons of Printer.descr * params_r | RNil
-
+type node = { id : int; mutable graph : graph list}
+and graph = RNil | RCons of Printer.descr * node
 type basic = Nil | Cons of Printer.descr * Printer.descr
-type params = R of params_r | B of basic list
+type repr = R of node | B of basic list
 
-let to_params tstruct =
-  let open Printer in
-  let rec regexp tstruct =
-    match tstruct with
-    | CNode nid -> RLoop nid
-    | CDef (nid, union) ->
-      let to_r params =
-        match params with
-        | { pid=[2] ; pdef=[] } -> RNil
-        | { pid=[3] ; pdef=[PLeaf elt ; PRec tstruct] } ->
-          RCons (elt, regexp tstruct)
-        | _ -> raise Exit
-      in
-      RNode (nid, List.map to_r union)
+module VDHash = Hashtbl.Make(VDescr)
+
+let to_repr node ctx ty =
+  let hd_tbl : Printer.descr VDHash.t = VDHash.create 8 in
+  let tl_tbl = VDHash.create 8 in
+  let cpt = ref 0 in
+  let descr ty =
+    match VDHash.find_opt hd_tbl (Ty.def ty) with
+      Some d -> d
+    | None -> let d = node ctx ty in
+      VDHash.add hd_tbl (Ty.def ty) d; d
   in
-  let basic tstruct =
-    match tstruct with
-    | CDef (_, union) ->
-      let to_b params =
-        match params with
-        | { pid=[0] ; pdef=[]} -> Nil
-        | { pid=[1] ; pdef=[PLeaf elt ; PLeaf tl] } -> Cons (elt, tl)
-        | _ -> assert false
-      in
-      List.map to_b union
-    | _ -> assert false
+  let rec try_graph_node ty =
+    match VDHash.find_opt tl_tbl (Ty.def ty) with
+      Some n -> n
+    | None ->
+      let n = { id = !cpt; graph = [] } in
+      VDHash.add tl_tbl (Ty.def ty) n;
+      incr cpt;
+      n.graph <-try_graph ty;
+      n
+  and try_graph ty =
+    if Ty.vars_toplevel ty |> VarSet.is_empty |> not then raise Exit;
+    let has_nil, cons_comps = check_extract ty in
+    (if has_nil then [RNil] else []) @
+    List.map (fun (hd, tl) -> RCons(descr hd, try_graph_node tl)) cons_comps
   in
-  try R (regexp tstruct)
-  with Exit -> B (basic tstruct)
+  let basic ty =
+    let has_nil, cons_comps = check_extract ty in
+    (if has_nil then [Nil] else []) @
+    (List.map (fun (hd, tl) -> Cons(descr hd, descr tl))
+       cons_comps)
+  in
+  try
+    R (try_graph_node ty)
+  with Exit -> B (basic ty)
 
 module Lt = struct
   open Printer
@@ -122,15 +106,16 @@ module Lt = struct
 end
 module Regexp = Regexp.Make(Lt)
 module Automaton = Automaton.Make(Regexp)
-module NIMap = Map.Make(Printer.NodeId)
+module IMap = Map.Make(Int)
 
 let to_automaton params_r =
   let auto = Automaton.create () in
   let rec aux env t =
-    match t with
-    | RNode (nid, ds) ->
+    match IMap.find_opt t.id env with
+      Some s -> s
+    | None ->
       let state = Automaton.mk_state auto in
-      let env = NIMap.add nid state env in
+      let env = IMap.add t.id state env in
       let treat_d d =
         match d with
         | RNil -> Automaton.set_final auto state
@@ -138,10 +123,9 @@ let to_automaton params_r =
           let state' = aux env t in
           Automaton.add_trans auto state d state'
       in
-      List.iter treat_d ds ; state
-    | RLoop nid -> NIMap.find nid env
+      List.iter treat_d t.graph ; state
   in
-  let state = aux NIMap.empty params_r in
+  let state = aux IMap.empty params_r in
   assert (Automaton.is_initial auto state) ;
   auto
 
@@ -168,6 +152,7 @@ let rec convert_regexp (r: Regexp.t_ext) =
   | EOption r -> Option (convert_regexp r)
   | EPlus r -> Plus (convert_regexp r)
 
+
 let to_regexp automaton =
   let simpl_union = function
     | Regexp.Union (Regexp.Letter d1, Regexp.Letter d2) ->
@@ -177,10 +162,29 @@ let to_regexp automaton =
   automaton |> Automaton.to_regexp |> Regexp.simple_re simpl_union
   |> Regexp.to_ext |> convert_regexp
 
-let to_t t =
-  match to_params t with
-  | R r -> Regexp (r |> to_automaton |> to_regexp)
-  | B bs -> Basic bs 
+let to_t node ctx ty =
+  try
+    Some (match to_repr node ctx ty with
+        | R r -> Regexp (r |> to_automaton |> to_regexp)
+        | B bs -> Basic bs)
+  with _ -> None
+
+let rec map_re f = function
+  | Epsilon -> Epsilon
+  | Symbol s -> Symbol (f s)
+  | Concat l -> Concat (List.map (map_re f) l)
+  | Union l -> Union (List.map (map_re f) l)
+  | Star r -> Star (map_re f r)
+  | Plus r -> Plus (map_re f r)
+  | Option r -> Option (map_re f r)
+
+let map_basic f = function
+  | Nil -> Nil
+  | Cons (d1, d2) -> Cons (f d1, f d2)
+
+let map f = function
+    Regexp r -> Regexp (map_re f r)
+  | Basic l -> Basic (List.map (map_basic f) l)
 
 let prec_star = 2
 let prec_plus = 2
@@ -198,29 +202,27 @@ let rec print_r prec fmt regexp =
     end
   in
   let () = match regexp with
-  | Epsilon -> ()
-  | Symbol d -> Format.fprintf fmt "%a" Printer.print_descr_atomic d
-  | Concat lst ->
-    paren prec_concat ;
-    Format.fprintf fmt "%a" (print_seq (print_r prec_concat) " ") lst
-  | Union lst ->
-    paren prec_union ;
-    Format.fprintf fmt "%a" (print_seq (print_r prec_union) " | ") lst
-  | Star r ->
-    paren prec_star ;
-    Format.fprintf fmt "%a*" (print_r prec_star) r
-  | Plus r ->
-    paren prec_plus ;
-    Format.fprintf fmt "%a+" (print_r prec_plus) r
-  | Option r ->
-    paren prec_option ;
-    Format.fprintf fmt "%a?" (print_r prec_option) r
+    | Epsilon -> ()
+    | Symbol d -> Format.fprintf fmt "%a" Printer.print_descr_atomic d
+    | Concat lst ->
+      paren prec_concat ;
+      Format.fprintf fmt "%a" (print_seq (print_r prec_concat) " ") lst
+    | Union lst ->
+      paren prec_union ;
+      Format.fprintf fmt "%a" (print_seq (print_r prec_union) " | ") lst
+    | Star r ->
+      paren prec_star ;
+      Format.fprintf fmt "%a*" (print_r prec_star) r
+    | Plus r ->
+      paren prec_plus ;
+      Format.fprintf fmt "%a+" (print_r prec_plus) r
+    | Option r ->
+      paren prec_option ;
+      Format.fprintf fmt "%a?" (print_r prec_option) r
   in
   if !need_paren then Format.fprintf fmt ")"
 
 open Prec
-
-type printer = int -> assoc -> Format.formatter -> t -> unit
 
 let print_r fmt =
   Format.fprintf fmt "[ %a ]" (print_r (-1))
@@ -239,33 +241,9 @@ let print prec assoc fmt t =
     let sym,_,_ as opinfo = varop_info Cup in
     fprintf prec assoc opinfo fmt "%a" (print_seq print_line sym) union
 
-let printer_params printer = {
-  Printer.aliases = [] ;
-  Printer.extensions =
-    let module M = struct
-      type nonrec t = t
-      let tag = tag
-      let extractors = [extract ; basic_extract]
-      let get = to_t
-      let print = printer
-    end
-  in [(module M : Printer.PrinterExt)]
-  }
+let printer_builder = Printer.builder ~to_t ~map ~print
 
-let printer_params' = printer_params print
-
-let basic_printer_params = {
-  Printer.aliases = [] ;
-  Printer.extensions =
-    let module M = struct
-      type nonrec t = t
-      let tag = tag
-      let extractors = [basic_extract]
-      let get = to_t
-      let print = print
-    end
-  in [(module M : Printer.PrinterExt)]
-  }
+let printer_params = Printer.{ aliases = [];  extensions = [(tag, printer_builder)]}
 
 (* Builder *)
 

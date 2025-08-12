@@ -5,7 +5,7 @@ let tag = Tag.mk "flt"
 
 let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
 let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
-  |> TagComp.as_atom |> snd
+                  |> TagComp.as_atom |> snd
 
 type k = Ninf | Neg | Nzero | Pzero | Pos | Pinf | Nan
 
@@ -28,11 +28,6 @@ let flt k =
 let any =
   [Ninf;Neg;Nzero;Pzero;Pos;Pinf;Nan] |> List.map flt |> Ty.disj |> Transform.simplify
 
-let extract ty =
-  let open Printer in
-  if Ty.leq ty (proj_tag any) && Ty.vars_toplevel ty |> VarSet.is_empty
-  then Some [ { pid=[] ; pdef=[PUnprocessed ty] } ]
-  else None
 
 type t = { ninf : bool ; neg : bool ; nzero : bool ; pzero : bool ; pos : bool ; pinf : bool ; nan : bool }
 
@@ -46,7 +41,7 @@ let empty_t = {
 }
 let neg_t { ninf ; neg ; nzero ; pzero ; pos ; pinf ; nan } =
   { ninf = not ninf ; neg = not neg ; nzero = not nzero ; pzero = not pzero ;
-   pos = not pos ; pinf = not pinf ; nan = not nan }
+    pos = not pos ; pinf = not pinf ; nan = not nan }
 let components { ninf ; neg ; nzero ; pzero ; pos ; pinf ; nan } =
   [
     ninf, Ninf ;
@@ -58,17 +53,15 @@ let components { ninf ; neg ; nzero ; pzero ; pos ; pinf ; nan } =
     nan, Nan
   ] |> List.filter_map (fun (b,k) -> if b then Some k else None)
 
-let to_t tstruct =
-  let open Printer in
-  match tstruct with
-  | CDef (_, [{ pid=[] ; pdef=[PUnprocessed ty] }]) ->
-    let (pos, enums') = ty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
-    assert pos ;
+let to_t _ _ ty =
+  let pty = proj_tag ty in
+  let (pos, enums') = pty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
+  if pos && Ty.leq ty any && (Ty.vars_toplevel pty |> VarSet.is_empty) then
     let has k =
       let enum = List.assoc k enums in
       List.mem enum enums'
     in
-    {
+    Some {
       ninf = has Ninf ;
       neg = has Neg ;
       nzero = has Nzero ;
@@ -77,11 +70,10 @@ let to_t tstruct =
       pinf = has Pinf ;
       nan = has Nan
     }
-  | _ -> assert false
-
+  else None
 open Prec
 
-type printer = int -> assoc -> Format.formatter -> t -> unit
+let map _ v = v
 let comp_names =
   [
     Ninf, "-inf" ;
@@ -113,17 +105,6 @@ let print prec assoc fmt t =
     let sym,prec',_ as opinfo = binop_info Diff in
     fprintf prec assoc opinfo fmt "float%s%a" sym (aux prec' Right) comp
 
-let printer_params printer = {
-  Printer.aliases = [] ;
-  Printer.extensions =
-    let module M = struct
-      type nonrec t = t
-      let tag = tag
-      let extractors = [extract]
-      let get = to_t
-      let print = printer
-    end
-  in [(module M : Printer.PrinterExt)]
-  }
+let printer_builder = Printer.builder ~to_t ~map ~print
 
-let printer_params' = printer_params print
+let printer_params = Printer.{aliases =[]; extensions = [(tag, printer_builder)]}

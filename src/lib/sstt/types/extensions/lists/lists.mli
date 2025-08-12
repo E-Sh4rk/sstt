@@ -46,8 +46,6 @@ val proj : Ty.t -> Ty.t * Ty.t
     where [destruct t] = [[ (hd1, tl1); …; (hdn, tln) ]]
 *)
 
-val basic_printer_params : Printer.params
-
 type 'a regexp =
   | Epsilon
   | Symbol of 'a
@@ -63,11 +61,7 @@ type t =
   | Regexp of Printer.descr regexp
   | Basic of basic list
 
-type printer = int -> Prec.assoc -> Format.formatter -> t -> unit
-
-val print : printer
-
-val printer_params : printer -> Printer.params
-val printer_params' : Printer.params
+val printer_builder : Printer.extension_builder
+val printer_params : Printer.params
 
 val build : Ty.t regexp -> Ty.t

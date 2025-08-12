@@ -8,11 +8,9 @@ val is_abstract : Tag.t -> bool
 val params_of : Tag.t -> variance list
 val mk : Tag.t -> Ty.t list -> Ty.t
 val mk_any : Tag.t -> Ty.t
-val destruct : Tag.t -> Ty.t -> Ty.t t option
-val destruct_tagcomp : TagComp.t -> (Tag.t * Ty.t t) option
+val destruct : Tag.t -> Ty.t -> Ty.t t
+val destruct_tagcomp : TagComp.t -> Tag.t * Ty.t t
 
-type printer = Tag.t -> int -> Prec.assoc -> Format.formatter -> Printer.descr t -> unit
-val print : printer
-
-val define : printer -> string -> variance list -> Tag.t * Printer.params
-val define' : string -> variance list -> Tag.t * Printer.params
+val printer_builder : Tag.t -> Printer.extension_builder
+val printer_params : Tag.t -> Printer.params
+val define : string -> variance list -> Tag.t * Printer.params

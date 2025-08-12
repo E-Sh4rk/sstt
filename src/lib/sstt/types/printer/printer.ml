@@ -2,6 +2,7 @@ open Core
 open Sstt_utils
 open Prec
 
+
 module NodeId = struct
   type t = { id : int ; mutable name : string option }
   let next_id =
@@ -20,65 +21,54 @@ module NodeId = struct
     | Some str -> Format.fprintf fmt "%s" str
 end
 
-module type CustomNode = sig
-  type t
-  val v : t
-  val print : int -> assoc -> Format.formatter -> t -> unit
-end
+module VD = VDescr
+module D = Descr
+module NISet = Set.Make(NodeId)
+module VDHash = Hashtbl.Make(VD)
+module TagMap = Map.Make(Tag)
 
 type builtin =
   | Empty | Any | AnyTuple | AnyEnum | AnyTag | AnyInt
   | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of Tag.t
-type 'c t' = { main : 'c descr' ; defs : 'c def' list }
-and 'c def' = NodeId.t * 'c descr'
-and 'c descr' = { op : 'c op' ; ty : Ty.t }
-and 'c op' =
-  | Custom of 'c
+type t = { main : descr ; defs : def list }
+and def = NodeId.t * descr
+and descr = { op : op ; ty : Ty.t }
+and op =
+  | Extension of extension_node
   | Alias of string
   | Node of NodeId.t
   | Builtin of builtin
   | Var of Var.t
   | Enum of Enums.Atom.t
-  | Tag of Tag.t * 'c descr'
+  | Tag of Tag.t * descr
   | Interval of Z.t option * Z.t option
-  | Record of (Label.t * 'c descr' * bool) list * bool
-  | Varop of varop * 'c descr' list
-  | Binop of binop * 'c descr' * 'c descr'
-  | Unop of unop * 'c descr'
+  | Record of (Label.t * descr * bool) list * bool
+  | Varop of varop * descr list
+  | Binop of binop * descr * descr
+  | Unop of unop * descr
+and extension_node = E : {
+    value : 'a;
+    map : (descr  -> descr) -> 'a -> 'a;
+    print : int -> assoc -> Format.formatter -> 'a -> unit
+  } -> extension_node
 
-type t = (module CustomNode) t'
-type descr = (module CustomNode) descr'
-type def = (module CustomNode) def'
-type op = (module CustomNode) op'
-
-(* Printer extensions *)
-type ('u, 'l, 'r) cparam = PUnprocessed of 'u | PLeaf of 'l | PRec of 'r
-type ('u, 'l, 'r) cparams = { pid : int list ; pdef : ('u, 'l, 'r) cparam list }
-type custom = CDef of NodeId.t * (Ty.t, descr, custom) cparams list | CNode of NodeId.t
-type extracted_params = (Ty.t, Ty.t, Ty.t) cparams list
-module type PrinterExt = sig
-  type t
-  val tag : Tag.t
-  val extractors : (Ty.t -> extracted_params option) list
-  val get : custom -> t
-  val print : int -> assoc -> Format.formatter -> t -> unit
-end
-type custom' = CDef of NodeId.t * (Ty.t, (Tag.t * custom') descr', custom') cparams list | CNode of NodeId.t
-
+(* Extensions *)
 type aliases = (Ty.t * string) list
-type extensions = (module PrinterExt) list
-type params = { aliases : aliases ; extensions : extensions }
+type extension_builder = ctx -> Ty.t -> extension_node option
 
-module VD = VDescr
-module D = Descr
-module VDHash = Hashtbl.Make(VD)
-module NISet = Set.Make(NodeId)
-module TagMap = Map.Make(Tag)
+and extensions = (Tag.t * extension_builder) list
+and params = { aliases : aliases ; extensions : extensions }
+and ctx = {
+  nodes : NodeId.t VDHash.t ;
+  aliases : (Ty.t * op) list ;
+  extensions : extension_builder TagMap.t
+}
 
-let map_descr' fc f d = (* Assumes f preserves semantic equivalence *)
+
+let map_descr f d = (* Assumes f preserves semantic equivalence *)
   let rec aux d =
     let op = match d.op with
-      | Custom c -> Custom (fc aux c)
+      | Extension (E e) -> Extension (E{ e with value = e.map aux e.value } )
       | Alias str -> Alias str
       | Node n -> Node n
       | Builtin b -> Builtin b
@@ -94,27 +84,11 @@ let map_descr' fc f d = (* Assumes f preserves semantic equivalence *)
     in { d with op = f { d with op } }
   in
   aux d
-let map_ic map (tag, ts) =
-  let rec map_ts ts =
-    match ts with
-    | CDef (nid,params) ->
-      CDef (nid, List.map map_params params)
-    | CNode nid -> CNode nid
-  and map_params { pid ; pdef } =
-    { pid ; pdef=List.map map_param pdef }
-  and map_param p =
-    match p with
-    | PUnprocessed ty -> PUnprocessed ty
-    | PLeaf d -> PLeaf (map d)
-    | PRec ts -> PRec (map_ts ts)
-  in
-  (tag, map_ts ts)
-let map_descr = map_descr' map_ic
-let map_t' fc f t =
-  let main = map_descr' fc f t.main in
-  let defs = t.defs |> List.map (fun (id,d) -> (id,map_descr' fc f d)) in
+
+let map_t f t =
+  let main = map_descr f t.main in
+  let defs = t.defs |> List.map (fun (id,d) -> (id,map_descr f d)) in
   { main ; defs }
-let map_t = map_t' map_ic
 
 let nodes_in_descr d =
   let res = ref NISet.empty in
@@ -222,19 +196,10 @@ let interval (o1, o2) =
 
 (* Step 1 : Build the initial ctx and AST *)
 
-let empty_params : params = { aliases = [] ; extensions = [] }
-
-let merge_params p1 p2 =
-  { aliases = p1.aliases@p2.aliases ;
-    extensions = p1.extensions@p2.extensions }
-
-let merge_params = List.fold_left merge_params empty_params
-
-type ctx = {
-  nodes : NodeId.t VDHash.t ;
-  aliases : (Ty.t * (Tag.t * custom') op') list ;
-  extensions : (module PrinterExt) TagMap.t ;
-}
+let empty_params = { aliases = []; extensions = [] }
+let merge_params l = List.fold_left (fun acc p ->
+    {  aliases = acc.aliases @ p.aliases;
+       extensions = acc.extensions @ p.extensions }) empty_params l
 
 let node ctx ty =
   let def = Ty.def ty in
@@ -245,25 +210,15 @@ let node ctx ty =
     VDHash.add ctx.nodes def nid  ;
     { op = Node nid ; ty }
 
-let tag_handlers ctx tag =
-  match TagMap.find_opt tag ctx.extensions with
-  | None -> []
-  | Some m ->
-    let module M = (val m : PrinterExt) in
-    M.extractors
-
 let build_t (params:params) ty =
   let aliases = params.aliases |> List.map (fun (ty, s) -> (ty, Alias s)) in
-  let extensions = params.extensions |> List.map (fun m ->
-      let module M = (val m : PrinterExt) in
-      M.tag, m
-    ) |> TagMap.of_list in
+  let extensions = params.extensions |> TagMap.of_list in
   let ctx = { nodes=VDHash.create 16 ; aliases ; extensions } in
   ctx, { main = node ctx ty ; defs = [] }
 
-(* Step 2 : Resolve missing definitions (and recognize custom type aliases) *)
+(* Step 2 : Resolve missing definitions (and recognize Ext type aliases) *)
 
-let resolve_alias ctx ty =
+let resolve_alias (ctx:ctx) ty =
   begin match List.find_opt (fun (ty',_) -> Ty.equiv ty ty') ctx.aliases with
     | None ->
       begin match List.find_opt (fun (ty',_) -> Ty.equiv ty (Ty.neg ty')) ctx.aliases with
@@ -344,33 +299,6 @@ let resolve_records ctx a =
   in
   dnf |> List.map resolve_dnf |> union
 
-let resolve_custom_tagcomp f ctx ty =
-  let env = VDHash.create 8 in
-  let rec aux ty =
-    let vd = Ty.def ty in
-    match VDHash.find_opt env vd with
-    | Some nid -> CNode nid
-    | None ->
-      begin match f ty with
-        | None -> raise Exit
-        | Some extracted ->
-          let nid = NodeId.mk () in
-          VDHash.add env vd nid;
-          let treat_param param =
-            match param with
-            | PUnprocessed ty -> PUnprocessed ty
-            | PLeaf ty -> PLeaf (node ctx ty)
-            | PRec ty -> PRec (aux ty)
-          in
-          let treat_params { pid ; pdef } =
-            { pid ; pdef=List.map treat_param pdef }
-          in
-          let union = List.map treat_params extracted in
-          VDHash.remove env vd;
-          CDef (nid, union)
-      end
-  in
-  aux ty
 
 let resolve_tagcomp ctx a =
   let ty = Tags.mk_comp a |> D.mk_tags |> Ty.mk_descr in
@@ -378,15 +306,12 @@ let resolve_tagcomp ctx a =
   | Some d -> d
   | None ->
     let (t, ty') = TagComp.as_atom a in
-    let handlers = tag_handlers ctx t in
-    let rec aux handlers =
-      match handlers with
-      | [] -> tag t (node ctx ty')
-      | f::handlers ->
-        try { op = Custom (t, resolve_custom_tagcomp f ctx ty') ; ty }
-        with Exit -> aux handlers
-    in
-    aux handlers
+    match  TagMap.find_opt t ctx.extensions with
+      None -> tag t (node ctx ty')
+    | Some f ->
+      match f ctx ty with
+        None -> tag t (node ctx ty')
+      | Some e -> { op = Extension e; ty}
 
 let resolve_tags ctx a =
   let (pos, components) = Tags.destruct a in
@@ -508,35 +433,6 @@ let simplify t =
   in
   map_t f t
 
-(* Step 5 : Transform Custom *)
-
-let transform_custom_tags ctx t =
-  let aux map (tag, ts) =
-    let m = TagMap.find tag ctx.extensions in
-    let module M = (val m : PrinterExt) in
-    let rec map_ts ts : custom =
-      match ts with
-      | CDef (nid,params) ->
-        CDef (nid, List.map map_params params)
-      | CNode nid -> CNode nid
-    and map_params { pid; pdef } =
-      { pid ; pdef=List.map map_param pdef }
-    and map_param p =
-      match p with
-      | PUnprocessed ty -> PUnprocessed ty
-      | PLeaf d -> PLeaf (map d)
-      | PRec ts -> PRec (map_ts ts)
-    in
-    let module M' = struct
-      type t = M.t
-      let v = M.get (map_ts ts)
-      let print = M.print
-    end in
-    (module M' : CustomNode)
-  in
-  let op d = d.op in
-  map_t' aux op t
-
 (* Step 6 : Rename nodes *)
 
 let rename_nodes t =
@@ -583,9 +479,7 @@ let print_interval fmt (lb,ub) =
 let rec print_descr prec assoc fmt d =
   let rec aux prec assoc fmt d =
     match d.op with
-    | Custom m ->
-      let module M = (val m : CustomNode) in
-      M.print prec assoc fmt M.v
+    | Extension (E e) -> e.print prec assoc fmt e.value
     | Alias str -> Format.fprintf fmt "%s" str
     | Node n -> Format.fprintf fmt "%a" NodeId.pp n
     | Builtin b -> print_builtin fmt b
@@ -635,14 +529,19 @@ and print_t fmt t =
     Format.fprintf fmt " where %a" (print_seq print_def " and ") defs
 
 (* MAIN *)
+let builder ~to_t ~map ~print =
+  (fun ctx ty ->
+     match to_t node ctx ty with
+       None -> None
+     | Some value -> Some (E {value; map; print})
+  )
 
 let get customs ty =
   let (ctx, t) = build_t customs ty in
   let t = resolve_missing_defs ctx t in
   let t = inline t in
   let t = simplify t in
-  let t = transform_custom_tags ctx t in
-  rename_nodes t ;
+  rename_nodes t;
   t
 
 let print = print_t
