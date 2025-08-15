@@ -256,7 +256,7 @@ module Make(VO:VarOrder) = struct
       |> CSS.map_conj delta norm_record
     and norm_arrow (ps, ns, _ ) =
       let rec psi t1 t2 ps () =
-        if Ty.is_empty t1 then CSS.any else
+        if Ty.is_empty t1 || Ty.is_empty t2 then CSS.any else
           let cstr_1 = norm_ty t1 in
           let cstr_2 = norm_ty t2 in
           let cstr_rec = match ps with

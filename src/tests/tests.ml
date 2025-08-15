@@ -164,6 +164,17 @@ let%expect_test "tests" =
                'X: int ;
                'Y: bool
              ]
+    tally16: [
+               'X: 'A | 'X ;
+               'Y: 'B & 'Y
+             ]
+            [
+              'A: empty
+            ]
+            [
+              'X: 'A | 'X ;
+              'B: any
+            ]
     app1: int
     app2: any
     app3: (-5..5)

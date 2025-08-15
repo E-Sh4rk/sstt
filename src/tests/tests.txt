@@ -95,6 +95,7 @@ type bool = true | false ;;
 "tally13" [ { l : 'X ..} <= { l : 'Y } ] ;;
 "tally14" [ { l : 'X } <= { l : 'Y ..} ] ;;
 "tally15" [ 'X, 'Y = int, bool ];;
+"tally16" [ 'X -> 'Y <= 'A -> 'B ] ;;
 
 "app1" int -> bool -> int 42 bool ;;
 "app2" int -> bool -> int bool 42 ;;
