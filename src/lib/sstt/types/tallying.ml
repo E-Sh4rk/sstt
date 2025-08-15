@@ -272,7 +272,8 @@ module Make(VO:VarOrder) = struct
         let cstr_domain = Ty.diff t1 (List.map fst ps |> Ty.disj) |> norm_ty in
         if CSS.is_empty cstr_domain then CSS.empty
         else
-          let cstr_struct () = if ps == [] then CSS.any else psi t1 (Ty.neg t2) ps () in
+          let cstr_struct () =
+            if List.is_empty ps then CSS.any else psi t1 (Ty.neg t2) ps () in
           CSS.cap_lazy delta cstr_domain cstr_struct
       in
       List.map (norm_single_neg_arrow ps) ns |> CSS.disj
