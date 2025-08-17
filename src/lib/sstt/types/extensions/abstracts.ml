@@ -100,16 +100,13 @@ let proj_tag tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
 
 let destruct tag ty =
   check_abstract tag;
+  let ty = proj_tag tag ty in
   let vs = Hashtbl.find atypes tag in
   extract_params vs ty
 
-let destruct_tagcomp comp =
-  let (tag, ty) = TagComp.as_atom comp in
-  (tag, destruct tag ty)
-
 let to_t tag node ctx ty =
   try 
-    let params = destruct tag (proj_tag tag ty) in
+    let params = destruct tag ty in
     let map_node l = List.map (node ctx) l in
     List.map (fun (p1, p2) ->
         List.map map_node p1, List.map map_node p2

@@ -36,7 +36,7 @@ let new_node h ~name ~subnodes =
     h.top_nodes <- NSet.add n h.top_nodes ;
     EHT.add h.atoms atom n ;
     n
-  with Not_found -> raise (Invalid_argument "subnodes must be part of the hierarchy")
+  with Not_found -> invalid_arg "subnodes must be part of the hierarchy"
 
 let mk h n =
   try
@@ -44,7 +44,7 @@ let mk h n =
     let atoms = ns |> NSet.to_list |> List.map (fun n -> (NHT.find h.nodes n).atom) in
     let ty = Enums.construct (true, atoms) |> Descr.mk_enums |> Ty.mk_descr in
     (h.tag, ty) |> Descr.mk_tag |> Ty.mk_descr
-  with Not_found -> raise (Invalid_argument "subnodes must be part of the hierarchy")
+  with Not_found -> invalid_arg "subnodes must be part of the hierarchy"
 
 type t = line list
 and line = L of Node.t * t

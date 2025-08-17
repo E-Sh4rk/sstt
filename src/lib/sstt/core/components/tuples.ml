@@ -36,7 +36,7 @@ module MakeC(N:Node) = struct
 
   let check_length len len' =
     if Index.equal len len' |> not then
-      raise (Invalid_argument "Heterogeneous tuple lengths.")
+      invalid_arg "Heterogeneous tuple lengths."
 
   let cap (len1, t1) (len2, t2) = check_length len1 len2 ; len1, Bdd.cap t1 t2
   let cup (len1, t1) (len2, t2) = check_length len1 len2 ; len1, Bdd.cup t1 t2

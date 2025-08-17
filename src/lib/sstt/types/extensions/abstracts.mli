@@ -9,7 +9,6 @@ val params_of : Tag.t -> variance list
 val mk : Tag.t -> Ty.t list -> Ty.t
 val mk_any : Tag.t -> Ty.t
 val destruct : Tag.t -> Ty.t -> Ty.t t
-val destruct_tagcomp : TagComp.t -> Tag.t * Ty.t t
 
 val printer_builder : Tag.t -> Printer.extension_builder
 val printer_params : Tag.t -> Printer.params

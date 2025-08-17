@@ -19,8 +19,10 @@ let mk' fields = mk (fields, [])
 let any = mk' []
 
 let destruct ty =
-  ty |> Ty.get_descr |> Descr.get_arrows |> Arrows.dnf |> Arrows.Dnf.simplify
-  |> List.map (fun (ps, ns, _) ->
+  let pty = proj_tag ty in
+  if Ty.vars_toplevel pty |> VarSet.is_empty then
+    pty |> Ty.get_descr |> Descr.get_arrows |> Arrows.dnf |> Arrows.Dnf.simplify
+    |> List.map (fun (ps, ns, _) ->
       let ps = ps |> List.filter_map (fun (s,t) ->
           if Ty.is_any t then None
           else Some { dom=s ; codom=t })
@@ -28,17 +30,19 @@ let destruct ty =
       let ns = ns |> List.map (fun (s,t) -> { dom=s ; codom=t }) in
       ps, ns
     )
+  else
+    invalid_arg "Malformed map type"
 
 let map f l =
   let ff t = { dom = f t.dom; codom = f t.codom } in
   List.map (fun (ps, ns) -> List.map ff ps, List.map ff ns) l
 
 let to_t node ctx ty =
-  let pty = proj_tag ty in
-  if Ty.leq ty any && Ty.vars_toplevel pty |> VarSet.is_empty then
-    let l = pty |> destruct in
+  try
+    if Ty.leq ty any |> not then raise Exit ;
+    let l = destruct ty in
     Some (map (node ctx) l)
-  else None
+  with _ -> None
 let proj ~dom t =
   let arr = proj_tag t |> Ty.get_descr |> Descr.get_arrows in
   Op.Arrows.apply arr dom

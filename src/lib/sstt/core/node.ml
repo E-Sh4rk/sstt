@@ -235,7 +235,7 @@ include (struct
               ) then Some n else None
           in
           match deps |> NSet.to_seq |> Seq.find_map deps_ok with
-          | None -> raise (Invalid_argument "Set of equations is not contractive.")
+          | None -> invalid_arg "Set of equations is not contractive."
           | Some n ->
             let nn = new_node n in
             if has_def nn |> not then begin

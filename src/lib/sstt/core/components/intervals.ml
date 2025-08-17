@@ -52,7 +52,7 @@ module Interval = struct
   type t = Number.t * Number.t
   let mk_bounded lb ub =
     if Z.leq lb ub then Number.(Num lb, Num ub)
-    else raise (Invalid_argument "Lower bound is greater than upper bound")
+    else invalid_arg "Lower bound is greater than upper bound"
   let mk lb ub =
     let open Number in
     match lb, ub with

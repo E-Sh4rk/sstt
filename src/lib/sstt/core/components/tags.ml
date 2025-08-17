@@ -36,8 +36,7 @@ module MakeC(N:Node) = struct
   let index = tag
 
   let check_tag tag tag' =
-    if Tag.equal tag tag' |> not then
-      raise (Invalid_argument "Heterogeneous tags.")
+    if Tag.equal tag tag' |> not then invalid_arg "Heterogeneous tags."
 
   let cap (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.cap t1 t2
   let cup (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.cup t1 t2
