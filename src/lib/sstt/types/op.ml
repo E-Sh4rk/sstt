@@ -101,7 +101,7 @@ module Records = struct
         let oty = if snd oty2 then Ty.O.cup oty1 (fst oty2, false) else oty2 in
         (lbl, oty)
       ) |> LabelMap.of_list in
-    { bindings ; opened = a1.opened && a2.opened } |> Records.mk
+    { bindings ; opened = a1.opened || a2.opened } |> Records.mk
 
   let remove a lbl =
     let open Records.Atom in

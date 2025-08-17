@@ -288,8 +288,6 @@ module Make(VO:VarOrder) = struct
     in
     norm_ty t
 
-  (* TODO: Normalize using psi, in the same way as for subtyping *)
-
   let merge memo delta cs =
     (* Step1 from the paper is useless, since the ConstrSet maintains
        merged constraints
