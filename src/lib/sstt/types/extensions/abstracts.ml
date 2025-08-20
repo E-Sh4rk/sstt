@@ -19,6 +19,11 @@ let label_of_position i =
     let lbl = Label.mk (string_of_int i) in
     Hashtbl.add labels i lbl ; lbl
 
+let define name (vs:variance list) =
+  let tag = Tag.mk name in
+  Hashtbl.add atypes tag vs ;
+  tag
+
 let encode_params vs ps =
   let (ls, rs) =
     List.combine vs ps |> List.mapi (fun i (v,p) ->
@@ -149,8 +154,3 @@ let printer_builder tag =
   Printer.builder ~to_t:(to_t tag) ~map ~print:(print tag)
 
 let printer_params tag = Printer.{ aliases = []; extensions = [(tag, printer_builder tag)]}
-
-let define name (vs:variance list) =
-  let tag = Tag.mk name in
-  Hashtbl.add atypes tag vs ;
-  tag, printer_params tag

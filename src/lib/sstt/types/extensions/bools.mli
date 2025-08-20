@@ -8,6 +8,9 @@ val bool : bool -> Ty.t
 val any : Ty.t
 
 type t = { t : bool ; f : bool }
+val to_t : (Printer.ctx -> Ty.t -> Printer.descr) -> Printer.ctx -> Ty.t -> t option
+val map : ((Printer.descr -> Printer.descr) -> t -> t)
+
 val any_t : t
 val empty_t : t
 val neg_t : t -> t
