@@ -9,19 +9,19 @@ module Make (V : Hashtbl.HashedType) (R : sig type t val equal : t -> t-> bool e
       exploration is not finished. The API is as follows:
      - first, one looks for [v] in the table, using [find ~default:r table v]
 
-        - if [v] is not in the table, it associates an initial result [r : R.t],
+     - if [v] is not in the table, it associates an initial result [r : R.t],
             returns [None] and [v] becomes active. The exploration of
             [v] can continue.
-        - if [v] is in the table, it means it is encountered again. The initial
+     - if [v] is in the table, it means it is encountered again. The initial
             value stored is returned as [Some r] and all values that became
             active after [v] and are still active are recorded. 
             These are the dependencies of [v].
 
      - when returning from the initial exploration of [v] with a computed
         result [r'], one needs to update the result [update table v r']:
-        - if [R.equal r r'] then the initial guess was correct, and all
+     - if [R.equal r r'] then the initial guess was correct, and all
               dependencies are left as-is
-        - otherwise, the dependencies of [v] are removed from the table: they
+     - otherwise, the dependencies of [v] are removed from the table: they
               were computed while making the (wrong) hypothesis that the result for
               [v] was [r], while it is [r']. Later calls to [find ~default:r table
               v] will return [r'] unless it is itself invalidated.
@@ -72,51 +72,54 @@ end = struct
   module H = Hashtbl.Make (V)
 
   exception InvalidAccess
-
+  type stack = 
+      Cons of { key : V.t; mutable marked : bool ; next : stack }
+    | Nil
   type entry = {
     mutable active : bool;            (* status of the entry *)
-    mutable dependencies : V.t list;  (* the top of the stack at the time the entry was accessed *)
+    mutable dependencies :stack list;  (* the top of the stack at the time the entry was accessed *)
     mutable result : R.t option;      (* the result stored in this entry *)
   }
   and t = {
     table :  entry H.t;                 (* The table of all entrys *)
-    mutable stack : V.t list;           (* The stack of entrys. *)
+    mutable stack : stack;           (* The stack of entrys. *)
   }
-  let create () = { table = H.create 0; stack = []}
-  let clear t = H.clear t.table; t.stack <- []
+  let create () = { table = H.create 0; stack = Nil}
+  let clear t = H.clear t.table; t.stack <- Nil
 
   let find ~default t key = 
     match H.find_opt t.table key with
     | None -> 
       (* The key is not in the table start from scratch *)
       let entry = { active = true; dependencies = []; result = Some default } in
-      t.stack <- key::t.stack;
+      t.stack <- Cons { key; marked = false; next = t.stack };
       H.add t.table key entry;
       None
 
     | Some entry -> 
       (* We find an entry, if it is active, record the dependencies, that is
          the current stack. *)
-      if entry.active then entry.dependencies <- t.stack;
+      if entry.active then entry.dependencies <- t.stack::entry.dependencies;
       entry.result
 
   (* remove from the list until we find ourselves, this is when we where put
      on the stack *)
-  let rec invalidate tbl deps stop = 
+  let rec invalidate tbl stop deps = 
     match deps with
-    | key :: prev when not (V.equal key stop) ->
+    | Cons ({ key ; next ; marked }  as r) when not marked && not (V.equal key stop) ->
       H.remove tbl key;
-      invalidate tbl prev stop
+      r.marked <- true;
+      invalidate tbl stop next
     | _ -> ()
 
   let update t key r =
     match H.find_opt t.table key, t.stack  with
-    | Some ({ active = true; result = Some old_r; _ } as cp), _::sstack ->
+    | Some ({ active = true; result = Some old_r; _ } as cp), Cons s ->
       if not (R.equal r old_r) then begin
-        invalidate t.table cp.dependencies key;
+        List.iter (invalidate t.table key) cp.dependencies;
         cp.result <- Some r;
       end;
-      t.stack <- sstack;
+      t.stack <- s.next;
       cp.active <- false
     | _ -> raise InvalidAccess
 end
