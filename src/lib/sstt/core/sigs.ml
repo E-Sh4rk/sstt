@@ -416,15 +416,36 @@ module type FieldTy = sig
    include SetTheoretic with type t := t
    include TyBase with type t := t and type node := node
    val mk : node -> bool -> t
+   (** [mk n b] creates a type with the absent component denoted by [b]
+      (if b is true, is absent component is present)
+    *)
+  
    val destruct : t -> node * bool
+   (** Extract the type and absent component of a field type. *)
+  
    val absent : t
+   (** The absent type. *)
+
    val required : node -> t
+   (** Make a type required (no absent component). *)
+
    val optional : node -> t
+   (** Make a type optional (absent component is present). *)
+
    val get : t -> node
+   (** Returns the underlying type of a field type. *)
+
    val is_absent : t -> bool
+   (** Tests whether [t] is the absent singleton type.  *)
+
    val is_optional : t -> bool
+   (** Tests whether the given field type is optional. *)
+
    val is_required : t -> bool
+   (** Tests whether the given field type is non optional. *)
+
    val map_nodes : (node -> node) -> t -> t
+   (** [map_nodes f t] applies [f] to the underlying type of [t]. *)
 end
 
 module type RecordAtom = sig
