@@ -2,7 +2,7 @@ open Base
 open Sigs
 open Sstt_utils
 
-module FieldTy(N:Node) : FieldTy with type node := N.t = struct
+module FieldTy(N:Node) = struct
   type node = N.t
   type t = node * bool
 
