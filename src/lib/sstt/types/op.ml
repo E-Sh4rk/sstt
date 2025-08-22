@@ -90,7 +90,7 @@ module Records = struct
             match ot1, ot2 with
               None, None -> None
             | _ -> 
-              Some (Ty.O.cup (default a1 ot1) (default a2 ot2))
+              Some (Ty.F.cup (default a1 ot1) (default a2 ot2))
           ) a1.bindings a2.bindings in
       { bindings ; opened = a1.opened || a2.opened }
     in
@@ -99,7 +99,7 @@ module Records = struct
     | hd::tl -> List.fold_left union_a hd tl
 
   let proj label t =
-    as_union t |> List.map (Records.Atom.find label) |> Ty.O.disj
+    as_union t |> List.map (Records.Atom.find label) |> Ty.F.disj
 
   let merge a1 a2 =
     let open Records.Atom in
@@ -107,15 +107,15 @@ module Records = struct
         match ot1, ot2 with
           None, None -> None
         | _ ->
-          let (ty2, b2) as oty2 = default a2 ot2 in
-          let oty = if b2 then Ty.O.cup (default a1 ot1) (ty2, false) else oty2 in
+          let ty2, b2 = Ty.F.destruct (default a2 ot2) in
+          let oty = if b2 then Ty.F.cup (default a1 ot1) (Ty.F.required ty2) else (default a2 ot2) in
           Some oty
       ) a1.bindings a2.bindings in
     { bindings ; opened = a1.opened || a2.opened } |> Records.mk
 
   let remove a lbl =
     let open Records.Atom in
-    let bindings = a.bindings |> LabelMap.add lbl (Ty.O.absent) in
+    let bindings = a.bindings |> LabelMap.add lbl (Ty.F.absent) in
     { a with bindings } |> Records.mk
 
 end

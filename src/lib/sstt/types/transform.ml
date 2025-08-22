@@ -118,12 +118,12 @@ let regroup_records (ps,ns) =
     opened := !opened && r.opened) ;
   ns |> List.iter (fun r -> labels := LabelSet.union !labels (dom r)) ;
   let labels, opened = !labels, !opened in
-  let is_empty tyo = Ty.O.is_required tyo && Ty.O.get tyo |> Ty.is_empty in
-  let leq tyo1 tyo2 = Ty.O.diff tyo1 tyo2 |> is_empty in
+  let is_empty tyo = Ty.F.is_required tyo && Ty.F.get tyo |> Ty.is_empty in
+  let leq tyo1 tyo2 = Ty.F.diff tyo1 tyo2 |> is_empty in
   let ns1, ns2 = List.partition (fun r -> not opened || r.opened) ns in
   let ps, ns1 = List.map (to_tuple labels) ps, List.map (to_tuple labels) ns1 in
-  let p = regroup_pos_line ~any:Ty.O.any ~conj:Ty.O.conj (LabelSet.cardinal labels) ps in
-  let ps, ns1 = regroup_neg_line ~diff:Ty.O.diff ~leq p ns1 in
+  let p = regroup_pos_line ~any:Ty.F.any ~conj:Ty.F.conj (LabelSet.cardinal labels) ps in
+  let ps, ns1 = regroup_neg_line ~diff:Ty.F.diff ~leq p ns1 in
   let of_tuple tys =
     let bindings = LabelMap.combine labels tys in
     { bindings ; opened }

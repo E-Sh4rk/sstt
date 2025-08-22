@@ -2,10 +2,12 @@ open Base
 open Sigs
 open Sstt_utils
 
-module OTy(N:Node) = struct
+module FieldTy(N:Node) : FieldTy with type node := N.t = struct
   type node = N.t
   type t = node * bool
 
+  let mk t b = (t, b)
+  let destruct (t, b) = (t, b)
   let any = (N.any, true)
   let empty = (N.empty, false)
   let absent = (N.empty, true)
@@ -44,10 +46,10 @@ module OTy(N:Node) = struct
 
   let hash (n, b) = Hash.(mix (bool b) (N.hash n))
 end
-module MakeLabelMap(N : Node) = Hash.MapList(Label)(OTy(N))
+module MakeLabelMap(N : Node) = Hash.MapList(Label)(FieldTy(N))
 
 module Atom(N:Node) = struct
-  module OTy = OTy(N)
+  module FieldTy = FieldTy(N)
   module LabelMap = MakeLabelMap(N)
   type node = N.t
   type nonrec oty = node * bool
@@ -56,12 +58,12 @@ module Atom(N:Node) = struct
   let hash t =
     Hash.(mix (bool t.opened) (LabelMap.hash t.bindings))
   let map_nodes f t =
-    { t with bindings = LabelMap.map (OTy.map_nodes f) t.bindings }
+    { t with bindings = LabelMap.map (FieldTy.map_nodes f) t.bindings }
 
   let direct_nodes t =
-    t.bindings |> LabelMap.values |> List.map fst
+    t.bindings |> LabelMap.values |> List.map FieldTy.get
   let dom t = LabelMap.dom t.bindings
-  let def_t = function true -> OTy.any | false -> OTy.absent
+  let def_t = function true -> FieldTy.any | false -> FieldTy.absent
 
   let default t ot =
     match ot with
@@ -76,8 +78,8 @@ module Atom(N:Node) = struct
 
   let simplify t =
     let is_default =
-      if t.opened then OTy.is_any
-      else OTy.is_absent
+      if t.opened then FieldTy.is_any
+      else FieldTy.is_absent
     in
     let bindings = LabelMap.filter (fun _ on -> not (is_default on)) t.bindings in
     if bindings == t.bindings then t else { t with bindings }
@@ -90,19 +92,18 @@ module Atom(N:Node) = struct
 end
 
 module Atom'(N:Node) = struct
-  module OTy = OTy(N)
+  module FieldTy = FieldTy(N)
   module LabelMap = MakeLabelMap(N)
 
 
   type node = N.t
-  type nonrec oty = node * bool
   type t = { bindings : LabelMap.t ; opened : bool ; required : LabelMap.Set.t option }
   let hash t =
     Hash.(mix3 (bool t.opened) (LabelMap.hash t.bindings) (Hashtbl.hash t.required))
 
   let dom t = LabelMap.dom t.bindings
 
-  let def_t = function true -> OTy.any | false -> OTy.absent
+  let def_t = function true -> FieldTy.any | false -> FieldTy.absent
   let default t ot =
     match ot with
       Some on -> on
@@ -111,29 +112,29 @@ module Atom'(N:Node) = struct
   let find lbl t = default t (LabelMap.find_opt lbl t.bindings)
   let simplify t =
     let is_default =
-      if t.opened then OTy.is_any
-      else OTy.is_absent
+      if t.opened then FieldTy.is_any
+      else FieldTy.is_absent
     in
     let bindings = LabelMap.filter (fun _ on -> not (is_default on)) t.bindings in
     let required =
       match t.required with
       | None -> None
       | Some lbls ->
-        if bindings |> LabelMap.exists (fun l on -> LabelMap.Set.mem l lbls |> not && OTy.is_required on)
+        if bindings |> LabelMap.exists (fun l on -> LabelMap.Set.mem l lbls |> not && FieldTy.is_required on)
         then None
-        else Some (lbls |> LabelMap.Set.filter (fun l -> find l t |> OTy.is_absent |> not))
+        else Some (lbls |> LabelMap.Set.filter (fun l -> find l t |> FieldTy.is_absent |> not))
     in
     if bindings == t.bindings && required == t.required then t else
       { t with bindings ; required }
   let is_empty t =
-    let is_empty_binding _ on = OTy.is_empty on in
+    let is_empty_binding _ on = FieldTy.is_empty on in
     let required_ok =
       match t.required with
       | None -> true
       | Some _ when t.opened -> true
       | Some req ->
         t.bindings |> LabelMap.exists
-          (fun l o -> LabelMap.Set.mem l req |> not && OTy.is_absent o |> not)
+          (fun l o -> LabelMap.Set.mem l req |> not && FieldTy.is_absent o |> not)
     in
     not required_ok ||
     LabelMap.exists is_empty_binding t.bindings
@@ -151,7 +152,7 @@ module Make(N:Node) = struct
   module Atom = Atom(N)
   module Atom' = Atom'(N)
 
-  module ON = OTy(N)
+  module F = Atom.FieldTy
   module Bdd = Bdd.Make(Atom)(Bdd.BoolLeaf)
 
   type t = Bdd.t
@@ -168,11 +169,11 @@ module Make(N:Node) = struct
   let diff = Bdd.diff
 
   let conj n ps =
-    let init = fun () -> List.init n (fun _ -> ON.any) in
-    mapn init ON.conj ps
+    let init = fun () -> List.init n (fun _ -> F.any) in
+    mapn init F.conj ps
   let disj n ps =
-    let init = fun () -> List.init n (fun _ -> ON.empty) in
-    mapn init ON.disj ps
+    let init = fun () -> List.init n (fun _ -> F.empty) in
+    mapn init F.disj ps
   let dnf_line_to_tuple (ps, ns) =
     let open Atom in
     let line_dom line acc =
@@ -186,12 +187,12 @@ module Make(N:Node) = struct
     (ps, ns), LabelMap.Set.cardinal dom + 1
 
   let rec psi acc ss ts =
-    List.exists ON.is_empty ss ||
+    List.exists F.is_empty ss ||
     match ts with
     | [] -> false
     | tt::ts ->
-      if List.exists2 ON.disjoint ss tt then psi acc ss ts
-      else fold_distribute_comb (fun acc ss -> acc && psi acc ss ts) ON.diff acc ss tt
+      if List.exists2 F.disjoint ss tt then psi acc ss ts
+      else fold_distribute_comb (fun acc ss -> acc && psi acc ss ts) F.diff acc ss tt
   let is_clause_empty (ps,ns,b) =
     if b then
       let (ps, ns), n = dnf_line_to_tuple (ps, ns) in
@@ -216,7 +217,7 @@ module Make(N:Node) = struct
         match a'.required with
         | None -> []
         | Some lbls ->
-          let bindings = LabelMap.constant lbls ON.any in
+          let bindings = LabelMap.constant lbls F.any in
           [{Atom.bindings=bindings ; Atom.opened=false}]
       in
       let ps = [{Atom.bindings=a'.bindings ; Atom.opened=a'.opened}] in
@@ -227,7 +228,7 @@ module Make(N:Node) = struct
         [ { bindings=a.Atom.bindings ; opened=a.Atom.opened ; required=None } ]
       else
         let not_binding acc l on =
-          { bindings=LabelMap.singleton l (ON.neg on) ;
+          { bindings=LabelMap.singleton l (F.neg on) ;
             opened=true ;
             required=None } :: acc
         in
@@ -240,7 +241,7 @@ module Make(N:Node) = struct
     let combine s1 s2 =
       let open Atom' in
       let bindings = LabelMap.merge (fun _ ot1 ot2 ->
-          Some (ON.cap (default s1 ot1) (default s2 ot2))
+          Some (F.cap (default s1 ot1) (default s2 ot2))
         ) s1.bindings s2.bindings
       in
       let opened = s1.opened && s2.opened in

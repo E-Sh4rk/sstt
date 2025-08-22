@@ -160,7 +160,7 @@ let build_ty env t =
         List.fold_left (fun (res, env) (l,ty,b) ->
             let l, env = label env l in
             let ty, env = aux env ty in
-            (l,(ty,b))::res,env
+            (l,Ty.F.mk ty b)::res,env
           ) ([], env) bindings in
       let bindings = LabelMap.of_list bindings in
       Descr.mk_record { bindings ; opened } |> Ty.mk_descr, env

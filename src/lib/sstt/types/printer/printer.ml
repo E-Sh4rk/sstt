@@ -176,7 +176,7 @@ let tuple lst =
 
 let record bindings opened =
   let nbindings = bindings |>
-                  List.map (fun (l, d, b) -> (l, (d.ty, b))) |> LabelMap.of_list in
+                  List.map (fun (l, d, b) -> (l, Ty.F.mk d.ty b)) |> LabelMap.of_list in
   { op = Record (bindings, opened) ;
     ty = D.mk_record { bindings=nbindings ; opened } |> Ty.mk_descr }
 
@@ -279,7 +279,8 @@ let resolve_tuples ctx a =
 let resolve_records ctx a =
   let open Records.Atom in
   let resolve_rec r =
-    let bindings = r.bindings |> LabelMap.bindings |> List.map (fun (l,(n,b)) ->
+    let bindings = r.bindings |> LabelMap.bindings |> List.map (fun (l,oty) ->
+        let n, b = Ty.F.destruct oty in
         (l, node ctx n, b)
       ) in
     record bindings r.opened

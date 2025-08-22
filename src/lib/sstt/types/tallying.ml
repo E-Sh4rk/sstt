@@ -288,12 +288,13 @@ module Make(VS:VarSettings) = struct
     and norm_record (ps, ns) =
       let line, n = Records.dnf_line_to_tuple (ps, ns) in
       let disjoint s1 s2 =
-        let t = Ty.O.cap s1 s2 in
-        Ty.O.is_required t && Ty.O.get t |> Ty.is_empty
+        let t = Ty.F.cap s1 s2 in
+        Ty.F.is_required t && Ty.F.get t |> Ty.is_empty
       in
-      norm_tuple_gen ~any:Ty.O.any ~conj:Ty.O.conj
-        ~diff:Ty.O.diff ~disjoint ~norm:norm_oty n line
-    and norm_oty (n,o) =
+      norm_tuple_gen ~any:Ty.F.any ~conj:Ty.F.conj
+        ~diff:Ty.F.diff ~disjoint ~norm:norm_oty n line
+    and norm_oty oty =
+      let n, o = Ty.F.destruct oty in
       if o then CSS.empty else norm_ty n
     in
     norm_ty t
