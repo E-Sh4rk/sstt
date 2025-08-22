@@ -280,9 +280,10 @@ module Make(VO:VarOrder) = struct
       TagComp.line_emptiness_checks norm_ty tag line |> CSS.disj
     and norm_record (ps, ns) =
       let line, n = Records.dnf_line_to_tuple (ps, ns) in
-      norm_tuple_gen ~any:Ty.O.any ~conj:Ty.O.conj
-        ~diff:Ty.O.diff ~norm:norm_oty delta n line
-    and norm_oty (n,o) =
+      norm_tuple_gen ~any:Ty.F.any ~conj:Ty.F.conj
+        ~diff:Ty.F.diff ~norm:norm_oty delta n line
+    and norm_oty oty =
+      let n, o = Ty.F.destruct oty in
       if o then CSS.empty else norm_ty n
     in
     norm_ty t
