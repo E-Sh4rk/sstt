@@ -78,7 +78,7 @@ module Records : sig
   (** [proj l t] returns the (possibly absent) type resulting
       from the projection on the label [l] of [t]. 
   *)
-  val proj : Label.t -> t -> Ty.O.t
+  val proj : Label.t -> t -> Ty.F.t
 
   (** [merge t1 t2] returns the atom resulting from the merging of
       [t1] and [t2] (non-absent fields in [t2] override those in [t1]). *)

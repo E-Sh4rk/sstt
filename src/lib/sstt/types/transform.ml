@@ -51,7 +51,7 @@ let regroup_records conjuncts =
     LabelSet.to_list in
   let tuples = conjuncts |> List.map (Records.Atom.to_tuple dom) in
   try
-    let tuple = mapn (fun () -> raise Exit) Ty.O.conj tuples in
+    let tuple = mapn (fun () -> raise Exit) Ty.F.conj tuples in
     let bindings = List.combine dom tuple |> LabelMap.of_list in
     let opened = List.for_all (fun a -> a.Records.Atom.opened) conjuncts in
     [{ Records.Atom.bindings ; opened }]
@@ -62,7 +62,7 @@ let regroup_records (ps,ns) =
   let ps',ns = ns |> List.partition_map (fun r ->
       match LabelMap.to_list r.bindings with
       | [lbl,oty] when r.opened ->
-        Either.Left ({ r with bindings=LabelMap.singleton lbl (Ty.O.neg oty) })
+        Either.Left ({ r with bindings=LabelMap.singleton lbl (Ty.F.neg oty) })
       | _ -> Either.Right r
     ) in
   (* Regroup positive conjuncts *)
@@ -73,7 +73,7 @@ let merge_record_lines (ps1,ns1) (ps2,ns2) =
   | [p1], [p2], [], [] when p1.opened=p2.opened ->
     begin match LabelMap.to_list p1.bindings, LabelMap.to_list p2.bindings with
       | [lbl1,oty1], [lbl2,oty2] when Label.equal lbl1 lbl2 ->
-        Some ([{ p1 with bindings=LabelMap.singleton lbl1 (Ty.O.cup oty1 oty2) }],[])
+        Some ([{ p1 with bindings=LabelMap.singleton lbl1 (Ty.F.cup oty1 oty2) }],[])
       | _, _ -> None
     end
   | _, _, _, _ -> None

@@ -132,7 +132,9 @@ module Make(N:Node) = struct
   let simplify = unop Enums.simplify Tags.simplify Tuples.simplify
       Arrows.simplify Records.simplify Intervals.simplify
   let map_nodes f = unop (Enums.map_nodes f) (Tags.map_nodes f) (Tuples.map_nodes f)
-      (Arrows.map_nodes f) (Records.map_nodes f) (Intervals.map_nodes f)
+      (Arrows.map_nodes f)
+      (Records.map_nodes f)
+      (Intervals.map_nodes f)
 
   let compare t1 t2 =
     Enums.compare t1.enums t2.enums |> ccmp
