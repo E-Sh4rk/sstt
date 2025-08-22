@@ -178,7 +178,7 @@ let tuple lst =
 
 let record bindings tail =
   let nbindings = bindings |>
-                  List.map (fun (l, d, b) -> (l, (d.ty, b))) |> LabelMap.of_list in
+                  List.map (fun (l, d, b) -> (l, Ty.F.mk d.ty b)) |> LabelMap.of_list in
   let ntail =
     match tail with
     | Open -> Records.Tail.Open
@@ -294,7 +294,8 @@ let resolve_records ctx a =
   let open Records.Atom in
   let dnf = Records.dnf a |> Records.Dnf.simplify in
   let resolve_rec r =
-    let bindings = r.bindings |> LabelMap.bindings |> List.map (fun (l,(n,b)) ->
+    let bindings = r.bindings |> LabelMap.bindings |> List.map (fun (l,oty) ->
+        let n, b = Ty.F.destruct oty in
         (l, node ctx n, b)
       ) in
     let tail = match r.tail with
@@ -510,9 +511,9 @@ let rec print_descr prec assoc fmt d =
       in
       let print_tail fmt t =
         begin match t with
-        | Open -> Format.fprintf fmt ".."
-        | Closed -> Format.fprintf fmt ""
-        | RowVar v -> Format.fprintf fmt "%a" Var.pp v
+          | Open -> Format.fprintf fmt ".."
+          | Closed -> Format.fprintf fmt ""
+          | RowVar v -> Format.fprintf fmt "%a" Var.pp v
         end
       in
       Format.fprintf fmt "{ %a %a}"

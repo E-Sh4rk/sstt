@@ -281,9 +281,10 @@ module Make(VO:VarOrder) = struct
         ~diff:Ty.diff ~norm:norm_ty delta n line
     and norm_record (ps, ns, b) =
       let line, n = Records.dnf_line_to_tuple (ps, ns, b) in
-      norm_tuple_gen ~any:Ty.O.any ~conj:Ty.O.conj
-        ~diff:Ty.O.diff ~norm:norm_oty delta n line
-    and norm_oty (n,o) =
+      norm_tuple_gen ~any:Ty.F.any ~conj:Ty.F.conj
+        ~diff:Ty.F.diff ~norm:norm_oty delta n line
+    and norm_oty oty =
+      let n, o = Ty.F.destruct oty in
       if o then CSS.empty else norm_ty n
     in
     norm_ty t
