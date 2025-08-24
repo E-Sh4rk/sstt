@@ -101,7 +101,7 @@ let extract_params vs ty =
   if Ty.equiv ty ty' then res else invalid_arg "Malformed abstract type"
 
 let proj_tag tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
-                      |> TagComp.as_atom |> snd
+                      |> Op.TagComp.as_atom |> snd
 
 let destruct_p tag pty =
   check_abstract tag;
@@ -112,7 +112,7 @@ let destruct tag ty =
 
 let to_t node ctx comp =
   try
-    let (tag, pty) = TagComp.as_atom comp in
+    let (tag, pty) = Op.TagComp.as_atom comp in
     let params = destruct_p tag pty in
     let map_node l = List.map (node ctx) l in
     List.map (fun (p1, p2) ->

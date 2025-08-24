@@ -43,13 +43,26 @@ module MakeC(N:Node) = struct
   let neg (tag, t) = tag, Bdd.neg t
   let diff (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.diff t1 t2
 
-  let ty_of_clause (ps,ns) =
-    let p = ps |> List.map snd |> N.conj in
-    let n = ns |> List.map snd |> List.map N.neg |> N.conj in
-    N.cap p n
-  let is_clause_empty (ps,ns,b) =
-    not b || ty_of_clause (ps,ns) |> N.is_empty
-  let is_empty (_,bdd) = bdd |> Bdd.for_all_lines is_clause_empty
+  let line_emptiness_checks tag (ps,ns) =
+    let equiv, merge_ps, merge_ns =
+      match Tag.properties tag with
+      | NoProperty -> true, false, false
+      | Monotonic { preserves_cap ; preserves_cup } -> false, preserves_cap, preserves_cup
+    in
+    let ps, ns = List.map snd ps, List.map snd ns in
+    let ps = if merge_ps then [N.conj ps] else ps in
+    let ns = if merge_ns then [N.disj ns] else ns in
+    cartesian_product ps ns |> List.map (fun (p, n) ->
+        let leq_test = N.cap p (N.neg n) in
+        if equiv then
+          let geq_test = N.cap n (N.neg p) in
+          N.cup leq_test geq_test
+        else
+          leq_test
+      )
+  let is_clause_empty tag (ps,ns,b) =
+    not b || line_emptiness_checks tag (ps,ns) |> List.exists N.is_empty
+  let is_empty (tag,bdd) = bdd |> Bdd.for_all_lines (is_clause_empty tag)
 
   let leq tag t1 t2 = is_empty (tag, Bdd.diff t1 t2)
   let equiv tag t1 t2 = leq tag t1 t2 && leq tag t2 t1
@@ -69,9 +82,6 @@ module MakeC(N:Node) = struct
   let of_dnf tag dnf =
     let (_,import,_) = dnf_funs tag in
     N.with_own_cache (fun dnf -> tag, import dnf |> Bdd.of_dnf) dnf
-
-  let as_atom (tag,t) =
-    tag, dnf (tag,t) |> List.map ty_of_clause |> N.disj
 
   let direct_nodes (_,t) = Bdd.atoms t |> List.concat_map Atom.direct_nodes
   let map_nodes f (tag,t) = tag, Bdd.map_nodes (Atom.map_nodes f) t

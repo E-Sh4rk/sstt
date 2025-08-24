@@ -639,8 +639,11 @@ module type TagComp = sig
   val tag : t -> Tag.t
   (** [tag t] returns the common tag of all the tagged-types in this component. *)
 
-  val as_atom : t -> Atom.t
-  (** [as_atom t] returns [t] as a pair of its tag and a plain type. *)
+  val line_emptiness_checks : Tag.t -> (Atom.t list * Atom.t list) -> node list
+  (** [line_emptiness_checks tag (ps, ns)] converts a line of a [TagComp] DNF of tag [tag] to
+      a list of types [tys] such that emptiness of the DNF line is equivalent to
+      emptiness of at least one of the [tys].
+  *)
 end
 
 module type Tags = sig

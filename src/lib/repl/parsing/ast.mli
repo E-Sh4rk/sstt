@@ -2,14 +2,14 @@ open Sstt
 
 type builtin =
   | TEmpty | TAny | TAnyTuple | TAnyEnum | TAnyTag | TAnyInt
-  | TAnyArrow | TAnyRecord | TAnyTupleComp of int | TAnyTagComp of Tag.t
+  | TAnyArrow | TAnyRecord | TAnyTupleComp of int
 type varop = TTuple
 type binop = TCap | TCup | TDiff | TArrow
 type unop = TNeg
 type ty =
   | TBuiltin of builtin
   | TNamed of string
-  | TTag of string * ty
+  | TTag of string * ty option
   | TVar of string
   | TVarMono of string
   | TInterval of Z.t option * Z.t option

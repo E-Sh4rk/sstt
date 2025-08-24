@@ -104,3 +104,24 @@ module Records = struct
     { a with bindings } |> Records.mk
 
 end
+
+module TagComp = struct
+  type t = TagComp.t
+  type atom = TagComp.Atom.t
+
+  let is_identity t =
+    let p = TagComp.tag t |> Tag.properties in
+    match p with
+    | Tag.NoProperty -> false
+    | Tag.Monotonic m -> m.preserves_cap && m.preserves_cup
+
+  let as_atom t =
+    if is_identity t |> not then
+      invalid_arg "Tag component must satisfy is_identity." ;
+    let ty_of_clause (ps,ns) =
+      let p = ps |> List.map snd |> Ty.conj in
+      let n = ns |> List.map snd |> List.map Ty.neg |> Ty.conj in
+      Ty.cap p n
+    in
+    TagComp.tag t, TagComp.dnf t |> List.map ty_of_clause |> Ty.disj
+end

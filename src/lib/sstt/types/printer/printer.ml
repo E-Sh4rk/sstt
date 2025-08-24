@@ -29,7 +29,7 @@ module TagMap = Map.Make(Tag)
 
 type builtin =
   | Empty | Any | AnyTuple | AnyEnum | AnyTag | AnyInt
-  | AnyArrow | AnyRecord | AnyTupleComp of int
+  | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of Tag.t
 type t = { main : descr ; defs : def list }
 and def = NodeId.t * descr
 and descr = { op : op ; ty : Ty.t }
@@ -228,17 +228,19 @@ let resolve_alias (ctx:ctx) any_ty ty =
     | Some (ty, op) -> Some { op ; ty }
   end
 
+let resolve_line fa (ps, ns) =
+  let ps = ps |> List.map fa in
+  let ns = ns |> List.map fa |> List.map neg in
+  ps@ns |> inter
+let resolve_dnf fa dnf =
+  dnf |> List.map (resolve_line fa) |> union
+
 let resolve_arrows ctx a =
   let resolve_arr (n1, n2) =
     let d1, d2 = node ctx n1, node ctx n2 in
     arrow d1 d2
   in
-  let resolve_dnf (ps, ns) =
-    let ps = ps |> List.map resolve_arr in
-    let ns = ns |> List.map resolve_arr |> List.map neg in
-    ps@ns |> inter
-  in
-  Arrows.dnf a |> List.map resolve_dnf |> union
+  Arrows.dnf a |> resolve_dnf resolve_arr
 
 let resolve_enums _ a =
   let (pos, enums) = Enums.destruct a in
@@ -265,12 +267,7 @@ let resolve_tuplecomp ctx a =
   | Some d -> d, any_d
   | None ->
     let resolve_tup lst = tuple (lst |> List.map (node ctx)) in
-    let resolve_dnf (ps, ns) =
-      let ps = ps |> List.map resolve_tup in
-      let ns = ns |> List.map resolve_tup |> List.map neg in
-      ps@ns |> inter
-    in
-    TupleComp.dnf a |> List.map resolve_dnf |> union, any_d
+    TupleComp.dnf a |> resolve_dnf resolve_tup, any_d
 
 let resolve_tuples ctx a =
   let (pos, components) = Tuples.destruct a in
@@ -288,29 +285,34 @@ let resolve_records ctx a =
       ) in
     record bindings r.opened
   in
-  let resolve_dnf (ps, ns) =
-    let ps = ps |> List.map resolve_rec in
-    let ns = ns |> List.map resolve_rec |> List.map neg in
-    ps@ns |> inter
-  in
-  Records.dnf a |> List.map resolve_dnf |> union
+  Records.dnf a |> resolve_dnf resolve_rec
+
+let resolve_tagcomp_default ctx a =
+  let resolve_tag (t, ty) = tag t (node ctx ty) in
+  TagComp.dnf a |> resolve_dnf resolve_tag
 
 let resolve_tagcomp ctx a =
   let ty = Tags.mk_comp a |> D.mk_tags |> Ty.mk_descr in
-  match resolve_alias ctx Ty.any (* TODO: TagCompAny *) ty with
-  | Some d -> d
+  let tag = TagComp.tag a in
+  let any = TagComp.any tag |> D.mk_tagcomp |> Ty.mk_descr in
+  let any_d = { op = Builtin (AnyTagComp tag) ; ty = any } in
+  match resolve_alias ctx any ty with
+  | Some d -> d, any_d
   | None ->
-    let (t, ty') = TagComp.as_atom a in
-    match TagMap.find_opt t ctx.extensions with
-      None -> tag t (node ctx ty')
+    match TagMap.find_opt (TagComp.tag a) ctx.extensions with
+      None -> resolve_tagcomp_default ctx a, any_d
     | Some f ->
       match f ctx a with
-        None -> tag t (node ctx ty')
-      | Some e -> { op = Extension e; ty }
+        None -> resolve_tagcomp_default ctx a, any_d
+      | Some e ->
+        { op = Extension e; ty }, { op = Builtin Any ; ty = Ty.any }
 
 let resolve_tags ctx a =
   let (pos, components) = Tags.destruct a in
-  let d = components |> List.map (resolve_tagcomp ctx) |> union in
+  let d = components |> List.map (fun p ->
+      let elt, any = resolve_tagcomp ctx p in
+      cap' any elt
+    ) |> union in
   if pos then d else neg d
 
 let resolve_comp ctx c =
@@ -458,6 +460,7 @@ let print_builtin fmt b =
     | AnyArrow -> "arrow"
     | AnyRecord -> "record"
     | AnyTupleComp i -> "tuple"^(string_of_int i)
+    | AnyTagComp t -> (Tag.name t)^("()")
   in
   Format.fprintf fmt "%s" str
 

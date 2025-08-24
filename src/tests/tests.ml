@@ -21,7 +21,7 @@ let%expect_test "tests" =
     empty2: true
     atom1: false
     atom2: true
-    tags1: tag((false, true) | (true, false))
+    tags1: tag(false, true) | tag(true, false)
     tags2: tag1(true, false) | tag2(false, true)
     tags3: true
     tags4: 42

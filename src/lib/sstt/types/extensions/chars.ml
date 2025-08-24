@@ -24,7 +24,7 @@ let any = add_tag any_p
 type t = interval list
 
 let to_t _ _ comp =
-  let (_, pty) = TagComp.as_atom comp in
+  let (_, pty) = Op.TagComp.as_atom comp in
   if Ty.leq pty any_p && Ty.vars_toplevel pty |> VarSet.is_empty
   then
     Some (pty |> Ty.get_descr |> Descr.get_intervals |> Intervals.destruct

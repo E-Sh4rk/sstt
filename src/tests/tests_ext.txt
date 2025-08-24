@@ -1,10 +1,10 @@
 
-type list = x where x = lst() | lst(any,x) ;;
+type list = x where x = lst(()) | lst(any,x) ;;
 type fst42 = lst(42, list) ;;
 type snd43 = lst(any, lst(43,list)) ;;
 "list_42_43" fst42 & snd43 ;;
 
-type list_a = x where x = lst() | lst('a,x) ;;
+type list_a = x where x = lst(()) | lst('a,x) ;;
 "int_list" list_a ['a : int] ;;
 "list_not_only_a" list & ~list_a ;;
 

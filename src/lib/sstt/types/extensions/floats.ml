@@ -54,7 +54,7 @@ let components { ninf ; neg ; nzero ; pzero ; pos ; pinf ; nan } =
   ] |> List.filter_map (fun (b,k) -> if b then Some k else None)
 
 let to_t _ _ comp =
-  let (_, pty) = TagComp.as_atom comp in
+  let (_, pty) = Op.TagComp.as_atom comp in
   let (pos, enums') = pty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
   if pos && Ty.leq pty any_p && (Ty.vars_toplevel pty |> VarSet.is_empty) then
     let has k =
