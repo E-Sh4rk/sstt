@@ -84,8 +84,8 @@ let extract_params vs ty =
     let uls, rs = extract_tuples l, extract_tuple r in
     uls |> List.map (fun ls -> (ls,rs)) |> List.map aux
   in
-  let res = Ty.get_descr ty |> Descr.get_arrows |> Arrows.dnf |> Arrows.Dnf.simplify
-            |> List.map (fun (ps, ns, _) ->
+  let res = Ty.get_descr ty |> Descr.get_arrows |> Arrows.dnf
+            |> List.map (fun (ps, ns) ->
                 List.concat_map aux ps,
                 List.concat_map aux ns
               ) in

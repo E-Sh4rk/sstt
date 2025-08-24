@@ -13,7 +13,7 @@ let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
 let mk (ps, ns) =
   let ps = ps |> List.map (fun f -> f.dom, f.codom) in
   let ns = ns |> List.map (fun f -> f.dom, f.codom) in
-  let dnf = [ (Ty.any, Ty.any)::ps, ns, true ] in
+  let dnf = [ (Ty.any, Ty.any)::ps, ns ] in
   Arrows.of_dnf dnf |> Descr.mk_arrows |> Ty.mk_descr |> add_tag
 let mk' fields = mk (fields, [])
 let any = mk' []
@@ -21,8 +21,8 @@ let any = mk' []
 let destruct ty =
   let pty = proj_tag ty in
   if Ty.vars_toplevel pty |> VarSet.is_empty then
-    pty |> Ty.get_descr |> Descr.get_arrows |> Arrows.dnf |> Arrows.Dnf.simplify
-    |> List.map (fun (ps, ns, _) ->
+    pty |> Ty.get_descr |> Descr.get_arrows |> Arrows.dnf
+    |> List.map (fun (ps, ns) ->
       let ps = ps |> List.filter_map (fun (s,t) ->
           if Ty.is_any t then None
           else Some { dom=s ; codom=t })
@@ -48,7 +48,7 @@ let proj ~dom t =
   Op.Arrows.apply arr dom
 
 let merge t {dom ; codom} =
-  let merge_line (ps,_,_) =
+  let merge_line (ps,_) =
     let ps = ps |> List.concat_map (fun (fdom, fcodom) ->
         if Ty.leq codom fcodom
         then [(fdom, fcodom)]
@@ -57,10 +57,9 @@ let merge t {dom ; codom} =
           let arr2 = (Ty.diff fdom dom, fcodom) in
           [arr1;arr2]
       ) in
-    (ps,[],true)
+    (ps,[])
   in
-  let dnf = proj_tag t |> Ty.get_descr |> Descr.get_arrows
-            |> Arrows.dnf |> Arrows.Dnf.simplify in
+  let dnf = proj_tag t |> Ty.get_descr |> Descr.get_arrows |> Arrows.dnf in
   let dnf = List.map merge_line dnf in
   Arrows.of_dnf dnf |> Descr.mk_arrows |> Ty.mk_descr |> add_tag
 

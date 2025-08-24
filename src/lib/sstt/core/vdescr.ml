@@ -51,17 +51,17 @@ module Make(N:Node) = struct
   let leq t1 t2 = diff t1 t2 |> is_empty
   let equiv t1 t2 = leq t1 t2 && leq t2 t1
 
-  module DnfAtom = struct
+  module Comp = struct
     type leaf = Descr.t
-    type t = Var.t
+    type atom = Var.t
 
-    let undesirable_leaf l = Descr.equal l Descr.empty
+    let atom_is_valid _ = true
+    let leaf_is_empty l = Descr.equal l Descr.empty
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
   end
-  module Dnf = DNF.Make(DnfAtom)(N)
-
-  let dnf t = Bdd.dnf t |> Dnf.mk
-  let of_dnf dnf = Dnf.mk dnf |> Bdd.of_dnf
+  module Dnf = Dnf.Make(Comp)
+  let dnf t = N.with_own_cache (fun t -> Bdd.dnf t |> Dnf.export |> Dnf.simplify) t
+  let of_dnf dnf = N.with_own_cache (fun dnf -> Dnf.import dnf |> Bdd.of_dnf) dnf
 
   let simplify t = Bdd.simplify equiv t
 

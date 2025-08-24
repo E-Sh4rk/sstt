@@ -56,67 +56,60 @@ module MakeC(N:Node) = struct
     | [] -> false
     | tt::ts ->
       fold_distribute_comb (fun acc ss -> acc && psi acc ss ts) N.diff acc ss tt
-  let is_clause_empty (ps,ns,b) =
-    if b then
-      match ps, ns with
-      | [], [] -> false
-      | a::_, _ | [], a::_ ->
-        let n = List.length a in
-        psi true (conj n ps) ns
-    else true
-  let is_empty' t = Bdd.for_all_lines is_clause_empty t
-  let is_empty (_,t) = is_empty' t
+  let is_clause_empty n (ps,ns,b) =
+    not b || psi true (conj n ps) ns
+  let is_empty (n,t) = Bdd.for_all_lines (is_clause_empty n) t
 
-  let leq t1 t2 = Bdd.diff t1 t2 |> is_empty'
-  let equiv t1 t2 = leq t1 t2 && leq t2 t1
+  let leq n t1 t2 = is_empty (n, Bdd.diff t1 t2)
+  let equiv n t1 t2 = leq n t1 t2 && leq n t2 t1
 
-  module DnfAtom = struct
-    type leaf = bool
-    type t = Atom.t
+  let dnf_funs n =
+    let module Comp = struct
+      type atom = Atom.t
+      type atom' = Atom.t
 
-    let undesirable_leaf = not
-    let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
-  end
-  module DnfAtom' = struct
-    type leaf = bool
-    type t = Atom.t
-    type t' = Atom.t
+      let atom_is_valid lst = List.length lst = n
+      let leq t1 t2 = leq n (Bdd.of_dnf t1) (Bdd.of_dnf t2)
+      let any' = List.init n (fun _ -> N.any)
 
-    let to_t a = [a], []
-    let to_t' (ns,b) =
-      let any_tuple n = List.init n (fun _ -> N.any) in
-      let rec aux ns =
-        match ns with
-        | [] -> []
-        | n::ns ->
-          let this = (N.neg n)::(any_tuple (List.length ns)) in
-          let others = aux ns |> List.map (fun s -> N.any::s) in
-          this::others
-      in
-      if b then [ns] else aux ns
-    let to_t' (a,b) = to_t' (a,b) |> List.filter (fun a -> Atom.is_empty a |> not)
-    let combine ns1 ns2 =
-      let res = List.map2 N.cap ns1 ns2 in
-      if Atom.is_empty res then None else Some res
-  end
-  module Dnf' = DNF.Make'(DnfAtom)(DnfAtom')(N)
-  module Dnf = DNF.Make(DnfAtom)(N)
+      let to_atom a = [a], []
+      let to_atom' (ns,b) =
+        let any_tuple n = List.init n (fun _ -> N.any) in
+        let rec aux ns =
+          match ns with
+          | [] -> []
+          | n::ns ->
+            let this = (N.neg n)::(any_tuple (List.length ns)) in
+            let others = aux ns |> List.map (fun s -> N.any::s) in
+            this::others
+        in
+        if b then [ns] else aux ns
+      let to_atom' (a,b) = to_atom' (a,b) |> List.filter (fun a -> Atom.is_empty a |> not)
+      let combine ns1 ns2 =
+        let res = List.map2 N.cap ns1 ns2 in
+        if Atom.is_empty res then None else Some res
+    end in
+    let module Dnf = Dnf.LMake'(Comp) in
+    Dnf.export, Dnf.import, Dnf.simplify, Dnf.export', Dnf.import', Dnf.simplify'
 
-  let dnf (_,t) = Bdd.dnf t |> Dnf.mk
-  let dnf' (n,t) = dnf (n,t) |> Dnf'.from_dnf (List.init n (fun _ -> N.any))
-  let of_dnf tag dnf =
-    dnf |> List.iter (fun (ps,ns,_) ->
-        ps |> List.iter (fun a -> check_length tag (Atom.tag a)) ;
-        ns |> List.iter (fun a -> check_length tag (Atom.tag a))
-      ) ;
-    tag, Dnf.mk dnf |> Bdd.of_dnf
-  let of_dnf' tag dnf' = of_dnf tag (Dnf'.to_dnf dnf')
+  let dnf (n, bdd) =
+    let (export,_,simplify,_,_,_) = dnf_funs n in
+    N.with_own_cache (fun bdd -> Bdd.dnf bdd |> export |> simplify) bdd
+  let of_dnf n dnf =
+    let (_,import,_,_,_,_) = dnf_funs n in
+    N.with_own_cache (fun dnf -> n, import dnf |> Bdd.of_dnf) dnf
+  let dnf' (n, bdd) =
+    let (_,_,_,export',_,simplify') = dnf_funs n in
+    N.with_own_cache (fun bdd -> Bdd.dnf bdd |> export' |> simplify') bdd
+  let of_dnf' n dnf =
+    let (_,_,_,_,import',_) = dnf_funs n in
+    N.with_own_cache (fun dnf -> n, import' dnf |> Bdd.of_dnf) dnf
 
   let direct_nodes (_,t) = Bdd.atoms t |> List.concat_map Atom.direct_nodes
   let map_nodes f (tag,t) = tag, Bdd.map_nodes (Atom.map_nodes f) t
 
   let simplify ((tag,t) as n) =
-    let t' = Bdd.simplify equiv t in
+    let t' = Bdd.simplify (equiv tag) t in
     if t == t' then n else (tag, t')
 
   let equal (_,t1) (_,t2) = Bdd.equal t1 t2
