@@ -23,7 +23,7 @@ module BoolLeaf : Leaf with type t = bool = struct
   let diff b1 b2 = b1 && not b2
   let neg = not
   let simplify b = b
-  let equal b1 b2 = (b1 == b2)
+  let equal b1 b2 = Bool.equal b1 b2
   let compare b1 b2 = Bool.compare b1 b2
   let hash b = if b then Hash.const1 else Hash.const0
 end
@@ -57,10 +57,10 @@ module Make(N:Atom)(L:Leaf) = struct
   let rec equal t1 t2 =
     t1 == t2 ||
     match t1, t2 with
-    | Leaf (l1, h1) , Leaf (l2, h2) -> h1 == h2 && L.equal l1 l2
+    | Leaf (l1, h1) , Leaf (l2, h2) -> Int.equal h1 h2 && L.equal l1 l2
     | Node _, Leaf _ | Leaf _, Node _ -> false
     | Node (a1, p1, n1, h1), Node (a2, p2, n2, h2) ->
-      h1 == h2 &&
+      Int.equal h1 h2 &&
       N.equal a1 a2 && equal p1 p2 && equal n1 n2
 
   let rec compare t1 t2 =

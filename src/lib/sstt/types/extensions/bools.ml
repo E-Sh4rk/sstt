@@ -6,8 +6,8 @@ let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
 let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
                   |> TagComp.as_atom |> snd
 
-let atrue = Enums.Atom.mk "true"
-let afalse = Enums.Atom.mk "false"
+let atrue = Enum.mk "true"
+let afalse = Enum.mk "false"
 
 let btrue = atrue |> Descr.mk_enum |> Ty.mk_descr |> add_tag
 let bfalse = afalse |> Descr.mk_enum |> Ty.mk_descr |> add_tag

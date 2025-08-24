@@ -1,5 +1,7 @@
 open Sstt_utils
-module Atom = Id.NamedIdentifier ()
+open Base
+
+module Atom = Enum
 
 type t = Pos of (Atom.t*int) list | Neg of (Atom.t * int) list
 
@@ -81,7 +83,7 @@ let compare t1 t2 =
   | Pos _, Neg _ -> 1
   | Neg _, Pos _ -> -1
   | Pos s1, Pos s2 | Neg s1, Neg s2 -> HList.compare s1 s2
-let equal t1 t2 = compare t1 t2 == 0
+let equal t1 t2 = compare t1 t2 = 0
 
 let direct_nodes _ = []
 let map_nodes _ t = t

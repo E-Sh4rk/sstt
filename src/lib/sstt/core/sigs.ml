@@ -307,6 +307,8 @@ sig
       Symbolic constants are implemented by {!Sstt.NamedIdentifier}.
   *)
 
+  module Atom = Enum
+
   include BasicComponentOps
     with type t:= t
      and type atom := Atom.t
@@ -815,7 +817,7 @@ module type Descr = sig
 
   (** {2 Building descriptors from components} *)
 
-  val mk_enum : Enums.Atom.t -> t
+  val mk_enum : Enum.t -> t
   (** Creates a singleton type descriptor from a single enum. *)
 
   val mk_enums : Enums.t -> t

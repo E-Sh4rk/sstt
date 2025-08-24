@@ -10,7 +10,7 @@ let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
 type k = Ninf | Neg | Nzero | Pzero | Pos | Pinf | Nan
 
 let enums =
-  let open Enums.Atom in
+  let open Enum in
   [
     Ninf, mk "ninf" ;
     Neg, mk "neg" ;

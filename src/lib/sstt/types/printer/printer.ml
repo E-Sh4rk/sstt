@@ -39,7 +39,7 @@ and op =
   | Node of NodeId.t
   | Builtin of builtin
   | Var of Var.t
-  | Enum of Enums.Atom.t
+  | Enum of Enum.t
   | Tag of Tag.t * descr
   | Interval of Z.t option * Z.t option
   | Record of (Label.t * descr * bool) list * bool
@@ -484,7 +484,7 @@ let rec print_descr prec assoc fmt d =
     | Node n -> Format.fprintf fmt "%a" NodeId.pp n
     | Builtin b -> print_builtin fmt b
     | Var v -> Format.fprintf fmt "%a" Var.pp v
-    | Enum a -> Format.fprintf fmt "%a" Enums.Atom.pp a
+    | Enum a -> Format.fprintf fmt "%a" Enum.pp a
     | Tag (t,d) ->
       Format.fprintf fmt "%a(%a)"
         Tag.pp t print_descr' d

@@ -41,7 +41,7 @@ type command = Elt of elt | End
 
 module StrMap : Map.S with type key=string
 
-type env = { eenv : Enums.Atom.t StrMap.t ;
+type env = { eenv : Enum.t StrMap.t ;
              tagenv : Tag.t StrMap.t ;
              tenv : Ty.t StrMap.t ;
              venv : Var.t StrMap.t ;

@@ -27,7 +27,7 @@ module Make (V : Hashtbl.HashedType) (R : sig type t val equal : t -> t-> bool e
               v] will return [r'] unless it is itself invalidated.
 
 
-      {ocaml[ let rec explore table v =
+      {@ocaml[ let rec explore table v =
 
         match find ~default:r table v with (* if [v] is not [Active] yet it
         binds it to [d] in the table *)

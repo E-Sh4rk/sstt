@@ -4,10 +4,10 @@ open Sstt_utils
 module Node = Id.NamedIdentifier()
 module NSet = Set.Make(Node)
 module NHT = Hashtbl.Make(Node)
-module ESet = Set.Make(Enums.Atom)
-module EHT = Hashtbl.Make(Enums.Atom)
+module ESet = Set.Make(Enum)
+module EHT = Hashtbl.Make(Enum)
 
-type node_info = { sub: NSet.t; trans: NSet.t; atom: Enums.Atom.t }
+type node_info = { sub: NSet.t; trans: NSet.t; atom: Enum.t }
 type hierarchy = {
   nodes: node_info NHT.t ; mutable top_nodes: NSet.t ;
   atoms: Node.t EHT.t ;
@@ -30,7 +30,7 @@ let new_node h ~name ~subnodes =
     let sub = sub |> NSet.filter (fun n ->
         NSet.subset trans (NSet.remove n sub |> trans_of) |> not) in
     let trans = NSet.add n trans in
-    let atom = Enums.Atom.mk name in
+    let atom = Enum.mk name in
     NHT.add h.nodes n { sub ; trans ; atom } ;
     sub |> NSet.iter (fun n -> h.top_nodes <- NSet.remove n h.top_nodes) ;
     h.top_nodes <- NSet.add n h.top_nodes ;

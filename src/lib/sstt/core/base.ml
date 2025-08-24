@@ -17,6 +17,11 @@ module Tag = Id.NamedIdentifier()
 (** Tags used for tagged type. *)
 
 
+(** @canonical Sstt.Enum *)
+module Enum = Id.NamedIdentifier()
+(** Identifiers used for enums. *)
+
+
 (** @canonical Sstt.Var *)
 module Var = Id.NamedIdentifier()
 (** Type variables. *)

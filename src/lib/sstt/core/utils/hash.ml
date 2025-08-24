@@ -50,7 +50,7 @@ end = struct
     if c <> 0 then c else X.compare x1 x2
 
   let equal_hash (x1, h1) (x2, h2) =
-    h1 == h2 && X.equal x1 x2
+    Int.equal h1 h2 && X.equal x1 x2
   let compare = List.compare compare_hash
   let equal = List.equal equal_hash
 

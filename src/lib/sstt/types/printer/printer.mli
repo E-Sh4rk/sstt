@@ -25,7 +25,7 @@ and op =
   | Node of NodeId.t
   | Builtin of builtin
   | Var of Var.t
-  | Enum of Enums.Atom.t
+  | Enum of Enum.t
   | Tag of Tag.t * descr
   | Interval of Z.t option * Z.t option
   | Record of (Label.t * descr * bool) list * bool

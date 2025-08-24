@@ -42,7 +42,7 @@ type command = Elt of elt | End
 
 module StrMap = Map.Make(String)
 
-type env = { eenv : Enums.Atom.t StrMap.t ;
+type env = { eenv : Enum.t StrMap.t ;
              tagenv : Tag.t StrMap.t ;
              tenv : Ty.t StrMap.t ;
              venv : Var.t StrMap.t ;
@@ -108,7 +108,7 @@ let type_or_atom env str =
     begin match StrMap.find_opt str env.eenv with
       | Some a -> Descr.mk_enum a |> Ty.mk_descr, env
       | None ->
-        let a = Enums.Atom.mk str in
+        let a = Enum.mk str in
         let eenv = StrMap.add str a env.eenv in
         let env = { env with eenv } in
         Descr.mk_enum a |> Ty.mk_descr, env  

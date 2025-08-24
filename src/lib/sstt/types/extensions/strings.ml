@@ -14,7 +14,7 @@ let str str =
   match Hashtbl.find_opt enums str with
   | Some atom -> atom |> Descr.mk_enum |> Ty.mk_descr |> add_tag
   | None ->
-    let atom = Enums.Atom.mk str in
+    let atom = Enum.mk str in
     Hashtbl.add enums str atom ;
     Hashtbl.add strings atom str ;
     atom |> Descr.mk_enum |> Ty.mk_descr |> add_tag
@@ -27,7 +27,7 @@ let to_t _ _ ty =
   let pty = proj_tag ty in
   if Ty.leq ty any && (Ty.vars_toplevel pty |> VarSet.is_empty) then
     let (pos, enums) = pty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
-    let strs = enums |> List.map Enums.Atom.name in
+    let strs = enums |> List.map Enum.name in
     Some (pos, strs)
   else
     None
