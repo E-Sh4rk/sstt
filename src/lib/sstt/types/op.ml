@@ -71,7 +71,7 @@ module Records = struct
     let open Records.Atom in
     Records.dnf' t |> Records.Dnf'.simplify |> List.map fst |>
     List.map (fun t ->
-        { bindings=t.Records.Atom'.bindings ; opened=t.opened }
+        { bindings=t.Records.Atom'.bindings ; tail=t.tail }
       )
 
   let of_union lst =
@@ -82,30 +82,39 @@ module Records = struct
     let union_a a1 a2 =
       let dom = LabelSet.union (dom a1) (dom a2) in
       let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
-          (lbl, Ty.O.cup (find lbl a1) (find lbl a2))
+          (lbl, Ty.F.cup (find lbl a1) (find lbl a2))
         ) |> LabelMap.of_list in
-      { bindings ; opened = a1.opened || a2.opened }
+      let tail =
+        match a1.tail, a2.tail with
+        | Open, _ | _, Open -> Records.Tail.Open
+        | Closed, Closed -> Closed
+        | RowVar v, _ | _, RowVar v -> RowVar v
+      in
+      { bindings ; tail }
     in
     match as_union t with
     | [] -> raise EmptyAtom
     | hd::tl -> List.fold_left union_a hd tl
 
   let proj label t =
-    as_union t |> List.map (Records.Atom.find label) |> Ty.O.disj
+    as_union t |> List.map (Records.Atom.find label) |> Ty.F.disj
 
   let merge a1 a2 =
     let open Records.Atom in
     let dom = LabelSet.union (dom a1) (dom a2) in
     let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
         let oty1, oty2 = find lbl a1, find lbl a2 in
-        let oty = if snd oty2 then Ty.O.cup oty1 (fst oty2, false) else oty2 in
+        let ty2, absty2 = Ty.F.destruct oty2 in
+        let oty = if absty2 then Ty.F.(cup oty1 (required ty2)) else oty2 in
         (lbl, oty)
       ) |> LabelMap.of_list in
-    { bindings ; opened = a1.opened || a2.opened } |> Records.mk
+    let tail = Records.Tail.Open (* TODO approximate better based on a1 and a2 *)
+    in
+    { bindings ; tail } |> Records.mk
 
   let remove a lbl =
     let open Records.Atom in
-    let bindings = a.bindings |> LabelMap.add lbl (Ty.O.absent) in
+    let bindings = a.bindings |> LabelMap.add lbl (Ty.F.absent) in
     { a with bindings } |> Records.mk
 
 end

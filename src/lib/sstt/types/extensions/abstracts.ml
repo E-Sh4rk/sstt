@@ -28,8 +28,8 @@ let encode_params vs ps =
   let (ls, rs) =
     List.combine vs ps |> List.mapi (fun i (v,p) ->
         let lbl = label_of_position i in
-        let constr = (lbl, Ty.O.optional p) in
-        let noconstr = (lbl, Ty.O.any) in
+        let constr = (lbl, Ty.F.optional p) in
+        let noconstr = (lbl, Ty.F.any) in
         match v with
         | Cov -> noconstr, constr
         | Contrav -> constr, noconstr
@@ -38,7 +38,7 @@ let encode_params vs ps =
   in
   let mk_record bs =
     let open Records.Atom in
-    { bindings = bs |> LabelMap.of_list ; opened = true }
+    { bindings = bs |> LabelMap.of_list ; tail = Open }
     |> Descr.mk_record |> Ty.mk_descr
   in
   let lhs, rhs = mk_record ls, mk_record rs in
@@ -60,7 +60,7 @@ let extract_params vs ty =
   let n = List.length vs in
   let convert_to_tuple r =
     let open Records.Atom in
-    List.init n (fun i -> find (label_of_position i) r |> fst)
+    List.init n (fun i -> find (label_of_position i) r |> FieldTy.destruct |> fst)
   in
   let extract_tuples ty =
     Ty.get_descr ty |> Descr.get_records |> Op.Records.as_union |>

@@ -439,16 +439,63 @@ module type Arrows = sig
 end
 
 (* Records *)
+type tail = Open | Closed | RowVar of Var.t
+
+module type Tail = sig
+  type t = tail = Open | Closed | RowVar of Var.t
+  val is_open : t -> bool
+  val get_opt_var : t -> Var.t option
+end
+
+module type FieldTy = sig
+   type node
+   type t
+   include SetTheoretic with type t := t
+   include TyBase with type t := t and type node := node
+   val mk : node -> bool -> t
+   (** [mk n b] creates a type with the absent component denoted by [b]
+      (if b is true, is absent component is present)
+    *)
+  
+   val destruct : t -> node * bool
+   (** Extract the type and absent component of a field type. *)
+  
+   val absent : t
+   (** The absent type. *)
+
+   val required : node -> t
+   (** Make a type required (no absent component). *)
+
+   val optional : node -> t
+   (** Make a type optional (absent component is present). *)
+
+   val get : t -> node
+   (** Returns the underlying type of a field type. *)
+
+   val is_absent : t -> bool
+   (** Tests whether [t] is the absent singleton type.  *)
+
+   val is_optional : t -> bool
+   (** Tests whether the given field type is optional. *)
+
+   val is_required : t -> bool
+   (** Tests whether the given field type is non optional. *)
+
+   val map_nodes : (node -> node) -> t -> t
+   (** [map_nodes f t] applies [f] to the underlying type of [t]. *)
+end
 
 module type RecordAtom = sig
   type node
   (** An alias for the type {!Sstt.Ty.t}. *)
 
-  type oty = node * bool
-  (** An optional type (see {!Sstt.Ty.O}). *)
+  module FieldTy : FieldTy with type node := node
 
-  type t = { bindings : oty LabelMap.t;(** mapping from labels to optional types *)
-             opened : bool (** if [true], denotes an open record *)
+  (* type oty = node * bool *)
+  (** An optional type (see {!Sstt.Ty.F}). *)
+
+  type t = { bindings : FieldTy.t LabelMap.t;(** mapping from labels to optional types *)
+             tail : tail (** can be [Open], [Closed] or a row variable *)
            }
   (** A single record type.  *)
 
@@ -458,18 +505,18 @@ module type RecordAtom = sig
       the record values captured by [t]: even if a binding is present
       in [t], it could be associated with a possibly absent type. *)
 
-  val find : Label.t -> t -> oty
+  val find : Label.t -> t -> FieldTy.t
   (** [find l t] returns the type associated with the label [l] in [t],
       even if [t] does not have an explicit binding for [l]. *)
 
-  val to_tuple : Label.t list -> t -> oty list
+  val to_tuple : Label.t list -> t -> FieldTy.t list
   (** [to_tuple lst r] returns the list of {!oty} associated with each
       label of [lst] in [r]. Each type is computed using {!find}. *)
 
-  val to_tuple_with_default : Label.t list -> t -> oty list
+  val to_tuple_with_default : Label.t list -> t -> FieldTy.t list
   (** [to_tuple_with_default lst r] returns the list [d :: to_tuple lst r] where
-      - [d] is {!Sstt.Ty.O.any} if [r] is an open record
-      - [d] is {!Sstt.Ty.O.absent} if [r] is a closed record
+      - [d] is {!Sstt.Ty.F.any} if [r] is an open record
+      - [d] is {!Sstt.Ty.F.absent} if [r] is a closed record
   *)
 
   include Comparable with type t := t
@@ -480,11 +527,12 @@ end
 
 module type RecordAtom' = sig
   type node
-  type oty = node * bool
+  (* type oty = node * bool *)
+  module FieldTy : FieldTy with type node := node
 
-  type t = { bindings : oty LabelMap.t ; opened : bool ; required : LabelSet.t option }
+  type t = { bindings : FieldTy.t LabelMap.t ; tail : tail ; required : LabelSet.t option }
   (** A compact representation for record types.
-      The [bindings] and [opened] field have the same meaning as in {!Records.Atom.t}.
+      The [bindings] and [tail] field have the same meaning as in {!Records.Atom.t}.
       When the field [required] is equal to [Some labels],
       it means that [t] requires at least one field not in [labels] to be present. *)
 
@@ -495,7 +543,7 @@ module type RecordAtom' = sig
       the record values captured by [t]: even if a binding is present
       in [t], it could be associated with a possibly absent type. *)
 
-  val find : Label.t -> t -> oty
+  val find : Label.t -> t -> FieldTy.t
   (** [find l t] returns the type associated with the label [l] in [t],
       even if [t] does not have an explicit binding for [l]. *)
 
@@ -503,6 +551,8 @@ module type RecordAtom' = sig
 end
 
 module type Records = sig
+
+  module Tail : Tail
 
   type t
   (** Record types is a union of intersection of positive and negative records:
@@ -527,7 +577,7 @@ module type Records = sig
                               and type node := node
                               and type atom := Atom.t
 
-  val dnf_line_to_tuple : (Atom.t list * Atom.t list * bool) -> (Atom.oty list list * Atom.oty list list * bool) * int
+  val dnf_line_to_tuple : (Atom.t list * Atom.t list * bool) -> (Atom.FieldTy.t list list * Atom.FieldTy.t list list * bool) * int
   (** [dnf_line_to_tuple (ps, ns, b)] converts a line of a [Record] DNF to
       a line of tuples. Each record is projected to a tuple that has as many components
       as the number of distinct labels in [ps] and [ns]. The function also returns the size of the tuples
@@ -558,7 +608,7 @@ module type Records = sig
   *)
   include OptComponent with type t := t
                         and type node := node
-                        and module type Atom' := (RecordAtom' with type node := node)
+                        and module type Atom' := (RecordAtom' with type node := node and module FieldTy = Atom.FieldTy)
 
   (** @inline*)
   include OptComponentOps with type t := t
@@ -1075,50 +1125,6 @@ module type Ty = sig
 
   (** {1 Optional types }*)
 
-  module O : sig
-    (** Optional types are subsets of {%html: <span style='font-size:large'>𝟙</span>%}{m \cup\bot}. They are used for the type of
-        record fields, to denote the fact that a field may be absent.
-    *)
-
-    type node = t
-    (** An alias for the type {!Ty.t}. *)
-
-    type t = node * bool
-    (** The type of optional types. Whenever
-        the boolean component is [true], it means that the type contains the
-        undefined element {m \bot}. Otherwise, when the boolean component is [false],
-        the type is equivalent to a plain {!Ty.t} type. *)
-
-
-    include TyBase with type node := node and type t := t (** @inline *)
-
-
-    val absent : t
-    (** [absent] is the singleton type containing the undefined value, {m \bot}. *)
-
-    val required : node -> t
-    (** [required t] returns the type [t, false]. *)
-
-    val optional : node -> t
-    (** [optional t] returns [t, true] which represents the type {m t\cup \bot}. *)
-
-    (** @inline *)
-    include SetTheoretic with type t := t
-
-    val is_absent : t -> bool
-    (** Tests whether {m \bot \equiv t}. *)
-
-    val is_required : t -> bool
-    (** Tests whether {m \bot \not\in t}. *)
-
-    val is_optional : t -> bool
-    (** Tests whether {m \bot \in t}*)
-
-    val get : t -> node
-    (** Returns [get (t, b)] returns [t]. *)
-  end
-
-
-
+  module F = VDescr.Descr.Records.Atom.FieldTy
 
 end
