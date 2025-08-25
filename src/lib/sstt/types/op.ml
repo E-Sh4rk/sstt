@@ -7,13 +7,12 @@ module Arrows = struct
   type t = Arrows.t
 
   let dom t =
-    let summand_dom (ps,_,_) = ps |> List.map fst |> Ty.disj in
-    Arrows.dnf t |> Arrows.Dnf.simplify |> List.map summand_dom |> Ty.conj
+    let summand_dom (ps,_) = ps |> List.map fst |> Ty.disj in
+    Arrows.dnf t |> List.map summand_dom |> Ty.conj
 
   let apply t s =
-    let dnf = Arrows.dnf t |> Arrows.Dnf.simplify in
-    dnf |> List.map begin
-      fun (ps,_,_) ->
+    Arrows.dnf t |> List.map begin
+      fun (ps,_) ->
         let rec certain_outputs current_set ps =
           let t = List.map fst current_set |> Ty.disj in
           if Ty.leq s t then [List.map snd current_set |> Ty.disj]
@@ -26,9 +25,8 @@ module Arrows = struct
     end |> Ty.disj
 
   let worra t out =
-    let dnf = Arrows.dnf t |> Arrows.Dnf.simplify in
-    dnf |> List.map begin
-      fun (ps,_,_) ->
+    Arrows.dnf t |> List.map begin
+      fun (ps,_) ->
         let rec impossible_inputs current_set ps =
           let t = List.map snd current_set |> Ty.conj in
           if Ty.leq out (Ty.neg t) then [List.map fst current_set |> Ty.conj]
@@ -45,11 +43,9 @@ module TupleComp = struct
   type t = TupleComp.t
   type atom = TupleComp.Atom.t
 
-  let as_union t =
-    TupleComp.dnf' t |> TupleComp.Dnf'.simplify |> List.map fst
+  let as_union t = TupleComp.dnf' t
 
-  let of_union n lst =
-    TupleComp.of_dnf' n (List.map (fun atom -> atom, true) lst)
+  let of_union n lst = TupleComp.of_dnf' n lst
 
   let approx t =
     mapn (fun _ -> raise EmptyAtom) Ty.disj (as_union t)
@@ -69,13 +65,12 @@ module Records = struct
 
   let as_union t =
     let open Records.Atom in
-    Records.dnf' t |> Records.Dnf'.simplify |> List.map fst |>
-    List.map (fun t ->
+    Records.dnf' t |> List.map (fun t ->
         { bindings=t.Records.Atom'.bindings ; opened=t.opened }
       )
 
   let of_union lst =
-    Records.of_dnf (List.map (fun atom -> [atom],[],true) lst)
+    Records.of_dnf (List.map (fun atom -> [atom],[]) lst)
 
   let approx t =
     let open Records.Atom in

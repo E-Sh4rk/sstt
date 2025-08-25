@@ -74,40 +74,22 @@ end
 
 (* DNF *)
 
-module type Dnf = sig
-  (** An explicit DNF of atoms. *)
+(** ['atom ldnf] represents a disjunctive normal form for leaf components,
+    that is, a disjunction of clauses. *)
+type 'atom ldnf = ('atom list * 'atom list) list
 
-  type atom
-  type leaf
+(** ['atom cdnf] represents a condensed disjunctive normal form, that is,
+    a disjunction of atoms. *)
+type 'atom cdnf = 'atom list
 
-  (** [t] represents a disjunctive normal form, that is, a disjunction of clauses.
-      For leaf components, [leaf] is a boolean that should be true.
-      If set to false, the corresponding clause will be ignored. *)
-  type t = (atom list * atom list * leaf) list
+(** [('atom, 'leaf) dnf] represents a disjunctive normal form, that is, a disjunction of clauses. *)
+type ('atom, 'leaf) dnf = ('atom list * 'atom list * 'leaf) list
 
-  (** [simplify t] removes from [t] useless clauses and summands.
-      In particular, [simplify t] is ensured not to contain any [empty] summand
-      nor [any] clause. *)
-  val simplify : t -> t
-end
-
-module type Dnf' = sig
-  (** An condensed explicit DNF of atoms. *)
-
-  type atom
-  type leaf
-
-  (** [t] represents a condensed disjunctive normal form, that is,
-      a disjunction of atoms. [leaf] is a boolean that should be true.
-      If set to false, the corresponding atom will be ignored. *)
-  type t = (atom * leaf) list
-
-  (** [simplify t] useless summands removes from [t].
-      In particular, [simplify t] is ensured not to contain any [empty] summand. *)
-  val simplify : t -> t
-end
+(* Components *)
 
 module type ComponentBase = sig
+
+  include TyBase
 
   (** {1 Basics}*)
 
@@ -117,16 +99,16 @@ module type ComponentBase = sig
   module Atom : Atom
   (* The abstract module representing atoms, which is refined in explicit signatures. *)
 
-  include TyBase
 end
 
 module type BasicComponentOps = sig
 
+  type atom
+  type t
+  type repr
+
   (** {1 Operations on basic components} *)
 
-  type t
-  type atom
-  type repr
   val mk : atom -> t
   (** Creates a component from an atom. *)
 
@@ -139,17 +121,16 @@ end
 
 module type ConstrComponentOps = sig
 
-  (** {1 Explicit DNF, construction and extraction}*)
-
+  type atom
   type t
   type node
-  type atom
-  module Dnf : Dnf with type atom = atom and type leaf = bool
 
-  val dnf : t -> Dnf.t
+  (** {1 Explicit DNF, construction and extraction}*)
+
+  val dnf : t -> atom ldnf
   (** [dnf t] returns a disjunctive normal form of [t]. *)
 
-  val of_dnf : Dnf.t -> t
+  val of_dnf : atom ldnf -> t
   (** [dnf d] builds a component from a disjunctive normal form [d]. *)
 
   val mk : atom -> t
@@ -159,47 +140,17 @@ module type ConstrComponentOps = sig
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
 end
 
-module type OptComponent = sig
-
-  (** {1 Condensed DNF}*)
-
-  type t
-  type node
-  module type Atom'
-  module Atom' : Atom'
-  (** The abstract module representing condensed atoms. *)
-
-end
-
-module type OptComponentOps = sig
-  (** Operations on condensed components. *)
-
-  type t
-  type node
-  type atom'
-  module Dnf' : Dnf' with type atom = atom' and type leaf = bool
-  (** Explicit DNF over condensed atoms. *)
-
-  val dnf' : t -> Dnf'.t
-  (** [dnf t] returns the condensed DNF of [t]. *)
-
-  val of_dnf' : Dnf'.t -> t
-  (** [of_dnf' d] builds a component from an condensed DNF [d]. *)
-end
-
 module type IndexedComponentOps = sig
+
+  include ConstrComponentOps
 
   (** {1 Operations for indexed components}*)
 
   (** Operations on components that are indexed by a type, such as tuples
       (indexed by integers) or tagged types (indexed by a symbolic tag). *)
 
-  type t
   type index
   (** The type of indices. *)
-
-  type dnf
-  (** The type of the explicity DNF. *)
 
   val any : index -> t
   (** The top element for the given index. *)
@@ -207,27 +158,52 @@ module type IndexedComponentOps = sig
   val empty : index -> t
   (** The bottom element for the given index. *)
 
-  val of_dnf : index -> dnf -> t
+  val of_dnf : index -> atom ldnf -> t
   (** [of_dnf idx d] builds a component for the given index and DNF. *)
+end
+
+module type OptComponent = sig
+
+  (** {1 Condensed DNF}*)
+
+  module type Atom'
+  module Atom' : Atom'
+  (** The abstract module representing condensed atoms. *)
+
+end
+
+module type OptComponentOps = sig
+
+  type t
+  type atom'
+
+  val dnf' : t -> atom' cdnf
+  (** [dnf' t] returns the condensed DNF of [t]. *)
+
+  val of_dnf' : atom' cdnf -> t
+  (** [of_dnf' d] builds a component from an condensed DNF [d]. *)
 end
 
 module type OptIndexedComponentOps = sig
 
+  type t
+  type atom'
+
   (** Operations on optimzed indexed components *)
 
-  type t
   type index
   (** The type of indices. *)
 
-  type dnf'
-  (** The type of optimzed DNF. *)
+  val dnf' : t -> atom' cdnf
+  (** [dnf' t] returns the condensed DNF of [t]. *)
 
-  val of_dnf' : index -> dnf' -> t
-  (** [of_dnf' idx d] builds a component for the given index and optimized DNF. *)
 
+  val of_dnf' : index -> atom' cdnf -> t
+  (** [of_dnf' idx d] builds a component for the given index and condensed DNF. *)
 end
 
 module type ComponentFamily = sig
+
   (** {1 Basics }*)
 
   (** A compononet {i family } is a set of components indexed by a values. For
@@ -298,7 +274,6 @@ sig
 
   type node
 
-
   include ComponentBase
     with type t := t
      and type node := node
@@ -310,7 +285,7 @@ sig
   module Atom = Enum
 
   include BasicComponentOps
-    with type t:= t
+    with type t := t
      and type atom := Atom.t
      and type repr := bool * Atom.t list
      (**
@@ -357,13 +332,7 @@ module type IntervalAtom = sig
   (** [get t] returns the boundaries (inclusive) of the interval [t]. *)
 
   include Comparable with type t := t
-  (**/**)
 
-  (** {@ocaml[
-      # open Sstt.Intervals.Atom
-      # #install_printer pp;;
-      ]}*)
-  (**/**)
   val pp : Format.formatter -> t -> unit
   (** Prints the interval to the given formatter. An interval is printed as [(b1..b2)] where
       [bi] is the bound if it is finite, and the empty string if it is infinite.
@@ -377,6 +346,7 @@ module type Intervals = sig
       An atom is a possibly unbounded, non-empty interval of integers. *)
 
   type node
+
   include ComponentBase with type t := t
                          and type node := node
                          and module type Atom := IntervalAtom
@@ -527,14 +497,11 @@ module type Records = sig
                               and type node := node
                               and type atom := Atom.t
 
-  val dnf_line_to_tuple : (Atom.t list * Atom.t list * bool) -> (Atom.oty list list * Atom.oty list list * bool) * int
-  (** [dnf_line_to_tuple (ps, ns, b)] converts a line of a [Record] DNF to
+  val dnf_line_to_tuple : (Atom.t list * Atom.t list) -> (Atom.oty list list * Atom.oty list list) * int
+  (** [dnf_line_to_tuple (ps, ns)] converts a line of a [Record] DNF to
       a line of tuples. Each record is projected to a tuple that has as many components
       as the number of distinct labels in [ps] and [ns]. The function also returns the size of the tuples
       in the result (which is the number of labels plus one).
-
-      If the line is trivially empty, then the returned result is an empty line, with no
-      tuple elements and a size of 0.
   *)
 
   (** @inline
@@ -556,13 +523,10 @@ module type Records = sig
       any record which has both labels associated to their original type but which {i also has an
       extra label} that is neither {m x} nor {m y}.
   *)
-  include OptComponent with type t := t
-                        and type node := node
-                        and module type Atom' := (RecordAtom' with type node := node)
+  include OptComponent with module type Atom' := (RecordAtom' with type node := node)
 
   (** @inline*)
   include OptComponentOps with type t := t
-                           and type node := node
                            and type atom' := Atom'.t
 end
 
@@ -593,22 +557,16 @@ module type TupleComp = sig
      and module type Atom := (TupleAtom with type node := node)
 
   (** @inline *)
-  include ConstrComponentOps with type t := t
-                              and type node := node
-                              and type atom := Atom.t
-
-  (** @inline *)
   include IndexedComponentOps with type t := t
-                               and type dnf := Dnf.t
+                               and type node := node
+                               and type atom := Atom.t
                                and type index := int
 
   val len : t -> int
   (** [len t] returns the common arity of all tuple types in [t]. *)
 
   (** @inline *)
-  include OptComponent with type t := t
-                        and type node := node
-                        and module type Atom' := (TupleAtom with type node := node)
+  include OptComponent with module type Atom' := (TupleAtom with type node := node)
                         and module Atom' := Atom
 
   (** @inline
@@ -617,14 +575,9 @@ module type TupleComp = sig
       be compactly represented as a union of products.
 
   *)
-  include OptComponentOps with type t := t
-                           and type node := node
-                           and type atom' := Atom.t
-
-  (** @inline *)
   include OptIndexedComponentOps with type t := t
+                                  and type atom' := Atom.t
                                   and type index := int
-                                  and type dnf' := Dnf'.t
 
 end
 
@@ -678,13 +631,9 @@ module type TagComp = sig
                          and module type Atom := (TagAtom with type node := node)
 
   (**@inline*)
-  include ConstrComponentOps with type t := t
-                              and type node := node
-                              and type atom := Atom.t
-
-  (**@inline*)
   include IndexedComponentOps with type t := t
-                               and type dnf := Dnf.t
+                               and type node := node
+                               and type atom := Atom.t
                                and type index := Tag.t
 
   val tag : t -> Tag.t
@@ -900,16 +849,10 @@ module type VDescr = sig
 
   (** {1 Explicit Disjunctive Normal Form }*)
 
-  module Dnf : sig
-    (** Explicit Disjunctive Normal Forms (DNF) of variables and monomorphic descriptors. *)
-
-    (** @inline *)
-    include Dnf with type atom = Var.t and type leaf = Descr.t
-  end
-  val dnf : t -> Dnf.t
+  val dnf : t -> (Var.t, Descr.t) dnf
   (** Return an explicit DNF representation from a full descriptor. *)
 
-  val of_dnf : Dnf.t -> t
+  val of_dnf : (Var.t, Descr.t) dnf -> t
   (** Builds a full descriptor from a DNF. *)
 
   (** {1 Misc. operations }*)
@@ -1117,8 +1060,5 @@ module type Ty = sig
     val get : t -> node
     (** Returns [get (t, b)] returns [t]. *)
   end
-
-
-
 
 end

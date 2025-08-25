@@ -48,40 +48,36 @@ module MakeC(N:Node) = struct
     let n = ns |> List.map snd |> List.map N.neg |> N.conj in
     N.cap p n
   let is_clause_empty (ps,ns,b) =
-    if b then ty_of_clause (ps,ns) |> N.is_empty
-    else true
-  let is_empty' t = t |> Bdd.for_all_lines is_clause_empty
-  let is_empty (_,t) = is_empty' t
+    not b || ty_of_clause (ps,ns) |> N.is_empty
+  let is_empty (_,bdd) = bdd |> Bdd.for_all_lines is_clause_empty
 
-  let leq t1 t2 = Bdd.diff t1 t2 |> is_empty'
-  let equiv t1 t2 = leq t1 t2 && leq t2 t1
+  let leq tag t1 t2 = is_empty (tag, Bdd.diff t1 t2)
+  let equiv tag t1 t2 = leq tag t1 t2 && leq tag t2 t1
 
-  module DnfAtom = struct
-    type leaf = bool
-    type t = Atom.t
+  let dnf_funs tag =
+    let module Comp = struct
+      type atom = Atom.t
+      let atom_is_valid (t,_) = Tag.equal t tag
+      let leq t1 t2 = leq tag (Bdd.of_dnf t1) (Bdd.of_dnf t2)
+    end in
+    let module Dnf = Dnf.LMake(Comp) in
+    Dnf.export, Dnf.import, Dnf.simplify
 
-    let undesirable_leaf = not
-    let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
-  end
-  module Dnf = DNF.Make(DnfAtom)(N)
-
-  let dnf (_,t) = Bdd.dnf t |> Dnf.mk
+  let dnf (tag, bdd) =
+    let (export,_,simplify) = dnf_funs tag in
+    N.with_own_cache (fun bdd -> Bdd.dnf bdd |> export |> simplify) bdd
   let of_dnf tag dnf =
-    dnf |> List.iter (fun (ps,ns,_) ->
-        ps |> List.iter (fun a -> check_tag tag (Atom.tag a)) ;
-        ns |> List.iter (fun a -> check_tag tag (Atom.tag a))
-      ) ;
-    tag, Dnf.mk dnf |> Bdd.of_dnf
+    let (_,import,_) = dnf_funs tag in
+    N.with_own_cache (fun dnf -> tag, import dnf |> Bdd.of_dnf) dnf
 
   let as_atom (tag,t) =
-    let merge_line (ps,ns,_) = ty_of_clause (ps,ns) in
-    tag, dnf (tag,t) |> List.map merge_line |> N.disj
+    tag, dnf (tag,t) |> List.map ty_of_clause |> N.disj
 
   let direct_nodes (_,t) = Bdd.atoms t |> List.concat_map Atom.direct_nodes
   let map_nodes f (tag,t) = tag, Bdd.map_nodes (Atom.map_nodes f) t
 
   let simplify ((tag,t) as n) = 
-    let t' = Bdd.simplify equiv t in
+    let t' = Bdd.simplify (equiv tag) t in
     if t == t' then n else (tag, t')
 
   let equal (_,t1) (_,t2) = Bdd.equal t1 t2

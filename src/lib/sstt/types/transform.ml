@@ -41,8 +41,8 @@ let regroup_arrows conjuncts =
     else None
   in
   merge_when_possible merge_conjuncts conjuncts
-let regroup_arrows (ps,ns,b) =
-  (regroup_arrows ps, ns, b)
+let regroup_arrows (ps,ns) =
+  (regroup_arrows ps, ns)
 
 let regroup_records conjuncts =
   let dom =
@@ -56,7 +56,7 @@ let regroup_records conjuncts =
     let opened = List.for_all (fun a -> a.Records.Atom.opened) conjuncts in
     [{ Records.Atom.bindings ; opened }]
   with Exit -> []
-let regroup_records (ps,ns,b) =
+let regroup_records (ps,ns) =
   let open Records.Atom in
   (* Convert negative atoms to positive ones when possible *)
   let ps',ns = ns |> List.partition_map (fun r ->
@@ -66,14 +66,14 @@ let regroup_records (ps,ns,b) =
       | _ -> Either.Right r
     ) in
   (* Regroup positive conjuncts *)
-  (regroup_records (ps'@ps), ns, b)
-let merge_record_lines (ps1,ns1,b1) (ps2,ns2,b2) =
+  (regroup_records (ps'@ps), ns)
+let merge_record_lines (ps1,ns1) (ps2,ns2) =
   let open Records.Atom in
   match ps1, ps2, ns1, ns2 with
-  | [p1], [p2], [], [] when b1=b2 && p1.opened=p2.opened ->
+  | [p1], [p2], [], [] when p1.opened=p2.opened ->
     begin match LabelMap.to_list p1.bindings, LabelMap.to_list p2.bindings with
       | [lbl1,oty1], [lbl2,oty2] when Label.equal lbl1 lbl2 ->
-        Some ([{ p1 with bindings=LabelMap.singleton lbl1 (Ty.O.cup oty1 oty2) }],[],b1)
+        Some ([{ p1 with bindings=LabelMap.singleton lbl1 (Ty.O.cup oty1 oty2) }],[])
       | _, _ -> None
     end
   | _, _, _, _ -> None
@@ -81,7 +81,7 @@ let merge_record_lines (ps1,ns1,b1) (ps2,ns2,b2) =
 let regroup_tuples conjuncts =
   try [mapn (fun () -> raise Exit) Ty.conj conjuncts]
   with Exit -> []
-let regroup_tuples (ps,ns,b) =
+let regroup_tuples (ps,ns) =
   (* Convert negative atoms to positive ones when possible *)
   let ps',ns = ns |> List.partition_map (fun lst ->
       match lst with
@@ -89,22 +89,21 @@ let regroup_tuples (ps,ns,b) =
       | _ -> Either.Right lst
     ) in
   (* Regroup positive conjuncts *)
-  (regroup_tuples (ps'@ps), ns, b)
-let merge_tuple_lines (ps1,ns1,b1) (ps2,ns2,b2) =
+  (regroup_tuples (ps'@ps), ns)
+let merge_tuple_lines (ps1,ns1) (ps2,ns2) =
   match ps1, ps2, ns1, ns2 with
-  | [[p1]], [[p2]], [], [] when b1=b2 ->
-    Some ([[Ty.cup p1 p2]], [], b1)
+  | [[p1]], [[p2]], [], [] ->
+    Some ([[Ty.cup p1 p2]], [])
   | _, _, _, _ -> None
 
 let simpl_arrows a =
-  Arrows.dnf a |> Arrows.Dnf.simplify |> List.map regroup_arrows |> Arrows.of_dnf
+  Arrows.dnf a |> List.map regroup_arrows |> Arrows.of_dnf
 let simpl_records r =
-  Records.dnf r |> Records.Dnf.simplify |> List.map regroup_records
+  Records.dnf r |> List.map regroup_records
   |> merge_when_possible merge_record_lines |> Records.of_dnf
 let simpl_tuples p =
-  let dnf = TupleComp.dnf p |> TupleComp.Dnf.simplify in
   let n = TupleComp.len p in
-  dnf |> List.map regroup_tuples
+  TupleComp.dnf p |> List.map regroup_tuples
   |> merge_when_possible merge_tuple_lines |> TupleComp.of_dnf n
 let simpl_tuples t = Tuples.map simpl_tuples t
 let simpl_tags t = Tags.map (fun c -> TagComp.as_atom c |> TagComp.mk) t

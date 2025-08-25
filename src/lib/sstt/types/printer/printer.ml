@@ -229,17 +229,16 @@ let resolve_alias (ctx:ctx) ty =
   end
 
 let resolve_arrows ctx a =
-  let dnf = Arrows.dnf a |> Arrows.Dnf.simplify in
   let resolve_arr (n1, n2) =
     let d1, d2 = node ctx n1, node ctx n2 in
     arrow d1 d2
   in
-  let resolve_dnf (ps, ns, _) =
+  let resolve_dnf (ps, ns) =
     let ps = ps |> List.map resolve_arr in
     let ns = ns |> List.map resolve_arr |> List.map neg in
     ps@ns |> inter
   in
-  dnf |> List.map resolve_dnf |> union
+  Arrows.dnf a |> List.map resolve_dnf |> union
 
 let resolve_enums _ a =
   let (pos, enums) = Enums.destruct a in
@@ -262,14 +261,13 @@ let resolve_tuplecomp ctx a =
   match resolve_alias ctx ty with
   | Some d -> d
   | None ->
-    let dnf = TupleComp.dnf a |> TupleComp.Dnf.simplify in
     let resolve_tup lst = tuple (lst |> List.map (node ctx)) in
-    let resolve_dnf (ps, ns, _) =
+    let resolve_dnf (ps, ns) =
       let ps = ps |> List.map resolve_tup in
       let ns = ns |> List.map resolve_tup |> List.map neg in
       ps@ns |> inter
     in
-    dnf |> List.map resolve_dnf |> union
+    TupleComp.dnf a |> List.map resolve_dnf |> union
 
 let resolve_tuples ctx a =
   let (pos, components) = Tuples.destruct a in
@@ -285,19 +283,18 @@ let resolve_tuples ctx a =
 
 let resolve_records ctx a =
   let open Records.Atom in
-  let dnf = Records.dnf a |> Records.Dnf.simplify in
   let resolve_rec r =
     let bindings = r.bindings |> LabelMap.bindings |> List.map (fun (l,(n,b)) ->
         (l, node ctx n, b)
       ) in
     record bindings r.opened
   in
-  let resolve_dnf (ps, ns, _) =
+  let resolve_dnf (ps, ns) =
     let ps = ps |> List.map resolve_rec in
     let ns = ns |> List.map resolve_rec |> List.map neg in
     ps@ns |> inter
   in
-  dnf |> List.map resolve_dnf |> union
+  Records.dnf a |> List.map resolve_dnf |> union
 
 
 let resolve_tagcomp ctx a =
@@ -363,14 +360,13 @@ let resolve_def ctx def =
   let ty = Ty.of_def def in
   match resolve_alias ctx ty with
   | None ->
-    let dnf = def |> VD.dnf |> VD.Dnf.simplify in
     let resolve_dnf (ps, ns, d) =
       let ps = ps |> List.map var in
       let ns = ns |> List.map var |> List.map neg in
       let d = resolve_descr ctx d in
       ps@ns@[d] |> inter
     in
-    dnf |> List.map resolve_dnf |> union
+    def |> VD.dnf |> List.map resolve_dnf |> union
   | Some d -> d
 
 let rec resolve_missing_defs ctx t =

@@ -177,7 +177,7 @@ module Make(VO:VarOrder) = struct
   end
 
   module VDHash = Hashtbl.Make (VDescr)
-  let norm_tuple_gen ~any ~conj ~diff ~norm delta n (ps, ns, _) =
+  let norm_tuple_gen ~any ~conj ~diff ~norm delta n (ps, ns) =
     (* Same algorithm as for subtyping tuples.
        We define it outside norm below so that its type can be
        generalized and we can apply it to different ~any/~conj/...
@@ -206,8 +206,7 @@ module Make(VO:VarOrder) = struct
                no polymorphic type variable should be as fast as subtyping. *)
             begin if Ty.is_empty t then CSS.any else CSS.empty end
           else
-            let summands = vd |> VDescr.dnf |> VDescr.Dnf.simplify in
-            summands |> CSS.map_conj delta norm_summand
+            vd |> VDescr.dnf |> CSS.map_conj delta norm_summand
         in
         VDHash.replace memo vd res; res
     and norm_summand summand =
@@ -241,20 +240,17 @@ module Make(VO:VarOrder) = struct
       else cs |>
            CSS.map_conj delta (fun c -> TagComp.as_atom c |> snd |> norm_ty)
     and norm_arrows arr =
-      arr |> Arrows.dnf |> Arrows.Dnf.simplify
-      |> CSS.map_conj delta norm_arrow
+      arr |> Arrows.dnf |> CSS.map_conj delta norm_arrow
     and norm_tuples tup =
       let (comps, others) = tup |> Tuples.components in
       if others then CSS.empty
       else comps |> CSS.map_conj delta norm_tuplecomp
     and norm_tuplecomp tup =
       let n = TupleComp.len tup in
-      tup |> TupleComp.dnf |> TupleComp.Dnf.simplify
-      |> CSS.map_conj delta (norm_tuple n)
+      tup |> TupleComp.dnf |> CSS.map_conj delta (norm_tuple n)
     and norm_records r =
-      r |> Records.dnf |> Records.Dnf.simplify
-      |> CSS.map_conj delta norm_record
-    and norm_arrow (ps, ns, _ ) =
+      r |> Records.dnf |> CSS.map_conj delta norm_record
+    and norm_arrow (ps, ns) =
       let rec psi t1 t2 ps () =
         if Ty.is_empty t1 || Ty.is_empty t2 then CSS.any else
           let cstr_1 = norm_ty t1 in
@@ -279,8 +275,8 @@ module Make(VO:VarOrder) = struct
       List.map (norm_single_neg_arrow ps) ns |> CSS.disj
     and norm_tuple n line = norm_tuple_gen ~any:Ty.any ~conj:Ty.conj
         ~diff:Ty.diff ~norm:norm_ty delta n line
-    and norm_record (ps, ns, b) =
-      let line, n = Records.dnf_line_to_tuple (ps, ns, b) in
+    and norm_record (ps, ns) =
+      let line, n = Records.dnf_line_to_tuple (ps, ns) in
       norm_tuple_gen ~any:Ty.O.any ~conj:Ty.O.conj
         ~diff:Ty.O.diff ~norm:norm_oty delta n line
     and norm_oty (n,o) =
