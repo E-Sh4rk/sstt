@@ -532,6 +532,9 @@ let builder ~to_t ~map ~print =
      | Some value -> Some (E {value; map; print})
   )
 
+let print_extension_node_ctx prec assoc fmt (E e) =
+  e.print prec assoc fmt e.value
+
 let get customs ty =
   let (ctx, t) = build_t customs ty in
   let t = resolve_missing_defs ctx t in

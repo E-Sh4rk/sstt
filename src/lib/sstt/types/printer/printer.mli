@@ -112,3 +112,9 @@ val print_ty' : Format.formatter -> Ty.t -> unit
 (** [print_subst' fmt s] prints the substitution [s] using formatter [fmt].
     Same as [print_subst [] fmt s]. *)
 val print_subst' : Format.formatter -> Subst.t -> unit
+
+(** [print_extension_node_ctx prec assoc fmt e] prints the printer
+    extensions node [e] in a context with precedence [prec]
+    and associativity [assoc], using formatter [fmt]. *)
+val print_extension_node_ctx :
+  int -> assoc -> Format.formatter -> extension_node -> unit
