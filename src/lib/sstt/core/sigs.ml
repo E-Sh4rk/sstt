@@ -442,9 +442,11 @@ module type FieldTy = sig
 
    val get : t -> node
    (** Returns the underlying type of a field type. *)
+
    val is_any : t -> bool
   (** Fullness test. [is_any t] returns [true] if and only if [t] is semantically equivalent
       to [any]. *)
+
    val is_empty : t -> bool
   (** Emptyness test. [is_empty t] returns [true] if and only if [t] is semantically equivalent
       to [empty]. *)
@@ -457,6 +459,7 @@ module type FieldTy = sig
 
    val is_required : t -> bool
    (** Tests whether the given field type is non optional. *)
+
    val disjoint : t -> t -> bool
   (** Disjointedness test. [disjoint t1 t2] returns true if and only if [cap t1 t2] is empty. *)
 
