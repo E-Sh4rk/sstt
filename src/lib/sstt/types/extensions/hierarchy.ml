@@ -49,10 +49,11 @@ let mk h n =
 type t = line list
 and line = L of Node.t * t
 
+let any_enum = Enums.any |> Descr.mk_enums |> Ty.mk_descr
 let to_t h _ _ cmp =
   let (_, pty) = TagComp.as_atom cmp in
-  if Ty.vars_toplevel pty |> VarSet.is_empty |> not then None
-  else
+  if Ty.leq pty any_enum && (Ty.vars_toplevel pty |> VarSet.is_empty)
+  then
     let (pos, enums) = pty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
     if not (pos && List.for_all (EHT.mem h.atoms) enums) then None
     else
@@ -65,6 +66,7 @@ let to_t h _ _ cmp =
         else List.concat_map (aux pos) sub
       in
       Some (h.top_nodes |> NSet.to_list |> List.concat_map (aux true))
+  else None
 
 open Prec
 
