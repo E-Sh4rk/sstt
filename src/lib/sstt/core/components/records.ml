@@ -168,18 +168,15 @@ module Make(N:Node) = struct
   let disj n ps =
     let init = fun () -> List.init n (fun _ -> ON.empty) in
     mapn init ON.disj ps
-  let dnf_line_to_tuple (ps, ns, b) =
-    if b then
-      let dom = List.fold_left
-          (fun acc a -> LabelSet.union acc (Atom.dom a))
-          LabelSet.empty (ps@ns) |> LabelSet.to_list
-      in
-      let ps, ns =
-        ps |> List.map (Atom.to_tuple_with_default dom),
-        ns |> List.map (Atom.to_tuple_with_default dom) in
-      (ps, ns, true), List.length dom + 1
-    else
-      ([],[], false), 0
+  let dnf_line_to_tuple (ps, ns) =
+    let dom = List.fold_left
+        (fun acc a -> LabelSet.union acc (Atom.dom a))
+        LabelSet.empty (ps@ns) |> LabelSet.to_list
+    in
+    let ps, ns =
+      ps |> List.map (Atom.to_tuple_with_default dom),
+      ns |> List.map (Atom.to_tuple_with_default dom) in
+    (ps, ns), List.length dom + 1
 
   let rec psi acc ss ts =
     List.exists ON.is_empty ss ||
@@ -189,32 +186,23 @@ module Make(N:Node) = struct
       fold_distribute_comb (fun acc ss -> acc && psi acc ss ts) ON.diff acc ss tt
   let is_clause_empty (ps,ns,b) =
     if b then
-      let (ps, ns, _), n = dnf_line_to_tuple (ps, ns, b) in
-      (* We reuse the same algorithm as for tuples *)
-      match ps, ns with
-      | [],[] -> false
-      | _ ->
-        psi true (conj n ps) ns
-
+      let (ps, ns), n = dnf_line_to_tuple (ps, ns) in
+      psi true (conj n ps) ns
     else true
   let is_empty t = t |> Bdd.for_all_lines is_clause_empty
 
   let leq t1 t2 = Bdd.diff t1 t2 |> is_empty
   let equiv t1 t2 = leq t1 t2 && leq t2 t1
 
-  module DnfAtom = struct
-    type leaf = bool
-    type t = Atom.t
+  module Comp = struct
+    type atom = Atom.t
+    type atom' = Atom'.t
 
-    let undesirable_leaf = not
+    let atom_is_valid _ = true
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
-  end
-  module DnfAtom' = struct
-    type leaf = bool
-    type t = Atom.t
-    type t' = Atom'.t
+    let any' = { Atom'.bindings=LabelMap.empty ; opened=true ; required=None }
 
-    let to_t a' =
+    let to_atom a' =
       let open Atom' in
       let ns =
         match a'.required with
@@ -228,7 +216,7 @@ module Make(N:Node) = struct
       in
       let ps = [{Atom.bindings=a'.bindings ; Atom.opened=a'.opened}] in
       ps, ns
-    let to_t' (a,b) =
+    let to_atom' (a,b) =
       let open Atom' in
       let not_binding (l,on) =
         { bindings=LabelMap.singleton l (ON.neg on) ; opened=true ; required=None }
@@ -239,8 +227,8 @@ module Make(N:Node) = struct
         let res = a.Atom.bindings |> LabelMap.bindings |> List.map not_binding in
         if a.Atom.opened then res
         else { bindings=a.Atom.bindings ; opened=true ; required=Some (Atom.dom a) }::res
-    let to_t' (a,b) =
-      to_t' (a,b) |> List.filter (fun a -> Atom'.is_empty a |> not)
+    let to_atom' (a,b) =
+      to_atom' (a,b) |> List.filter (fun a -> Atom'.is_empty a |> not)
       |> List.map Atom'.simplify
     let combine s1 s2 =
       let open Atom' in
@@ -258,14 +246,11 @@ module Make(N:Node) = struct
       let res = { bindings ; opened ; required } in
       if is_empty res then None else Some (simplify res)
   end
-  module Dnf' = DNF.Make'(DnfAtom)(DnfAtom')(N)
-  module Dnf = DNF.Make(DnfAtom)(N)
-
-  let dnf t = Bdd.dnf t |> Dnf.mk
-  let dnf' t = dnf t |> Dnf'.from_dnf
-                 ({ Atom'.bindings=LabelMap.empty ; opened=true ; required=None })
-  let of_dnf dnf = Dnf.mk dnf |> Bdd.of_dnf
-  let of_dnf' dnf' = of_dnf (Dnf'.to_dnf dnf')
+  module Dnf = Dnf.LMake'(Comp)
+  let dnf t = N.with_own_cache (fun t -> Bdd.dnf t |> Dnf.export |> Dnf.simplify) t
+  let dnf' t = N.with_own_cache (fun t -> Bdd.dnf t |> Dnf.export' |> Dnf.simplify') t
+  let of_dnf dnf = N.with_own_cache (fun dnf -> Dnf.import dnf |> Bdd.of_dnf) dnf
+  let of_dnf' dnf' = N.with_own_cache (fun dnf' -> Dnf.import' dnf' |> Bdd.of_dnf) dnf'
 
   let direct_nodes t = Bdd.atoms t |> List.concat_map Atom.direct_nodes
   let map_nodes f t = Bdd.map_nodes (Atom.map_nodes f) t

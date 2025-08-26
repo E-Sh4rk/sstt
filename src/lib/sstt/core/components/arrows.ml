@@ -40,22 +40,20 @@ module Make(N:Node) = struct
     N.leq t1 (List.map fst ps |> N.disj) &&
     (List.is_empty ps || psi t1 (N.neg t2) ps)
   let is_clause_empty (ps,ns,b) =
-    if b then List.exists (is_clause_empty' ps) ns else true
+    not b || List.exists (is_clause_empty' ps) ns
   let is_empty t = Bdd.for_all_lines is_clause_empty t
 
   let leq t1 t2 = diff t1 t2 |> is_empty
   let equiv t1 t2 = leq t1 t2 && leq t2 t1
-  module DnfAtom = struct
-    type leaf = bool
-    type t = Atom.t
 
-    let undesirable_leaf = not
+  module Comp = struct
+    type atom = Atom.t
+    let atom_is_valid _ = true
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
   end
-  module Dnf = DNF.Make(DnfAtom)(N)
-
-  let dnf t = Bdd.dnf t |> Dnf.mk
-  let of_dnf dnf = Dnf.mk dnf |> Bdd.of_dnf
+  module Dnf = Dnf.LMake(Comp)
+  let dnf t = N.with_own_cache (fun t -> Bdd.dnf t |> Dnf.export |> Dnf.simplify) t
+  let of_dnf dnf = N.with_own_cache (fun dnf -> Dnf.import dnf |> Bdd.of_dnf) dnf
 
   let direct_nodes t = Bdd.atoms t |> List.concat_map Atom.direct_nodes
   let map_nodes f t = Bdd.map_nodes (Atom.map_nodes f) t
