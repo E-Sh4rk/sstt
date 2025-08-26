@@ -41,13 +41,10 @@ type aliases = (Ty.t * string) list
 
 (* Printer extensions types and helper *)
 
-type extension_builder = ctx -> Ty.t -> extension_node option
-(** A function that, given a pretty printing context and a type
-    returns [Some e] if it knows how to process this type,
-    or [None] if it does not *)
+type extension_builder
 
 val builder :
-  to_t:((ctx -> Ty.t -> descr) -> ctx -> Ty.t -> 'a option) ->
+  to_t:((ctx -> Ty.t -> descr) -> ctx -> TagComp.t -> 'a option) ->
   map:((descr -> descr) -> 'a -> 'a) ->
   print:(int -> assoc -> Format.formatter -> 'a -> unit) ->
   extension_builder

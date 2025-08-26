@@ -2,7 +2,6 @@ open Core
 open Sstt_utils
 
 
-
 let tag = Tag.mk "lst"
 
 let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
@@ -162,8 +161,9 @@ let to_regexp automaton =
   automaton |> Automaton.to_regexp |> Regexp.simple_re simpl_union
   |> Regexp.to_ext |> convert_regexp
 
-let to_t node ctx ty =
+let to_t node ctx comp =
   try
+    let ty = Descr.mk_tagcomp comp |> Ty.mk_descr in
     Some (match to_repr node ctx ty with
         | R r -> Regexp (r |> to_automaton |> to_regexp)
         | B bs -> Basic bs)

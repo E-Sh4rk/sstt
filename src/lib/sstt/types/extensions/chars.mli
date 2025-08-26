@@ -9,7 +9,8 @@ val interval : interval -> Ty.t
 val any : Ty.t
 
 type t = interval list
-val to_t : (Printer.ctx -> Ty.t -> Printer.descr) -> Printer.ctx -> Ty.t -> t option
+val to_t : (Printer.ctx -> Ty.t -> Printer.descr) -> Printer.ctx
+            -> TagComp.t -> t option
 val map : ((Printer.descr -> Printer.descr) -> t -> t)
 
 val any_t : t

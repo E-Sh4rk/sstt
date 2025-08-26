@@ -48,11 +48,9 @@ let mk h n =
 
 type t = line list
 and line = L of Node.t * t
-let proj_tag tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
-                      |> TagComp.as_atom |> snd
 
-let to_t h _ _ ty =
-  let pty = proj_tag h.tag ty in
+let to_t h _ _ cmp =
+  let (_, pty) = TagComp.as_atom cmp in
   if Ty.vars_toplevel pty |> VarSet.is_empty |> not then None
   else
     let (pos, enums) = pty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in

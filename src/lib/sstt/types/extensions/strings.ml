@@ -5,8 +5,6 @@ open Sstt_utils
 let tag = Tag.mk "str"
 
 let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
-let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
-                  |> TagComp.as_atom |> snd
 
 let enums = Hashtbl.create 256
 let strings = Hashtbl.create 256
@@ -19,13 +17,14 @@ let str str =
     Hashtbl.add strings atom str ;
     atom |> Descr.mk_enum |> Ty.mk_descr |> add_tag
 
-let any = Enums.any |> Descr.mk_enums |> Ty.mk_descr |> add_tag
+let any_p = Enums.any |> Descr.mk_enums |> Ty.mk_descr
+let any = add_tag any_p
 
 type t = bool * string list
 
-let to_t _ _ ty =
-  let pty = proj_tag ty in
-  if Ty.leq ty any && (Ty.vars_toplevel pty |> VarSet.is_empty) then
+let to_t _ _ comp =
+  let (_, pty) = TagComp.as_atom comp in
+  if Ty.leq pty any_p && (Ty.vars_toplevel pty |> VarSet.is_empty) then
     let (pos, enums) = pty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
     let strs = enums |> List.map Enum.name in
     Some (pos, strs)
