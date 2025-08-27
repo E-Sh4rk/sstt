@@ -218,10 +218,10 @@ let build_t (params:params) ty =
 
 (* Step 2 : Resolve missing definitions (and recognize Ext type aliases) *)
 
-let resolve_alias (ctx:ctx) ty =
-  begin match List.find_opt (fun (ty',_) -> Ty.equiv ty ty') ctx.aliases with
+let resolve_alias (ctx:ctx) any_ty ty =
+  begin match List.find_opt (fun (ty',_) -> Ty.equiv (Ty.cap any_ty ty) ty') ctx.aliases with
     | None ->
-      begin match List.find_opt (fun (ty',_) -> Ty.equiv ty (Ty.neg ty')) ctx.aliases with
+      begin match List.find_opt (fun (ty',_) -> Ty.equiv (Ty.diff any_ty ty) ty') ctx.aliases with
         | None -> None
         | Some (ty, op) -> Some (neg { op ; ty })
       end
@@ -258,8 +258,11 @@ let resolve_intervals _ a =
 
 let resolve_tuplecomp ctx a =
   let ty = Tuples.mk_comp a |> D.mk_tuples |> Ty.mk_descr in
-  match resolve_alias ctx ty with
-  | Some d -> d
+  let len = TupleComp.len a in
+  let any = TupleComp.any len |> D.mk_tuplecomp |> Ty.mk_descr in
+  let any_d = { op = Builtin (AnyTupleComp len) ; ty = any } in
+  match resolve_alias ctx any ty with
+  | Some d -> d, any_d
   | None ->
     let resolve_tup lst = tuple (lst |> List.map (node ctx)) in
     let resolve_dnf (ps, ns) =
@@ -267,16 +270,12 @@ let resolve_tuplecomp ctx a =
       let ns = ns |> List.map resolve_tup |> List.map neg in
       ps@ns |> inter
     in
-    TupleComp.dnf a |> List.map resolve_dnf |> union
+    TupleComp.dnf a |> List.map resolve_dnf |> union, any_d
 
 let resolve_tuples ctx a =
   let (pos, components) = Tuples.destruct a in
   let d = components |> List.map (fun p ->
-      let len = TupleComp.len p in
-      let elt = resolve_tuplecomp ctx p in
-      let any = { op = Builtin (AnyTupleComp len) ;
-                  ty = TupleComp.any len |> D.mk_tuplecomp |> Ty.mk_descr }
-      in
+      let elt, any = resolve_tuplecomp ctx p in
       cap' any elt
     ) |> union in
   if pos then d else neg d
@@ -296,10 +295,9 @@ let resolve_records ctx a =
   in
   Records.dnf a |> List.map resolve_dnf |> union
 
-
 let resolve_tagcomp ctx a =
   let ty = Tags.mk_comp a |> D.mk_tags |> Ty.mk_descr in
-  match resolve_alias ctx ty with
+  match resolve_alias ctx Ty.any (* TODO: TagCompAny *) ty with
   | Some d -> d
   | None ->
     let (t, ty') = TagComp.as_atom a in
@@ -317,35 +315,40 @@ let resolve_tags ctx a =
 
 let resolve_comp ctx c =
   let ty = D.of_component c |> Ty.mk_descr in
-  let alias = resolve_alias ctx ty in
+  let any, any_op = match c with
+  | D.Enums _ ->
+    Enums.any |> D.mk_enums |> Ty.mk_descr, Builtin AnyEnum
+  | D.Arrows _ ->
+    Arrows.any |> D.mk_arrows |> Ty.mk_descr, Builtin AnyArrow
+  | D.Intervals _ ->
+    Intervals.any |> D.mk_intervals |> Ty.mk_descr, Builtin AnyInt
+  | D.Tags _ ->
+    Tags.any |> D.mk_tags |> Ty.mk_descr, Builtin AnyTag
+  | D.Tuples _ ->
+    Tuples.any |> D.mk_tuples |> Ty.mk_descr, Builtin AnyTuple
+  | D.Records _ ->
+    Records.any |> D.mk_records |> Ty.mk_descr, Builtin AnyRecord
+  in
+  let any_d = { op = any_op ; ty = any } in
+  let alias = resolve_alias ctx any ty in
   let alias_or f c =
     match alias with
     | None -> f ctx c
     | Some d -> d
   in
-  match c with
-  | D.Enums c ->
-    alias_or resolve_enums c,
-    { op = Builtin AnyEnum ; ty = Enums.any |> D.mk_enums |> Ty.mk_descr }
-  | D.Arrows c ->
-    alias_or resolve_arrows c,
-    { op = Builtin AnyArrow ; ty = Arrows.any |> D.mk_arrows |> Ty.mk_descr }
-  | D.Intervals c ->
-    alias_or resolve_intervals c,
-    { op = Builtin AnyInt ; ty = Intervals.any |> D.mk_intervals |> Ty.mk_descr }
-  | D.Tags c ->
-    alias_or resolve_tags c,
-    { op = Builtin AnyTag ; ty = Tags.any |> D.mk_tags |> Ty.mk_descr }
-  | D.Tuples c ->
-    alias_or resolve_tuples c,
-    { op = Builtin AnyTuple; ty = Tuples.any |> D.mk_tuples |> Ty.mk_descr }
-  | D.Records c ->
-    alias_or resolve_records c,
-    { op = Builtin AnyRecord ; ty = Records.any |> D.mk_records |> Ty.mk_descr }
+  let d = match c with
+  | D.Enums c -> alias_or resolve_enums c
+  | D.Arrows c -> alias_or resolve_arrows c
+  | D.Intervals c -> alias_or resolve_intervals c
+  | D.Tags c -> alias_or resolve_tags c
+  | D.Tuples c -> alias_or resolve_tuples c
+  | D.Records c -> alias_or resolve_records c
+  in
+  d, any_d
 
 let resolve_descr ctx d =
   let ty = VD.mk_descr d |> Ty.of_def in
-  match resolve_alias ctx ty with
+  match resolve_alias ctx Ty.any ty with
   | None ->
     let ds = D.components d |> List.map (resolve_comp ctx) in
     let combine ds =
@@ -358,7 +361,7 @@ let resolve_descr ctx d =
 
 let resolve_def ctx def =
   let ty = Ty.of_def def in
-  match resolve_alias ctx ty with
+  match resolve_alias ctx Ty.any ty with
   | None ->
     let resolve_dnf (ps, ns, d) =
       let ps = ps |> List.map var in

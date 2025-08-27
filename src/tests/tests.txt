@@ -80,7 +80,7 @@ type unit = () ;;
 "print17" ~tag(42) ;;
 "print18" ('a->'b)&('c->'d)&~('e->'f)&~('g->'h) ;;
 "print19" tag\sometag() ;;
-"print20" ~(int | bool | ()) ;;
+"print20" ~(int|bool|unit) ;;
 
 "tally1" [ 'x <= 'y ] ;;
 "tally2" [ 'X <= 'y ] ;;
