@@ -17,9 +17,9 @@ let mk (ps, ns) =
   Arrows.of_dnf dnf |> Descr.mk_arrows |> Ty.mk_descr |> add_tag
 let mk' fields = mk (fields, [])
 let any = mk' []
+let any_p = proj_tag any
 
-let destruct ty =
-  let pty = proj_tag ty in
+let destruct_p pty =
   if Ty.vars_toplevel pty |> VarSet.is_empty then
     pty |> Ty.get_descr |> Descr.get_arrows |> Arrows.dnf
     |> List.map (fun (ps, ns) ->
@@ -33,14 +33,17 @@ let destruct ty =
   else
     invalid_arg "Malformed map type"
 
+let destruct ty = proj_tag ty |> destruct_p
+
 let map f l =
   let ff t = { dom = f t.dom; codom = f t.codom } in
   List.map (fun (ps, ns) -> List.map ff ps, List.map ff ns) l
 
-let to_t node ctx ty =
+let to_t node ctx comp =
   try
-    if Ty.leq ty any |> not then raise Exit ;
-    let l = destruct ty in
+    let (_, pty) = TagComp.as_atom comp in
+    if Ty.leq pty any_p |> not then raise Exit ;
+    let l = destruct_p pty in
     Some (map (node ctx) l)
   with _ -> None
 let proj ~dom t =

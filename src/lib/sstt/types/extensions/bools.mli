@@ -2,13 +2,14 @@ open Core
 
 val tag : Tag.t
 
-val btrue : Ty.t
-val bfalse : Ty.t
+val tt : Ty.t
+val ff : Ty.t
 val bool : bool -> Ty.t
 val any : Ty.t
 
 type t = { t : bool ; f : bool }
-val to_t : (Printer.ctx -> Ty.t -> Printer.descr) -> Printer.ctx -> Ty.t -> t option
+val to_t : (Printer.ctx -> Ty.t -> Printer.descr) -> Printer.ctx
+            -> TagComp.t -> t option
 val map : ((Printer.descr -> Printer.descr) -> t -> t)
 
 val any_t : t

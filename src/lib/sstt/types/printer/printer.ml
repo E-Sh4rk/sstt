@@ -54,7 +54,7 @@ and extension_node = E : {
 
 (* Extensions *)
 type aliases = (Ty.t * string) list
-type extension_builder = ctx -> Ty.t -> extension_node option
+type extension_builder = ctx -> TagComp.t -> extension_node option
 
 and extensions = (Tag.t * extension_builder) list
 and params = { aliases : aliases ; extensions : extensions }
@@ -303,12 +303,12 @@ let resolve_tagcomp ctx a =
   | Some d -> d
   | None ->
     let (t, ty') = TagComp.as_atom a in
-    match  TagMap.find_opt t ctx.extensions with
+    match TagMap.find_opt t ctx.extensions with
       None -> tag t (node ctx ty')
     | Some f ->
-      match f ctx ty with
+      match f ctx a with
         None -> tag t (node ctx ty')
-      | Some e -> { op = Extension e; ty}
+      | Some e -> { op = Extension e; ty }
 
 let resolve_tags ctx a =
   let (pos, components) = Tags.destruct a in

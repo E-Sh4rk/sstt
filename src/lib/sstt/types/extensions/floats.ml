@@ -4,8 +4,6 @@ open Sstt_utils
 let tag = Tag.mk "flt"
 
 let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
-let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
-                  |> TagComp.as_atom |> snd
 
 type k = Ninf | Neg | Nzero | Pzero | Pos | Pinf | Nan
 
@@ -21,12 +19,14 @@ let enums =
     Nan, mk "nan"
   ]
 
-let flt k =
+let flt_p k =
   let enum = List.assoc k enums in
-  enum |> Descr.mk_enum |> Ty.mk_descr |> add_tag
+  enum |> Descr.mk_enum |> Ty.mk_descr
+let flt k = flt_p k |> add_tag
 
-let any =
-  [Ninf;Neg;Nzero;Pzero;Pos;Pinf;Nan] |> List.map flt |> Ty.disj |> Transform.simplify
+let any_p =
+  [Ninf;Neg;Nzero;Pzero;Pos;Pinf;Nan] |> List.map flt_p |> Ty.disj
+let any = add_tag any_p
 
 
 type t = { ninf : bool ; neg : bool ; nzero : bool ; pzero : bool ; pos : bool ; pinf : bool ; nan : bool }
@@ -53,10 +53,10 @@ let components { ninf ; neg ; nzero ; pzero ; pos ; pinf ; nan } =
     nan, Nan
   ] |> List.filter_map (fun (b,k) -> if b then Some k else None)
 
-let to_t _ _ ty =
-  let pty = proj_tag ty in
+let to_t _ _ comp =
+  let (_, pty) = TagComp.as_atom comp in
   let (pos, enums') = pty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
-  if pos && Ty.leq ty any && (Ty.vars_toplevel pty |> VarSet.is_empty) then
+  if pos && Ty.leq pty any_p && (Ty.vars_toplevel pty |> VarSet.is_empty) then
     let has k =
       let enum = List.assoc k enums in
       List.mem enum enums'

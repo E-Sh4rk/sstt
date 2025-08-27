@@ -3,17 +3,17 @@ open Core
 let tag = Tag.mk "bool"
 
 let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
-let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
-                  |> TagComp.as_atom |> snd
 
-let atrue = Enum.mk "true"
-let afalse = Enum.mk "false"
+let tt_p = Enum.mk "true" |> Descr.mk_enum |> Ty.mk_descr
+let ff_p = Enum.mk "false" |> Descr.mk_enum |> Ty.mk_descr
 
-let btrue = atrue |> Descr.mk_enum |> Ty.mk_descr |> add_tag
-let bfalse = afalse |> Descr.mk_enum |> Ty.mk_descr |> add_tag
-let bool b = if b then btrue else bfalse
+let tt = add_tag tt_p
+let ff = add_tag ff_p
+let bool b = if b then tt else ff
 
-let any = Ty.cup btrue bfalse |> Transform.simplify
+let any_p = Ty.cup tt_p ff_p
+let any = add_tag any_p
+
 
 type t = { t : bool ; f : bool }
 let any_t = { t = true ; f = true }
@@ -25,11 +25,12 @@ let components { t ; f } =
     f, false
   ] |> List.filter_map (fun (b,k) -> if b then Some k else None)
 
-let to_t _ _ ty =
-  if Ty.leq ty any && (Ty.vars_toplevel (proj_tag ty) |> VarSet.is_empty)
+let to_t _ _ comp =
+  let (_, pty) = TagComp.as_atom comp in
+  if Ty.leq pty any_p && (Ty.vars_toplevel pty |> VarSet.is_empty)
   then
-    let t = Ty.leq btrue ty in
-    let f = Ty.leq bfalse ty in
+    let t = Ty.leq tt_p pty in
+    let f = Ty.leq ff_p pty in
     Some { t; f }
   else None
 

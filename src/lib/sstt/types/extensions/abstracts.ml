@@ -103,15 +103,17 @@ let extract_params vs ty =
 let proj_tag tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
                       |> TagComp.as_atom |> snd
 
-let destruct tag ty =
+let destruct_p tag pty =
   check_abstract tag;
-  let ty = proj_tag tag ty in
   let vs = Hashtbl.find atypes tag in
-  extract_params vs ty
+  extract_params vs pty
+let destruct tag ty =
+  proj_tag tag ty |> destruct_p tag
 
-let to_t tag node ctx ty =
-  try 
-    let params = destruct tag ty in
+let to_t node ctx comp =
+  try
+    let (tag, pty) = TagComp.as_atom comp in
+    let params = destruct_p tag pty in
     let map_node l = List.map (node ctx) l in
     List.map (fun (p1, p2) ->
         List.map map_node p1, List.map map_node p2
@@ -151,6 +153,6 @@ let print tag prec assoc fmt t =
   fprintf prec assoc opinfo fmt "%a" (print_seq (print_line prec' NoAssoc) sym) t
 
 let printer_builder tag =
-  Printer.builder ~to_t:(to_t tag) ~map ~print:(print tag)
+  Printer.builder ~to_t:to_t ~map ~print:(print tag)
 
 let printer_params tag = Printer.{ aliases = []; extensions = [(tag, printer_builder tag)]}

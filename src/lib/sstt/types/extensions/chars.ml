@@ -4,8 +4,6 @@ open Sstt_utils
 let tag = Tag.mk "chr"
 
 let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
-let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
-                  |> TagComp.as_atom |> snd
 
 type interval = char * char
 
@@ -17,16 +15,17 @@ let interval (chr1, chr2) =
   let lb, ub = Char.code chr1 |> Z.of_int, Char.code chr2 |> Z.of_int in
   Intervals.Atom.mk_bounded lb ub |> Descr.mk_interval |> Ty.mk_descr |> add_tag
 
-let any =
+let any_p =
   let lb, ub = Z.zero, Z.of_int 255 in
   Intervals.Atom.mk_bounded lb ub
-  |> Descr.mk_interval |> Ty.mk_descr |> add_tag
+  |> Descr.mk_interval |> Ty.mk_descr
+let any = add_tag any_p
 
 type t = interval list
 
-let to_t _ _ ty =
-  let pty = proj_tag ty in
-  if Ty.leq ty any && Ty.vars_toplevel pty |> VarSet.is_empty
+let to_t _ _ comp =
+  let (_, pty) = TagComp.as_atom comp in
+  if Ty.leq pty any_p && Ty.vars_toplevel pty |> VarSet.is_empty
   then
     Some (pty |> Ty.get_descr |> Descr.get_intervals |> Intervals.destruct
           |> List.map (fun a-> match Intervals.Atom.get a with
