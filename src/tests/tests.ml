@@ -83,7 +83,8 @@ let%expect_test "tests" =
     print16: ~(40..44)
     print17: ~tag(42)
     print18: ('c -> 'd) & ('a -> 'b) & ~('g -> 'h) & ~('e -> 'f)
-    print19: tag \ lst(tuple0)
+    print19: tag \ sometag(unit)
+    print20: ~(true | false | int | tuple0)
     tally1:
     tally2: [
               'X: 'X & 'y
