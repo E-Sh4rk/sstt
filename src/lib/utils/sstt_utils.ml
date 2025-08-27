@@ -73,19 +73,24 @@ let fold_distribute_comb f comb accv ss tt  =
     | _ -> failwith "forall_distribute_comb: invalid list length"
   in
   loop [] ss tt accv
+
 let fold_acc_rem f lst =
   let rec aux acc rem =
     match rem with
     | [] -> acc
     | c::rem -> aux (f c acc rem) rem
   in
-  aux [] (List.rev lst)
+  aux [] lst
 
-let filter_among_others pred =
-  fold_acc_rem (fun c acc rem -> if pred c (acc@rem) then c::acc else acc)
+let filter_among_others pred lst =
+  lst |> fold_acc_rem (fun c acc rem ->
+    if pred c (List.rev_append acc rem) then c::acc else acc)
+  |> List.rev
 
-let map_among_others f =
-  fold_acc_rem (fun c acc rem -> (f c (acc@rem))::acc)
+let map_among_others f lst =
+  lst |> fold_acc_rem (fun c acc rem ->
+    (f c (List.rev_append acc rem))::acc)
+  |> List.rev
 
 let merge_when_possible merge_opt lst =
   let rec find_map_in_tail acc e l =
