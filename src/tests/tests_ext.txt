@@ -33,5 +33,5 @@ type ba = lst(43,lst(42,list));;
 "char_invalid" chr(something) ;;
 "map_invalid" map(empty -> any) ;;
 
-"abs_any" abs(any) ;;
+"abs_any" abs() ;;
 "abs_invalid" abs(42) ;;
