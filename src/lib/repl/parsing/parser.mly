@@ -109,8 +109,8 @@ simple_ty:
 
 atomic_ty:
 | id=ID { parse_atom_or_builtin id }
-| id=TAGID ty=ty RPAREN { TTag (id, ty) }
-| id=TAGID RPAREN { TTag (id, TBuiltin (TAnyTupleComp 0)) }
+| id=TAGID ty=ty RPAREN { TTag (id, Some ty) }
+| id=TAGID RPAREN { TTag (id, None) }
 | id=VARID { TVar id }
 | id=MVARID { TVarMono id }
 | i=INT { TInterval (Some i, Some i) }

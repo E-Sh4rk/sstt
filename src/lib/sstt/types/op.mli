@@ -88,3 +88,19 @@ module Records : sig
       absent in [t]. *)
   val remove : atom -> Label.t -> t
 end
+
+module TagComp : sig
+  (** Operations on tag types. *)
+
+  type t = TagComp.t
+  type atom = TagComp.Atom.t
+
+(** [is_identity t] returns [true] if and only if the component [t]
+    is a tag component whose underlying interpretation is isomorphic
+    to the identity, that is, if it is monotonic and {m \cap}-{m \cup}-preserving. *)
+  val is_identity : t -> bool
+
+  (** [as_atom t] expresses [t] as an atom.
+      Raises: [Invalid_argument] if the tag component does not satisfy [is_identity]. *)
+  val as_atom : t -> atom
+end

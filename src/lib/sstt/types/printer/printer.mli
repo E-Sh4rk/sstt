@@ -15,7 +15,7 @@ end
 
 type builtin =
   | Empty | Any | AnyTuple | AnyEnum | AnyTag | AnyInt
-  | AnyArrow | AnyRecord | AnyTupleComp of int
+  | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of Tag.t
 type t = { main : descr ; defs : def list }
 and def = NodeId.t * descr
 and descr = { op : op ; ty : Ty.t }

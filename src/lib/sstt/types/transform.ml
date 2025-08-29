@@ -106,7 +106,12 @@ let simpl_tuples p =
   TupleComp.dnf p |> List.map regroup_tuples
   |> merge_when_possible merge_tuple_lines |> TupleComp.of_dnf n
 let simpl_tuples t = Tuples.map simpl_tuples t
-let simpl_tags t = Tags.map (fun c -> TagComp.as_atom c |> TagComp.mk) t
+let simpl_tags t = Tags.map (fun c ->
+    if Op.TagComp.is_identity c then
+      Op.TagComp.as_atom c |> TagComp.mk
+    else
+      c
+  ) t
 
 let simpl_descr d =
   let open Descr in

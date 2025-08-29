@@ -237,8 +237,10 @@ module Make(VO:VarOrder) = struct
     and norm_tags tag =
       let (cs, others) = tag |> Tags.components in
       if others then CSS.empty
-      else cs |>
-           CSS.map_conj delta (fun c -> TagComp.as_atom c |> snd |> norm_ty)
+      else cs |> CSS.map_conj delta norm_tagcomp
+    and norm_tagcomp c =
+      let tag = TagComp.tag c in
+      c |> TagComp.dnf |> CSS.map_conj delta (norm_tag tag)      
     and norm_arrows arr =
       arr |> Arrows.dnf |> CSS.map_conj delta norm_arrow
     and norm_tuples tup =
@@ -275,6 +277,8 @@ module Make(VO:VarOrder) = struct
       List.map (norm_single_neg_arrow ps) ns |> CSS.disj
     and norm_tuple n line = norm_tuple_gen ~any:Ty.any ~conj:Ty.conj
         ~diff:Ty.diff ~norm:norm_ty delta n line
+    and norm_tag tag line =
+      TagComp.line_emptiness_checks norm_ty tag line |> CSS.disj
     and norm_record (ps, ns) =
       let line, n = Records.dnf_line_to_tuple (ps, ns) in
       norm_tuple_gen ~any:Ty.O.any ~conj:Ty.O.conj

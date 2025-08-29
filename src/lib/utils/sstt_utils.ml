@@ -57,7 +57,7 @@ let mapn default f lst =
   let acc = f acc [comb x1 y1; x2; ...; xn] in
   let acc = f acc [x1; comb x2 y2; ...; xn] in
   ...
-  let acc = f [x1;x2; ....; comb xn yn] in
+  let acc = f acc [x1;x2; ....; comb xn yn] in
   acc
 
 *)

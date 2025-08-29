@@ -3,14 +3,14 @@ open Sstt
 
 type builtin =
   | TEmpty | TAny | TAnyTuple | TAnyEnum | TAnyTag | TAnyInt
-  | TAnyArrow | TAnyRecord | TAnyTupleComp of int | TAnyTagComp of Tag.t
+  | TAnyArrow | TAnyRecord | TAnyTupleComp of int
 type varop = TTuple
 type binop = TCap | TCup | TDiff | TArrow
 type unop = TNeg
 type ty =
   | TBuiltin of builtin
   | TNamed of string
-  | TTag of string * ty
+  | TTag of string * ty option
   | TVar of string
   | TVarMono of string
   | TInterval of Z.t option * Z.t option
@@ -68,7 +68,6 @@ let builtin t =
   | TAnyArrow -> Descr.mk_arrows Arrows.any |> Ty.mk_descr
   | TAnyRecord -> Descr.mk_records Records.any |> Ty.mk_descr
   | TAnyTupleComp n -> TupleComp.any n |> Descr.mk_tuplecomp |> Ty.mk_descr
-  | TAnyTagComp t -> TagComp.any t |> Descr.mk_tagcomp |> Ty.mk_descr
 
 let tvar env str =
   begin match StrMap.find_opt str env.venv with
@@ -114,14 +113,14 @@ let type_or_atom env str =
         Descr.mk_enum a |> Ty.mk_descr, env  
     end
 
-let tag env str ty =
+let tag_id env str =
   match StrMap.find_opt str env.tagenv with
-  | Some t -> Descr.mk_tag (t, ty) |> Ty.mk_descr, env
+  | Some t -> t, env
   | None ->
     let t = Tag.mk str in
     let tagenv = StrMap.add str t env.tagenv in
     let env = { env with tagenv } in
-    Descr.mk_tag (t, ty) |> Ty.mk_descr, env  
+    t, env
 
 let build_ty env t =
   let rec aux env t =
@@ -129,8 +128,14 @@ let build_ty env t =
     | TBuiltin b -> builtin b, env
     | TNamed str -> type_or_atom env str
     | TTag (str, ty) ->
-      let ty, env = aux env ty in
-      tag env str ty
+      let tag_id, env = tag_id env str in
+      begin match ty with
+      | Some ty ->
+        let ty, env = aux env ty in
+        Descr.mk_tag (tag_id, ty) |> Ty.mk_descr, env
+      | None ->
+        TagComp.any tag_id |> Descr.mk_tagcomp |> Ty.mk_descr, env
+      end
     | TInterval (lb, ub) ->
       Intervals.Atom.mk lb ub |> Descr.mk_interval |> Ty.mk_descr, env
     | TVar str ->

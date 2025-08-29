@@ -6,7 +6,7 @@ let tag = Tag.mk "lst"
 
 let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
 let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
-                  |> TagComp.as_atom |> snd
+                  |> Op.TagComp.as_atom |> snd
 
 let cons hd tl = [hd;tl] |> Descr.mk_tuple |> Ty.mk_descr |> add_tag
 

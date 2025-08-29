@@ -21,7 +21,7 @@ let%expect_test "tests" =
     empty2: true
     atom1: false
     atom2: true
-    tags1: tag((false, true) | (true, false))
+    tags1: tag(false, true) | tag(true, false)
     tags2: tag1(true, false) | tag2(false, true)
     tags3: true
     tags4: 42
@@ -189,7 +189,7 @@ let%expect_test "tests_ext" =
     let fn = "tests_ext.txt" in
     let cin = open_in fn in
     let buf = Lexing.from_channel cin in
-    let abs_tag = Abstracts.define "abs" [Inv] in
+    let abs_tag = Abstracts.define "abs" 1 in
     let abs_printer = Abstracts.printer_params abs_tag in
     let pparams = [
       Lists.printer_params ; Bools.printer_params ; Chars.printer_params ;
