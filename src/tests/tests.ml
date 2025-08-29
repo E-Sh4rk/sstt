@@ -189,7 +189,7 @@ let%expect_test "tests_ext" =
     let fn = "tests_ext.txt" in
     let cin = open_in fn in
     let buf = Lexing.from_channel cin in
-    let abs_tag = Abstracts.define "abs" 1 in
+    let abs_tag = Abstracts.define "abs" [Abstracts.Inv] in
     let abs_printer = Abstracts.printer_params abs_tag in
     let pparams = [
       Lists.printer_params ; Bools.printer_params ; Chars.printer_params ;

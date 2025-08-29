@@ -1,10 +1,14 @@
 open Core
 open Sstt_utils
 
+type variance = Cov | Cav | Inv
 type 't params = 't list
 type 't t = ('t params list * 't params list) list
 
 module THT = Hashtbl.Make(Tag)
+type encoding =
+  | EInv of int (* More optimized *)
+  | ECov of variance list (* More general *)
 let abs_tags = THT.create 10
 
 let is_abstract tag = THT.mem abs_tags tag
@@ -12,34 +16,55 @@ let check_abstract tag =
   if is_abstract tag |> not then
     invalid_arg 
       (Format.asprintf "Undefined abstract type '%a'" Tag.pp tag)
-let arity tag =
+let encoding tag =
   check_abstract tag ; THT.find abs_tags tag
+let parameters tag =
+  match encoding tag with
+  | EInv n -> List.init n (fun _ -> Inv)
+  | ECov vs -> vs
+let arity tag = parameters tag |> List.length
 
-let define name n =
-  let abs = Tag.mk' name Tag.NoProperty in
-  THT.add abs_tags abs n ; abs
+let define name vs =
+  if List.for_all ((=) Inv) vs then
+    let n = List.length vs in
+    let abs = Tag.mk' name Tag.NoProperty in
+    THT.add abs_tags abs (EInv n) ; abs
+  else
+    let abs = Tag.mk' name
+      (Tag.Monotonic { preserves_cap=false ; preserves_cup=false }) in
+    THT.add abs_tags abs (ECov vs) ; abs
 
 let labels = Hashtbl.create 10
-let label_of_position i =
-  match Hashtbl.find_opt labels i with
+let label_of_position neg i =
+  match Hashtbl.find_opt labels (neg,i) with
   | Some lbl -> lbl
   | None ->
     let lbl = Label.mk (string_of_int i) in
-    Hashtbl.add labels i lbl ; lbl
+    Hashtbl.add labels (neg,i) lbl ; lbl
 
-let encode_params ps =
-  let bindings = ps |> List.mapi (fun i p ->
-      (label_of_position i, Ty.O.optional p)
-    ) |> LabelMap.of_list
+let encode_params encoding ps =
+  let bindings =
+    match encoding with
+    | ECov vs ->
+      List.combine vs ps |> List.mapi (fun i (v,p) ->
+        let pos = label_of_position false i, Ty.O.optional p in
+        let neg = label_of_position true i, Ty.O.optional (Ty.neg p) in
+        match v with
+        | Cov -> [pos] | Cav -> [neg] | Inv -> [pos;neg]
+      ) |> List.concat |> LabelMap.of_list
+    | EInv _ ->
+      ps |> List.mapi (fun i p ->
+        label_of_position false i, Ty.O.optional p
+      ) |> LabelMap.of_list
   in
   { Records.Atom.bindings ; Records.Atom.opened=false }
   |> Descr.mk_record |> Ty.mk_descr
 
 let mk tag ps =
-  let n = arity tag in
-  if List.length ps <> n then
+  let encoding = encoding tag in
+  if List.length ps <> arity tag then
     invalid_arg (Format.asprintf "Wrong arity for '%a'" Tag.pp tag) ;
-  (tag, encode_params ps) |> Descr.mk_tag |> Ty.mk_descr
+  (tag, encode_params encoding ps) |> Descr.mk_tag |> Ty.mk_descr
 
 let mk_any tag =
   check_abstract tag ;
@@ -47,12 +72,14 @@ let mk_any tag =
 
 let extract_dnf tag dnf =
   let open Records.Atom in
-  let n = arity tag in
-  let extract_param record i =
-    find (label_of_position i) record |> Ty.O.get
+  let vs = parameters tag in
+  let extract_param record i v =
+    match v with
+    | Inv | Cov -> find (label_of_position false i) record |> Ty.O.get
+    | Cav -> find (label_of_position true i) record |> Ty.O.get |> Ty.neg
   in
   let extract_params record =
-    List.init n Fun.id |> List.map (extract_param record)
+    vs |> List.mapi (extract_param record)
   in
   let extract_params (_, ty) =
     Ty.get_descr ty |> Descr.get_records
@@ -66,11 +93,12 @@ let extract_dnf tag dnf =
   let build_from_dnf dnf =
     TagComp.of_dnf tag dnf |> Descr.mk_tagcomp |> Ty.mk_descr
   in
+  let encoding = encoding tag in
   let ty = build_from_dnf dnf in
   let ty' =
     res |> List.map (fun (ps, ns) ->
-        (ps |> List.map (fun ty -> tag, encode_params ty),
-         ns |> List.map (fun ty -> tag, encode_params ty))
+        (ps |> List.map (fun ty -> tag, encode_params encoding ty),
+         ns |> List.map (fun ty -> tag, encode_params encoding ty))
       ) |> build_from_dnf
   in
   if Ty.equiv ty ty' then res else invalid_arg "Malformed abstract type"
