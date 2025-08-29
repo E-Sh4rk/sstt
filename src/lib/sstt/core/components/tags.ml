@@ -43,7 +43,7 @@ module MakeC(N:Node) = struct
   let neg (tag, t) = tag, Bdd.neg t
   let diff (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.diff t1 t2
 
-  let line_emptiness_checks tag (ps,ns) =
+  let line_emptiness_checks f tag (ps,ns) =
     let equiv, merge_ps, merge_ns =
       match Tag.properties tag with
       | NoProperty -> true, false, false
@@ -53,15 +53,20 @@ module MakeC(N:Node) = struct
     let ps = if merge_ps then [N.conj ps] else ps in
     let ns = if merge_ns then [N.disj ns] else ns in
     cartesian_product ps ns |> List.map (fun (p, n) ->
-        let leq_test = N.cap p (N.neg n) in
+        let leq_test = N.diff p n in
         if equiv then
-          let geq_test = N.cap n (N.neg p) in
-          N.cup leq_test geq_test
+          let geq_test = N.diff n p in
+          f (N.cup leq_test geq_test)
         else
-          leq_test
+          f leq_test
       )
+  let is_clause_empty tag (ps,ns) =
+    try
+      let aux ty = if N.is_empty ty then raise Exit in
+      line_emptiness_checks aux tag (ps,ns) |> ignore ; false
+    with Exit -> true
   let is_clause_empty tag (ps,ns,b) =
-    not b || line_emptiness_checks tag (ps,ns) |> List.exists N.is_empty
+    not b || is_clause_empty tag (ps,ns)
   let is_empty (tag,bdd) = bdd |> Bdd.for_all_lines (is_clause_empty tag)
 
   let leq tag t1 t2 = is_empty (tag, Bdd.diff t1 t2)

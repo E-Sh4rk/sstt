@@ -278,7 +278,7 @@ module Make(VO:VarOrder) = struct
     and norm_tuple n line = norm_tuple_gen ~any:Ty.any ~conj:Ty.conj
         ~diff:Ty.diff ~norm:norm_ty delta n line
     and norm_tag tag line =
-      TagComp.line_emptiness_checks tag line |> List.map norm_ty |> CSS.disj
+      TagComp.line_emptiness_checks norm_ty tag line |> CSS.disj
     and norm_record (ps, ns) =
       let line, n = Records.dnf_line_to_tuple (ps, ns) in
       norm_tuple_gen ~any:Ty.O.any ~conj:Ty.O.conj
