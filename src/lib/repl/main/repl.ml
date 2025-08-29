@@ -85,9 +85,26 @@ let print_res pparams env fmt res =
     Format.fprintf fmt "%a"
       (print_seq_cut (Printer.print_subst (params pparams env))) ss
 
+let treat_def env def =
+  match def with
+  | DAtom str ->
+    let eenv = StrMap.add str (Enum.mk str) env.eenv in
+    { env with eenv }
+  | DTag (str, props) ->
+    let props =
+      match props with
+      | PNone -> Tag.NoProperty
+      | PMono -> Tag.Monotonic { preserves_cap=false ; preserves_cup=false }
+      | PAnd  -> Tag.Monotonic { preserves_cap=true ; preserves_cup=false }
+      | POr   -> Tag.Monotonic { preserves_cap=false ; preserves_cup=true }
+      | PId   -> Tag.Monotonic { preserves_cap=true  ; preserves_cup=true  }  
+    in
+    let tagenv = StrMap.add str (Tag.mk' str props) env.tagenv in
+    { env with tagenv }
+
 let treat_elt ?(pparams=Printer.empty_params) env elt =
   match elt with
-  | DefineType (ids, e) ->
+  | DefineAlias (ids, e) ->
     let r, env = compute_expr env e in
     begin match r with
     | RTy tys when List.length tys = List.length ids ->
@@ -96,6 +113,7 @@ let treat_elt ?(pparams=Printer.empty_params) env elt =
       { env with tenv }
     | _ -> failwith "Definitions must be types." 
     end
+  | Define defs -> List.fold_left treat_def env defs
   | Expr (str, e) ->
     let r, env = compute_expr env e in
     begin match str with

@@ -32,8 +32,13 @@ type expr =
   | CApp of expr * expr
   | CCmp of expr * op * expr
 
+type tag_prop = PNone | PMono | PAnd | POr | PId
+type def =
+  | DAtom of string
+  | DTag of string * tag_prop
 type elt =
-  | DefineType of string list * expr
+  | DefineAlias of string list * expr
+  | Define of def list
   | Expr of string option * expr
 
 type program = elt list

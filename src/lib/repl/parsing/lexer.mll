@@ -28,7 +28,7 @@ let mvarid = '\''['a'-'z']['a'-'z''A'-'Z''0'-'9''_']*
 let int = ('+'|'-')? ['0'-'9']+ ('_'+ ['0'-'9']+)*
 
 rule token = parse
-| "type" { TYPE } | "where" { WHERE } | "and" { AND }
+| "type" { TYPE } | "define" { DEFINE } | "where" { WHERE } | "and" { AND }
 | int as i { INT (Z.of_string i) }
 | '"'      { read_string (Buffer.create 17) lexbuf }
 | id as s  { ID s }

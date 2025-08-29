@@ -181,6 +181,28 @@ let%expect_test "tests" =
     app3: (-5..5)
     app4: empty
     app5: bool
+    exttags1: [
+                'X1: 'Y1 & 'X1 ;
+                'X2: 'Y2
+              ]
+    exttags2: [
+                'X1: 'X1 \ 'X2 | 'Y2 & 'Y1 & 'X1
+              ]
+    exttags3: [
+                'X1: 'Y2 & 'Y1 & 'X1
+              ]
+             [
+               'X2: 'Y2 & 'Y1 & 'X2
+             ]
+    exttags4: [
+                'X1: 'Y2 \ 'X2 | 'Y1 \ 'X2 | 'X1
+              ]
+    exttags5: [
+                'X1: 'Y2 | 'Y1 | 'X1
+              ]
+             [
+               'X2: 'Y2 | 'Y1 | 'X2
+             ]
     |}]
 
 open Extensions

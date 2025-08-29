@@ -104,3 +104,11 @@ type unit = () ;;
 "app3" (int -> true -> (..5)) & ((0..) -> bool -> (-5..)) 42 true ;;
 "app4" (any -> any) empty ;;
 "app5" (~string -> false) & (string -> true) any;;
+
+define tagcov(<=) ; taginv() ; tagor(|) ; tagand(&) ;;
+
+"exttags1" [ tagcov('X1) | taginv('X2) <= tagcov('Y1) | taginv('Y2) ] ;;
+"exttags2" [ tagand('X1) & tagand('X2) <= tagand('Y1 & 'Y2) ] ;;
+"exttags3" [ tagcov('X1) & tagcov('X2) <= tagcov('Y1 & 'Y2) ] ;;
+"exttags4" [ tagor('X1) | tagor('X2) >= tagor('Y1 | 'Y2) ] ;;
+"exttags5" [ tagcov('X1) | tagcov('X2) >= tagcov('Y1 | 'Y2) ] ;;

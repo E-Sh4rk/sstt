@@ -23,7 +23,7 @@ let parse_atom_or_builtin str =
 %token<string> STRING
 %token<Z.t> INT
 %token<string> ID, TAGID, VARID, MVARID
-%token TYPE WHERE AND
+%token DEFINE TYPE WHERE AND
 %token BREAK COMMA EQUAL COLON SEMICOLON
 %token DPOINT OCOLON
 %token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
@@ -52,8 +52,16 @@ command:
 
 elt:
 | TYPE ids=separated_nonempty_list(SEMICOLON, ID) EQUAL e=expr_nocmp BREAK
-  { DefineType (ids, e) }
+  { DefineAlias (ids, e) }
+| DEFINE defs=separated_nonempty_list(SEMICOLON, def) BREAK { Define defs }
 | str=STRING? e=expr BREAK { Expr (str, e) }
+
+def:
+| id=ID { DAtom id }
+| id=TAGID p=prop RPAREN { DTag (id, p) }
+
+%inline prop:
+| EQUAL { PId } | LEQ { PMono } | TAND { PAnd } | TOR { POr } | { PNone }
 
 expr:
 | e=expr_nocmp { e }
