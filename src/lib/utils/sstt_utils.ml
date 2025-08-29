@@ -22,17 +22,23 @@ let take_one lst =
   in loop [] lst
 
 let cartesian_product l1 l2 =
-  let rec loop l acc =
-    match l with
-    | [] -> acc
-    | e2::ll -> loop_one e2 l1 ll acc
-  and loop_one e2 l1 ll acc =
+  let rec loop l1 acc =
     match l1 with
-    | [] -> loop ll acc
-    | e1::ll1 -> loop_one e2 ll1 ll ((e1, e2)::acc)
+    | [] -> acc
+    | e1::l1 -> loop_one e1 l2 l1 acc
+  and loop_one e1 l2 l1 acc =
+    match l2 with
+    | [] -> loop l1 acc
+    | e2::l2 -> loop_one e1 l2 l1 ((e1, e2)::acc)
   in
-  loop l2 []
+  loop l1 [] |> List.rev
 
+(* let rec cartesian_products lst =
+  match lst with
+  | [] -> [[]]
+  | e::lst ->
+    cartesian_products lst |> cartesian_product e
+    |> List.map (fun (e1, e2) -> e1::e2) *)
 
 let rec map_split f l =
   match l with

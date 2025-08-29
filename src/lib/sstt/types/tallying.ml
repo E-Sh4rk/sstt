@@ -121,14 +121,13 @@ module Make(VO:VarOrder) = struct
       match l with
         [] -> [c]
       | c' :: ll ->
-        if CS.subsumes c c' then raise Exit
-        else
-          let n = CS.compare c c' in
-          if n < 0 then (if List.exists (CS.subsumes c) ll then raise Exit else c::l)
-          else if n = 0 then l
-          else c' :: insert_aux c ll
-
-    let add c l = try insert_aux c l with Exit -> l
+        let n = CS.compare c c' in
+        if n < 0 then c::l
+        else if n = 0 then l
+        else c' :: insert_aux c ll
+    let add c l =
+      if List.exists (CS.subsumes c) l then l
+      else List.filter (fun c' -> CS.subsumes c' c |> not) l |> insert_aux c
 
     let cup t1 t2 = List.fold_left (fun acc cs -> add cs acc) t1 t2
     let cap delta t1 t2 =
