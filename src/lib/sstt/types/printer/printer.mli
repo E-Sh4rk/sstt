@@ -76,8 +76,8 @@ val empty_params : params
 
 val merge_params : params list -> params
 
-(** [get aliases ty] transforms the type [ty] into an algebraic form,
-    recognizing type aliases [aliases]. *)
+(** [get params ty] transforms the type [ty] into an algebraic form,
+    recognizing type aliases and extensions in [params]. *)
 val get : params -> Ty.t -> t
 
 (** [print fmt t] prints the algebraic form [t] using formatter [fmt]. *)
@@ -94,12 +94,12 @@ val print_descr_atomic : Format.formatter -> descr -> unit
     with precedence [prec] and associativity [assoc], using formatter [fmt]. *)
 val print_descr_ctx : int -> assoc -> Format.formatter -> descr -> unit
 
-(** [print_ty aliases fmt ty] prints the type [ty] using formatter [fmt],
-    recognizing type aliases [aliases]. Same as [print fmt (get aliases ty)]. *)
+(** [print_ty params fmt ty] prints the type [ty] using formatter [fmt],
+    recognizing type aliases and extensions in [params]. Same as [print fmt (get params ty)]. *)
 val print_ty : params -> Format.formatter -> Ty.t -> unit
 
-(** [print_subst aliases fmt s] prints the substitution [s] using formatter [fmt],
-    recognizing type aliases [aliases]. *)
+(** [print_subst params fmt s] prints the substitution [s] using formatter [fmt],
+    recognizing type aliases and extensions in [params]. *)
 val print_subst : params -> Format.formatter -> Subst.t -> unit
 
 (** [print_ty' fmt ty] prints the type [ty] using formatter [fmt].
