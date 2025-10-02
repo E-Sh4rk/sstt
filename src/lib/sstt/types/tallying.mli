@@ -27,3 +27,9 @@ val tally_with_order : (Var.t -> Var.t -> int) -> VarSet.t -> constr list -> Sub
     by a type featuring, at top-level, a non-monomorphic variable further in [lst]
     or not in [lst]. The list of variables [lst] should not have duplicates. *)
 val tally_with_priority : Var.t list -> VarSet.t -> constr list -> Subst.t list
+
+(** [decompose mono s1 s2] returns a set of substitutions [s] whose domain
+    is disjoint with [mono] and such that the composition of [s] and [s1] yields [s2].
+    In particular, a non-empty result means that [s1] is more general than [s2]
+    (in the sense that [s2] can be obtained by composing [s1] with another substitution). *)
+val decompose : VarSet.t -> Subst.t -> Subst.t -> Subst.t list

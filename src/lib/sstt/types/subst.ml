@@ -24,8 +24,12 @@ let add v ty s =
 let remove v s = VarMap.remove v s
 let map f s = VarMap.map f s |> norm
 let filter = VarMap.filter
+let restrict vs = filter (fun v _ -> VarSet.mem v vs)
 
 let domain t = bindings t |> List.map fst |> VarSet.of_list
+let intro t =
+  bindings t |> List.map (fun (v,t) -> VarSet.remove v (Ty.vars t))
+  |> List.fold_left VarSet.union VarSet.empty
 let find t v =
   match VarMap.find_opt v t with
   | None -> Ty.mk_var v

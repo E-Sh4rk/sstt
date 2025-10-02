@@ -25,18 +25,22 @@ val of_list : (Var.t * Ty.t) list -> t
 
 val refresh : ?names:(Var.t -> string) -> VarSet.t -> t * t
 (** [refresh ~names vs] returns a substitution mapping each variable
-    in [vs] to a fresh one. If [names] is omitted, each fresh variable
-    will have the same name as the original one. *)
+    in [vs] to a fresh one, together with its inverse substitution.
+    If [names] is omitted, each fresh variable will have the same name as the original one. *)
 
 val domain : t -> VarSet.t
 (** Returns the domain of a substitution, that is the set of variables for which
     the substitution is not the identity.
 *)
 
+val intro : t -> VarSet.t
+(** Returns the set of introduced variables, that is, type variables that may appear
+    after applying the substitution to a type.
+*)
+
 val bindings : t -> (Var.t * Ty.t) list
 (** Returns the substution as a list of bindings from variables to types.
 *)
-
 
 val find : t -> Var.t -> Ty.t
 (** Returns the type associated with a variable. This function always succeeds, and will return 
@@ -48,6 +52,9 @@ val add : Var.t -> Ty.t -> t -> t
 
 val remove : Var.t -> t -> t
 (** Remove a variable from the domain of the substitution. *)
+
+val restrict : VarSet.t -> t -> t
+(** Restrict the domain of a substitution. *)
 
 val filter : (Var.t -> Ty.t -> bool) -> t -> t
 (** [filter p s] restricts the substitution to all variables of the domain for

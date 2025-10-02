@@ -359,3 +359,18 @@ let tally_with_priority preserve =
     | Some i1, Some i2 -> compare i2 i1
   in
   tally_with_order cmp
+
+let decompose delta s1 s2 =
+  let vars1 = VarSet.union (Subst.domain s1) (Subst.intro s1) in
+  let vars2 = VarSet.union (Subst.domain s2) (Subst.intro s2) in
+  let vars = VarSet.union vars1 vars2 in
+  let fresh, fresh_inv = Subst.refresh (VarSet.diff vars delta) in
+  let fresh_vars = Subst.intro fresh in
+  let s2 = Subst.compose fresh s2 in
+  let cs = VarSet.elements vars |> List.concat_map (fun v ->
+      let t1, t2 = Subst.find s1 v, Subst.find s2 v in
+      [ t1, t2 ; t2, t1 ]
+    )
+  in
+  tally (VarSet.union delta fresh_vars) cs |> List.map
+    (fun s -> Subst.compose fresh_inv s |> Subst.restrict vars)
