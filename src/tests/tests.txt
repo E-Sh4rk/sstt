@@ -41,6 +41,17 @@ type unit = () ;;
 "record7" { l1 : bool ; l2 : int ..} \ { l1 : true ; l2 : int } ;;
 "record8" { l1 : bool ; l2 : int } \ { l1 : true ; l2 : int ..} ;;
 "record9" { l1 : true ; l2 : int | bool 'R} & { l2 : int | string ; l3 : int ..} <= { l1 : bool ; l2 : int 'R} | { l1 : int 'S} ;;
+"record10" { l1 : true ; l2 : int | bool 'R} & { l2 : int | string ; l3 : int 'S} <= { l1 : bool ; l2 : int 'R} | { l1 : int 'S} ;;
+"record11" { l1 : true ; l2 : int | bool 'R} & { l2 : int | string ; l3 : int 'S} <= { l2 : int 'R} | { l1 : bool 'S} ;;
+"record12" { l1 : true ; l2 : int | bool 'R} & { l2 : int | string ; l3 : int 'S} <= { l1 : bool ; l2 : int 'R} | { 'S} ;;
+"record13" { l1 : true ; l2 : { l1 : true ; l2 : int | bool 'R} & { l2 : int | string ; l3 : int 'S} 'R} & { l2 : int | string ; l3 : int 'S} <= { l2 : { l2 : int 'R} | { l1 : bool 'S} 'R} | { l1 : bool 'S} ;;
+"record14"  { l1 : true ; l2 : { l1 : true ; l2 : int | bool 'R} & { l2 : int | string ; l3 : int 'S} 'T} & { l2 : int | string ; l3 : int 'U} <= { l2 : { l2 : int 'R} | { l1 : bool 'S} .. } | { l1 : bool 'S} ;;
+"record15" { l1 : true ; l2 :? { l1 : true ; l2 : int | bool 'R} & { l2 : int | string ; l3 : int 'S} 'R} & { l2 : int | string ; l3 : int 'S} <= { l2 : { l2 : int 'R} | { l1 : bool 'S} 'R} | { l1 : bool; l2 : int 'S} ;;
+"record15f" { l1 : true ; l2 :? { l1 : true ; l2 : int | bool 'R} & { l2 :? int | string ; l3 : int 'S} 'R} & { l2 :? int | string ; l3 : int 'S} <= { l2 : { l2 : int 'R} | { l1 : bool 'S} 'R} | { l1 : bool; l2 : int 'S} ;;
+"record16"{ l1 : true ; l2 :? { l1 : true ; l2 : int | bool 'R} & { l2 : int | string ; l3 : int 'S} 'R} & { l2 : int | string ; l3 : int 'S} | {l5 : X where X = (X,X)} <= { l2 : { l2 : int 'R} | { l1 : bool 'S} 'R} | { l1 : bool; l2 : int 'S} ;;
+"record17"  { l1 : true ; l2 : { l1 : true ; l2 : int | bool 'R}  'T} & { l2 : { l2 : int | string ; l3 : int 'S} ; l3 : int 'U} <= { l2 : { l2 : int 'R} | { l1 : bool 'S} .. } | { l1 : bool 'S} ;;
+"record18"  { l1 : true ; l2 : { l1 : true ; l2 : int | bool 'R}  'T} & { l2 : { l2 : int | string ; l3 : int 'S} ; l3 : int 'U} <= { l2 : { l2 : int 'R} | { l1 : bool 'S} 'U } | { l1 : bool 'S} ;;
+
 
 "arrow1" bool -> bool <= false -> false ;;
 "arrow2" bool -> true <= bool -> bool ;;
