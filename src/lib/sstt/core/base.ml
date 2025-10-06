@@ -62,3 +62,7 @@ module VarMap = Map.Make(Var)
 (** @canonical Sstt.RowVar *)
 module RowVar = Id.NamedIdentifier()
 (** Row variables for polymorphic records. *)
+
+(** @canonical Sstt.VarSet *)
+module RowVarSet = Set.Make(RowVar)
+(** Sets of row variables. *)
