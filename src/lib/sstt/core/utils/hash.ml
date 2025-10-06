@@ -174,6 +174,9 @@ module type Map = sig
   val exists : (key -> value -> bool) -> t -> bool
   (** Test whether a binding verifies a predicate. *)
 
+  val for_all : (key -> value -> bool) -> t -> bool
+  (** Test whether all bindings verify a predicate. *)
+
   val filter : (key -> value -> bool) -> t -> t
   (** Return the map of bindings which verify a predicate. *)
 
@@ -313,6 +316,9 @@ struct
 
     let exists f (lk, lv) =
       Stdlib.List.exists2 (fun (k,_) (v, _) -> f k v) lk lv
+
+    let for_all f (lk, lv) =
+      Stdlib.List.for_all2 (fun (k,_) (v, _) -> f k v) lk lv
 
     let filter f (lk, lv) =
       let rec loop lk lv =

@@ -40,6 +40,7 @@ type unit = () ;;
 "record6" { l1 : bool ; l2 : int ..} \ { l1 : true ; l2 : int ..} ;;
 "record7" { l1 : bool ; l2 : int ..} \ { l1 : true ; l2 : int } ;;
 "record8" { l1 : bool ; l2 : int } \ { l1 : true ; l2 : int ..} ;;
+"record9" { l1 : true ; l2 : int | bool 'R} & { l2 : int | string ; l3 : int ..} <= { l1 : bool ; l2 : int 'R} | { l1 : int 'S} ;;
 
 "arrow1" bool -> bool <= false -> false ;;
 "arrow2" bool -> true <= bool -> bool ;;
