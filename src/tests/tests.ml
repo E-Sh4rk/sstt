@@ -46,6 +46,16 @@ let%expect_test "tests" =
     record5: true
     record5: true
     record6: true
+    record7: true
+    record8: true
+    record9: true
+    record10: true
+    record11: true
+    record12: true
+    record12f: false
+    record13: true
+    record14: true
+    record15: true
     arrow1: false
     arrow2: true
     arrow3: true
