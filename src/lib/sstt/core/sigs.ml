@@ -1069,7 +1069,8 @@ module type Ty = sig
   *)
 
 
-  (** {1 Optional types }*)
+  (** {1 Field types }*)
+(** TODO REVIEW DOC *)
 
   module F = VDescr.Descr.Records.Atom.FieldTy
 
