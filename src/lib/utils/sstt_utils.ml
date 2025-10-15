@@ -15,11 +15,11 @@ let[@inline always] ccmp f e1 e2 r =
 
 (* LISTS *)
 
-let take_one lst =
+(* let take_one lst =
   let[@tail_mod_cons] rec loop acc = function
       [] -> []
     | e :: lst -> (e, List.rev_append acc lst)::loop(e::acc) lst
-  in loop [] lst
+  in loop [] lst *)
 
 let cartesian_product l1 l2 =
   let rec loop l1 acc =

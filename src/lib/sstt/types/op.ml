@@ -11,31 +11,41 @@ module Arrows = struct
     Arrows.dnf t |> List.map summand_dom |> Ty.conj
 
   let apply t s =
+    let not_disjoint (d,_) = Ty.disjoint d s |> not in
+    let not_redundant (d,_) (d',_) = Ty.leq (Ty.cap d s) (Ty.cap d' s) |> not in
     Arrows.dnf t |> List.map begin
       fun (ps,_) ->
         let rec certain_outputs current_set ps =
           let t = List.map fst current_set |> Ty.disj in
           if Ty.leq s t then [List.map snd current_set |> Ty.disj]
-          else begin
-            let aux (e,ps) = certain_outputs (e::current_set) ps in
-            take_one ps |> List.concat_map aux
+          else if Ty.leq s (t::(List.map fst ps) |> Ty.disj) |> not then []
+          else begin match ps with
+          | [] -> []
+          | p::ps ->
+            (certain_outputs (p::current_set) (List.filter (not_redundant p) ps))@
+            (certain_outputs current_set ps)
           end
         in
-        certain_outputs [] ps |> Ty.conj
+        ps |> List.filter not_disjoint |> certain_outputs [] |> Ty.conj
     end |> Ty.disj
 
   let worra t out =
+    let not_useless (_,c) = Ty.disjoint out (Ty.neg c) |> not in
+    let not_redundant (_,c) (_,c') = Ty.leq (Ty.diff out c) (Ty.diff out c') |> not in
     Arrows.dnf t |> List.map begin
       fun (ps,_) ->
         let rec impossible_inputs current_set ps =
           let t = List.map snd current_set |> Ty.conj in
-          if Ty.leq out (Ty.neg t) then [List.map fst current_set |> Ty.conj]
-          else begin
-            let aux (e,ps) = impossible_inputs (e::current_set) ps in
-            take_one ps |> List.concat_map aux
+          if Ty.disjoint out t then [List.map fst current_set |> Ty.conj]
+          else if Ty.disjoint out (t::(List.map snd ps) |> Ty.conj) |> not then []
+          else begin match ps with
+          | [] -> []
+          | p::ps ->
+            (impossible_inputs (p::current_set) (List.filter (not_redundant p) ps))@
+            (impossible_inputs current_set ps)
           end
         in
-        impossible_inputs [] ps |> Ty.disj |> Ty.neg
+        ps |> List.filter not_useless |> impossible_inputs [] |> Ty.disj |> Ty.neg
     end |> Ty.disj
 end
 
