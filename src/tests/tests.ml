@@ -263,6 +263,6 @@ let%expect_test "tests_ext" =
       char_invalid: chr(something)
       map_invalid: map(arrow)
       abs_any: abs
-      abs_invalid: abs(42)
+      abs_invalid: __abs(42)
       |}]
   

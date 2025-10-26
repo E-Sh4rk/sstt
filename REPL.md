@@ -9,7 +9,9 @@ Types are built with the following constructors:
 - Monomorphic type variable `'x` (lowercase)
 - Polymorphic type variables `'X` (uppercase)
 - Enum `id`, where `id` is the identifier of an atom (enums that are not declared are created on-the-fly)
-- Tag `id(t)`, where `id` is the identifier of a tag (tags that are not declared are created on-the-fly with the `identity` property)
+- Tag `id(t)`, where `id` is the identifier of a tag (tags that are not declared are created on-the-fly with the `identity` property, or the `monotonic` property if their name
+starts with `_`, or `no property` if their name
+starts with `__`)
 - Arrow `t -> t`
 - Tuple `(t, ..., t)`
 - Closed record `{ label : t ; ... }`

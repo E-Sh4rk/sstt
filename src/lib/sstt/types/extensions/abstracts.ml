@@ -17,7 +17,9 @@ let check_abstract tag =
     invalid_arg 
       (Format.asprintf "Undefined abstract type '%a'" Tag.pp tag)
 let encoding tag =
-  check_abstract tag ; THT.find abs_tags tag
+  check_abstract tag ; THT.find abs_tags tag |> snd
+let name tag =
+  check_abstract tag ; THT.find abs_tags tag |> fst
 let parameters tag =
   match encoding tag with
   | EInv n -> List.init n (fun _ -> Inv)
@@ -27,12 +29,12 @@ let arity tag = parameters tag |> List.length
 let define name vs =
   if List.for_all ((=) Inv) vs then
     let n = List.length vs in
-    let abs = Tag.mk' name Tag.NoProperty in
-    THT.add abs_tags abs (EInv n) ; abs
+    let abs = Tag.mk' ("__"^name) Tag.NoProperty in
+    THT.add abs_tags abs (name, EInv n) ; abs
   else
-    let abs = Tag.mk' name
+    let abs = Tag.mk' ("_"^name)
       (Tag.Monotonic { preserves_cap=false ; preserves_cup=false }) in
-    THT.add abs_tags abs (ECov vs) ; abs
+    THT.add abs_tags abs (name, ECov vs) ; abs
 
 let labels = Hashtbl.create 10
 let label_of_position neg i =
@@ -128,7 +130,7 @@ open Prec
 let print tag prec assoc fmt t =
   let print_atom fmt params =
     let sym,prec',_ = varop_info Tuple in
-    Format.fprintf fmt "%a(%a)" Tag.pp tag
+    Format.fprintf fmt "%s(%a)" (name tag)
       (print_seq (Printer.print_descr_ctx prec' NoAssoc) sym) params
   in
   let print_lit prec assoc fmt (pos,params) =
@@ -142,7 +144,7 @@ let print tag prec assoc fmt t =
     let ps, ns = List.map (fun d -> true, d) ps, List.map (fun d -> false, d) ns in
     let sym,prec',_ as opinfo = varop_info Cap in
     fprintf prec assoc opinfo fmt "%s%s%a"
-      (if ps = [] then Tag.name tag else "")
+      (if ps = [] then name tag else "")
       (if ps = [] && ns <> [] then sym else "")
       (print_seq (print_lit prec' NoAssoc) sym) (ps@ns)
   in

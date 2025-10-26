@@ -122,7 +122,13 @@ let tag_id env str =
   match StrMap.find_opt str env.tagenv with
   | Some t -> t, env
   | None ->
-    let t = Tag.mk str in
+    let t =
+      if String.starts_with ~prefix:"__" str
+      then Tag.mk' str Tag.NoProperty
+      else if String.starts_with ~prefix:"_" str
+      then Tag.mk' str (Tag.Monotonic { preserves_cup=false ; preserves_cap=false })
+      else Tag.mk str
+    in
     let tagenv = StrMap.add str t env.tagenv in
     let env = { env with tagenv } in
     t, env

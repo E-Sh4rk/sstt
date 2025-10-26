@@ -436,11 +436,26 @@ let simplify t =
 
 (* Step 6 : Rename nodes *)
 
+module StrSet = Set.Make(String)
+let names t =
+  let res = ref StrSet.empty in
+  let f d = match d.op with
+    | Alias str -> res := StrSet.add str !res ; Alias str
+    | Node nid when NodeId.has_name nid ->
+      res := StrSet.add (NodeId.name nid) !res ; Node nid
+    | Var v -> res := StrSet.add (Var.name v) !res ; Var v
+    | Enum e -> res := StrSet.add (Enum.name e) !res ; Enum e
+    | op -> op
+  in
+  map_t f t |> ignore ;
+  !res
 let rename_nodes t =
+  let names = names t in
   let c = ref 0 in
-  let next_name () =
+  let rec next_name () =
     c := !c + 1 ;
-    "x"^(string_of_int !c)
+    let res = "x"^(string_of_int !c) in
+    if StrSet.mem res names then next_name () else res
   in
   t.defs |> List.iter (fun (n,_) ->
       NodeId.rename n (next_name ())
