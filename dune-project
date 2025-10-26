@@ -39,5 +39,5 @@
 (package
  (name sstt-bin)
  (synopsis "Simple Set-Theoretic Types executable")
- (depends sstt-repl)
+ (depends sstt-repl yojson)
 )

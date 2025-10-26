@@ -22,6 +22,10 @@ build:
 run:
 	opam exec -- dune exec ./src/bin/native.exe
 
+benchmark:
+	opam exec -- dune build src/bin/benchmark.exe
+	opam exec -- dune exec -- ./src/bin/benchmark.exe benchmark.json
+
 js:
 	opam exec -- dune build --profile release src/bin/js.bc.js
 	cp _build/default/src/bin/js.bc.js web/sstt.js
