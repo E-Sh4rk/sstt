@@ -1,16 +1,22 @@
 open Sstt_repl
 open Output
 
+let usage_msg = "sstt [<file1>] [<file2>] ..."
+let input_files = ref []
+
+let anon_fun filename =
+    input_files := filename::!input_files
+
+let speclist = [ ]
+
 let () =
-    Printexc.record_backtrace true;
+    Arg.parse speclist anon_fun usage_msg ;
+    Printexc.record_backtrace true ;
     if Unix.isatty Unix.stdout then Colors.add_ansi_marking Format.std_formatter ;
     try
-        let fn = if Array.length Sys.argv > 1 then Some Sys.argv.(1) else None in      
         let run () =
-            match fn with
-            | Some fn -> IO.parse_program_file fn |>
-                List.fold_left Repl.treat_elt Repl.empty_env |> ignore
-            | None ->
+            match List.rev !input_files with
+            | [] ->
                 Format.fprintf Format.std_formatter "Simple Set-Theoretic Types (SSTT) - REPL@." ;
                 Format.fprintf Format.std_formatter "Version %s (commit %s, compiler %s)@."
                     Version.version Version.commit Version.compiler ;
@@ -24,8 +30,10 @@ let () =
                     with
                     | e -> print Error "%s" (Printexc.to_string e) ; repl env
                     end
-                in          
+                in
                 repl Repl.empty_env
+            | fns -> fns |> List.iter (fun fn -> IO.parse_program_file fn |>
+                List.fold_left Repl.treat_elt Repl.empty_env |> ignore)
         in
         with_rich_output Format.std_formatter run ()
     with
