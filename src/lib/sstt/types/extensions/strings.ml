@@ -25,13 +25,15 @@ let any = add_tag any_p
 type t = bool * string list
 
 let to_t _ _ comp =
-  let (_, pty) = Op.TagComp.as_atom comp in
-  if Ty.leq pty any_p && (Ty.vars_toplevel pty |> VarSet.is_empty) then
-    let (pos, enums) = pty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
-    let strs = enums |> List.map Enum.name in
-    Some (pos, strs)
-  else
-    None
+  try
+    let (_, pty) = Op.TagComp.as_atom comp in
+    if Ty.leq pty any_p && (Ty.vars_toplevel pty |> VarSet.is_empty) then
+      let (pos, enums) = pty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
+      let strs = enums |> List.map (Hashtbl.find strings) in
+      Some (pos, strs)
+    else
+      None
+    with Not_found -> None
 let map _ v = v
 
 open Prec
