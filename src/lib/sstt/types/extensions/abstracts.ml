@@ -41,7 +41,7 @@ let label_of_position neg i =
   match Hashtbl.find_opt labels (neg,i) with
   | Some lbl -> lbl
   | None ->
-    let lbl = Label.mk (string_of_int i) in
+    let lbl = Label.mk ("_"^(string_of_int i)^(if neg then "'" else "")) in
     Hashtbl.add labels (neg,i) lbl ; lbl
 
 let encode_params encoding ps =
