@@ -74,16 +74,25 @@ let () =
         let run () =
             let fns = List.rev !input_files in
             fns |> List.iter (fun fn ->
+                print Info "Processing %s" fn ;
+                let time0 = Unix.gettimeofday () in
                 let bench = parse_file fn in
+                let time1 = Unix.gettimeofday () in
+                print Msg "Parsing: %.02fs" (time1 -. time0) ;
+                let bench = bench |> List.map build_bench in
+                let time2 = Unix.gettimeofday () in
+                print Msg "Building: %.02fs" (time2 -. time1) ;
                 bench |> List.iter (fun b ->
-                    let b = build_bench b in
-                    let mono = VarSet.of_list b.mono in
+                    let mono, cs = VarSet.of_list b.mono, b.cs in
                     let _ = match b.prio with
-                    | None -> Tallying.tally mono b.cs
-                    | Some prio -> Tallying.tally_with_priority prio mono b.cs
+                    | None -> Tallying.tally mono cs
+                    | Some prio -> Tallying.tally_with_priority prio mono cs
                     in
                     ()
-                )
+                ) ;
+                let time3 = Unix.gettimeofday () in
+                print Msg "Tallying: %.02fs" (time3 -. time2) ;
+                print Msg "Total time: %.02fs" (time3 -. time0)
             )
         in
         with_rich_output Format.std_formatter run ()
