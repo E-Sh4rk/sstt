@@ -20,6 +20,7 @@ let any_non_empty = cons Ty.any any
 let cons a b = cons a (Ty.cap any b)
 
 let destruct ty =
+  let ty = Ty.cap ty any in
   let union =
     proj_tag ty |> Ty.get_descr |> Descr.get_tuples
     |> Tuples.get 2 |> Op.TupleComp.as_union
@@ -29,6 +30,7 @@ let destruct ty =
       | _ -> assert false)
 
 let proj ty =
+  let ty = Ty.cap ty any in
   try
     let comps =
       proj_tag ty |> Ty.get_descr |> Descr.get_tuples

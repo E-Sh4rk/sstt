@@ -27,8 +27,8 @@ val any_non_empty : Ty.t
 (** The type of all non-empty lists. *)
 
 val destruct : Ty.t -> (Ty.t * Ty.t) list
-(** [destruct t] returns a list [[ (hd1, tl1); …; (hdn, tln) ]] such
-    that [t] is equivalent to
+(** [destruct t] returns au union of lists [[ (hd1, tl1); …; (hdn, tln) ]] such
+    that [Ty.cap t any] is equivalent to
     {math
 
     \bigcup_{i=1\ldots n}\texttt{cons} ~~\texttt{hd}_i ~~\texttt{tl}_i
@@ -36,8 +36,7 @@ val destruct : Ty.t -> (Ty.t * Ty.t) list
 *)
 
 val proj : Ty.t -> Ty.t * Ty.t
-(** [proj t] returns the approximation such
-    that [t] is equivalent to
+(** [proj t] returns the approximation
     {math
 
     \bigcup_{i=1\ldots n} \texttt{hd}_i ~~~\times~~~ 
