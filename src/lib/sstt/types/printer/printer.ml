@@ -405,16 +405,16 @@ let remove_unused_nodes t =
   let defs = t.defs |> List.filter (fun (n,_) -> NISet.mem n used) in
   { t with defs }
 
-let inline t =
+let inline' metric t =
   let t = remove_unused_nodes t in
   let rec aux t =
-    let size = size_t t in
+    let size = metric t in
     let rec try_inline defs =
       match defs with
       | [] -> None
       | (n,d)::defs ->
         let t' = subst n d t |> remove_unused_nodes in
-        if size_t t' < size
+        if metric t' < size
         then Some t'
         else try_inline defs
     in
@@ -423,6 +423,11 @@ let inline t =
     | Some t' -> aux t'
   in
   aux t
+
+let inline_mid t = inline' size_t t
+let inline_max t =
+  let nb_defs t = List.length t.defs in
+  inline' nb_defs t
 
 (* Step 4 : Syntactic simplifications *)
 
@@ -434,7 +439,7 @@ let simplify t =
   in
   map_t f t
 
-(* Step 6 : Rename nodes *)
+(* Step 5 : Rename nodes *)
 
 module StrSet = Set.Make(String)
 let names t =
@@ -461,7 +466,7 @@ let rename_nodes t =
       NodeId.rename n (next_name ())
     )
 
-(* Step 7 : Print *)
+(* Step 6 : Print *)
 
 let print_builtin fmt b =
   let str =
@@ -555,10 +560,10 @@ let builder ~to_t ~map ~print =
 let print_extension_node_ctx prec assoc fmt (E e) =
   e.print prec assoc fmt e.value
 
-let get customs ty =
+let get ?(inline=false) customs ty =
   let (ctx, t) = build_t customs ty in
   let t = resolve_missing_defs ctx t in
-  let t = inline t in
+  let t = if inline then inline_max t else inline_mid t in
   let t = simplify t in
   rename_nodes t;
   t
