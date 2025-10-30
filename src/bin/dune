@@ -7,6 +7,15 @@
   (best exe))
  (modules native))
 
+(executable
+ (name benchmark)
+ (public_name sstt-bench)
+ (package sstt-bin)
+ (libraries sstt_repl unix yojson)
+ (modes
+  (best exe))
+ (modules benchmark))
+
 (library
  (name web)
  (wrapped false)

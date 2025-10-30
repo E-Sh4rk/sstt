@@ -1,6 +1,6 @@
 export COMMIT = $(shell git describe --always --tags HEAD)
 
-all: build run
+all: run
 
 deps:
 	opam install . --deps-only --with-test --with-doc
@@ -21,6 +21,9 @@ build:
 
 run:
 	opam exec -- dune exec ./src/bin/native.exe
+
+benchmark:
+	opam exec -- dune exec -- ./src/bin/benchmark.exe benchmark.json
 
 js:
 	opam exec -- dune build --profile release src/bin/js.bc.js
