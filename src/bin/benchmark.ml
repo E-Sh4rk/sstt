@@ -17,7 +17,7 @@ let parse_list f xml =
     | _ -> raise InvalidFormat
 let parse_pair f1 f2 xml =
     match xml with
-    | `Tuple [e1;e2] -> (f1 e1, f2 e2)
+    | `List [e1;e2] -> (f1 e1, f2 e2)
     | _ -> raise InvalidFormat
 let parse_bench xml =
     try match xml with
