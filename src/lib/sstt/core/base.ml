@@ -1,6 +1,9 @@
 
 (** @canonical Sstt.Label *)
-module Label = Id.NamedIdentifier()
+module Label = struct
+  include Id.NamedIdentifier()
+  let tname = "Label"
+end
 (** Labels used for field names in records. *)
 
 (** @canonical Sstt.Tag *)
@@ -34,12 +37,18 @@ end
 
 
 (** @canonical Sstt.Enum *)
-module Enum = Id.NamedIdentifier()
+module Enum = struct
+  include Id.NamedIdentifier()
+  let tname = "Enum"
+end
 (** Identifiers used for enums type. *)
 
 
 (** @canonical Sstt.Var *)
-module Var = Id.NamedIdentifier()
+module Var = struct
+  include Id.NamedIdentifier()
+  let tname = "Var"
+end
 (** Type variables. *)
 
 (** @canonical Sstt.VarSet *)
@@ -52,7 +61,10 @@ module VarMap = Map.Make(Var)
 
 
 (** @canonical Sstt.RowVar *)
-module RowVar = Id.NamedIdentifier()
+module RowVar = struct
+  include Id.NamedIdentifier()
+  let tname = "RowVar"
+end
 (** Row variables. *)
 
 (** @canonical Sstt.RowVarSet *)

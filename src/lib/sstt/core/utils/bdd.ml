@@ -12,6 +12,8 @@ module type Leaf = sig
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val hash : t -> int
+  val tname : string
+
 end
 
 module BoolLeaf : Leaf with type t = bool = struct
@@ -26,6 +28,7 @@ module BoolLeaf : Leaf with type t = bool = struct
   let equal b1 b2 = Bool.equal b1 b2
   let compare b1 b2 = Bool.compare b1 b2
   let hash b = if b then Hash.const1 else Hash.const0
+  let tname = "Bool"
 end
 
 module type Atom = sig
@@ -34,6 +37,7 @@ module type Atom = sig
   val compare : t -> t -> int
   val equal : t -> t -> bool
   val hash : t -> int
+  val tname : string
 end
 
 module Make(N:Atom)(L:Leaf) = struct
@@ -45,9 +49,32 @@ module Make(N:Atom)(L:Leaf) = struct
       Leaf (_, h) -> h
     | Node (_, _, _, h) -> h
 
-  let hleaf l = Leaf (l, Hash.mix Hash.const2 (L.hash l))
+  let rec equal t1 t2 =
+    t1 == t2 ||
+    match t1, t2 with
+    | Leaf (l1, h1) , Leaf (l2, h2) -> Int.equal h1 h2 && L.equal l1 l2
+    | Node _, Leaf _ | Leaf _, Node _ -> false
+    | Node (a1, p1, n1, h1), Node (a2, p2, n2, h2) ->
+      Int.equal h1 h2 &&
+      N.equal a1 a2 && equal p1 p2 && equal n1 n2
+
+  module Memo = Hash.Memo1(struct
+      type nonrec t = t
+      let hash = hash
+      let equal = equal
+    end)
+
+  let tname = Printf.sprintf "Bdd(%s)(%s)" N.tname L.tname
+  let memo = Memo.create (tname ^ ".memo")
+
+  let memoize n =
+    match Memo.find_opt memo n with
+      Some n -> n
+    | None -> Memo.add memo n n
+
+  let hleaf l = Leaf (l, Hash.mix Hash.const2 (L.hash l)) |> memoize
   let hnode a p n = Node (a, p, n, 
-                          Hash.mix3 (N.hash a) (hash p) (hash n) )
+                          Hash.mix3 (N.hash a) (hash p) (hash n) ) |> memoize
 
   (* Version less optimized but parametric *)
   let rec hash' hn hl t =
@@ -59,17 +86,8 @@ module Make(N:Atom)(L:Leaf) = struct
   let empty = hleaf L.empty
   let any = hleaf L.any
 
-
   let singleton a = hnode a any empty
   let nsingleton a = hnode a empty any
-  let rec equal t1 t2 =
-    t1 == t2 ||
-    match t1, t2 with
-    | Leaf (l1, h1) , Leaf (l2, h2) -> Int.equal h1 h2 && L.equal l1 l2
-    | Node _, Leaf _ | Leaf _, Node _ -> false
-    | Node (a1, p1, n1, h1), Node (a2, p2, n2, h2) ->
-      Int.equal h1 h2 &&
-      N.equal a1 a2 && equal p1 p2 && equal n1 n2
   
   (* Version less optimized but parametric *)
   let rec equal' fn fl t1 t2 =
@@ -109,18 +127,30 @@ module Make(N:Atom)(L:Leaf) = struct
     if equal p n then p
     else hnode a p n
 
-  let leaf l =
-    let t = hleaf l in
-    if equal t empty then empty
-    else if equal t any then any
-    else t
+  let leaf l = hleaf l
+  module K = struct type nonrec t = t
+    let hash  = hash
+    let equal = equal
+  end
 
+  module Memo2 = Hash.Memo2(K)(K)
+
+  module Memo1 = Hash.Memo1(K)
+  let memo_neg = Memo1.create (tname ^ ".memo_neg")
   let rec neg_rec t =
-    match t with
-    | Leaf (l, _) -> leaf (L.neg l)
-    | Node (a, p, n, _) ->
-      node a (neg p) (neg n)
+    match Memo1.find_opt memo_neg t with
+      Some r -> r
+    | None -> let res =
+                match t with
+                | Leaf (l, _) -> leaf (L.neg l)
+                | Node (a, p, n, _) ->
+                  node a (neg p) (neg n)
+      in Memo1.add memo_neg t res
   and neg t = fneg ~empty ~any ~neg:neg_rec t
+
+  let memo_cap = Memo2.create (tname ^ ".memo_cap")
+  let memo_cup = Memo2.create (tname ^ ".memo_cup")
+  let memo_diff = Memo2.create (tname ^ ".memo_diff")
 
   let rec op lop nop t1 t2 =
     match t1, t2 with
@@ -135,11 +165,27 @@ module Make(N:Atom)(L:Leaf) = struct
       else if n > 0 then node a2 (nop t1 p2) (nop t1 n2)
       else
         node a1 (nop p1 p2) (nop n1 n2)
-  and ocap t1 t2 = op L.cap cap t1 t2
+  and ocap t1 t2 = 
+    let key = t1, t2 in
+    match Memo2.find_opt memo_cap key with
+      Some r -> r
+    | None -> let res = op L.cap cap t1 t2 in
+      Memo2.add memo_cap key res
   and cap t1 t2 = fcap ~empty ~any ~cap:ocap t1 t2
-  and ocup t1 t2 = op L.cup cup t1 t2
+  and ocup t1 t2 = 
+    let key = t1, t2 in
+    match Memo2.find_opt memo_cup key with
+      Some r -> r
+    | None -> let res = op L.cup cup t1 t2 in
+      Memo2.add memo_cup key res
+
   and cup t1 t2 = fcup ~empty ~any ~cup:ocup t1 t2
-  and odiff t1 t2 = op L.diff diff t1 t2
+  and odiff t1 t2 = 
+    let key = t1, t2 in
+    match Memo2.find_opt memo_diff key with
+      Some r -> r
+    | None -> let res = op L.diff diff t1 t2 in
+      Memo2.add memo_diff key res
   and diff t1 t2 = fdiff_neg ~empty ~any ~neg ~diff:odiff t1 t2
 
   let compare_to_atom a t =
@@ -205,6 +251,10 @@ module Make(N:Atom)(L:Leaf) = struct
         acc
     in
     aux [] [] [] t
+  let memo_dnf = Memo1.create (tname ^ ".memo_dnf")
+  let dnf t = match Memo1.find_opt memo_dnf t with
+      Some r -> r
+    | None -> let res = dnf t in Memo1.add memo_dnf t res
 
   let fold_lines f acc t =
     let rec aux acc ps ns t =
@@ -244,6 +294,7 @@ module Make(N:Atom)(L:Leaf) = struct
     in
     dnf |> List.map line |> disj
 
+  let memo_atoms = Memo1.create (tname ^ ".memo_atoms")
   let atoms t =
     let rec aux acc t =
       match t with
@@ -255,6 +306,13 @@ module Make(N:Atom)(L:Leaf) = struct
         acc
     in aux [] t
 
+  let atoms t = 
+    match Memo1.find_opt memo_atoms t with
+      Some r -> r
+    | None -> let res = atoms t in Memo1.add memo_atoms t res
+
+  let memo_leaves = Memo1.create (tname ^ ".memo_leaves")
+
   let leaves t =
     let rec aux acc t =
       match t with
@@ -264,6 +322,12 @@ module Make(N:Atom)(L:Leaf) = struct
         let acc = aux acc n in
         acc
     in aux [] t
+
+  let leaves t =
+    match Memo1.find_opt memo_leaves t with
+      Some r -> r
+    | None -> let res = leaves t in
+      Memo1.add memo_leaves t res
 
   type ctx =
       Pos of N.t * ctx
@@ -294,5 +358,12 @@ module Make(N:Atom)(L:Leaf) = struct
     in
     aux Root (map_nodes N.simplify t)
 
-
+  (** Assumes simplify is always called with the same eq for a given
+      instance of a bdd *)
+  let memo_simplify = Memo1.create (tname ^ ".memo_simplify")
+  let simplify eq t =
+    match Memo1.find_opt memo_simplify t with
+      Some r -> r
+    | None -> let res = simplify eq t in
+      Memo1.add memo_simplify t res
 end

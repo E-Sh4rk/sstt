@@ -3,9 +3,9 @@ open Base
 
 module Atom = Enum
 
-type t = Pos of (Atom.t*int) list | Neg of (Atom.t * int) list
 
 module HList = Hash.List(Atom)
+type t = Pos of HList.t | Neg of HList.t
 let hash = function
     Neg l -> Hash.(mix const1 (HList.hash l))
   | Pos l -> Hash.(mix const2 (HList.hash l))

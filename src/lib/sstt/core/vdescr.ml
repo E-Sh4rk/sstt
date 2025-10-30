@@ -1,6 +1,11 @@
 open Base
 open Sigs
 
+module Atom = struct
+  include Var
+  let simplify t = t
+end
+
 module Make(N:Node) = struct
   module Descr = Descr.Make(N)
   include Polymorphic.Make(N)(Var)(Descr)
