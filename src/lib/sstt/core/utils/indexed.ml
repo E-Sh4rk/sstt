@@ -17,6 +17,7 @@ module type IdxComp = sig
   val simplify : t -> t
   val is_empty : t -> bool
   include Comparable with type t := t
+  val tname : string
 end
 
 module Make(C : IdxComp) = struct
@@ -25,6 +26,8 @@ module Make(C : IdxComp) = struct
   (* When others is [true], missing tags are mapped to Any
      When others is [false], missing tags are mapped to Empty
   *)
+
+  let tname = Printf.sprintf "Make(%s)" C.tname
 
   module HList = Hash.List(C)
   let hash t = Hash.mix (HList.hash t.map) (Bool.hash t.others)

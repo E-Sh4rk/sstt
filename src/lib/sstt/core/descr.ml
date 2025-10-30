@@ -25,7 +25,22 @@ module Make(N:Node) = struct
     tuples : Tuples.t ;
     tags : Tags.t ;
   }
+
+  let tname = "Descr"
   type node = N.t
+
+
+  let hash t =
+    Hash.(mix 
+            (mix3 (Enums.hash t.enums) (Intervals.hash t.intervals) (Arrows.hash t.arrows))    
+            (mix3 (Records.hash t.records) (Tuples.hash t.tuples) (Tags.hash t.tags)))
+  let equal t1 t2 =
+    Enums.equal t1.enums t2.enums &&
+    Intervals.equal t1.intervals t2.intervals &&
+    Tags.equal t1.tags t2.tags &&
+    Tuples.equal t1.tuples t2.tuples &&
+    Arrows.equal t1.arrows t2.arrows &&
+    Records.equal t1.records t2.records
 
   let any = {
     enums = Enums.any ;
@@ -45,10 +60,9 @@ module Make(N:Node) = struct
     intervals = Intervals.empty
   }
 
-  let hash t =
-    Hash.(mix 
-            (mix3 (Enums.hash t.enums) (Intervals.hash t.intervals) (Arrows.hash t.arrows))    
-            (mix3 (Records.hash t.records) (Tuples.hash t.tuples) (Tags.hash t.tags)))
+
+
+
   let mk_enums a = { empty with enums = a }
   let mk_tags a = { empty with tags = a }
   let mk_arrows a = { empty with arrows = a }
@@ -98,7 +112,7 @@ module Make(N:Node) = struct
     then t
     else
       { enums; tags; tuples; arrows; records; intervals }
-      
+
   let binop fato ftag ftup farr frec fint t1 t2 = {
     enums = fato t1.enums t2.enums ;
     tags = ftag t1.tags t2.tags ;
@@ -142,11 +156,5 @@ module Make(N:Node) = struct
       Arrows.compare t1.arrows t2.arrows |> ccmp
       Records.compare t1.records t2.records
 
-  let equal t1 t2 =
-    Enums.equal t1.enums t2.enums &&
-    Intervals.equal t1.intervals t2.intervals &&
-    Tags.equal t1.tags t2.tags &&
-    Tuples.equal t1.tuples t2.tuples &&
-    Arrows.equal t1.arrows t2.arrows &&
-    Records.equal t1.records t2.records
+
 end

@@ -86,6 +86,8 @@ module Atom(N:Node) = struct
   let compare t1 t2 =
     compare t1.opened t2.opened |> ccmp
       (LabelMap.compare OTy.compare) t1.bindings t2.bindings
+
+  let tname = "Records.dAtom"
 end
 
 module Atom'(N:Node) = struct

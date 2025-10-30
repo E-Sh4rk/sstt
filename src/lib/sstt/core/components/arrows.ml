@@ -13,6 +13,8 @@ module Atom(N:Node) = struct
     N.compare s1 s2 |> ccmp
       N.compare t1 t2
   let hash (n1, n2) = Hash.mix (N.hash n1) (N.hash n2)
+
+  let tname = "Arrows.Atom"
 end
 
 module Make(N:Node) = struct

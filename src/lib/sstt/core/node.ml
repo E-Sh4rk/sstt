@@ -100,7 +100,7 @@ include (struct
     (* The module which contains any and empty that is passed to Vdescr.Make *)
     include PreNode
     let any = AnyEmpty.any
-    let empty = AnyEmpty.empty  
+    let empty = AnyEmpty.empty
   end
   and NSet : Set.S with type elt = AnyEmpty.t = Set.Make(PreNode) (* Sets of Node.t, but use PreNode to have a well defined cycle *)
   and VDescr : VDescr' with type node = Node.t = Vdescr.Make(Node) (* Instanciate VDescr *)
@@ -121,6 +121,8 @@ include (struct
     let has_def t = Option.is_some t.def
     let def t = t.def |> Option.get
 
+
+
     let hash t = Hash.int t.id
     let compare t1 t2 = Int.compare t1.id t2.id
     let equal t1 t2 = Int.equal t1.id t2.id
@@ -130,16 +132,46 @@ include (struct
       t.def <- Some d ;
       t.dependencies <- None ;
       t.simplified <- simplified
+
+    module Memo = Hash.Memo1(VDescr)
+    let memo_cons_t = Memo.create "Node.cons.simplified"
+    let memo_cons_f = Memo.create "Node.cons.not_simplified"
+
     let cons ?(simplified=false) d =
-      let t = mk () in
-      define ~simplified t d ; t
+      let memo = if simplified then memo_cons_t else memo_cons_f in
+      match Memo.find_opt memo d with
+        Some t -> t
+      | None ->
+        let t = mk () in
+        define ~simplified t d ; 
+        Memo.add memo d t
+
+    module K = struct 
+      type nonrec t = t
+      let hash = hash
+      let equal = equal
+    end
+    module Memo2 = Hash.Memo2(K)(K)
 
     let of_def d = d |> cons
 
-    let dcap t1 t2 = VDescr.cap (def t1) (def t2) |> cons
+    let memo_cap = Memo2.create "Node.cap"
+    let dcap t1 t2 = 
+      let key = t1, t2 in
+      match Memo2.find_opt memo_cap key with
+        Some t -> t
+      | None -> let res = VDescr.cap (def t1) (def t2) |> cons in
+        Memo2.add memo_cap key res
     let cap = fcap ~empty ~any ~cap:dcap
 
-    let dcup t1 t2 = VDescr.cup (def t1) (def t2) |> cons
+    let memo_cup = Memo2.create "Node.cup"
+    let dcup t1 t2 =      
+      let key = t1, t2 in
+      match Memo2.find_opt memo_cup key with
+        Some t -> t
+      | None -> let res = VDescr.cup (def t1) (def t2) |> cons
+        in Memo2.add memo_cup key res
+
     let cup = fcup ~empty ~any ~cup:dcup
 
     let neg t =
@@ -147,13 +179,20 @@ include (struct
       | Some s -> s
       | None ->
         let s = t |> def |> VDescr.neg
-                |> cons ~simplified:t.simplified in
+          |> cons ~simplified:t.simplified in
         t.neg <- Some s;
         s.neg <- Some t;
         s
     let neg = fneg ~empty ~any ~neg
 
-    let fdiff t1 t2 = VDescr.diff (def t1) (def t2) |> cons
+    let memo_diff = Memo2.create "Node.diff"
+
+    let fdiff t1 t2 = 
+      let key = t1, t2 in
+      match Memo2.find_opt memo_diff key with
+        Some t -> t
+      | None -> let res = VDescr.diff (def t1) (def t2) |> cons in
+        Memo2.add memo_diff key res
     let diff = fdiff_neg ~empty ~any ~neg ~diff:fdiff
 
     let conj ts = List.fold_left cap any ts
@@ -199,9 +238,9 @@ include (struct
       let direct_nodes t = def t |> VDescr.direct_nodes |> NSet.of_list in
       let rec aux ts =
         let ts' = ts
-                  |> NSet.to_list
-                  |> List.map direct_nodes
-                  |> List.fold_left NSet.union ts
+          |> NSet.to_list
+          |> List.map direct_nodes
+          |> List.fold_left NSet.union ts
         in
         if NSet.equal ts ts' then ts' else aux ts'
       in
@@ -218,7 +257,7 @@ include (struct
 
     let of_eqs eqs =
       let deps = eqs
-                 |> List.fold_left (fun acc (_, t) -> NSet.union (dependencies t) acc) NSet.empty in
+        |> List.fold_left (fun acc (_, t) -> NSet.union (dependencies t) acc) NSet.empty in
       let copies = NSet.fold (fun n acc -> NMap.add n (mk ()) acc) deps NMap.empty in
       let new_node n =
         match eqs |> List.find_opt (fun (v,_) ->
@@ -257,7 +296,7 @@ include (struct
       (* Optimisation: reuse nodes if possible *)
       let unchanged n = VarSet.disjoint (vars n) dom in
       let deps = dependencies t
-                 |> NSet.filter  (fun n -> unchanged n |> not) in
+        |> NSet.filter  (fun n -> unchanged n |> not) in
       let copies = NSet.fold (fun n acc -> NMap.add n (mk ()) acc) deps NMap.empty in
       let new_node n =
         match NMap.find_opt n copies with

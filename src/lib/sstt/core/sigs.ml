@@ -13,6 +13,7 @@ module type Comparable = sig
   (** Hashing, [hash] is consistent with equality, that is
       [equal a b] implies [hash a = hash b].
   *)
+
 end
 
 module type TyBase = sig

@@ -16,15 +16,21 @@ module Atom(N:Node) = struct
     Tag.compare t1 t2 |> ccmp
       N.compare n1 n2
   let hash (t, n) = Hash.mix (Tag.hash t) (N.hash n)
+  let tname = "Tags.Atom"
 end
 
 module MakeC(N:Node) = struct
   module Atom = Atom(N)
   module Bdd = Bdd.Make(Atom)(Bdd.BoolLeaf)
-  module Index = Tag
+  module Index = struct
+    include Tag
+    let tname = "Tag"
+  end
 
   type t = Tag.t * Bdd.t
   type node = N.t
+
+  let tname = "TagComp"
 
   let hash (tag, t) = Hash.mix (Tag.hash tag) (Bdd.hash t)
   let any n = n, Bdd.any

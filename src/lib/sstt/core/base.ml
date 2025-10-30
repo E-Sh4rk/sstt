@@ -43,7 +43,10 @@ end
 
 
 (** @canonical Sstt.Enum *)
-module Enum = Id.NamedIdentifier()
+module Enum = struct
+  include Id.NamedIdentifier()
+  let tname = "Enum"
+end
 (** Identifiers used for enums type. *)
 
 

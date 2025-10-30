@@ -4,6 +4,7 @@ open Sigs
 module Atom = struct
   include Var
   let simplify t = t
+  let tname = "Var"
 end
 
 module Make(N:Node) = struct
