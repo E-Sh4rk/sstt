@@ -15,14 +15,21 @@ module Atom(N:Node) = struct
     List.compare N.compare t1 t2
 
   let hash = Hash.list N.hash
+  let tname = "Tuples.Atom"
 end
 
 module MakeC(N:Node) = struct
   module Atom = Atom(N)
   module Bdd = Bdd.Make(Atom)(Bdd.BoolLeaf)
-  module Index = Int
+  module Index = struct
+    include Int
+    let tname = "Int"
+  end
 
   type t = int * Bdd.t
+
+  let tname = "TupleComp"
+
   type node = N.t
   let hash (len, t) = Hash.mix (Hash.int len) (Bdd.hash t)
 

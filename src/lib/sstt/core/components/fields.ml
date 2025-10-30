@@ -48,10 +48,13 @@ module OTy(N:Node) = struct
 
   let hash (n, b) = Hash.(mix (bool b) (N.hash n))
   let hash' f (n, b) = Hash.(mix (bool b) (f n))
+
+  let tname = "OTy"
 end
 
 module Make(N:Node) = struct
   module OTy = OTy(N)
+
   include Polymorphic.Make(N)(RowVar)(OTy)
 
   let equal' f = Bdd.equal' RowVar.equal (OTy.equal' f)

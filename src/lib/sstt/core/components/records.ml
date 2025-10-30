@@ -2,6 +2,11 @@ open Base
 open Sigs
 open Sstt_utils
 
+module type Polymorphic' = sig
+  include Polymorphic'
+  val tname : string
+end
+
 module MakeLabelMap
   (FTy:Polymorphic' with type var = RowVar.t and module VarMap = RowVarMap and module VarSet = RowVarSet)
   (N:Node) = Hash.MapList(Label)(FTy)
@@ -63,6 +68,8 @@ module Atom
   let compare t1 t2 =
     FTy.compare t1.tail t2.tail |> ccmp
       LabelMap.compare t1.bindings t2.bindings
+
+  let tname = "Records.Atom"
 end
 
 module Atom'
@@ -137,7 +144,10 @@ module Atom'
 end
 
 module Make(N:Node) = struct
-  module FTy = Fields.Make(N)
+  module FTy = struct
+    include Fields.Make(N)
+    let tname = "FTy"
+  end
   module Atom = Atom(FTy)(N)
   module Atom' = Atom'(FTy)(N)
 

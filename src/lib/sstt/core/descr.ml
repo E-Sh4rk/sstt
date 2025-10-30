@@ -26,7 +26,14 @@ module Make(N:Node) = struct
     tags : Tags.t ;
     others : bool
   }
+
+  let tname = "Descr"
   type node = N.t
+
+  let hash t =
+    Hash.(mix3    (Bool.hash t.others)
+            (mix3 (Enums.hash t.enums) (Intervals.hash t.intervals) (Arrows.hash t.arrows))    
+            (mix3 (Records.hash t.records) (Tuples.hash t.tuples) (Tags.hash t.tags)))
 
   let any = {
     enums = Enums.any ;
@@ -48,10 +55,6 @@ module Make(N:Node) = struct
     others = false
   }
 
-  let hash t =
-    Hash.(mix3    (Bool.hash t.others)
-            (mix3 (Enums.hash t.enums) (Intervals.hash t.intervals) (Arrows.hash t.arrows))    
-            (mix3 (Records.hash t.records) (Tuples.hash t.tuples) (Tags.hash t.tags)))
   let mk_enums a = { empty with enums = a }
   let mk_tags a = { empty with tags = a }
   let mk_arrows a = { empty with arrows = a }
@@ -172,4 +175,5 @@ module Make(N:Node) = struct
     Tuples.equal t1.tuples t2.tuples &&
     Arrows.equal t1.arrows t2.arrows &&
     Records.equal t1.records t2.records
+
 end

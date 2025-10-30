@@ -1,6 +1,14 @@
 open Sigs
 
-module Atom(V:Comparable) = struct
+module type PAtom = sig
+  type t
+  val compare : t -> t -> int
+  val equal : t -> t -> bool
+  val hash : t -> int
+  val tname : string
+end
+
+module Atom(V:PAtom) = struct
   include V
   let simplify t = t
 end
@@ -13,7 +21,7 @@ module type Leaf = sig
   val map_nodes : (node -> node) -> t -> t
 end
 
-module Make(N:Node)(V:Comparable)(L:Leaf with type node = N.t) = struct
+module Make(N:Node)(V:PAtom)(L:Leaf with type node = N.t) = struct
   module A = Atom(V)
   module Bdd = Bdd.Make(A)(L)
   module VarMap = Map.Make(V)
