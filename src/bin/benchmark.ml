@@ -78,10 +78,13 @@ let () =
                 let time0 = Unix.gettimeofday () in
                 let bench = parse_file fn in
                 let time1 = Unix.gettimeofday () in
-                print Msg "Parsing: %.02fs" (time1 -. time0) ;
+                let n = List.length bench in
+                print Msg "Num of instances: %i" n ;
+                let avg x = x *. 1000000.0 /. (float_of_int n) in
+                print Msg "Parsing (average): %.02fs (%.00fus)" (time1 -. time0) (time1 -. time0 |> avg) ;
                 let bench = bench |> List.map build_bench in
                 let time2 = Unix.gettimeofday () in
-                print Msg "Building: %.02fs" (time2 -. time1) ;
+                print Msg "Building (average): %.02fs (%.00fus)" (time2 -. time1) (time2 -. time1 |> avg) ;
                 bench |> List.iter (fun b ->
                     let mono, cs = VarSet.of_list b.mono, b.cs in
                     let _ = match b.prio with
@@ -91,8 +94,8 @@ let () =
                     ()
                 ) ;
                 let time3 = Unix.gettimeofday () in
-                print Msg "Tallying: %.02fs" (time3 -. time2) ;
-                print Msg "Total time: %.02fs" (time3 -. time0)
+                print Msg "Tallying (average): %.02fs (%.00fus)" (time3 -. time2) (time3 -. time2 |> avg) ;
+                print Msg "Total time (average): %.02fs (%.00fus)" (time3 -. time0) (time3 -. time0 |> avg)
             )
         in
         with_rich_output Format.std_formatter run ()

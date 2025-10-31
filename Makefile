@@ -23,7 +23,7 @@ run:
 	opam exec -- dune exec ./src/bin/native.exe
 
 benchmark:
-	opam exec -- dune exec -- ./src/bin/benchmark.exe benchmark.json
+	opam exec -- dune exec -- ./src/bin/benchmark.exe benchmarks/*
 
 js:
 	opam exec -- dune build --profile release src/bin/js.bc.js
