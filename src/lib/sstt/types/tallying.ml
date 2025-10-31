@@ -46,7 +46,8 @@ module Make(VO:VarOrder) = struct
     exception Unsat
 
     let assert_sat delta s t =
-      if VarSet.subset (Ty.vars s) delta &&
+      if Config.tallying_opti &&
+         VarSet.subset (Ty.vars s) delta &&
          VarSet.subset (Ty.vars t) delta &&
          not (Ty.leq s t)
       then raise_notrace Unsat
@@ -82,6 +83,7 @@ module Make(VO:VarOrder) = struct
        c1 in t1 such that c1 subsumes c2
     *)
     let rec subsumes l1 l2 =
+      Config.tallying_opti &&
       match l1, l2 with
       | _, [] -> true
       | [], _ -> false
