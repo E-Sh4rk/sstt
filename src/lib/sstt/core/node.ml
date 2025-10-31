@@ -64,6 +64,9 @@ include (struct
     (* The definition of any and empty, TyRef.t creation and the delayed init function *)
     type t = TyRef.t
     val mk : unit -> t
+    val hash : t -> int
+    val compare : t -> t -> int
+    val equal : t -> t -> bool
     val any : t
     val empty : t
     val init : VDescr.t -> VDescr.t -> unit
@@ -81,7 +84,9 @@ include (struct
         dependencies = None;
         neg = None;
       }
-
+    let hash t = Hash.int t.id
+    let compare t1 t2 = Int.compare t1.id t2.id
+    let equal t1 t2 = t1.id = t2.id
     let empty = mk ()
     let any = mk ()
     let init empty_def any_def =
@@ -99,6 +104,11 @@ include (struct
   and Node : Node with type t = AnyEmpty.t and type vdescr = VDescr.t and type descr = VDescr.Descr.t = struct
     (* The module which contains any and empty that is passed to Vdescr.Make *)
     include PreNode
+    (* We need to duplicate these here, has the one in PreNode are uninitialized  *)
+    let hash = AnyEmpty.hash
+    let compare = AnyEmpty.compare
+    let equal = AnyEmpty.equal
+
     let any = AnyEmpty.any
     let empty = AnyEmpty.empty  
   end
@@ -121,10 +131,9 @@ include (struct
     let has_def t = Option.is_some t.def
     let def t = t.def |> Option.get
 
-    let hash t = Hash.int t.id
-    let compare t1 t2 = Int.compare t1.id t2.id
-    let equal t1 t2 = Int.equal t1.id t2.id
-
+    let hash = AnyEmpty.hash
+    let compare = AnyEmpty.compare
+    let equal = AnyEmpty.equal
 
     let define ?(simplified=false) t d =
       t.def <- Some d ;

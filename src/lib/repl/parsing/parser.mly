@@ -123,13 +123,14 @@ atomic_ty:
 | id=MVARID { TVarMono id }
 | i=INT { TInterval (Some i, Some i) }
 | LPAREN i1=INT? DPOINT i2=INT? RPAREN { TInterval (i1,i2) }
-| LBRACE bindings=separated_list(SEMICOLON, record_field) o=record_kind RBRACE { TRecord (bindings, o) }
+| LBRACE bindings=separated_list(SEMICOLON, record_field) t=tail RBRACE { TRecord (bindings, t) }
 | LPAREN ty=ty RPAREN { ty }
 | LPAREN RPAREN { TBuiltin (TAnyTupleComp 0) }
 
-%inline record_kind:
-| DPOINT { true }
-| { false }
+%inline tail:
+| DPOINT { TOpen }
+| id=VARID { TRowVar id }
+| { TClosed }
 
 record_field:
 | l=ID COLON ty=ty { (l, ty, false) }
