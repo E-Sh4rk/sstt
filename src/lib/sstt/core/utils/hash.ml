@@ -25,7 +25,9 @@ let list h l = (* use for small lists *)
   in
   loop const3 l
 
-let _print_stats = true
+let enable_hashconsing = true
+let print_hashconsing_stats = true
+
 module type MEMO =
 sig
   type key 
@@ -47,7 +49,7 @@ struct
   }
   let create name = 
     let t = { name; count_access = 0; count_uniq = 0; table = T.create 16 } in
-    if _print_stats then at_exit (fun () -> 
+    if enable_hashconsing && print_hashconsing_stats then at_exit (fun () -> 
         Format.eprintf "%s: access: %d, uniq: %d, uniq_ratio: %f\n%!"
           t.name
           t.count_access
@@ -55,13 +57,20 @@ struct
           ((float t.count_uniq /. float t.count_access))
       );
     t
-  let find_opt t k =
-    t.count_access <- t.count_access + 1;
-    match T.find_opt t.table k with
-      None -> t.count_uniq <- t.count_uniq + 1; None
-    | o -> o
-  let add t k v =
-    T.add t.table k v; v
+  let find_opt =
+    if enable_hashconsing then 
+      fun t k ->
+        t.count_access <- t.count_access + 1;
+        match T.find_opt t.table k with
+          None -> t.count_uniq <- t.count_uniq + 1; None
+        | o -> o
+    else 
+      fun _ _ -> None
+  let add =
+    if enable_hashconsing then  
+      fun  t k v -> T.add t.table k v; v
+    else 
+      fun _ _ v -> v
 
 end
 module Memo2(K1 : Hashtbl.HashedType)(K2 : Hashtbl.HashedType) : MEMO with type key = K1.t * K2.t =
@@ -110,7 +119,13 @@ end = struct
     | _, [] -> 1
     | [], _ -> -1
     | (_, h1)::ll1, (_, h2)::ll2 -> Int.compare h1 h2 |> ccmp compare ll1 ll2
-  let equal l1 l2 = l1 == l2
+  let rec equal l1 l2 = 
+    l1 == l2 (* still implement structural equality in case hashconsing is disabled *)
+    || match l1, l2 with
+      [], [] -> true
+    | _, [] | [], _ -> false
+    | (x1, h1)::ll1, (x2, h2)::ll2 -> 
+      h1 == h2 && X.equal x1 x2 && equal ll1 ll2
 
   let[@inline always] hash = function
       [] -> const0
@@ -119,12 +134,7 @@ end = struct
   module Memo = Memo1(
     struct
       type nonrec t = t
-      let equal l1 l2 =
-        match l1, l2 with
-          [], [] -> true
-        |      (x1, h1)::ll1, (x2, h2)::ll2 ->
-          h1 == h2 && ll1 == ll2 && X.equal x1 x2
-        | _ -> false
+      let equal = equal
       let hash = hash
     end
     )

@@ -123,10 +123,11 @@ let rec ( @:: ) ((a, b) as n) l =
                 else  (a,b) $:: l
     in
     MemoCons.add memo_cons key res
+
 module K = struct
-   type nonrec t = t
-   let hash = hash
-   let equal = equal
+  type nonrec t = t
+  let hash = hash
+  let equal = equal
 end
 module Memo2 = Hash.Memo2(K)(K)
 
@@ -176,18 +177,19 @@ let rec diff_rec i1 i2 =
   let key = (i1, i2) in
   match Memo2.find_opt memo_diff key with
     Some r -> r
-  | None -> let res =
-              let open Number in
-              match i1, i2 with
-              | ([] as l), _ | l, [] -> l
-              | ((a1, b1) as c1,_) :: ii1, ((a2, b2),_) :: ii2 ->
-                if b1 < a2 then c1 @:: diff ii1 i2
-                else if b2 < a1 then diff i1 ii2
-                else if a2 <= a1 then
-                  if b2 < b1 then diff ((succ b2, b1) @:: ii1) ii2 else diff ii1 i2
-                else if (* a1 < a2 *)
-                  b2 >= b1 then diff ((a1, pred a2) @:: ii1) i2
-                else diff ((a1, pred a2) @:: (succ b2, b1) @:: ii1) ii2
+  | None -> 
+    let res =
+      let open Number in
+      match i1, i2 with
+      | ([] as l), _ | l, [] -> l
+      | ((a1, b1) as c1,_) :: ii1, ((a2, b2),_) :: ii2 ->
+        if b1 < a2 then c1 @:: diff ii1 i2
+        else if b2 < a1 then diff i1 ii2
+        else if a2 <= a1 then
+          if b2 < b1 then diff ((succ b2, b1) @:: ii1) ii2 else diff ii1 i2
+        else if (* a1 < a2 *)
+          b2 >= b1 then diff ((a1, pred a2) @:: ii1) i2
+        else diff ((a1, pred a2) @:: (succ b2, b1) @:: ii1) ii2
     in Memo2.add memo_diff key res
 and diff t1 t2 = fdiff ~empty ~any ~diff:diff_rec t1 t2 
 
@@ -197,7 +199,8 @@ let neg = fneg ~empty ~any ~neg
 let of_list l =
   (* To avoid a quadratic behaviour if building from
      the smallest interval to the largest *)
-  l |> List.sort (fun x y -> - Interval.compare x y)
+  l 
+  |> List.sort (fun x y -> - Interval.compare x y)
   |> List.fold_left (fun acc a -> a@::acc) empty
 
 let construct = of_list

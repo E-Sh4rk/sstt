@@ -49,17 +49,19 @@ module Make(N:Atom)(L:Leaf) = struct
       Leaf (_, h) -> h
     | Node (_, _, _, h) -> h
 
+  let rec equal n1 n2 =
+    n1 == n2 ||
+    match n1, n2 with
+      Leaf (l1,h1), Leaf (l2,h2) -> h1 == h2 && L.equal l1 l2
+    | Node (a1, p1, n1, h1),
+      Node (a2, p2, n2, h2) ->
+      h1 == h2 && N.equal a1 a2 && equal p1 p2 && equal n1 n2
+    | _ -> false
 
   module Memo = Hash.Memo1(struct
       type nonrec t = t
       let hash = hash
-      let equal n1 n2 =
-        match n1, n2 with
-          Leaf (l1,h1), Leaf (l2,h2) -> h1 == h2 && L.equal l1 l2
-        | Node (a1, p1, n1, h1),
-          Node (a2, p2, n2, h2) ->
-          h1 == h2 && p1 == p2 && n1 == n2 && N.equal a1 a2
-        | _ -> false
+      let equal = equal
     end)
 
   let tname = Printf.sprintf "Bdd(%s)(%s)" N.tname L.tname
