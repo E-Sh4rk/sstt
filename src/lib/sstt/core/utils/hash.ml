@@ -1,4 +1,6 @@
 open Sstt_utils
+let enable_hashconsing = true
+let print_hashconsing_stats = true
 
 let const0 = 0x278dde6d (* 2^32 * golden ratio, mod 2^30 *)
 let const1 = 0x3f4a7c15 (* from SplitMix64 *)
@@ -24,9 +26,6 @@ let list h l = (* use for small lists *)
     | e :: ll -> loop (mix acc (h e)) ll
   in
   loop const3 l
-
-let enable_hashconsing = true
-let print_hashconsing_stats = true
 
 module type MEMO =
 sig

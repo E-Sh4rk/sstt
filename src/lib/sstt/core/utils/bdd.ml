@@ -81,7 +81,6 @@ module Make(N:Atom)(L:Leaf) = struct
 
   let singleton a = hnode a any empty
   let nsingleton a = hnode a empty any
-  let equal t1 t2 = t1 == t2 
   let rec compare t1 t2 =
     if t1 == t2 then 0 else
       match t1, t2 with
