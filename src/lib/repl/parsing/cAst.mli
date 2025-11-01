@@ -1,6 +1,6 @@
 open Cduce
 
-exception Unsupported
+exception Unsupported of string
 
 type ty = Base.typ
 module TVarSet = Tvar.TVarSet
@@ -9,7 +9,7 @@ module Subst = Tvar.Subst
 
 type env
 val empty_env : env
-val declare_vars : env -> string list -> env * TVar.t list
+val resolve_vars : env -> string list -> env * TVar.t list
 val build_tys : env -> Ast.ty list -> env * ty list
 val tally : TVarSet.t -> (ty * ty) list -> Subst.t list
 val tally_with_prio : TVar.t list -> TVarSet.t -> (ty * ty) list -> Subst.t list

@@ -1,7 +1,7 @@
 open Cduce
 open Additions
 
-exception Unsupported
+exception Unsupported of string
 
 let transform_builtin b =
   match b with
@@ -16,28 +16,94 @@ let transform_builtin b =
   | TAnyTupleComp i ->
     let i = Some (Z.of_int i) in
     TRecord (true, [("card", TBase (TInt (i, i)), false)])
-  | TAnyTag -> raise Unsupported
+  | TAnyTag -> raise (Unsupported "unsupported AnyTag type")
 
 let transform_str ty =
   let rec aux ty =
-  match ty with
-  | Ast.TBuiltin TAnyEnum -> TBase TAny
-  | TNamed str -> TBase (TSString str)
-  | TUnop (TNeg, ty) -> TNeg (aux ty)
-  | TBinop (TCap, ty1, ty2) -> TCap (aux ty1, aux ty2)
-  | TBinop (TCup, ty1, ty2) -> TCup (aux ty1, aux ty2)
-  | TBinop (TDiff, ty1, ty2) -> TDiff (aux ty1, aux ty2)
-  | _ -> raise Unsupported
+    match ty with
+    | Ast.TBuiltin TAnyEnum -> TBase TAny
+    | TNamed str -> TBase (TSString str)
+    | TUnop (TNeg, ty) -> TNeg (aux ty)
+    | TBinop (TCap, ty1, ty2) -> TCap (aux ty1, aux ty2)
+    | TBinop (TCup, ty1, ty2) -> TCup (aux ty1, aux ty2)
+    | TBinop (TDiff, ty1, ty2) -> TDiff (aux ty1, aux ty2)
+    | _ -> raise (Unsupported "invalid string encoding")
   in
-  TCap (aux ty, TBase TString)
+  let top = TBase TString in
+  match ty with None -> top | Some ty -> TCap (aux ty, top)
+
+let transform_flt ty =
+  let rec aux ty =
+    match ty with
+    | Ast.TNamed _ -> TBase TAny
+    | TUnop (TNeg, ty) -> TNeg (aux ty)
+    | TBinop (TCap, ty1, ty2) -> TCap (aux ty1, aux ty2)
+    | TBinop (TCup, ty1, ty2) -> TCup (aux ty1, aux ty2)
+    | TBinop (TDiff, ty1, ty2) -> TDiff (aux ty1, aux ty2)
+    | _ -> raise (Unsupported "invalid float encoding")
+  in
+  let top = TBase TFloat in
+  match ty with None -> top | Some ty -> TCap (aux ty, top)
+
+let transform_chr ty =
+  let rec aux ty =
+    match ty with
+    | Ast.TInterval (Some i1, Some i2) ->
+      if Z.equal Z.zero i1 && Z.equal (Z.of_int 255) i2 then
+        TBase TAny
+      else if Z.equal i1 i2 then
+        TBase (TSChar (Char.chr (Z.to_int i1)))
+      else
+        TCup (TBase (TSChar (Char.chr (Z.to_int i1))),
+              aux (Ast.TInterval (Some (Z.succ i1), Some i2)))
+    | TUnop (TNeg, ty) -> TNeg (aux ty)
+    | TBinop (TCap, ty1, ty2) -> TCap (aux ty1, aux ty2)
+    | TBinop (TCup, ty1, ty2) -> TCup (aux ty1, aux ty2)
+    | TBinop (TDiff, ty1, ty2) -> TDiff (aux ty1, aux ty2)
+    | _ -> raise (Unsupported "invalid char encoding")
+  in
+  let top = TBase TChar in
+  match ty with None -> top | Some ty -> TCap (aux ty, top)
+
+let transform_bool ty =
+  let rec aux ty =
+    match ty with
+    | Ast.TNamed "true" -> TBase TTrue
+    | TNamed "false" -> TBase TFalse
+    | TUnop (TNeg, ty) -> TNeg (aux ty)
+    | TBinop (TCap, ty1, ty2) -> TCap (aux ty1, aux ty2)
+    | TBinop (TCup, ty1, ty2) -> TCup (aux ty1, aux ty2)
+    | TBinop (TDiff, ty1, ty2) -> TDiff (aux ty1, aux ty2)
+    | _ -> raise (Unsupported "invalid bool encoding")
+  in
+  let top = TBase TBool in
+  match ty with None -> top | Some ty -> TCap (aux ty, top)
+
+let transform_lst ty =
+  let rec aux ty =
+    match ty with
+    | Ast.TBuiltin (TAnyTupleComp 0) -> TBase TNil
+    | TVarop (TTuple, []) -> TBase TNil
+    | TUnop (TNeg, ty) -> TNeg (aux ty)
+    | TBinop (TCap, ty1, ty2) -> TCap (aux ty1, aux ty2)
+    | TBinop (TCup, ty1, ty2) -> TCup (aux ty1, aux ty2)
+    | TBinop (TDiff, ty1, ty2) -> TDiff (aux ty1, aux ty2)
+    | _ -> raise (Unsupported "unsupported non-nil list encoding")
+  in
+  let top = TBase TList in
+  match ty with None -> top | Some ty -> TCap (aux ty, top)
 
 let transform ty =
   let rec aux ty =
     match ty with
     | Ast.TBuiltin b -> transform_builtin b
     | TNamed n -> TVar n
-    | TTag ("str", Some ty) -> transform_str ty
-    | TTag _ -> raise Unsupported
+    | TTag ("str", ty) -> transform_str ty
+    | TTag ("flt", ty) -> transform_flt ty
+    | TTag ("chr", ty) -> transform_chr ty
+    | TTag ("bool", ty) -> transform_bool ty
+    | TTag ("lst", ty) -> transform_lst ty
+    | TTag (name, _) -> raise (Unsupported ("unsupported tag '"^name^"'"))
     | TVar n | TVarMono n -> TVar n
     | TInterval (i1, i2) -> TBase (TInt (i1, i2))
     | TRecord (bindings, opened) ->
@@ -65,7 +131,7 @@ module Subst = Tvar.Subst
 type env = { tenv : type_env ; vtenv : var_type_env }
 let empty_env = { tenv=empty_tenv ; vtenv=empty_vtenv }
 
-let declare_vars env names =
+let resolve_vars env names =
   let vs, vtenv = type_exprs_to_typs env.tenv env.vtenv
     (List.map (fun str -> TVar str) names)
   in
