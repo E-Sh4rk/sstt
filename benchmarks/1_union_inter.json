@@ -19098,8 +19098,8 @@
     "mono": [],
     "constr": [
       [
-        "(int, int) | (str(enum), str(enum)) | (x2, x2) | (chr((0..255)), chr((0..255))) | (x1, x1) -> x1 where x1 = bool(true | false) and x2 = flt(nan | pinf | pos | pzero | nzero | neg | ninf)",
-        "('a & flt(x1), flt(x1)) -> 'b where x1 = nan | pinf | pos | pzero | nzero | neg | ninf"
+        "(int, int) | (str(enum), str(enum)) | (flt(nan | pinf | pos | pzero | nzero | neg | ninf), flt(nan | pinf | pos | pzero | nzero | neg | ninf)) | (chr((0..255)), chr((0..255))) | (bool(true | false), bool(true | false)) -> bool(true | false)",
+        "('a & flt(nan | pinf | pos | pzero | nzero | neg | ninf), flt(nan | pinf | pos | pzero | nzero | neg | ninf)) -> 'b"
       ]
     ],
     "prio": [ "'a" ]
@@ -20382,7 +20382,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -20402,7 +20402,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -20424,7 +20424,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(true) | bool(false)) -> 'a"
       ]
     ]
@@ -20532,7 +20532,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -20552,7 +20552,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -20574,7 +20574,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(true) | bool(false)) -> 'a"
       ]
     ]
@@ -20681,7 +20681,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true) | bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -20706,7 +20706,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true) | bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -20729,8 +20729,8 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
-        "(x1, x1) -> 'a where x1 = bool(true) | bool(false)"
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
+        "(bool(true) | bool(false), bool(true) | bool(false)) -> 'a"
       ]
     ]
   },
@@ -20747,7 +20747,7 @@
     "mono": [],
     "constr": [
       [
-        "('a & (x2, any) & (any, 'c & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(x1) | str(x3) | str(_))) -> bool(true) | bool(false)) & ('a & (x2, any) & (any, 'c & (0 | bool(false) | chr(0) | str(_))) -> bool(false)) & ('a & ('d & (0 | bool(false) | chr(0) | str(_)), any) & (any, 'c & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(x1) | str(x3) | str(_))) -> bool(false)) & ('a & ('d & (int \\ 0 | bool(true) | chr((1..255)) | str(x3)), any) & (any, 'c & (int \\ 0 | bool(true) | chr((1..255)) | str(x3))) -> bool(true)) where x1 = nan | pinf | pos | pzero | nzero | neg | ninf and x2 = 'd & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(x1) | str(x3) | str(_)) and x3 = enum \\ _",
+        "('a & ('d & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_)), any) & (any, 'c & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_))) -> bool(true) | bool(false)) & ('a & ('d & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_)), any) & (any, 'c & (0 | bool(false) | chr(0) | str(_))) -> bool(false)) & ('a & ('d & (0 | bool(false) | chr(0) | str(_)), any) & (any, 'c & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_))) -> bool(false)) & ('a & ('d & (int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _)), any) & (any, 'c & (int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _))) -> bool(true))",
         "'b"
       ]
     ]
@@ -20758,10 +20758,10 @@
     "constr": [
       [
         "'b",
-        "('a & (x3, any) & (any, 'c & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(x1) | str(x2) | str(_))) -> bool(true) | bool(false)) & ('a & (x3, any) & (any, 'c & (0 | bool(false) | chr(0) | str(_))) -> bool(false)) & ('a & ('d & (0 | bool(false) | chr(0) | str(_)), any) & (any, 'c & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(x1) | str(x2) | str(_))) -> bool(false)) & ('a & ('d & (int \\ 0 | bool(true) | chr((1..255)) | str(x2)), any) & (any, 'c & (int \\ 0 | bool(true) | chr((1..255)) | str(x2))) -> bool(true)) | 'b where x1 = nan | pinf | pos | pzero | nzero | neg | ninf and x2 = enum \\ _ and x3 = 'd & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(x1) | str(x2) | str(_))"
+        "('a & ('d & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_)), any) & (any, 'c & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_))) -> bool(true) | bool(false)) & ('a & ('d & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_)), any) & (any, 'c & (0 | bool(false) | chr(0) | str(_))) -> bool(false)) & ('a & ('d & (0 | bool(false) | chr(0) | str(_)), any) & (any, 'c & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_))) -> bool(false)) & ('a & ('d & (int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _)), any) & (any, 'c & (int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _))) -> bool(true)) | 'b"
       ],
       [
-        "('a & (x1, any) & (any, 'c & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(x2) | str(x3) | str(_))) -> bool(true) | bool(false)) & ('a & (x1, any) & (any, 'c & (0 | bool(false) | chr(0) | str(_))) -> bool(false)) & ('a & ('d & (0 | bool(false) | chr(0) | str(_)), any) & (any, 'c & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(x2) | str(x3) | str(_))) -> bool(false)) & ('a & ('d & (int \\ 0 | bool(true) | chr((1..255)) | str(x3)), any) & (any, 'c & (int \\ 0 | bool(true) | chr((1..255)) | str(x3))) -> bool(true)) | 'b where x1 = 'd & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(x2) | str(x3) | str(_)) and x2 = nan | pinf | pos | pzero | nzero | neg | ninf and x3 = enum \\ _",
+        "('a & ('d & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_)), any) & (any, 'c & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_))) -> bool(true) | bool(false)) & ('a & ('d & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_)), any) & (any, 'c & (0 | bool(false) | chr(0) | str(_))) -> bool(false)) & ('a & ('d & (0 | bool(false) | chr(0) | str(_)), any) & (any, 'c & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_))) -> bool(false)) & ('a & ('d & (int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _)), any) & (any, 'c & (int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _))) -> bool(true)) | 'b",
         "'b"
       ]
     ]
@@ -20772,7 +20772,7 @@
     "mono": [],
     "constr": [
       [
-        "((x3, x3) -> bool(true | false)) & ((x2, x2) -> bool(true)) & ((x1, x3) | (x3, x1) -> bool(false)) where x1 = 0 | bool(false) | chr(0) | str(_) and x2 = int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _) and x3 = int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum)",
+        "((int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum), int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum)) -> bool(true | false)) & ((int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _), int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _)) -> bool(true)) & ((0 | bool(false) | chr(0) | str(_), int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum)) | (int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum), 0 | bool(false) | chr(0) | str(_)) -> bool(false))",
         "(42, 0) -> 'a"
       ]
     ]
@@ -20798,7 +20798,7 @@
     "mono": [],
     "constr": [
       [
-        "((x3, x3) -> bool(true | false)) & ((x2, x2) -> bool(true)) & ((x1, x3) | (x3, x1) -> bool(false)) where x1 = 0 | bool(false) | chr(0) | str(_) and x2 = int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _) and x3 = int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum)",
+        "((int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum), int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum)) -> bool(true | false)) & ((int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _), int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _)) -> bool(true)) & ((0 | bool(false) | chr(0) | str(_), int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum)) | (int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum), 0 | bool(false) | chr(0) | str(_)) -> bool(false))",
         "(str(_), bool(true)) -> 'a"
       ]
     ]
@@ -20824,7 +20824,7 @@
     "mono": [],
     "constr": [
       [
-        "((x3, x3) -> bool(true | false)) & ((x2, x2) -> bool(true)) & ((x1, x3) | (x3, x1) -> bool(false)) where x1 = 0 | bool(false) | chr(0) | str(_) and x2 = int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _) and x3 = int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum)",
+        "((int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum), int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum)) -> bool(true | false)) & ((int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _), int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _)) -> bool(true)) & ((0 | bool(false) | chr(0) | str(_), int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum)) | (int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum), 0 | bool(false) | chr(0) | str(_)) -> bool(false))",
         "(42, str(_42)) -> 'a"
       ]
     ]
@@ -20853,8 +20853,8 @@
     "mono": [],
     "constr": [
       [
-        "((x3, x3) -> bool(true | false)) & ((x2, x2) -> bool(true)) & ((x1, x3) | (x3, x1) -> bool(false)) where x1 = 0 | bool(false) | chr(0) | str(_) and x2 = int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _) and x3 = int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum)",
-        "(x1, x1) -> 'a where x1 = flt(nan | pinf | pos | pzero | nzero | neg | ninf)"
+        "((int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum), int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum)) -> bool(true | false)) & ((int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _), int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _)) -> bool(true)) & ((0 | bool(false) | chr(0) | str(_), int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum)) | (int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum), 0 | bool(false) | chr(0) | str(_)) -> bool(false))",
+        "(flt(nan | pinf | pos | pzero | nzero | neg | ninf), flt(nan | pinf | pos | pzero | nzero | neg | ninf)) -> 'a"
       ]
     ]
   },
@@ -20889,7 +20889,7 @@
     "mono": [],
     "constr": [
       [
-        "((x3, x3) -> bool(true | false)) & ((x2, x2) -> bool(true)) & ((x1, x3) | (x3, x1) -> bool(false)) where x1 = 0 | bool(false) | chr(0) | str(_) and x2 = int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _) and x3 = int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum)",
+        "((int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum), int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum)) -> bool(true | false)) & ((int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _), int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _)) -> bool(true)) & ((0 | bool(false) | chr(0) | str(_), int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum)) | (int | bool(true | false) | chr((0..255)) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum), 0 | bool(false) | chr(0) | str(_)) -> bool(false))",
         "(chr(99), str(_c)) -> 'a"
       ]
     ]
@@ -21139,7 +21139,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -21174,7 +21174,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -21273,7 +21273,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -21308,7 +21308,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -21338,7 +21338,7 @@
     "mono": [],
     "constr": [
       [
-        "('a & ('d & bool(true), any) & (any, 'c & bool(true)) -> bool(true)) & ('a & ('d & bool(true), any) & (any, 'c \\ (bool() \\ bool(~true))) -> bool(true)) & ('a & (x1, any) & (any, 'c & bool(true)) -> bool(true)) & ('a & (x1, any) & (any, 'c \\ (bool() \\ bool(~true))) -> bool(false)) where x1 = 'd \\ (bool() \\ bool(~true))",
+        "('a & ('d & bool(true), any) & (any, 'c & bool(true)) -> bool(true)) & ('a & ('d & bool(true), any) & (any, 'c \\ (bool() \\ bool(~true))) -> bool(true)) & ('a & ('d \\ (bool() \\ bool(~true)), any) & (any, 'c & bool(true)) -> bool(true)) & ('a & ('d \\ (bool() \\ bool(~true)), any) & (any, 'c \\ (bool() \\ bool(~true))) -> bool(false))",
         "'b"
       ]
     ]
@@ -21349,10 +21349,10 @@
     "constr": [
       [
         "'b",
-        "('a & ('d & bool(true), any) & (any, 'c & bool(true)) -> bool(true)) & ('a & ('d & bool(true), any) & (any, 'c \\ (bool() \\ bool(~true))) -> bool(true)) & ('a & (x1, any) & (any, 'c & bool(true)) -> bool(true)) & ('a & (x1, any) & (any, 'c \\ (bool() \\ bool(~true))) -> bool(false)) | 'b where x1 = 'd \\ (bool() \\ bool(~true))"
+        "('a & ('d & bool(true), any) & (any, 'c & bool(true)) -> bool(true)) & ('a & ('d & bool(true), any) & (any, 'c \\ (bool() \\ bool(~true))) -> bool(true)) & ('a & ('d \\ (bool() \\ bool(~true)), any) & (any, 'c & bool(true)) -> bool(true)) & ('a & ('d \\ (bool() \\ bool(~true)), any) & (any, 'c \\ (bool() \\ bool(~true))) -> bool(false)) | 'b"
       ],
       [
-        "('a & ('d & bool(true), any) & (any, 'c & bool(true)) -> bool(true)) & ('a & ('d & bool(true), any) & (any, 'c \\ (bool() \\ bool(~true))) -> bool(true)) & ('a & (x1, any) & (any, 'c & bool(true)) -> bool(true)) & ('a & (x1, any) & (any, 'c \\ (bool() \\ bool(~true))) -> bool(false)) | 'b where x1 = 'd \\ (bool() \\ bool(~true))",
+        "('a & ('d & bool(true), any) & (any, 'c & bool(true)) -> bool(true)) & ('a & ('d & bool(true), any) & (any, 'c \\ (bool() \\ bool(~true))) -> bool(true)) & ('a & ('d \\ (bool() \\ bool(~true)), any) & (any, 'c & bool(true)) -> bool(true)) & ('a & ('d \\ (bool() \\ bool(~true)), any) & (any, 'c \\ (bool() \\ bool(~true))) -> bool(false)) | 'b",
         "'b"
       ]
     ]
@@ -23906,7 +23906,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "('b, 'a) -> 'c"
       ]
     ],
@@ -24033,7 +24033,7 @@
     "mono": [],
     "constr": [
       [
-        "((x1, x1) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "((~(bool() \\ bool(~true)), ~(bool() \\ bool(~true))) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
         "('b, 'a) -> 'c"
       ]
     ],
@@ -24242,7 +24242,7 @@
     "mono": [],
     "constr": [
       [
-        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (x1 -> x1 -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (~(bool() \\ bool(~true)) -> ~(bool() \\ bool(~true)) -> bool(false))",
         "'a -> 'b"
       ]
     ],
@@ -24388,7 +24388,7 @@
     "mono": [],
     "constr": [
       [
-        "(x1 -> any -> bool(false)) & (any -> x1 -> bool(false)) & (bool(true) -> bool(true) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "(~(bool() \\ bool(~true)) -> any -> bool(false)) & (any -> ~(bool() \\ bool(~true)) -> bool(false)) & (bool(true) -> bool(true) -> bool(true))",
         "bool(true) -> 'a"
       ]
     ]
@@ -24476,7 +24476,7 @@
     "mono": [],
     "constr": [
       [
-        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (x1 -> x1 -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (~(bool() \\ bool(~true)) -> ~(bool() \\ bool(~true)) -> bool(false))",
         "bool(true) -> 'a"
       ]
     ]
@@ -24531,7 +24531,7 @@
     "mono": [],
     "constr": [
       [
-        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (x1 -> x1 -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (~(bool() \\ bool(~true)) -> ~(bool() \\ bool(~true)) -> bool(false))",
         "bool(false) -> 'a"
       ]
     ]
@@ -24624,7 +24624,7 @@
     "mono": [],
     "constr": [
       [
-        "(x1 -> any -> bool(false)) & (any -> x1 -> bool(false)) & (bool(true) -> bool(true) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "(~(bool() \\ bool(~true)) -> any -> bool(false)) & (any -> ~(bool() \\ bool(~true)) -> bool(false)) & (bool(true) -> bool(true) -> bool(true))",
         "bool(true) -> 'a"
       ]
     ]
@@ -24712,7 +24712,7 @@
     "mono": [],
     "constr": [
       [
-        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (x1 -> x1 -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (~(bool() \\ bool(~true)) -> ~(bool() \\ bool(~true)) -> bool(false))",
         "bool(true) -> 'a"
       ]
     ]
@@ -24767,7 +24767,7 @@
     "mono": [],
     "constr": [
       [
-        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (x1 -> x1 -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (~(bool() \\ bool(~true)) -> ~(bool() \\ bool(~true)) -> bool(false))",
         "bool(false) -> 'a"
       ]
     ]
@@ -24854,7 +24854,7 @@
     "mono": [],
     "constr": [
       [
-        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (x1 -> x1 -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (~(bool() \\ bool(~true)) -> ~(bool() \\ bool(~true)) -> bool(false))",
         "bool(true) -> 'a"
       ]
     ]
@@ -24897,7 +24897,7 @@
     "mono": [],
     "constr": [
       [
-        "(x1 -> any -> bool(false)) & (any -> x1 -> bool(false)) & (bool(true) -> bool(true) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "(~(bool() \\ bool(~true)) -> any -> bool(false)) & (any -> ~(bool() \\ bool(~true)) -> bool(false)) & (bool(true) -> bool(true) -> bool(true))",
         "bool(true) -> 'a"
       ]
     ]
@@ -24936,7 +24936,7 @@
     "mono": [],
     "constr": [
       [
-        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (x1 -> x1 -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (~(bool() \\ bool(~true)) -> ~(bool() \\ bool(~true)) -> bool(false))",
         "bool(false) -> 'a"
       ]
     ]
@@ -24990,7 +24990,7 @@
     "mono": [],
     "constr": [
       [
-        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (x1 -> x1 -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (~(bool() \\ bool(~true)) -> ~(bool() \\ bool(~true)) -> bool(false))",
         "bool(true) -> 'a"
       ]
     ]
@@ -25033,7 +25033,7 @@
     "mono": [],
     "constr": [
       [
-        "(x1 -> any -> bool(false)) & (any -> x1 -> bool(false)) & (bool(true) -> bool(true) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "(~(bool() \\ bool(~true)) -> any -> bool(false)) & (any -> ~(bool() \\ bool(~true)) -> bool(false)) & (bool(true) -> bool(true) -> bool(true))",
         "bool(true) -> 'a"
       ]
     ]
@@ -25072,7 +25072,7 @@
     "mono": [],
     "constr": [
       [
-        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (x1 -> x1 -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (~(bool() \\ bool(~true)) -> ~(bool() \\ bool(~true)) -> bool(false))",
         "bool(true) -> 'a"
       ]
     ]
@@ -25116,7 +25116,7 @@
     "mono": [],
     "constr": [
       [
-        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (x1 -> x1 -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (~(bool() \\ bool(~true)) -> ~(bool() \\ bool(~true)) -> bool(false))",
         "~bool(true) -> 'a"
       ]
     ]
@@ -25170,7 +25170,7 @@
     "mono": [],
     "constr": [
       [
-        "(x1 -> any -> bool(false)) & (any -> x1 -> bool(false)) & (bool(true) -> bool(true) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "(~(bool() \\ bool(~true)) -> any -> bool(false)) & (any -> ~(bool() \\ bool(~true)) -> bool(false)) & (bool(true) -> bool(true) -> bool(true))",
         "bool(true) -> 'a"
       ]
     ]
@@ -25209,7 +25209,7 @@
     "mono": [],
     "constr": [
       [
-        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (x1 -> x1 -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (~(bool() \\ bool(~true)) -> ~(bool() \\ bool(~true)) -> bool(false))",
         "bool(false) -> 'a"
       ]
     ]
@@ -25263,7 +25263,7 @@
     "mono": [],
     "constr": [
       [
-        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (x1 -> x1 -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (~(bool() \\ bool(~true)) -> ~(bool() \\ bool(~true)) -> bool(false))",
         "~bool(true) -> 'a"
       ]
     ]
@@ -25317,7 +25317,7 @@
     "mono": [],
     "constr": [
       [
-        "(x1 -> any -> bool(false)) & (any -> x1 -> bool(false)) & (bool(true) -> bool(true) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "(~(bool() \\ bool(~true)) -> any -> bool(false)) & (any -> ~(bool() \\ bool(~true)) -> bool(false)) & (bool(true) -> bool(true) -> bool(true))",
         "bool(true) -> 'a"
       ]
     ]
@@ -25356,7 +25356,7 @@
     "mono": [],
     "constr": [
       [
-        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (x1 -> x1 -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "(any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true)) & (~(bool() \\ bool(~true)) -> ~(bool() \\ bool(~true)) -> bool(false))",
         "bool(true) -> 'a"
       ]
     ]
@@ -25430,8 +25430,8 @@
     "mono": [],
     "constr": [
       [
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)",
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ]
   },
@@ -25452,8 +25452,8 @@
     "mono": [],
     "constr": [
       [
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)",
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ]
   },
@@ -25476,7 +25476,7 @@
     "constr": [
       [
         "int, bool(true | false), int, bool(true | false), int, ~bool(true | false)",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ]
   },
@@ -25486,7 +25486,7 @@
     "constr": [
       [
         "int, bool(true | false), int, bool(true | false), int, ~bool(true | false)",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ]
   },
@@ -25510,7 +25510,7 @@
     "constr": [
       [
         "int, bool(true | false), int, bool(true | false), ~int, any",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ]
   },
@@ -25520,7 +25520,7 @@
     "constr": [
       [
         "int, bool(true | false), int, bool(true | false), ~int, any",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ]
   },
@@ -25545,7 +25545,7 @@
     "constr": [
       [
         "int, bool(true | false), int, ~bool(true | false), any, any",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ]
   },
@@ -25555,7 +25555,7 @@
     "constr": [
       [
         "int, bool(true | false), int, ~bool(true | false), any, any",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ]
   },
@@ -25581,7 +25581,7 @@
     "constr": [
       [
         "int, bool(true | false), ~int, any, any, any",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ]
   },
@@ -25591,7 +25591,7 @@
     "constr": [
       [
         "int, bool(true | false), ~int, any, any, any",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ]
   },
@@ -25618,7 +25618,7 @@
     "constr": [
       [
         "int, ~bool(true | false), any, any, any, any",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ]
   },
@@ -25628,7 +25628,7 @@
     "constr": [
       [
         "int, ~bool(true | false), any, any, any, any",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ]
   },
@@ -25656,7 +25656,7 @@
     "constr": [
       [
         "~int, any, any, any, any, any",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ]
   },
@@ -25666,7 +25666,7 @@
     "constr": [
       [
         "~int, any, any, any, any, any",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ]
   },
@@ -25675,7 +25675,7 @@
     "mono": [],
     "constr": [
       [
-        "any -> any -> any -> any -> any -> any -> bool(false) | (int, x1, int, x1, int, x1) where x1 = bool(true | false)",
+        "any -> any -> any -> any -> any -> any -> bool(false) | (int, bool(true | false), int, bool(true | false), int, bool(true | false))",
         "'a"
       ]
     ]
@@ -25686,10 +25686,10 @@
     "constr": [
       [
         "'a",
-        "(any -> any -> any -> any -> any -> any -> bool(false) | (int, x1, int, x1, int, x1)) | 'a where x1 = bool(true | false)"
+        "(any -> any -> any -> any -> any -> any -> bool(false) | (int, bool(true | false), int, bool(true | false), int, bool(true | false))) | 'a"
       ],
       [
-        "(any -> any -> any -> any -> any -> any -> bool(false) | (int, x1, int, x1, int, x1)) | 'a where x1 = bool(true | false)",
+        "(any -> any -> any -> any -> any -> any -> bool(false) | (int, bool(true | false), int, bool(true | false), int, bool(true | false))) | 'a",
         "'a"
       ]
     ]
@@ -25748,8 +25748,8 @@
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
       [
-        "'a & int, 'b & bool(x1), 'c & int, 'd & bool(x1), 'e & int, 'f & bool(x1) where x1 = true | false",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "'a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e & int, 'f & bool(true | false)",
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -25772,8 +25772,8 @@
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
       [
-        "'a & int, 'b & bool(x1), 'c & int, 'd & bool(x1), 'e & int, 'f & bool(x1) where x1 = true | false",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "'a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e & int, 'f & bool(true | false)",
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -25802,8 +25802,8 @@
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
       [
-        "'a & int, 'b & bool(x1), 'c & int, 'd & bool(x1), 'e & int, 'f \\ bool(x1) where x1 = true | false",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "'a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e & int, 'f \\ bool(true | false)",
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -25813,8 +25813,8 @@
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
       [
-        "'a & int, 'b & bool(x1), 'c & int, 'd & bool(x1), 'e & int, 'f \\ bool(x1) where x1 = true | false",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "'a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e & int, 'f \\ bool(true | false)",
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -25850,7 +25850,7 @@
     "constr": [
       [
         "'a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e \\ int, 'f",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -25861,7 +25861,7 @@
     "constr": [
       [
         "'a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e \\ int, 'f",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -25903,7 +25903,7 @@
     "constr": [
       [
         "'a & int, 'b & bool(true | false), 'c & int, 'd \\ bool(true | false), 'e, 'f",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -25914,7 +25914,7 @@
     "constr": [
       [
         "'a & int, 'b & bool(true | false), 'c & int, 'd \\ bool(true | false), 'e, 'f",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -25962,7 +25962,7 @@
     "constr": [
       [
         "'a & int, 'b & bool(true | false), 'c \\ int, 'd, 'e, 'f",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -25973,7 +25973,7 @@
     "constr": [
       [
         "'a & int, 'b & bool(true | false), 'c \\ int, 'd, 'e, 'f",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26027,7 +26027,7 @@
     "constr": [
       [
         "'a & int, 'b \\ bool(true | false), 'c, 'd, 'e, 'f",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26038,7 +26038,7 @@
     "constr": [
       [
         "'a & int, 'b \\ bool(true | false), 'c, 'd, 'e, 'f",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26098,7 +26098,7 @@
     "constr": [
       [
         "'a \\ int, 'b, 'c, 'd, 'e, 'f",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26109,7 +26109,7 @@
     "constr": [
       [
         "'a \\ int, 'b, 'c, 'd, 'e, 'f",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26119,7 +26119,7 @@
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
       [
-        "'a -> 'b -> 'c -> 'd -> 'e -> 'f -> bool(false) | ('a & int, 'b & bool(x1), 'c & int, 'd & bool(x1), 'e & int, 'f & bool(x1)) where x1 = true | false",
+        "'a -> 'b -> 'c -> 'd -> 'e -> 'f -> bool(false) | ('a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e & int, 'f & bool(true | false))",
         "'g"
       ]
     ]
@@ -26130,10 +26130,10 @@
     "constr": [
       [
         "'g",
-        "('a -> 'b -> 'c -> 'd -> 'e -> 'f -> bool(false) | ('a & int, 'b & bool(x1), 'c & int, 'd & bool(x1), 'e & int, 'f & bool(x1))) | 'g where x1 = true | false"
+        "('a -> 'b -> 'c -> 'd -> 'e -> 'f -> bool(false) | ('a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e & int, 'f & bool(true | false))) | 'g"
       ],
       [
-        "('a -> 'b -> 'c -> 'd -> 'e -> 'f -> bool(false) | ('a & int, 'b & bool(x1), 'c & int, 'd & bool(x1), 'e & int, 'f & bool(x1))) | 'g where x1 = true | false",
+        "('a -> 'b -> 'c -> 'd -> 'e -> 'f -> bool(false) | ('a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e & int, 'f & bool(true | false))) | 'g",
         "'g"
       ]
     ]
@@ -26156,8 +26156,8 @@
     "mono": [],
     "constr": [
       [
-        "'f & int, 'e & bool(x1), 'd & int, 'c & bool(x1), 'b & int, 'a & bool(x1) where x1 = true | false",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b & int, 'a & bool(true | false)",
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26220,7 +26220,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26231,7 +26231,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26285,7 +26285,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26296,7 +26296,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26353,7 +26353,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26364,7 +26364,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26418,7 +26418,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26429,7 +26429,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26483,7 +26483,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26494,7 +26494,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26551,7 +26551,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26562,7 +26562,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26616,7 +26616,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26627,7 +26627,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26684,7 +26684,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26695,7 +26695,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26749,7 +26749,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26760,7 +26760,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26817,7 +26817,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26828,7 +26828,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26882,7 +26882,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26893,7 +26893,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26947,7 +26947,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -26958,7 +26958,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27018,7 +27018,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27029,7 +27029,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27083,7 +27083,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27094,7 +27094,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27151,7 +27151,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27162,7 +27162,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27216,7 +27216,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27227,7 +27227,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27284,7 +27284,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27295,7 +27295,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27349,7 +27349,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27360,7 +27360,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27417,7 +27417,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27428,7 +27428,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27482,7 +27482,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27493,7 +27493,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27550,7 +27550,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27561,7 +27561,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27615,7 +27615,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27626,7 +27626,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27683,7 +27683,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27694,7 +27694,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27748,7 +27748,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27759,7 +27759,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27816,7 +27816,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27827,7 +27827,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27881,7 +27881,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27892,7 +27892,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27946,7 +27946,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b \\ int, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -27957,7 +27957,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b \\ int, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28017,7 +28017,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28028,7 +28028,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28082,7 +28082,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28093,7 +28093,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28150,7 +28150,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28161,7 +28161,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28215,7 +28215,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28226,7 +28226,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28283,7 +28283,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28294,7 +28294,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28348,7 +28348,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28359,7 +28359,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28416,7 +28416,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28427,7 +28427,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28481,7 +28481,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28492,7 +28492,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28552,7 +28552,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28563,7 +28563,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28617,7 +28617,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28628,7 +28628,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28685,7 +28685,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28696,7 +28696,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28750,7 +28750,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28761,7 +28761,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28818,7 +28818,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28829,7 +28829,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28883,7 +28883,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28894,7 +28894,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28951,7 +28951,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -28962,7 +28962,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29016,7 +29016,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29027,7 +29027,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29087,7 +29087,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29098,7 +29098,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29152,7 +29152,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29163,7 +29163,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29220,7 +29220,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29231,7 +29231,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29285,7 +29285,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29296,7 +29296,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29353,7 +29353,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29364,7 +29364,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29418,7 +29418,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29429,7 +29429,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29486,7 +29486,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29497,7 +29497,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29551,7 +29551,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29562,7 +29562,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29619,7 +29619,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29630,7 +29630,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29684,7 +29684,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29695,7 +29695,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29752,7 +29752,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29763,7 +29763,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29817,7 +29817,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29828,7 +29828,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29885,7 +29885,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29896,7 +29896,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29950,7 +29950,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -29961,7 +29961,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30014,8 +30014,8 @@
     "mono": [],
     "constr": [
       [
-        "'f & int, 'e & bool(x1), 'd & int, 'c & bool(x1), 'b & int, 'a \\ bool(x1) where x1 = true | false",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b & int, 'a \\ bool(true | false)",
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30025,8 +30025,8 @@
     "mono": [],
     "constr": [
       [
-        "'f & int, 'e & bool(x1), 'd & int, 'c & bool(x1), 'b & int, 'a \\ bool(x1) where x1 = true | false",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b & int, 'a \\ bool(true | false)",
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30089,7 +30089,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30100,7 +30100,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30154,7 +30154,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30165,7 +30165,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30222,7 +30222,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30233,7 +30233,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30287,7 +30287,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30298,7 +30298,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30355,7 +30355,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30366,7 +30366,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30420,7 +30420,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30431,7 +30431,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30488,7 +30488,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30499,7 +30499,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30553,7 +30553,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30564,7 +30564,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30624,7 +30624,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30635,7 +30635,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30689,7 +30689,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30700,7 +30700,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30757,7 +30757,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30768,7 +30768,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30822,7 +30822,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30833,7 +30833,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30890,7 +30890,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30901,7 +30901,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30955,7 +30955,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -30966,7 +30966,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31023,7 +31023,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31034,7 +31034,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31088,7 +31088,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b \\ int, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31099,7 +31099,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b \\ int, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31159,7 +31159,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31170,7 +31170,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31224,7 +31224,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31235,7 +31235,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31292,7 +31292,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31303,7 +31303,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31357,7 +31357,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31368,7 +31368,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31425,7 +31425,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31436,7 +31436,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31490,7 +31490,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31501,7 +31501,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31558,7 +31558,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31569,7 +31569,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31623,7 +31623,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31634,7 +31634,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31694,7 +31694,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31705,7 +31705,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31759,7 +31759,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31770,7 +31770,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31827,7 +31827,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31838,7 +31838,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31892,7 +31892,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31903,7 +31903,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31960,7 +31960,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -31971,7 +31971,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32025,7 +32025,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32036,7 +32036,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32093,7 +32093,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32104,7 +32104,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32158,7 +32158,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b \\ int, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32169,7 +32169,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b \\ int, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32229,7 +32229,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32240,7 +32240,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32294,7 +32294,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32305,7 +32305,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32362,7 +32362,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32373,7 +32373,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32427,7 +32427,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32438,7 +32438,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32495,7 +32495,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32506,7 +32506,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32560,7 +32560,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32571,7 +32571,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32628,7 +32628,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32639,7 +32639,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32693,7 +32693,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32704,7 +32704,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32764,7 +32764,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32775,7 +32775,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32829,7 +32829,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32840,7 +32840,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32897,7 +32897,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32908,7 +32908,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32962,7 +32962,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -32973,7 +32973,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33030,7 +33030,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33041,7 +33041,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33095,7 +33095,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33106,7 +33106,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33163,7 +33163,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33174,7 +33174,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33228,7 +33228,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33239,7 +33239,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33299,7 +33299,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33310,7 +33310,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33364,7 +33364,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33375,7 +33375,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33432,7 +33432,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33443,7 +33443,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33497,7 +33497,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33508,7 +33508,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33565,7 +33565,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33576,7 +33576,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33630,7 +33630,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33641,7 +33641,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33698,7 +33698,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33709,7 +33709,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33763,7 +33763,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33774,7 +33774,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33831,7 +33831,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33842,7 +33842,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33896,7 +33896,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33907,7 +33907,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33964,7 +33964,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -33975,7 +33975,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34029,7 +34029,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34040,7 +34040,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34097,7 +34097,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34108,7 +34108,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34162,7 +34162,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34173,7 +34173,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34226,8 +34226,8 @@
     "mono": [],
     "constr": [
       [
-        "'f & int, 'e & bool(x1), 'd & int, 'c & bool(x1), 'b & int, 'a & bool(x1) where x1 = true | false",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b & int, 'a & bool(true | false)",
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34250,8 +34250,8 @@
     "mono": [],
     "constr": [
       [
-        "'f & int, 'e & bool(x1), 'd & int, 'c & bool(x1), 'b & int, 'a \\ bool(x1) where x1 = true | false",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b & int, 'a \\ bool(true | false)",
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34261,8 +34261,8 @@
     "mono": [],
     "constr": [
       [
-        "'f & int, 'e & bool(x1), 'd & int, 'c & bool(x1), 'b & int, 'a \\ bool(x1) where x1 = true | false",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b & int, 'a \\ bool(true | false)",
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34325,7 +34325,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34336,7 +34336,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34390,7 +34390,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34401,7 +34401,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34458,7 +34458,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34469,7 +34469,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34523,7 +34523,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34534,7 +34534,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34591,7 +34591,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34602,7 +34602,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34656,7 +34656,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34667,7 +34667,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34724,7 +34724,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34735,7 +34735,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34789,7 +34789,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34800,7 +34800,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34860,7 +34860,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34871,7 +34871,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34925,7 +34925,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34936,7 +34936,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -34993,7 +34993,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35004,7 +35004,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35058,7 +35058,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35069,7 +35069,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35126,7 +35126,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35137,7 +35137,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35191,7 +35191,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35202,7 +35202,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35259,7 +35259,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35270,7 +35270,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35324,7 +35324,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b \\ int, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35335,7 +35335,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b \\ int, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35395,7 +35395,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35406,7 +35406,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35460,7 +35460,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35471,7 +35471,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35528,7 +35528,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35539,7 +35539,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35593,7 +35593,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35604,7 +35604,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35661,7 +35661,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35672,7 +35672,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35726,7 +35726,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35737,7 +35737,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35794,7 +35794,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35805,7 +35805,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35859,7 +35859,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35870,7 +35870,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35930,7 +35930,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35941,7 +35941,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -35995,7 +35995,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36006,7 +36006,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36063,7 +36063,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36074,7 +36074,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36128,7 +36128,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36139,7 +36139,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36196,7 +36196,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36207,7 +36207,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36261,7 +36261,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36272,7 +36272,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36329,7 +36329,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36340,7 +36340,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36394,7 +36394,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b \\ int, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36405,7 +36405,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b \\ int, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36465,7 +36465,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36476,7 +36476,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36530,7 +36530,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36541,7 +36541,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36598,7 +36598,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36609,7 +36609,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36663,7 +36663,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36674,7 +36674,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36731,7 +36731,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36742,7 +36742,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36796,7 +36796,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36807,7 +36807,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36864,7 +36864,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36875,7 +36875,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36929,7 +36929,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -36940,7 +36940,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37000,7 +37000,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37011,7 +37011,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37065,7 +37065,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37076,7 +37076,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37133,7 +37133,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37144,7 +37144,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37198,7 +37198,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37209,7 +37209,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37266,7 +37266,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37277,7 +37277,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37331,7 +37331,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37342,7 +37342,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37399,7 +37399,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37410,7 +37410,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37464,7 +37464,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37475,7 +37475,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37535,7 +37535,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37546,7 +37546,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37600,7 +37600,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37611,7 +37611,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37668,7 +37668,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37679,7 +37679,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37733,7 +37733,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37744,7 +37744,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37801,7 +37801,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37812,7 +37812,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37866,7 +37866,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37877,7 +37877,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37934,7 +37934,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37945,7 +37945,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -37999,7 +37999,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -38010,7 +38010,7 @@
     "constr": [
       [
         "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -38067,7 +38067,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -38078,7 +38078,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -38132,7 +38132,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -38143,7 +38143,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -38200,7 +38200,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -38211,7 +38211,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -38265,7 +38265,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -38276,7 +38276,7 @@
     "constr": [
       [
         "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -38333,7 +38333,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -38344,7 +38344,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -38398,7 +38398,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "~(int, x1, int, x1, int, x1) where x1 = bool(true | false)"
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -38409,7 +38409,7 @@
     "constr": [
       [
         "'f \\ int, 'e, 'd, 'c, 'b, 'a",
-        "int, x1, int, x1, int, x1 where x1 = bool(true | false)"
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
@@ -38449,7 +38449,7 @@
     "mono": [],
     "constr": [
       [
-        "(x1 -> 'e & bool(x4) -> x2 -> 'c & bool(x4) -> x3 -> 'a & bool(x4) -> (x1, 'e & bool(x4), x2, 'c & bool(x4), x3, 'a & bool(x4))) & (x1 -> 'e & bool(x4) -> x2 -> 'c & bool(x4) -> x3 -> 'a \\ bool(x4) -> bool(false)) & (x1 -> 'e & bool(x4) -> x2 -> 'c & bool(x4) -> 'b \\ int -> x5) & (x1 -> 'e & bool(x4) -> x2 -> 'c \\ bool(x4) -> 'b -> x5) & (x1 -> 'e & bool(x4) -> 'd \\ int -> 'c -> 'b -> x5) & (x1 -> 'e \\ bool(x4) -> 'd -> 'c -> 'b -> x5) & ('f \\ int -> 'e -> 'd -> 'c -> 'b -> x5) where x1 = 'f & int and x2 = 'd & int and x3 = 'b & int and x4 = true | false and x5 = 'a -> bool(false)",
+        "('f & int -> 'e & bool(true | false) -> 'd & int -> 'c & bool(true | false) -> 'b & int -> 'a & bool(true | false) -> ('f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b & int, 'a & bool(true | false))) & ('f & int -> 'e & bool(true | false) -> 'd & int -> 'c & bool(true | false) -> 'b & int -> 'a \\ bool(true | false) -> bool(false)) & ('f & int -> 'e & bool(true | false) -> 'd & int -> 'c & bool(true | false) -> 'b \\ int -> 'a -> bool(false)) & ('f & int -> 'e & bool(true | false) -> 'd & int -> 'c \\ bool(true | false) -> 'b -> 'a -> bool(false)) & ('f & int -> 'e & bool(true | false) -> 'd \\ int -> 'c -> 'b -> 'a -> bool(false)) & ('f & int -> 'e \\ bool(true | false) -> 'd -> 'c -> 'b -> 'a -> bool(false)) & ('f \\ int -> 'e -> 'd -> 'c -> 'b -> 'a -> bool(false))",
         "'g"
       ]
     ]
@@ -38460,10 +38460,10 @@
     "constr": [
       [
         "'g",
-        "(x4 -> 'e & bool(x2) -> x3 -> 'c & bool(x2) -> x1 -> 'a & bool(x2) -> (x4, 'e & bool(x2), x3, 'c & bool(x2), x1, 'a & bool(x2))) & (x4 -> 'e & bool(x2) -> x3 -> 'c & bool(x2) -> x1 -> 'a \\ bool(x2) -> bool(false)) & (x4 -> 'e & bool(x2) -> x3 -> 'c & bool(x2) -> 'b \\ int -> x5) & (x4 -> 'e & bool(x2) -> x3 -> 'c \\ bool(x2) -> 'b -> x5) & (x4 -> 'e & bool(x2) -> 'd \\ int -> 'c -> 'b -> x5) & (x4 -> 'e \\ bool(x2) -> 'd -> 'c -> 'b -> x5) & ('f \\ int -> 'e -> 'd -> 'c -> 'b -> x5) | 'g where x1 = 'b & int and x2 = true | false and x3 = 'd & int and x4 = 'f & int and x5 = 'a -> bool(false)"
+        "('f & int -> 'e & bool(true | false) -> 'd & int -> 'c & bool(true | false) -> 'b & int -> 'a & bool(true | false) -> ('f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b & int, 'a & bool(true | false))) & ('f & int -> 'e & bool(true | false) -> 'd & int -> 'c & bool(true | false) -> 'b & int -> 'a \\ bool(true | false) -> bool(false)) & ('f & int -> 'e & bool(true | false) -> 'd & int -> 'c & bool(true | false) -> 'b \\ int -> 'a -> bool(false)) & ('f & int -> 'e & bool(true | false) -> 'd & int -> 'c \\ bool(true | false) -> 'b -> 'a -> bool(false)) & ('f & int -> 'e & bool(true | false) -> 'd \\ int -> 'c -> 'b -> 'a -> bool(false)) & ('f & int -> 'e \\ bool(true | false) -> 'd -> 'c -> 'b -> 'a -> bool(false)) & ('f \\ int -> 'e -> 'd -> 'c -> 'b -> 'a -> bool(false)) | 'g"
       ],
       [
-        "(x4 -> 'e & bool(x2) -> x3 -> 'c & bool(x2) -> x1 -> 'a & bool(x2) -> (x4, 'e & bool(x2), x3, 'c & bool(x2), x1, 'a & bool(x2))) & (x4 -> 'e & bool(x2) -> x3 -> 'c & bool(x2) -> x1 -> 'a \\ bool(x2) -> bool(false)) & (x4 -> 'e & bool(x2) -> x3 -> 'c & bool(x2) -> 'b \\ int -> x5) & (x4 -> 'e & bool(x2) -> x3 -> 'c \\ bool(x2) -> 'b -> x5) & (x4 -> 'e & bool(x2) -> 'd \\ int -> 'c -> 'b -> x5) & (x4 -> 'e \\ bool(x2) -> 'd -> 'c -> 'b -> x5) & ('f \\ int -> 'e -> 'd -> 'c -> 'b -> x5) | 'g where x1 = 'b & int and x2 = true | false and x3 = 'd & int and x4 = 'f & int and x5 = 'a -> bool(false)",
+        "('f & int -> 'e & bool(true | false) -> 'd & int -> 'c & bool(true | false) -> 'b & int -> 'a & bool(true | false) -> ('f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b & int, 'a & bool(true | false))) & ('f & int -> 'e & bool(true | false) -> 'd & int -> 'c & bool(true | false) -> 'b & int -> 'a \\ bool(true | false) -> bool(false)) & ('f & int -> 'e & bool(true | false) -> 'd & int -> 'c & bool(true | false) -> 'b \\ int -> 'a -> bool(false)) & ('f & int -> 'e & bool(true | false) -> 'd & int -> 'c \\ bool(true | false) -> 'b -> 'a -> bool(false)) & ('f & int -> 'e & bool(true | false) -> 'd \\ int -> 'c -> 'b -> 'a -> bool(false)) & ('f & int -> 'e \\ bool(true | false) -> 'd -> 'c -> 'b -> 'a -> bool(false)) & ('f \\ int -> 'e -> 'd -> 'c -> 'b -> 'a -> bool(false)) | 'g",
         "'g"
       ]
     ]
@@ -39329,7 +39329,7 @@
     "mono": [],
     "constr": [
       [
-        "('a \\ bool(false) -> (x1, x1)) & ('a & bool(false) -> bool(false)) where x1 = 'a \\ bool(false)",
+        "('a \\ bool(false) -> ('a \\ bool(false), 'a \\ bool(false))) & ('a & bool(false) -> bool(false))",
         "'b"
       ]
     ]
@@ -39340,10 +39340,10 @@
     "constr": [
       [
         "'b",
-        "('a \\ bool(false) -> (x1, x1)) & ('a & bool(false) -> bool(false)) | 'b where x1 = 'a \\ bool(false)"
+        "('a \\ bool(false) -> ('a \\ bool(false), 'a \\ bool(false))) & ('a & bool(false) -> bool(false)) | 'b"
       ],
       [
-        "('a \\ bool(false) -> (x1, x1)) & ('a & bool(false) -> bool(false)) | 'b where x1 = 'a \\ bool(false)",
+        "('a \\ bool(false) -> ('a \\ bool(false), 'a \\ bool(false))) & ('a & bool(false) -> bool(false)) | 'b",
         "'b"
       ]
     ]
@@ -39353,7 +39353,7 @@
     "mono": [],
     "constr": [
       [
-        "((x1, x1) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "((~(bool() \\ bool(~true)), ~(bool() \\ bool(~true))) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -39432,7 +39432,7 @@
     "mono": [],
     "constr": [
       [
-        "((x1, x1) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "((~(bool() \\ bool(~true)), ~(bool() \\ bool(~true))) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
         "(bool(true) | bool(false), bool(true) | bool(false)) -> 'a"
       ]
     ]
@@ -39500,7 +39500,7 @@
     "mono": [],
     "constr": [
       [
-        "((x1, x1) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "((~(bool() \\ bool(~true)), ~(bool() \\ bool(~true))) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -39530,7 +39530,7 @@
     "mono": [],
     "constr": [
       [
-        "((x1, x1) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "((~(bool() \\ bool(~true)), ~(bool() \\ bool(~true))) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -39682,7 +39682,7 @@
     "mono": [],
     "constr": [
       [
-        "((x1, x1) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "((~(bool() \\ bool(~true)), ~(bool() \\ bool(~true))) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -39751,7 +39751,7 @@
     "mono": [],
     "constr": [
       [
-        "((x1, x1) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "((~(bool() \\ bool(~true)), ~(bool() \\ bool(~true))) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -39848,7 +39848,7 @@
     "mono": [],
     "constr": [
       [
-        "((x1, x1) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "((~(bool() \\ bool(~true)), ~(bool() \\ bool(~true))) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -39914,7 +39914,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -39988,7 +39988,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -40074,7 +40074,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -40130,7 +40130,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(true) | bool(false)) -> 'a"
       ]
     ]
@@ -40160,7 +40160,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -40307,7 +40307,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -40329,7 +40329,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -40420,7 +40420,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -40442,7 +40442,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -40658,7 +40658,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -40698,7 +40698,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> bool(true)"
       ]
     ]
@@ -40759,7 +40759,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -40845,7 +40845,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -40902,7 +40902,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -40942,7 +40942,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> bool(true)"
       ]
     ]
@@ -41001,7 +41001,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -41051,7 +41051,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -41091,7 +41091,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> bool(true)"
       ]
     ]
@@ -41155,7 +41155,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(true) | bool(false)) -> 'a"
       ]
     ]
@@ -41183,7 +41183,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -41223,7 +41223,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> bool(true)"
       ]
     ]
@@ -41357,7 +41357,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -41403,7 +41403,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -41442,7 +41442,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -41490,7 +41490,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(true) | bool(false)) -> 'a"
       ]
     ]
@@ -41531,7 +41531,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(true) | bool(false)) -> 'a"
       ]
     ]
@@ -41646,7 +41646,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -41698,7 +41698,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -41821,7 +41821,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -41928,7 +41928,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -42574,7 +42574,7 @@
     "mono": [],
     "constr": [
       [
-        "((x1, x1) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "((~(bool() \\ bool(~true)), ~(bool() \\ bool(~true))) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
         "(bool(true) | bool(false), bool(true) | bool(false)) -> 'a"
       ]
     ]
@@ -42700,7 +42700,7 @@
     "mono": [],
     "constr": [
       [
-        "((x1, x1) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "((~(bool() \\ bool(~true)), ~(bool() \\ bool(~true))) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -42788,7 +42788,7 @@
     "mono": [],
     "constr": [
       [
-        "((x1, x1) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "((~(bool() \\ bool(~true)), ~(bool() \\ bool(~true))) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -42810,7 +42810,7 @@
     "mono": [],
     "constr": [
       [
-        "((x1, x1) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true)) where x1 = ~(bool() \\ bool(~true))",
+        "((~(bool() \\ bool(~true)), ~(bool() \\ bool(~true))) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -43776,7 +43776,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -43870,7 +43870,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -43953,7 +43953,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -44018,7 +44018,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true) | bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -44049,7 +44049,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -44276,7 +44276,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -44332,7 +44332,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -44462,7 +44462,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -44590,7 +44590,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -44696,7 +44696,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -44936,7 +44936,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -45120,7 +45120,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> bool(true)"
       ]
     ]
@@ -45190,7 +45190,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true) | bool(false), bool(true) | bool(false)) -> 'a"
       ]
     ]
@@ -45256,7 +45256,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> bool(true)"
       ]
     ]
@@ -45410,7 +45410,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -45432,7 +45432,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -45539,7 +45539,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -45582,7 +45582,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -45644,7 +45644,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -45684,7 +45684,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> bool(true)"
       ]
     ]
@@ -45760,7 +45760,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -45845,7 +45845,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -45927,7 +45927,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -46046,7 +46046,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -46096,7 +46096,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -46136,7 +46136,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "'a -> bool(true)"
       ]
     ]
@@ -46325,7 +46325,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -46382,7 +46382,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -46875,7 +46875,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -46932,7 +46932,7 @@
     "mono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, x1) | (x1, any) -> bool(false)) where x1 = ~(bool() \\ bool(~true))",
+        "((bool(true), bool(true)) -> bool(true)) & ((any, ~(bool() \\ bool(~true))) | (~(bool() \\ bool(~true)), any) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -47201,7 +47201,7 @@
     "mono": [],
     "constr": [
       [
-        "('b & int -> ('a & ('d & int, any) -> int) & ('a & ('d, any) & (~int, any) -> 0)) & ('b & str(enum) -> ('a & ('d & int, any) -> int) & (x1 -> 0)) & ('b \\ int -> x1 -> 0) where x1 = 'a & ('d, any) & (~int, any)",
+        "('b & int -> ('a & ('d & int, any) -> int) & ('a & ('d, any) & (~int, any) -> 0)) & ('b & str(enum) -> ('a & ('d & int, any) -> int) & ('a & ('d, any) & (~int, any) -> 0)) & ('b \\ int -> 'a & ('d, any) & (~int, any) -> 0)",
         "'c"
       ]
     ]
@@ -47212,10 +47212,10 @@
     "constr": [
       [
         "'c",
-        "('b & int -> ('a & ('d & int, any) -> int) & ('a & ('d, any) & (~int, any) -> 0)) & ('b & str(enum) -> ('a & ('d & int, any) -> int) & (x1 -> 0)) & ('b \\ int -> x1 -> 0) | 'c where x1 = 'a & ('d, any) & (~int, any)"
+        "('b & int -> ('a & ('d & int, any) -> int) & ('a & ('d, any) & (~int, any) -> 0)) & ('b & str(enum) -> ('a & ('d & int, any) -> int) & ('a & ('d, any) & (~int, any) -> 0)) & ('b \\ int -> 'a & ('d, any) & (~int, any) -> 0) | 'c"
       ],
       [
-        "('b & int -> ('a & ('d & int, any) -> int) & ('a & ('d, any) & (~int, any) -> 0)) & ('b & str(enum) -> ('a & ('d & int, any) -> int) & (x1 -> 0)) & ('b \\ int -> x1 -> 0) | 'c where x1 = 'a & ('d, any) & (~int, any)",
+        "('b & int -> ('a & ('d & int, any) -> int) & ('a & ('d, any) & (~int, any) -> 0)) & ('b & str(enum) -> ('a & ('d & int, any) -> int) & ('a & ('d, any) & (~int, any) -> 0)) & ('b \\ int -> 'a & ('d, any) & (~int, any) -> 0) | 'c",
         "'c"
       ]
     ]
