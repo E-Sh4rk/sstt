@@ -102,6 +102,7 @@ module Raw : sig
     val rectype : Base.typ -> TVar.t -> Base.typ
 
     val tallying : TVarSet.t -> (Base.typ * Base.typ) list -> Subst.t list
+    val tallying_with_prio : TVar.t list -> TVarSet.t -> (Base.typ * Base.typ) list -> Subst.t list
     val test_tallying : TVarSet.t -> (Base.typ * Base.typ) list -> bool
 end
 

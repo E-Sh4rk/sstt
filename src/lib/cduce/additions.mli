@@ -11,7 +11,7 @@ exception TypeDefinitionError of string
 type type_base =
     | TInt of Z.t option * Z.t option | TSChar of char | TSString of string
     | TBool | TTrue | TFalse | TUnit | TChar | TAny | TEmpty | TNil
-    | TString | TList | TFloat
+    | TString | TList | TFloat | TAtom
 
 type type_regexp =
     | ReEpsilon | ReEmpty

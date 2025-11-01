@@ -59,6 +59,7 @@ let from_label lbl = CD.Ident.Label.get_ascii lbl
 
 let mk_atom ascii_name =
     ascii_name |> CD.AtomSet.V.mk_ascii |> CD.AtomSet.atom |> CD.Types.atom
+let atom_any = CD.Types.Atom.any
 let true_typ = CD.Builtin_defs.true_type
 let false_typ = CD.Builtin_defs.false_type
 let bool_typ = cup true_typ false_typ

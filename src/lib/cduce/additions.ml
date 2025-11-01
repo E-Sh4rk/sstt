@@ -12,7 +12,7 @@ exception TypeDefinitionError of string
 type type_base =
     | TInt of Z.t option * Z.t option | TSChar of char | TSString of string
     | TBool | TTrue | TFalse | TUnit | TChar | TAny | TEmpty | TNil
-    | TString | TList | TFloat
+    | TString | TList | TFloat | TAtom
 
 type type_regexp =
     | ReEpsilon | ReEmpty
@@ -53,6 +53,7 @@ let type_base_to_typ t =
     | TUnit -> unit_typ | TChar -> char_typ
     | TAny -> any | TEmpty -> empty
     | TString -> string_typ | TList -> list_typ
+    | TAtom -> atom_any
 
 let get_non_parametric_type env name = StrMap.find_opt name env
 

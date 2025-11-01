@@ -43,6 +43,7 @@ val cap_o : typ -> typ -> typ
 val diff_o : typ -> typ -> typ
 
 val mk_atom : string -> typ
+val atom_any : typ
 val mk_new_typ: unit -> node
 val define_typ: node -> typ -> unit
 (*val normalize_typ: typ -> typ*)

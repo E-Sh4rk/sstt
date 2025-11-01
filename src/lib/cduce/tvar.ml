@@ -250,6 +250,9 @@ module Raw = struct
       CD.Types.Tallying.tallying d cs
       (* |> (check_tallying_solution cs) *)
 
+  let tallying_with_prio order d cs =
+    CD.Types.Tallying.tallying ~var_order:order d cs
+
   let test_tallying d cs =
     let res = CD.Types.Tallying.test_tallying d cs in
     (* let res' = tallying d cs <> [] in *)
