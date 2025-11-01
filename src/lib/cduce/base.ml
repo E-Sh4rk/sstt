@@ -37,18 +37,18 @@ let cup t1 t2 = CD.Types.cup t1 t2
 let cap t1 t2 = CD.Types.cap t1 t2
 let diff = CD.Types.diff
 let neg = CD.Types.neg
-let neg_ext t =
+(* let neg_ext t =
   if CD.Types.Record.has_absent t
   then neg t
-  else CD.Types.Record.or_absent (neg t)
+  else CD.Types.Record.or_absent (neg t) *)
 
 (* NOTE: arrow types are not automatically simplified by Cduce,
    thus we avoid useless cap\cup in order to keep simple types *)
-let cup_o t1 t2 = if subtype t1 t2 then t2
+(* let cup_o t1 t2 = if subtype t1 t2 then t2
 else if subtype t2 t1 then t1 else CD.Types.cup t1 t2
 let cap_o t1 t2 = if subtype t1 t2 then t1
 else if subtype t2 t1 then t2 else CD.Types.cap t1 t2
-let diff_o t1 t2 = cap_o t1 (neg_ext t2)
+let diff_o t1 t2 = cap_o t1 (neg_ext t2) *)
 
 (* ----- *)
 

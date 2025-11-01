@@ -225,8 +225,8 @@ module NHT = Hashtbl.Make(CD.Types.Node)
 
 let conj ts = List.fold_left cap any ts
 let disj ts = List.fold_left cup empty ts
-let conj_o ts = List.fold_left cap_o any ts
-let disj_o ts = List.fold_left cup_o empty ts
+(* let conj_o ts = List.fold_left cap_o any ts
+let disj_o ts = List.fold_left cup_o empty ts *)
 
 let is_test_type t =
     let exception NotTestType in
@@ -507,7 +507,7 @@ let apply_subst_simplify s t =
 
 let instantiate ss t =
     List.map (fun s -> apply_subst_simplify s t) ss
-    |> conj_o
+    |> (* conj_o *) conj
 
 let bot_instance =
     clean_type ~pos:empty ~neg:any

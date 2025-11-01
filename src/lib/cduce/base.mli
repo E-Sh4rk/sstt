@@ -38,9 +38,9 @@ val neg : typ -> typ
 val cup : typ -> typ -> typ
 val cap : typ -> typ -> typ
 val diff : typ -> typ -> typ
-val cup_o : typ -> typ -> typ
+(* val cup_o : typ -> typ -> typ
 val cap_o : typ -> typ -> typ
-val diff_o : typ -> typ -> typ
+val diff_o : typ -> typ -> typ *)
 
 val mk_atom : string -> typ
 val atom_any : typ

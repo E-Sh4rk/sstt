@@ -58,8 +58,8 @@ val has_atom : type_env -> string -> bool
 
 val conj : typ list -> typ
 val disj : typ list -> typ
-val conj_o : typ list -> typ
-val disj_o : typ list -> typ
+(* val conj_o : typ list -> typ
+val disj_o : typ list -> typ *)
 
 val is_test_type : typ -> bool
 
