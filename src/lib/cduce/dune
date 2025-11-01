@@ -1,0 +1,5 @@
+(library
+ (name cduce)
+ (public_name sstt.cduce)
+ (libraries cduce-types cduce.lib.core)
+ (modules (:standard)))

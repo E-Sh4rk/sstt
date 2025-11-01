@@ -11,6 +11,8 @@ depends: [
   "dune" {>= "3.17"}
   "sstt"
   "menhir"
+  "cduce-types" {= "dev"}
+  "cduce" {= "dev"}
   "odoc" {with-doc}
 ]
 build: [
@@ -26,4 +28,8 @@ build: [
     "@runtest" {with-test}
     "@doc" {with-doc}
   ]
+]
+pin-depends: [
+  [ "cduce-types.dev" "git+https://gitlab.math.univ-paris-diderot.fr/cduce/cduce" ]
+  [ "cduce.dev" "git+https://gitlab.math.univ-paris-diderot.fr/cduce/cduce" ]
 ]

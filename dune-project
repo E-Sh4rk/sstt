@@ -33,7 +33,7 @@
 (package
  (name sstt-repl)
  (synopsis "Simple Set-Theoretic Types REPL library")
- (depends sstt menhir)
+ (depends sstt menhir (cduce-types (= dev)) (cduce  (= dev)))
 )
 
 (package
