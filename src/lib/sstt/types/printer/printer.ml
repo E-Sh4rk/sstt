@@ -590,3 +590,5 @@ let print_subst' = print_subst empty_params
 let cap_descr = cap'
 let cup_descr = cup'
 let neg_descr = neg
+let map_descr = map_descr
+let map = map_t
