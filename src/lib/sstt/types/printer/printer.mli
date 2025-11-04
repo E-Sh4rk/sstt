@@ -72,6 +72,7 @@ val cup_descr : descr -> descr -> descr
 val cap_descr : descr -> descr -> descr
 val neg_descr : descr -> descr
 val map_descr : (descr -> op) -> descr -> descr
+val map : (descr -> op) -> t -> t
 
 val empty_params : params
 
