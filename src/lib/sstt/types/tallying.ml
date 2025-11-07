@@ -144,13 +144,13 @@ module Make(VO:VarOrder) = struct
   end
 
   module Toplevel = struct
-    (* Extract the smallest polymorphic (not in delta) top-level variable of a type *)
     let to_ty e = [ e ] |> VDescr.of_dnf |> Ty.of_def
 
     let pos_var v e = (Ty.empty, v, Ty.neg (to_ty e))
 
     let neg_var v e = (to_ty e, v, Ty.any)
 
+    (* Extract a constraint for the smallest polymorphic (not in delta) top-level variable of a summand *)
     let extract_smallest delta (pvs, nvs, d) =
       let rec find_min_var acc o_min l =
         match l, o_min with
@@ -287,27 +287,24 @@ module Make(VO:VarOrder) = struct
     in
     norm_ty t
 
-  let merge memo delta cs =
-    (* Step1 from the paper is useless, since the ConstrSet maintains
-       merged constraints
-    *)
+  let propagate memo delta cs =
     let memo_ty = VDHash.create 8 in
-    let rec step2 prev (cs : CS.t) =
+    let rec aux prev (cs : CS.t) =
       match cs with
       | CS.[] -> prev |> CSS.singleton
       | ((t',_, t) as constr) :: cs' ->
         let ty = Ty.diff t' t in
         if VDHash.mem memo_ty (Ty.def ty) then
-          step2 (CS.add delta constr prev) cs'
+          aux (CS.add delta constr prev) cs'
         else
           let () = VDHash.add memo_ty (Ty.def ty) () in
           let css = norm memo delta ty in
           let css' () = cs |> CS.cap delta prev |> CSS.singleton in
           let css = CSS.cap_lazy delta css css' in
-          let res = css |> CSS.to_list |> List.map (step2 CS.any) |> CSS.disj in
+          let res = css |> CSS.to_list |> List.map (aux CS.any) |> CSS.disj in
           VDHash.remove memo_ty (Ty.def ty); res
     in
-    step2 CS.any cs
+    aux CS.any cs
 
   let solve cs =
     let renaming = ref Subst.identity in
@@ -334,7 +331,7 @@ module Make(VO:VarOrder) = struct
     let ncss = cs
                |> CSS.map_conj delta (fun (s,t) -> norm memo delta (Ty.diff s t)) in
     let mcss = ncss
-               |> CSS.to_list |> List.map (merge memo delta) |> CSS.disj in
+               |> CSS.to_list |> List.map (propagate memo delta) |> CSS.disj in
     mcss |> CSS.to_list |> List.map solve
 end
 
