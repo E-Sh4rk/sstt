@@ -25,15 +25,13 @@ open Sigs
 
 (** {2 Types and descriptors }*)
 
-module Ty : Ty = struct
+module rec Ty : Ty = struct
   module N = Node.Node
 
   type t = N.t
 
   module VDescr = Node.VDescr
-  module O = struct
-    include Records.OTy(N)
-  end
+  module F = VDescr.Descr.Records.Atom.FieldTy
   let simpl t = N.with_own_cache N.simplify t ; t
   let s f t = f t |> simpl
   let s' f t = simpl t |> f
