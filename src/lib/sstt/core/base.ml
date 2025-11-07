@@ -57,3 +57,11 @@ module RowVar = Id.NamedIdentifier()
 (** @canonical Sstt.VarSet *)
 module RowVarSet = Set.Make(RowVar)
 (** Sets of row variables. *)
+
+(** @canonical Sstt.FieldVar *)
+module FieldVar = Id.NamedIdentifier()
+(** Field variables for polymorphic records. *)
+
+(** @canonical Sstt.FieldVarSet *)
+module FieldVarSet = Set.Make(FieldVar)
+(** Sets of field variables. *)
