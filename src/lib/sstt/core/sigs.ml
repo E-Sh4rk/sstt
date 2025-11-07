@@ -458,6 +458,9 @@ module type FieldTy = sig
   (** Emptyness test. [is_empty t] returns [true] if and only if [t] is semantically equivalent
       to [empty]. *)
 
+  val leq : t -> t -> bool
+  (** Subtyping test. [leq t1 t2] returns [true] if and only if [t1] is a subtype of [t2]. *)
+
    val is_absent : t -> bool
    (** Tests whether [t] is the absent singleton type.  *)
 
