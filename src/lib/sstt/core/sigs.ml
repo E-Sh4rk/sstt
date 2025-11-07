@@ -472,6 +472,9 @@ module type FieldTy = sig
 
    val map_nodes : (node -> node) -> t -> t
    (** [map_nodes f t] applies [f] to the underlying type of [t]. *)
+
+   val fvars : t -> FieldVarSet.t
+   (** [fvars t] returns the set of field variables in [t].  *)
 end
 
 module type RecordAtom = sig

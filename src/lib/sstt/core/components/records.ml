@@ -2,8 +2,8 @@ open Base
 open Sigs
 open Sstt_utils
 
-module FieldVar = struct
-  include Id.NamedIdentifier()
+module FieldVarAtom = struct
+  include FieldVar
   let simplify t = t
 end
 
@@ -15,7 +15,7 @@ module NodeLeaf(N:Node) = struct
 end
 
 module BTy(N:Node) = struct
-  include Bdd.Make(FieldVar)(NodeLeaf(N))
+  include Bdd.Make(FieldVarAtom)(NodeLeaf(N))
   let is_any t =
     match t with
     | Leaf (l,_) -> N.is_any l
@@ -34,7 +34,7 @@ module BTy(N:Node) = struct
     | Node _ -> N.any
 end
 module BUndef(N:Node) = struct
-  include Bdd.Make(FieldVar)(Bdd.BoolLeaf)
+  include Bdd.Make(FieldVarAtom)(Bdd.BoolLeaf)
   let is_any t =
     match t with
     | Leaf (l,_) -> l
@@ -77,6 +77,10 @@ module FieldTy(N:Node) = struct
   let required t = (Left.leaf t, Right.empty)
   let optional t = (Left.leaf t, Right.any)
   let get (l,_) = Left.get l
+
+  let fvars (l,r) = (Left.atoms l) @ (Right.atoms r) |> FieldVarSet.of_list
+
+  let vars _ = VarSet.empty (** TODO *)
 
   let cap (n1, b1) (n2, b2) = (Left.cap n1 n2, Right.cap b1 b2)
   let cap = fcap ~empty ~any ~cap
