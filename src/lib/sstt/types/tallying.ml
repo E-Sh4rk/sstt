@@ -2,14 +2,27 @@ open Core
 open Sstt_utils
 
 module type VarSettings = sig
-  val compare : Var.t -> Var.t -> int
-  val delta : VarSet.t
+  val tcompare : Var.t -> Var.t -> int
+  val fcompare : FieldVar.t -> FieldVar.t -> int
+  val rcompare : RowVar.t -> RowVar.t -> int
+  val delta : (VarSet.t * FieldVarSet.t * RowVarSet.t)
 end
+
+(* module type LabelOrder = sig
+  val compare : Label.t -> Label.t -> int
+end *)
+
+(* module Row = struct
+  type t = Records.t * LabelSet.t
+end *)
 
 type constr = Ty.t * Ty.t
 
 
 module Make(VS:VarSettings) = struct
+
+  exception Unsat
+
   module Var = struct
     include Var
     (* prevent from using default comparison*)
@@ -17,21 +30,91 @@ module Make(VS:VarSettings) = struct
     let compare (_:t) (_:t) = () [@@ocaml.warning "-32"]
   end
 
-  module Constr = struct
+  module type Constraint = sig
+    type var
+    module VSet : Set.S with type elt = var
+    module T : sig
+      type t
+      val vars : t -> VSet.t
+      val leq : t -> t -> bool
+      val cup : t -> t -> t
+      val cap : t -> t -> t
+    end
+    type t = T.t * var * T.t
+    val delta : VSet.t
+    val subsumes : t -> t -> bool
+    val compare : t -> t -> int
+    val vcompare : t -> t -> int
+  end
+
+  module TConstr : Constraint
+    with type VSet.t = VarSet.t
+    and type T.t  = Ty.t
+    and type var = Var.t
+  = struct
+    type var = Var.t
+    module T = Ty
     type t = Ty.t * Var.t * Ty.t (* s ≤ α ≤ t *)
+
+    module VSet = VarSet
+    let delta = VS.delta |> (fun (vset, _, _) -> vset)
 
     (* C1 subsumes C2 if it has the same variable
        and gives better bounds (larger lower bound and smaller upper bound)
     *)
     let subsumes (t1, v1, t1') (t2, v2, t2') =
-      VS.compare v1 v2 = 0 &&
+      VS.tcompare v1 v2 = 0 &&
       Ty.leq t2 t1 && Ty.leq t1' t2'
 
     let compare (t1,v1,t1') (t2,v2,t2')=
-      VS.compare v1 v2 |> ccmp
+      VS.tcompare v1 v2 |> ccmp
         Ty.compare t1 t2 |> ccmp
         Ty.compare t1' t2'
+
+    let vcompare (_,v1,_) (_,v2,_) = VS.tcompare v1 v2
   end
+
+  module FConstr : Constraint
+    with type VSet.t = FieldVarSet.t
+    and type T.t  = Ty.F.t
+    and type var = FieldVar.t
+  = struct
+    type var = FieldVar.t
+    module T = struct 
+      include Ty.F
+      let vars = fvars
+    end
+    type t = Ty.F.t * FieldVar.t * Ty.F.t
+
+    module VSet = FieldVarSet
+
+    let delta = VS.delta |> (fun (_, fset, _) -> fset)
+
+    let subsumes (t1, v1, t1') (t2, v2, t2') =
+      VS.fcompare v1 v2 = 0 &&
+      Ty.F.leq t2 t1 && Ty.F.leq t1' t2'
+
+    let compare (t1,v1,t1') (t2,v2,t2')=
+      VS.fcompare v1 v2 |> ccmp
+        Ty.F.compare t1 t2 |> ccmp
+        Ty.F.compare t1' t2'
+    
+    let vcompare (_,v1,_) (_,v2,_) = VS.fcompare v1 v2
+  end
+
+  (* module RConstr : Constraint with type var := RowVar.t = struct
+    type t = Row.t * RowVar.t * Row.t (* s ≤ α ≤ t *)
+    module VSet = RowVarSet
+
+    let subsumes (t1, v1, t1') (t2, v2, t2') =
+      VO.rcompare v1 v2 = 0 &&
+      Ty.leq t2 t1 && Ty.leq t1' t2'
+
+    let compare (t1,v1,t1') (t2,v2,t2')=
+      VO.rcompare v1 v2 |> ccmp
+        Ty.compare t1 t2 |> ccmp
+        Ty.compare t1' t2'
+  end *)
 
   (* As in CDuce, we follow POPL'15 but keep constraint merged:
      - A Constraint Set C, is a (sorted list of triples) (s, α, t)
@@ -40,31 +123,31 @@ module Make(VS:VarSettings) = struct
        t are both monomorphic and s ≤ t does not hold), then
        a failure is returned
   *)
-  module CS = struct
+  module CS(C: Constraint) = struct
 
-    type t = [] | (::) of Constr.t * t
-
-    exception Unsat
+    type t = [] | (::) of C.t * t
+    let _of_list l =
+      List.fold_left (fun acc c -> (c :: acc)) [] l
 
     let assert_sat s t =
-      if VarSet.subset (Ty.vars s) VS.delta &&
-         VarSet.subset (Ty.vars t) VS.delta &&
-         not (Ty.leq s t)
+      if C.VSet.subset (C.T.vars s) C.delta &&
+         C.VSet.subset (C.T.vars t) C.delta &&
+         not (C.T.leq s t)
       then raise_notrace Unsat
     let any = []
     let is_any t = (t = [])
     let singleton ((s, _, t) as e) = assert_sat s t; [e]
     let merge (s, v, t) (s', _, t') =
-      let ss = Ty.cup s s' in
-      let tt = Ty.cap t t' in
+      let ss = C.T.cup s s' in
+      let tt = C.T.cap t t' in
       assert_sat ss tt;
       (ss, v, tt)
 
-    let rec add ((_, v, _) as c) l =
+    let rec add c l =
       match l with
         [] -> [ c ]
-      | ((_, v', _) as c') :: ll ->
-        let n = VS.compare v v' in
+      | c' :: ll ->
+        let n = C.vcompare c c' in
         if n < 0 then c::l
         else if n = 0 then (merge c c')::ll
         else c' :: add c ll
@@ -73,8 +156,8 @@ module Make(VS:VarSettings) = struct
       match l1, l2 with
       | [],  _ -> l2
       | _, []  -> l1
-      | ((_,v1, _) as c1)::ll1, ((_, v2, _) as c2)::ll2 ->
-        let n = VS.compare v1 v2 in
+      | c1::ll1, c2::ll2 ->
+        let n = C.vcompare c1 c2 in
         if n < 0 then c1 :: cap ll1 l2
         else if n > 0 then c2 :: cap l1 ll2
         else (merge c1 c2)::cap ll1 ll2
@@ -87,11 +170,11 @@ module Make(VS:VarSettings) = struct
       match l1, l2 with
       | _, [] -> true
       | [], _ -> false
-      | ((_,v1, _) as c1)::ll1, ((_, v2, _) as c2)::ll2 ->
-        let n = VS.compare v1 v2 in
+      | c1::ll1, c2::ll2 ->
+        let n = C.vcompare c1 c2 in
         if n < 0 then subsumes ll1 l2
         else if n > 0 then false
-        else Constr.subsumes c1 c2 && subsumes ll1 ll2
+        else C.subsumes c1 c2 && subsumes ll1 ll2
 
     let rec compare l1 l2 =
       match l1, l2 with
@@ -99,7 +182,7 @@ module Make(VS:VarSettings) = struct
       | [], _ -> -1
       | _, [] -> 1
       | c1 :: ll1, c2 :: ll2 ->
-        let c = Constr.compare c1 c2 in
+        let c = C.compare c1 c2 in
         if c <> 0 then c else compare ll1 ll2
 
     let rec to_list_map f = function
@@ -108,34 +191,71 @@ module Make(VS:VarSettings) = struct
   end
 
   module CSS = struct
-    (* Constraint sets are ordered list of non subsumable elements.
+    (* Constraint sets are records with each component representing 
+       the subset of constraints of a given kind (type, field or row). They
+       represent the conjunction of these constraints. *)
+
+    module TCS = CS(TConstr)
+    module FCS = CS(FConstr)
+    (* module RCS = CS(RConstr) *)
+    type constraint_set = {
+      types : TCS.t;
+      fields : FCS.t;
+      (* rows  : RCS.t; *)
+    }
+
+    (* Sets of constraint sets are ordered list of non subsumable elements.
        They represent union of constraints, so we maintain the invariant
        that we don't want to add a constraint set that subsumes an already
        existing one.
     *)
-    type t = CS.t list
+    type t = constraint_set list
     let empty : t = []
     let is_empty = function [] -> true | _ -> false
-    let any : t = [CS.any]
-    let is_any = function [t] when CS.is_any t -> true | _ -> false
-    let singleton e = [e]
-    let single e = try singleton (CS.singleton e) with CS.Unsat -> empty
-    let rec insert_aux c l =
+    let any : t = [{ types = TCS.any; fields = FCS.any }]
+    let is_any = function [{ types; fields }] when TCS.is_any types && FCS.is_any fields -> true | _ -> false
+    let tsingleton e = [{ types = e; fields = [] }]
+    let fsingleton e = [{ types = []; fields = e }]
+    let tsingle e =
+      try tsingleton (TCS.singleton e)
+      with Unsat -> empty
+    let _fsingle e =
+      try fsingleton (FCS.singleton e)
+      with Unsat -> empty
+    let rec insert_aux ({types;fields} as c) l =
       match l with
         [] -> [c]
-      | c' :: ll ->
-        let n = CS.compare c c' in
-        if n < 0 then c::l
-        else if n = 0 then l
-        else c' :: insert_aux c ll
-    let add c l =
-      if List.exists (CS.subsumes c) l then l
-      else List.filter (fun c' -> CS.subsumes c' c |> not) l |> insert_aux c
+      | {types=types';fields=fields'} as c' :: ll ->
+        let n1 = TCS.compare types types' in
+        let n2 = FCS.compare fields fields' in
+        if n1 < 0 then c::l
+        else if n1 = 0 then
+          if n2 < 0 then c::l
+          else if n2 = 0 then ll
+          else c' :: insert_aux c ll
+        else
+           c' :: insert_aux c ll
+    let add ({types;fields} as c) l =
+      if (List.exists (fun {types=t;_} -> TCS.subsumes types t) l)
+        && (List.exists (fun {types=_;fields=f} -> FCS.subsumes fields f) l)
+      then l
+      else
+        List.filter (fun {types=types';fields=fields'} ->
+          (TCS.subsumes types' types && FCS.subsumes fields' fields) |> not) l
+        |> insert_aux c
 
     let cup t1 t2 = List.fold_left (fun acc cs -> add cs acc) t1 t2
     let cap t1 t2 =
-      (cartesian_product t1 t2)
-      |> List.fold_left (fun acc (cs1,cs2) -> try add (CS.cap cs1 cs2) acc with CS.Unsat -> acc) empty
+      (cartesian_product t1 t2) |>
+      List.fold_left (fun acc (cs1,cs2) ->
+        try 
+        let r = {
+          types = TCS.cap cs1.types cs2.types;
+          fields = FCS.cap cs1.fields cs2.fields;
+        } in
+        add r acc
+        with Unsat -> acc)
+      empty
 
     let cup_lazy t1 t2 =
       if is_any t1 then any
@@ -144,8 +264,10 @@ module Make(VS:VarSettings) = struct
       if is_empty t1 then empty
       else cap t1 (t2 ())
 
-    let map_disj f t = List.fold_left (fun acc e -> cup_lazy acc (fun () -> f e))  empty t
-    let map_conj f t = List.fold_left (fun acc e -> cap_lazy acc (fun () -> f e)) any t
+    let map_disj f t =
+      List.fold_left (fun acc e -> cup_lazy acc (fun () ->  f e)) empty t
+    let map_conj f t =
+      List.fold_left (fun acc e -> cap_lazy acc (fun () -> f e)) any t
     let to_list l = l
   end
 
@@ -162,10 +284,10 @@ module Make(VS:VarSettings) = struct
         match l, o_min with
         | [], None -> None
         | [], Some v -> Some (v, acc)
-        | v :: ll, _ when VarSet.mem v VS.delta -> find_min_var (v::acc) o_min ll
+        | v :: ll, _ when VarSet.mem v VS.(delta |> fun (v,_,_) -> v) -> find_min_var (v::acc) o_min ll
         | v :: ll, None -> find_min_var acc (Some v) ll
         | v :: ll, Some v_min ->
-          if VS.compare v v_min < 0 then
+          if VS.tcompare v v_min < 0 then
             find_min_var (v_min::acc) (Some v) ll
           else find_min_var (v :: acc) o_min ll
       in
@@ -174,7 +296,7 @@ module Make(VS:VarSettings) = struct
       | Some (v, rem_pos), None -> Some (pos_var v (rem_pos, nvs, d))
       | None, Some (v, rem_neg) -> Some (neg_var v (pvs, rem_neg, d))
       | Some (vp, rem_pos), Some (vn, rem_neg) ->
-        if VS.compare vp vn < 0 then
+        if VS.tcompare vp vn < 0 then
           Some (pos_var vp (rem_pos, nvs, d))
         else
           Some (neg_var vn (pvs, rem_neg, d))
@@ -209,7 +331,7 @@ module Make(VS:VarSettings) = struct
         VDHash.add memo vd CSS.any;
         let res =
           if Ty.is_empty t then CSS.any
-          else if VarSet.subset (Ty.vars t) VS.delta then CSS.empty
+          else if VarSet.subset (Ty.vars t) VS.(delta |> fun (v,_,_) -> v) then CSS.empty
           else vd |> VDescr.dnf |> CSS.map_conj norm_summand
         in
         VDHash.remove memo vd ; res
@@ -218,7 +340,7 @@ module Make(VS:VarSettings) = struct
       | None ->
         let (_,_,d) = summand in
         norm_descr d
-      | Some cs -> CSS.single cs
+      | Some cs -> CSS.tsingle cs
     and norm_descr d =
       let (cs, others) = d |> Descr.components in
       if others then CSS.empty
@@ -294,31 +416,33 @@ module Make(VS:VarSettings) = struct
       norm_tuple_gen ~any:Ty.F.any ~conj:Ty.F.conj
         ~diff:Ty.F.diff ~disjoint ~norm:norm_oty n line
     and norm_oty oty =
+      (* Normalize field variables here *)
       let n, o = Ty.F.destruct oty in
       if o then CSS.empty else norm_ty n
     in
+    (*  and norm_row *)
     norm_ty t
 
   let propagate cs =
     let memo_ty = VDHash.create 8 in
-    let rec aux prev (cs : CS.t) =
+    let rec aux prev (cs : CSS.TCS.t) =
       match cs with
-      | CS.[] -> prev |> CSS.singleton
+      | CSS.TCS.[] -> prev |> CSS.tsingleton
       | ((t',_, t) as constr) :: cs' ->
         let ty = Ty.diff t' t in
         if VDHash.mem memo_ty (Ty.def ty) then
-          aux (CS.add constr prev) cs'
+          aux (CSS.TCS.add constr prev) cs'
         else
           let () = VDHash.add memo_ty (Ty.def ty) () in
           let css = norm ty in
-          let css' () = cs |> CS.cap prev |> CSS.singleton in
+          let css' () = cs |> CSS.TCS.cap prev |> CSS.tsingleton in
           let css = CSS.cap_lazy css css' in
-          let res = css |> CSS.to_list |> CSS.map_disj (aux CS.any) in
+          let res = css |> CSS.to_list |> CSS.map_disj (fun {CSS.types;_} -> (aux CSS.TCS.any types))  in
           VDHash.remove memo_ty (Ty.def ty); res
     in
-    aux CS.any cs
+    aux CSS.TCS.any cs
 
-  let solve cs =
+  let solve {CSS.types = cs; fields = _} =
     let renaming = ref Subst.identity in
     let to_eq (ty1, v, ty2) =
       let v' = Var.mk (Var.name v) in
@@ -335,33 +459,46 @@ module Make(VS:VarSettings) = struct
         let res = unify eqs' in
         Subst.add v (Subst.apply res ty') res
     in
-    cs |> CS.to_list_map to_eq |> unify |> Subst.map (Subst.apply !renaming)
+    cs |> CSS.TCS.to_list_map to_eq |> unify |> Subst.map (Subst.apply !renaming)
 
   let tally cs =
     let ncss = cs
       |> CSS.map_conj (fun (s,t) -> norm (Ty.diff s t)) in
     let mcss = ncss
-      |> CSS.to_list |> CSS.map_disj propagate in
+      |> CSS.to_list |> CSS.map_disj (fun {CSS.types;_} -> propagate types) in
     mcss |> CSS.to_list |> List.map solve
 end
 
-let tally_with_order cmp delta =
-  let module Tallying = Make(struct let compare = cmp let delta = delta end) in
+let tally_with_order vs =
+  let module Tallying = Make(val vs : VarSettings) in
   Tallying.tally
-let tally = tally_with_order Var.compare 
 
-let tally_with_priority preserve =
+let tally delta cs =
+    let vs = (module struct
+    let tcompare = Var.compare
+    let fcompare = FieldVar.compare
+    let rcompare = RowVar.compare
+    let delta = (delta, FieldVarSet.empty, RowVarSet.empty)
+  end : VarSettings) in
+  tally_with_order vs cs
+
+let tally_with_priority preserve delta =
   let cnt = ref 0 in
   let pmap = List.fold_left
       (fun acc v -> cnt := !cnt + 1 ; VarMap.add v !cnt acc)
       VarMap.empty preserve
   in
-  let cmp v1 v2 =
+  let cmp = (module struct
+    let tcompare v1 v2 =
     match VarMap.find_opt v1 pmap, VarMap.find_opt v2 pmap with
     | None, None -> Var.compare v1 v2
     | Some _, None -> 1
     | None, Some _ -> -1
     | Some i1, Some i2 -> compare i2 i1
+    let fcompare = FieldVar.compare
+    let rcompare = RowVar.compare
+    let delta = (delta, FieldVarSet.empty, RowVarSet.empty)
+  end : VarSettings)
   in
   tally_with_order cmp
 

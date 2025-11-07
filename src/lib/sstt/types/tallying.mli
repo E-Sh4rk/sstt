@@ -8,6 +8,12 @@ type constr = Ty.t * Ty.t
     such that [Ty.leq s t].
 *)
 
+module type VarSettings = sig
+  val tcompare : Var.t -> Var.t -> int
+  val fcompare : FieldVar.t -> FieldVar.t -> int
+  val rcompare : RowVar.t -> RowVar.t -> int
+  val delta : VarSet.t * FieldVarSet.t * RowVarSet.t
+end
 
 (** [tally mono constrs] returns all solutions to the tallying instance
     [constrs], considering that variables in [mono] cannot be substituted.
@@ -15,11 +21,11 @@ type constr = Ty.t * Ty.t
     the type variables already present in [constrs] are reused. *)
 val tally : VarSet.t -> constr list -> Subst.t list
 
-(** [tally_with_order compare mono constrs] is the same as [tally mono constrs],
-    but using the total order [compare] over type variables. The solutions returned
-    are such that a variable cannot be substituted by a type featuring a smaller
-    non-monomorphic variable at top-level. *)
-val tally_with_order : (Var.t -> Var.t -> int) -> VarSet.t -> constr list -> Subst.t list
+(** [tally_with_order settings constrs] is the same as [tally mono constrs],
+    but using the comparison operators and monomorphic sets specified in
+    [settings]. The solutions returned are such that a variable cannot be
+    substituted by a type featuring a smaller non-monomorphic variable at top-level. *)
+val tally_with_order : (module VarSettings) -> constr list -> Subst.t list
 
 (** [tally_with_priority lst mono constrs] is the same as [tally mono constrs],
     but using an order that will preserve variables in [lst] when possible.
