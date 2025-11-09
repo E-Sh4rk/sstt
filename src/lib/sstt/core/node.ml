@@ -108,7 +108,11 @@ include (struct
     (* The PreNode module that contain the entry points of all functions on types. *)
     module NMap = Map.Make(PreNode)
     module VDMap = Map.Make(VDescr)
-    module Table = Bttable.Make(VDescr)(Bool)
+    module Table = (val
+        if Config.subtyping_hash_based_cache
+        then (module Bttable.Make(VDescr)(Bool) : Bttable.BT with type key = VDescr.t and type res = Bool.t)
+        else (module Bttable.Make'(VDescr)(Bool) : Bttable.BT with type key = VDescr.t and type res = Bool.t)
+      )
     type _ Effect.t += GetCache: (Table.t) t
 
     type vdescr = VDescr.t
