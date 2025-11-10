@@ -296,6 +296,52 @@
     "prio": [ "'a" ]
   },
   {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [],
+    "constr": [ [ "A('b) -> 'b", "A('a) -> 'c" ] ],
+    "prio": [ "'a" ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a", "'b" ],
+    "constr": [ [ "'b", "'b | 'a" ], [ "'b | 'a", "'b" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "any" ], [ "any", "'a" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [ "'a", "'b" ],
+    "constr": [ [ "'b", "'c & 'b | 'a" ], [ "'c & 'b | 'a", "'b" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a", "'b" ],
+    "constr": [ [ "'b", "'b | 'a" ], [ "'b | 'a", "'b" ] ]
+  },
+  { "vars": [ "'a" ], "mono": [ "'a" ], "constr": [ [ "any", "'a" ] ] },
+  { "vars": [], "mono": [], "constr": [ [ "empty", "empty" ] ] },
+  { "vars": [ "'a" ], "mono": [ "'a" ], "constr": [ [ "'a", "any" ] ] },
+  { "vars": [ "'a", "'b" ], "mono": [], "constr": [ [ "'a -> 'a", "'b" ] ] },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'b" ],
+    "constr": [ [ "'b", "('a -> 'a) | 'b" ], [ "('a -> 'a) | 'b", "'b" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "constr": [ [ "'a", "any" ] ],
+    "prio": [ "'a" ]
+  },
+  {
     "vars": [ "'a", "'b", "'c", "'d" ],
     "mono": [],
     "constr": [ [ "(B('c) -> 'c) & (A('b) -> 'b)", "A('a) -> 'd" ] ],
@@ -556,7 +602,7 @@
         "('b & ('a -> 'd) -> x1 -> Nil | Cons('d, x2)) | 'c where x1 = Nil | Cons('a, x1) and x2 = Nil | Cons('d, x2) | 'e"
       ],
       [
-        "('b & ('a -> 'd) -> x1 -> Nil | Cons('d, x2)) | 'c where x1 = Nil | Cons('a, x1) and x2 = Nil | Cons('d, x2) | 'e",
+        "('b & ('a -> 'd) -> x2 -> Nil | Cons('d, x1)) | 'c where x1 = Nil | Cons('d, x1) | 'e and x2 = Nil | Cons('a, x2)",
         "'c"
       ]
     ]
@@ -598,7 +644,7 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "('a -> 'b) -> x1 -> Nil | Cons('b, x2) where x1 = Nil | Cons('a, x1) and x2 = Nil | Cons('b, x2)",
+        "('a -> 'b) -> x2 -> Nil | Cons('b, x1) where x1 = Nil | Cons('b, x1) and x2 = Nil | Cons('a, x2)",
         "arrow"
       ]
     ]
@@ -1176,7 +1222,7 @@
     "mono": [],
     "constr": [
       [
-        "(__array({ _0 :? 'd }), int) | (__dict({ _0 :? 'e ; _1 :? 'd }), 'e) -> 'd",
+        "(__array({ _0 :? 'e }), int) | (__dict({ _0 :? 'd ; _1 :? 'e }), 'd) -> 'e",
         "(__dict({ _0 :? str(_key) | 'b | 'a ; _1 :? 0 | 42 | 'c }), bool(false)) -> 'f"
       ]
     ],
@@ -1190,17 +1236,17 @@
     ]
   },
   {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a", "'b" ],
-    "constr": [ [ "'b", "0 | 42 | 'a" ], [ "0 | 42 | 'a", "'b" ] ]
-  },
-  {
     "vars": [ "'a", "'b", "'c" ],
     "mono": [ "'a", "'b", "'c" ],
     "constr": [
       [ "'c", "bool(false) | str(_key) | 'b | 'a" ],
       [ "bool(false) | str(_key) | 'b | 'a", "'c" ]
     ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a", "'b" ],
+    "constr": [ [ "'b", "0 | 42 | 'a" ], [ "0 | 42 | 'a", "'b" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -1215,17 +1261,17 @@
     ]
   },
   {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a", "'b" ],
-    "constr": [ [ "'b", "0 | 42 | 'a" ], [ "0 | 42 | 'a", "'b" ] ]
-  },
-  {
     "vars": [ "'a", "'b", "'c" ],
     "mono": [ "'a", "'b", "'c" ],
     "constr": [
       [ "'c", "bool(false) | str(_key) | 'b | 'a" ],
       [ "bool(false) | str(_key) | 'b | 'a", "'c" ]
     ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a", "'b" ],
+    "constr": [ [ "'b", "0 | 42 | 'a" ], [ "0 | 42 | 'a", "'b" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -1295,7 +1341,7 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "(__array({ _0 :? 'c }), int) | (__dict({ _0 :? 'd ; _1 :? 'c }), 'd) -> 'c",
+        "(__array({ _0 :? 'd }), int) | (__dict({ _0 :? 'c ; _1 :? 'd }), 'c) -> 'd",
         "'b -> 'a"
       ]
     ]
@@ -1476,7 +1522,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "(__array({ _0 :? 'd }), int) | (__dict({ _0 :? 'e ; _1 :? 'd }), 'e) -> 'd",
+        "(__array({ _0 :? 'e }), int) | (__dict({ _0 :? 'd ; _1 :? 'e }), 'd) -> 'e",
         "(__array({ _0 :? 'b | 'a }), 0 | 'c & int) -> 'f"
       ]
     ],
@@ -2102,7 +2148,7 @@
     "mono": [],
     "constr": [
       [
-        "(__array({ _0 :? 'c }), int) | (__dict({ _0 :? 'd ; _1 :? 'c }), 'd) -> 'c",
+        "(__array({ _0 :? 'd }), int) | (__dict({ _0 :? 'c ; _1 :? 'd }), 'c) -> 'd",
         "(__array({ _0 :? __array({ _0 :? 'b }) | 'a }), 0) -> 'e"
       ]
     ],
@@ -2308,7 +2354,7 @@
     "mono": [],
     "constr": [
       [
-        "(__array({ _0 :? 'b }), int) | (__dict({ _0 :? 'c ; _1 :? 'b }), 'c) -> 'b",
+        "(__array({ _0 :? 'c }), int) | (__dict({ _0 :? 'b ; _1 :? 'c }), 'b) -> 'c",
         "(__array({ _0 :? __array({ _0 :? 42 | 'a }) }), 0) -> 'd"
       ]
     ],
@@ -2364,7 +2410,7 @@
     "mono": [],
     "constr": [
       [
-        "(__array({ _0 :? 'b }), int) | (__dict({ _0 :? 'c ; _1 :? 'b }), 'c) -> 'b",
+        "(__array({ _0 :? 'c }), int) | (__dict({ _0 :? 'b ; _1 :? 'c }), 'b) -> 'c",
         "(__array({ _0 :? 42 | 'a }), 0) -> 'd"
       ]
     ],
@@ -2409,7 +2455,7 @@
     "mono": [],
     "constr": [
       [
-        "(__array({ _0 :? 'b }), int) | (__dict({ _0 :? 'c ; _1 :? 'b }), 'c) -> 'b",
+        "(__array({ _0 :? 'c }), int) | (__dict({ _0 :? 'b ; _1 :? 'c }), 'b) -> 'c",
         "('a, 1) -> 'd"
       ]
     ],
@@ -2421,55 +2467,27 @@
     "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
   },
   {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'b & 'a" ], [ "'b & 'a", "'a" ] ]
-  },
-  {
     "vars": [ "'a" ],
     "mono": [ "'a" ],
     "constr": [ [ "'a", "1 | 'a" ], [ "1 | 'a", "'a" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "'b & 'a" ], [ "'b & 'a", "'a" ] ]
   },
   {
     "vars": [ "'a", "'b", "'c", "'d" ],
     "mono": [ "'a" ],
     "constr": [
-      [ "'a", "__dict({ _0 :? 1 | 'c ; _1 :? 'd & 'b })" ],
-      [ "__dict({ _0 :? 1 | 'c ; _1 :? 'd & 'b })", "'a" ]
+      [ "'a", "__dict({ _0 :? 1 | 'b ; _1 :? 'd & 'c })" ],
+      [ "__dict({ _0 :? 1 | 'b ; _1 :? 'd & 'c })", "'a" ]
     ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'b & 'a" ], [ "'b & 'a", "'a" ] ]
   },
   {
     "vars": [ "'a" ],
     "mono": [ "'a" ],
     "constr": [ [ "'a", "1 | 'a" ], [ "1 | 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [ "'a", "__array({ _0 :? 'c & 'b })" ],
-      [ "__array({ _0 :? 'c & 'b })", "'a" ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'b & 'a" ], [ "'b & 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "1 | 'a" ], [ "1 | 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -2483,6 +2501,11 @@
       [ "'a", "__array({ _0 :? 'c & 'b })" ],
       [ "__array({ _0 :? 'c & 'b })", "'a" ]
     ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "1 | 'a" ], [ "1 | 'a", "'a" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -2508,8 +2531,8 @@
     "vars": [ "'a", "'b", "'c" ],
     "mono": [ "'a" ],
     "constr": [
-      [ "'a", "__dict({ _0 :? 1 | 'c ; _1 :? 'b })" ],
-      [ "__dict({ _0 :? 1 | 'c ; _1 :? 'b })", "'a" ]
+      [ "'a", "__dict({ _0 :? 1 | 'b ; _1 :? 'c })" ],
+      [ "__dict({ _0 :? 1 | 'b ; _1 :? 'c })", "'a" ]
     ]
   },
   {
@@ -2545,6 +2568,29 @@
     "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
   },
   {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "'b & 'a" ], [ "'b & 'a", "'a" ] ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [ "'a" ],
+    "constr": [
+      [ "'a", "__array({ _0 :? 'c & 'b })" ],
+      [ "__array({ _0 :? 'c & 'b })", "'a" ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "'b & 'a" ], [ "'b & 'a", "'a" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
+  },
+  {
     "vars": [ "'a" ],
     "mono": [ "'a" ],
     "constr": [ [ "'a", "any" ], [ "any", "'a" ] ]
@@ -2566,23 +2612,24 @@
     "mono": [ "'a" ],
     "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
   },
-  { "vars": [], "mono": [], "constr": [ [ "any", "empty" ] ] },
   { "vars": [], "mono": [], "constr": [ [ "any", "empty" ] ] },
   { "vars": [], "mono": [], "constr": [ [ "empty", "empty" ] ] },
-  { "vars": [], "mono": [], "constr": [ [ "any", "any" ] ] },
-  { "vars": [], "mono": [], "constr": [ [ "any", "any" ] ] },
+  { "vars": [ "'a" ], "mono": [ "'a" ], "constr": [ [ "'a", "any" ] ] },
+  { "vars": [], "mono": [], "constr": [ [ "empty", "any" ] ] },
+  { "vars": [ "'a" ], "mono": [ "'a" ], "constr": [ [ "any", "'a" ] ] },
+  { "vars": [ "'a" ], "mono": [ "'a" ], "constr": [ [ "'a", "'a" ] ] },
+  { "vars": [], "mono": [], "constr": [ [ "any", "empty" ] ] },
+  { "vars": [], "mono": [], "constr": [ [ "empty", "empty" ] ] },
   { "vars": [ "'a" ], "mono": [ "'a" ], "constr": [ [ "'a", "any" ] ] },
   { "vars": [ "'a" ], "mono": [ "'a" ], "constr": [ [ "'a", "any" ] ] },
   { "vars": [], "mono": [], "constr": [ [ "empty", "any" ] ] },
-  { "vars": [ "'a" ], "mono": [ "'a" ], "constr": [ [ "'a", "'a" ] ] },
-  { "vars": [], "mono": [], "constr": [ [ "empty", "empty" ] ] },
   {
     "vars": [ "'a", "'b" ],
     "mono": [],
     "constr": [
-      [ "__dict({ _0 :? 1 | 'b ; _1 :? 'a })", "any" ],
+      [ "__dict({ _0 :? 1 | 'a ; _1 :? 'b })", "any" ],
       [ "0", "any" ],
-      [ "'a", "any" ]
+      [ "'b", "any" ]
     ],
     "prio": [ "'a", "'b" ]
   },
@@ -2592,7 +2639,7 @@
     "constr": [
       [
         "(__array({ _0 :? 'b }), int, 'b) | (__dict({ _0 :? 'a ; _1 :? 'b }), 'a, 'b) -> tuple0",
-        "(__dict({ _0 :? 1 | 'd ; _1 :? 'c }), 0, 'c) -> 'e"
+        "(__dict({ _0 :? 1 | 'c ; _1 :? 'd }), 0, 'd) -> 'e"
       ]
     ],
     "prio": [ "'c", "'d" ]
@@ -2662,7 +2709,7 @@
     "mono": [],
     "constr": [
       [
-        "(__dict({ _0 :? (0..1) | 'c ; _1 :? 'b }) -> tuple0) & (__array({ _0 :? 'b }) -> tuple0)",
+        "(__dict({ _0 :? (0..1) | 'b ; _1 :? 'c }) -> tuple0) & (__array({ _0 :? 'c }) -> tuple0)",
         "'a"
       ]
     ]
@@ -2673,10 +2720,10 @@
     "constr": [
       [
         "'a",
-        "(__dict({ _0 :? (0..1) | 'c ; _1 :? 'b }) -> tuple0) & (__array({ _0 :? 'b }) -> tuple0) | 'a"
+        "(__dict({ _0 :? (0..1) | 'b ; _1 :? 'c }) -> tuple0) & (__array({ _0 :? 'c }) -> tuple0) | 'a"
       ],
       [
-        "(__dict({ _0 :? (0..1) | 'c ; _1 :? 'b }) -> tuple0) & (__array({ _0 :? 'b }) -> tuple0) | 'a",
+        "(__dict({ _0 :? (0..1) | 'b ; _1 :? 'c }) -> tuple0) & (__array({ _0 :? 'c }) -> tuple0) | 'a",
         "'a"
       ]
     ]
@@ -2782,7 +2829,7 @@
     "mono": [],
     "constr": [
       [
-        "(__array({ _0 :? 'e }), int) | (__dict({ _0 :? 'f ; _1 :? 'e }), 'f) -> 'e",
+        "(__array({ _0 :? 'f }), int) | (__dict({ _0 :? 'e ; _1 :? 'f }), 'e) -> 'f",
         "(__dict({ _0 :? 'b | 'a ; _1 :? __array({ _0 :? 'd }) | 'c }), 'a) -> 'g"
       ]
     ],
@@ -2791,15 +2838,15 @@
   {
     "vars": [ "'a", "'b", "'c" ],
     "mono": [ "'a", "'b", "'c" ],
-    "constr": [
-      [ "'c", "__array({ _0 :? 'b }) | 'a" ],
-      [ "__array({ _0 :? 'b }) | 'a", "'c" ]
-    ]
+    "constr": [ [ "'c", "'b | 'a" ], [ "'b | 'a", "'c" ] ]
   },
   {
     "vars": [ "'a", "'b", "'c" ],
     "mono": [ "'a", "'b", "'c" ],
-    "constr": [ [ "'c", "'b | 'a" ], [ "'b | 'a", "'c" ] ]
+    "constr": [
+      [ "'c", "__array({ _0 :? 'b }) | 'a" ],
+      [ "__array({ _0 :? 'b }) | 'a", "'c" ]
+    ]
   },
   {
     "vars": [ "'a" ],
@@ -2809,15 +2856,15 @@
   {
     "vars": [ "'a", "'b", "'c" ],
     "mono": [ "'a", "'b", "'c" ],
-    "constr": [
-      [ "'c", "__array({ _0 :? 'b }) | 'a" ],
-      [ "__array({ _0 :? 'b }) | 'a", "'c" ]
-    ]
+    "constr": [ [ "'c", "'b | 'a" ], [ "'b | 'a", "'c" ] ]
   },
   {
     "vars": [ "'a", "'b", "'c" ],
     "mono": [ "'a", "'b", "'c" ],
-    "constr": [ [ "'c", "'b | 'a" ], [ "'b | 'a", "'c" ] ]
+    "constr": [
+      [ "'c", "__array({ _0 :? 'b }) | 'a" ],
+      [ "__array({ _0 :? 'b }) | 'a", "'c" ]
+    ]
   },
   {
     "vars": [ "'a", "'b", "'c" ],
@@ -3016,7 +3063,7 @@
     "mono": [],
     "constr": [
       [
-        "(__array({ _0 :? 'e }), int) | (__dict({ _0 :? 'f ; _1 :? 'e }), 'f) -> 'e",
+        "(__array({ _0 :? 'f }), int) | (__dict({ _0 :? 'e ; _1 :? 'f }), 'e) -> 'f",
         "(__dict({ _0 :? 'c | 'b ; _1 :? __array({ _0 :? 'd | 'a }) }), 'b) -> 'g"
       ]
     ],
@@ -3025,15 +3072,15 @@
   {
     "vars": [ "'a", "'b", "'c" ],
     "mono": [ "'a", "'b", "'c" ],
-    "constr": [
-      [ "'c", "__array({ _0 :? 'b | 'a })" ],
-      [ "__array({ _0 :? 'b | 'a })", "'c" ]
-    ]
+    "constr": [ [ "'c", "'b | 'a" ], [ "'b | 'a", "'c" ] ]
   },
   {
     "vars": [ "'a", "'b", "'c" ],
     "mono": [ "'a", "'b", "'c" ],
-    "constr": [ [ "'c", "'b | 'a" ], [ "'b | 'a", "'c" ] ]
+    "constr": [
+      [ "'c", "__array({ _0 :? 'b | 'a })" ],
+      [ "__array({ _0 :? 'b | 'a })", "'c" ]
+    ]
   },
   {
     "vars": [ "'a" ],
@@ -3043,15 +3090,15 @@
   {
     "vars": [ "'a", "'b", "'c" ],
     "mono": [ "'a", "'b", "'c" ],
-    "constr": [
-      [ "'c", "__array({ _0 :? 'b | 'a })" ],
-      [ "__array({ _0 :? 'b | 'a })", "'c" ]
-    ]
+    "constr": [ [ "'c", "'b | 'a" ], [ "'b | 'a", "'c" ] ]
   },
   {
     "vars": [ "'a", "'b", "'c" ],
     "mono": [ "'a", "'b", "'c" ],
-    "constr": [ [ "'c", "'b | 'a" ], [ "'b | 'a", "'c" ] ]
+    "constr": [
+      [ "'c", "__array({ _0 :? 'b | 'a })" ],
+      [ "__array({ _0 :? 'b | 'a })", "'c" ]
+    ]
   },
   {
     "vars": [ "'a", "'b", "'c" ],
@@ -3093,7 +3140,7 @@
     "mono": [],
     "constr": [
       [
-        "(__array({ _0 :? 'c }), int) | (__dict({ _0 :? 'd ; _1 :? 'c }), 'd) -> 'c",
+        "(__array({ _0 :? 'd }), int) | (__dict({ _0 :? 'c ; _1 :? 'd }), 'c) -> 'd",
         "(__array({ _0 :? 'b | 'a }), 0) -> 'e"
       ]
     ],
@@ -3153,7 +3200,7 @@
     "mono": [],
     "constr": [
       [
-        "(__array({ _0 :? 'c }), int) | (__dict({ _0 :? 'd ; _1 :? 'c }), 'd) -> 'c",
+        "(__array({ _0 :? 'd }), int) | (__dict({ _0 :? 'c ; _1 :? 'd }), 'c) -> 'd",
         "('a, 'b) -> 'e"
       ]
     ],
@@ -3171,102 +3218,31 @@
   },
   {
     "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'b & 'a" ], [ "'b & 'a", "'a" ] ]
+    "mono": [ "'a", "'b" ],
+    "constr": [ [ "'b", "'a & int | 'b" ], [ "'a & int | 'b", "'b" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
-    "mono": [ "'a", "'b" ],
-    "constr": [ [ "'b", "'a & int | 'b" ], [ "'a & int | 'b", "'b" ] ]
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "'b & 'a" ], [ "'b & 'a", "'a" ] ]
   },
   {
     "vars": [ "'a", "'b", "'c", "'d", "'e" ],
     "mono": [ "'a", "'b" ],
     "constr": [
-      [ "'a", "__dict({ _0 :? 'b & int | 'd ; _1 :? 'e & 'c })" ],
-      [ "__dict({ _0 :? 'b & int | 'd ; _1 :? 'e & 'c })", "'a" ]
+      [ "'a", "__dict({ _0 :? 'b & int | 'c ; _1 :? 'e & 'd })" ],
+      [ "__dict({ _0 :? 'b & int | 'c ; _1 :? 'e & 'd })", "'a" ]
     ]
   },
   {
     "vars": [ "'a" ],
     "mono": [ "'a" ],
     "constr": [ [ "'a", "'a & int" ], [ "'a & int", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'b & 'a" ], [ "'b & 'a", "'a" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
     "mono": [ "'a", "'b" ],
     "constr": [ [ "'b", "'a & int | 'b" ], [ "'a & int | 'b", "'b" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [ "'a", "__array({ _0 :? 'c & 'b })" ],
-      [ "__array({ _0 :? 'c & 'b })", "'a" ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'a & int" ], [ "'a & int", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'b & 'a" ], [ "'b & 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a", "'b" ],
-    "constr": [ [ "'b", "'a & int | 'b" ], [ "'a & int | 'b", "'b" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'b & 'a" ], [ "'b & 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a", "'b" ],
-    "constr": [ [ "'b", "'b | 'a" ], [ "'b | 'a", "'b" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
-    "mono": [ "'a", "'b" ],
-    "constr": [
-      [ "'a", "__dict({ _0 :? 'd | 'b ; _1 :? 'e & 'c })" ],
-      [ "__dict({ _0 :? 'd | 'b ; _1 :? 'e & 'c })", "'a" ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'b & 'a" ], [ "'b & 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a", "'b" ],
-    "constr": [ [ "'b", "'b | 'a" ], [ "'b | 'a", "'b" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'a & int" ], [ "'a & int", "'a" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -3285,6 +3261,11 @@
     "vars": [ "'a" ],
     "mono": [ "'a" ],
     "constr": [ [ "'a", "'a & int" ], [ "'a & int", "'a" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a", "'b" ],
+    "constr": [ [ "'b", "'a & int | 'b" ], [ "'a & int | 'b", "'b" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -3315,8 +3296,8 @@
     "vars": [ "'a", "'b", "'c", "'d" ],
     "mono": [ "'a", "'b" ],
     "constr": [
-      [ "'a", "__dict({ _0 :? 'b & int | 'd ; _1 :? 'c })" ],
-      [ "__dict({ _0 :? 'b & int | 'd ; _1 :? 'c })", "'a" ]
+      [ "'a", "__dict({ _0 :? 'b & int | 'c ; _1 :? 'd })" ],
+      [ "__dict({ _0 :? 'b & int | 'c ; _1 :? 'd })", "'a" ]
     ]
   },
   {
@@ -3367,6 +3348,39 @@
     "constr": [ [ "'b", "'b | 'a" ], [ "'b | 'a", "'b" ] ]
   },
   {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "'b & 'a" ], [ "'b & 'a", "'a" ] ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
+    "mono": [ "'a", "'b" ],
+    "constr": [
+      [ "'a", "__dict({ _0 :? 'c | 'b ; _1 :? 'e & 'd })" ],
+      [ "__dict({ _0 :? 'c | 'b ; _1 :? 'e & 'd })", "'a" ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a", "'b" ],
+    "constr": [ [ "'b", "'b | 'a" ], [ "'b | 'a", "'b" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "'b & 'a" ], [ "'b & 'a", "'a" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a", "'b" ],
+    "constr": [ [ "'b", "'b | 'a" ], [ "'b | 'a", "'b" ] ]
+  },
+  {
     "vars": [ "'a" ],
     "mono": [ "'a" ],
     "constr": [ [ "'a", "any" ], [ "any", "'a" ] ]
@@ -3375,8 +3389,8 @@
     "vars": [ "'a", "'b", "'c", "'d" ],
     "mono": [ "'a", "'b" ],
     "constr": [
-      [ "'a", "__dict({ _0 :? 'd | 'b ; _1 :? 'c })" ],
-      [ "__dict({ _0 :? 'd | 'b ; _1 :? 'c })", "'a" ]
+      [ "'a", "__dict({ _0 :? 'c | 'b ; _1 :? 'd })" ],
+      [ "__dict({ _0 :? 'c | 'b ; _1 :? 'd })", "'a" ]
     ]
   },
   {
@@ -3388,6 +3402,39 @@
     "vars": [ "'a" ],
     "mono": [ "'a" ],
     "constr": [ [ "'a", "any" ], [ "any", "'a" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "'a & int" ], [ "'a & int", "'a" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "'b & 'a" ], [ "'b & 'a", "'a" ] ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [ "'a" ],
+    "constr": [
+      [ "'a", "__array({ _0 :? 'c & 'b })" ],
+      [ "__array({ _0 :? 'c & 'b })", "'a" ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "'a & int" ], [ "'a & int", "'a" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "'b & 'a" ], [ "'b & 'a", "'a" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -3433,15 +3480,17 @@
   },
   { "vars": [], "mono": [], "constr": [ [ "any", "empty" ] ] },
   { "vars": [], "mono": [], "constr": [ [ "empty", "empty" ] ] },
-  { "vars": [], "mono": [], "constr": [ [ "any", "any" ] ] },
-  { "vars": [], "mono": [], "constr": [ [ "any", "any" ] ] },
   { "vars": [ "'a" ], "mono": [ "'a" ], "constr": [ [ "'a", "any" ] ] },
   { "vars": [], "mono": [], "constr": [ [ "empty", "any" ] ] },
-  { "vars": [ "'a" ], "mono": [ "'a" ], "constr": [ [ "'a", "any" ] ] },
-  { "vars": [ "'a" ], "mono": [ "'a" ], "constr": [ [ "'a", "any" ] ] },
-  { "vars": [], "mono": [], "constr": [ [ "empty", "any" ] ] },
+  { "vars": [ "'a" ], "mono": [ "'a" ], "constr": [ [ "any", "'a" ] ] },
   { "vars": [ "'a" ], "mono": [ "'a" ], "constr": [ [ "'a", "'a" ] ] },
+  { "vars": [], "mono": [], "constr": [ [ "any", "empty" ] ] },
   { "vars": [], "mono": [], "constr": [ [ "empty", "empty" ] ] },
+  { "vars": [ "'a" ], "mono": [ "'a" ], "constr": [ [ "'a", "any" ] ] },
+  { "vars": [], "mono": [], "constr": [ [ "empty", "any" ] ] },
+  { "vars": [ "'a" ], "mono": [ "'a" ], "constr": [ [ "'a", "any" ] ] },
+  { "vars": [ "'a" ], "mono": [ "'a" ], "constr": [ [ "'a", "any" ] ] },
+  { "vars": [], "mono": [], "constr": [ [ "empty", "any" ] ] },
   { "vars": [ "'a" ], "mono": [ "'a" ], "constr": [ [ "'a", "'a" ] ] },
   { "vars": [], "mono": [], "constr": [ [ "empty", "empty" ] ] },
   {
@@ -3455,7 +3504,7 @@
     "mono": [],
     "constr": [
       [
-        "(__array({ _0 :? 'c }), int) | (__dict({ _0 :? 'd ; _1 :? 'c }), 'd) -> 'c",
+        "(__array({ _0 :? 'd }), int) | (__dict({ _0 :? 'c ; _1 :? 'd }), 'c) -> 'd",
         "(__array({ _0 :? 'b }), 'a) -> 'e"
       ]
     ],
@@ -3590,7 +3639,7 @@
     "vars": [ "'a", "'b", "'c", "'d" ],
     "mono": [],
     "constr": [
-      [ "__dict({ _0 :? 'd | 'b ; _1 :? 'c })", "any" ], [ "'a", "any" ]
+      [ "__dict({ _0 :? 'c | 'b ; _1 :? 'd })", "any" ], [ "'a", "any" ]
     ],
     "prio": [ "'a", "'b", "'c", "'d" ]
   },
@@ -3599,8 +3648,8 @@
     "mono": [],
     "constr": [
       [
-        "(__array({ _0 :? 'e }), int) | (__dict({ _0 :? 'f ; _1 :? 'e }), 'f) -> 'e",
-        "(__dict({ _0 :? 'd | 'b ; _1 :? 'c }), 'a) -> 'g"
+        "(__array({ _0 :? 'f }), int) | (__dict({ _0 :? 'e ; _1 :? 'f }), 'e) -> 'f",
+        "(__dict({ _0 :? 'c | 'b ; _1 :? 'd }), 'a) -> 'g"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d" ]
@@ -3611,14 +3660,14 @@
     "constr": [ [ "'c", "'a \\ 'b | 'c" ], [ "'a \\ 'b | 'c", "'c" ] ]
   },
   {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a", "'b" ],
-    "constr": [ [ "'b", "'a" ], [ "'a", "'b" ] ]
-  },
-  {
     "vars": [ "'a", "'b", "'c", "'d" ],
     "mono": [ "'a", "'b", "'c", "'d" ],
     "constr": [ [ "'d", "'c | 'b | 'a" ], [ "'c | 'b | 'a", "'d" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a", "'b" ],
+    "constr": [ [ "'b", "'a" ], [ "'a", "'b" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -3631,14 +3680,14 @@
     "constr": [ [ "'c", "'a \\ 'b | 'c" ], [ "'a \\ 'b | 'c", "'c" ] ]
   },
   {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a", "'b" ],
-    "constr": [ [ "'b", "'a" ], [ "'a", "'b" ] ]
-  },
-  {
     "vars": [ "'a", "'b", "'c", "'d" ],
     "mono": [ "'a", "'b", "'c", "'d" ],
     "constr": [ [ "'d", "'c | 'b | 'a" ], [ "'c | 'b | 'a", "'d" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a", "'b" ],
+    "constr": [ [ "'b", "'a" ], [ "'a", "'b" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -3658,9 +3707,9 @@
     "vars": [ "'a", "'b", "'c", "'d" ],
     "mono": [],
     "constr": [
-      [ "__dict({ _0 :? 'd | 'b | 'a ; _1 :? 'c })", "any" ],
+      [ "__dict({ _0 :? 'c | 'b | 'a ; _1 :? 'd })", "any" ],
       [ "'b", "any" ],
-      [ "'c", "any" ]
+      [ "'d", "any" ]
     ],
     "prio": [ "'a", "'b", "'c", "'d" ]
   },
@@ -3670,7 +3719,7 @@
     "constr": [
       [
         "(__array({ _0 :? 'f }), int, 'f) | (__dict({ _0 :? 'e ; _1 :? 'f }), 'e, 'f) -> tuple0",
-        "(__dict({ _0 :? 'd | 'b | 'a ; _1 :? 'c }), 'b, 'c) -> 'g"
+        "(__dict({ _0 :? 'c | 'b | 'a ; _1 :? 'd }), 'b, 'd) -> 'g"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d" ]
@@ -3706,9 +3755,9 @@
     "vars": [ "'a", "'b", "'c", "'d" ],
     "mono": [],
     "constr": [
-      [ "__dict({ _0 :? 'd | 'b | 'a ; _1 :? 'c })", "any" ],
+      [ "__dict({ _0 :? 'c | 'b | 'a ; _1 :? 'd })", "any" ],
       [ "'a", "any" ],
-      [ "'c", "any" ]
+      [ "'d", "any" ]
     ],
     "prio": [ "'a", "'b", "'c", "'d" ]
   },
@@ -3718,7 +3767,7 @@
     "constr": [
       [
         "(__array({ _0 :? 'f }), int, 'f) | (__dict({ _0 :? 'e ; _1 :? 'f }), 'e, 'f) -> tuple0",
-        "(__dict({ _0 :? 'd | 'b | 'a ; _1 :? 'c }), 'a, 'c) -> 'g"
+        "(__dict({ _0 :? 'c | 'b | 'a ; _1 :? 'd }), 'a, 'd) -> 'g"
       ]
     ],
     "prio": [ "'a", "'b", "'c", "'d" ]
@@ -3755,7 +3804,7 @@
     "mono": [],
     "constr": [
       [
-        "('b & int -> 'a & int -> __array({ _0 :? 'd }) -> tuple0) & ('b -> 'a -> __dict({ _0 :? 'e | 'b | 'a ; _1 :? 'd }) -> tuple0)",
+        "('b & int -> 'a & int -> __array({ _0 :? 'e }) -> tuple0) & ('b -> 'a -> __dict({ _0 :? 'd | 'b | 'a ; _1 :? 'e }) -> tuple0)",
         "'c"
       ]
     ]
@@ -3766,10 +3815,10 @@
     "constr": [
       [
         "'c",
-        "('b & int -> 'a & int -> __array({ _0 :? 'd }) -> tuple0) & ('b -> 'a -> __dict({ _0 :? 'e | 'b | 'a ; _1 :? 'd }) -> tuple0) | 'c"
+        "('b & int -> 'a & int -> __array({ _0 :? 'e }) -> tuple0) & ('b -> 'a -> __dict({ _0 :? 'd | 'b | 'a ; _1 :? 'e }) -> tuple0) | 'c"
       ],
       [
-        "('b & int -> 'a & int -> __array({ _0 :? 'd }) -> tuple0) & ('b -> 'a -> __dict({ _0 :? 'e | 'b | 'a ; _1 :? 'd }) -> tuple0) | 'c",
+        "('b & int -> 'a & int -> __array({ _0 :? 'e }) -> tuple0) & ('b -> 'a -> __dict({ _0 :? 'd | 'b | 'a ; _1 :? 'e }) -> tuple0) | 'c",
         "'c"
       ]
     ]
@@ -5300,7 +5349,7 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "'b & ('a -> 'd) -> x1 -> lst('d, 'f & lst(x2)) | lst(tuple0) where x1 = lst('a, x1) | lst(tuple0) and x2 = tuple0 | (any, lst(x2))",
+        "'b & ('a -> 'd) -> x2 -> lst('d, 'f & lst(x1)) | lst(tuple0) where x1 = tuple0 | (any, lst(x1)) and x2 = lst('a, x2) | lst(tuple0)",
         "'c & ('b & ('a -> 'd) -> 'e & (x2 -> 'f & lst(x1))) where x1 = tuple0 | (any, lst(x1)) and x2 = lst('a, x2) | lst(tuple0)"
       ]
     ]
@@ -5324,7 +5373,7 @@
         "('b & ('a -> 'd) -> x4 -> lst('d, lst(x2) | lst(tuple0) | 'e & lst(x3)) | lst(tuple0)) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = 'd, lst(x2) | lst(tuple0) | 'e & lst(x1) and x3 = tuple0 | (any, lst(x3)) and x4 = lst('a, x4) | lst(tuple0)"
       ],
       [
-        "('b & ('a -> 'd) -> x4 -> lst('d, lst(x2) | lst(tuple0) | 'e & lst(x3)) | lst(tuple0)) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = 'd, lst(x2) | lst(tuple0) | 'e & lst(x1) and x3 = tuple0 | (any, lst(x3)) and x4 = lst('a, x4) | lst(tuple0)",
+        "('b & ('a -> 'd) -> x3 -> lst('d, lst(x4) | lst(tuple0) | 'e & lst(x2)) | lst(tuple0)) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst('a, x3) | lst(tuple0) and x4 = 'd, lst(x4) | lst(tuple0) | 'e & lst(x1)",
         "'c"
       ]
     ]
@@ -5481,7 +5530,7 @@
         "'a \\ (lst(any, x1) \\ lst(any, 'b & lst(tuple0 | (any, x1)))) where x1 = lst(tuple0 | (any, x1))"
       ],
       [
-        "'a \\ (lst(any, lst(x1)) \\ lst(any, 'b & lst(x1))) where x1 = tuple0 | (any, lst(x1))",
+        "'a \\ (lst(any, x1) \\ lst(any, 'b & lst(tuple0 | (any, x1)))) where x1 = lst(tuple0 | (any, x1))",
         "'a"
       ]
     ]
@@ -5503,10 +5552,10 @@
     "constr": [
       [
         "'a",
-        "'a \\ (lst(any, 'b & lst(x1)) \\ lst('c, x2)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2))"
+        "'a \\ (lst(any, 'b & lst(x2)) \\ lst('c, x1)) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2))"
       ],
       [
-        "'a \\ (lst(any, 'b & lst(x1)) \\ lst('c, x2)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2))",
+        "'a \\ (lst(any, 'b & lst(x2)) \\ lst('c, x1)) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2))",
         "'a"
       ]
     ]
@@ -5601,8 +5650,8 @@
     "mono": [],
     "constr": [
       [
-        "('b & ('e -> 'f) -> ('a & lst('e, x2) & lst(any, 'd & lst(x1)) -> lst('f, 'h & lst(x3))) & ('a & lst(tuple0) -> lst(tuple0))) & ('b -> 'a & lst(tuple0) -> lst(tuple0)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3))",
-        "'c & ('b & ('e -> 'f) -> 'g & ('d & lst(x2) -> 'h & lst(x1))) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2))"
+        "('b & ('e -> 'f) -> ('a & lst('e, x1) & lst(any, 'd & lst(x2)) -> lst('f, 'h & lst(x3))) & ('a & lst(tuple0) -> lst(tuple0))) & ('b -> 'a & lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3))",
+        "'c & ('b & ('e -> 'f) -> 'g & ('d & lst(x1) -> 'h & lst(x2))) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2))"
       ]
     ]
   },
@@ -5612,7 +5661,7 @@
     "constr": [
       [
         "'a",
-        "'b & (lst(x2) & lst('c, x1) | lst(tuple0)) | 'a where x1 = lst(tuple0 | (any, x1)) and x2 = any, 'b & (lst(x2) & lst('c, x1) | lst(tuple0))"
+        "'b & (lst(x1) & lst('c, x2) | lst(tuple0)) | 'a where x1 = any, 'b & (lst(x1) & lst('c, x2) | lst(tuple0)) and x2 = lst(tuple0 | (any, x2))"
       ],
       [
         "'b & (lst(x2) & lst('c, x1) | lst(tuple0)) | 'a where x1 = lst(tuple0 | (any, x1)) and x2 = any, 'b & (lst(x2) & lst('c, x1) | lst(tuple0))",
@@ -5626,10 +5675,10 @@
     "constr": [
       [
         "'c",
-        "('b & ('e -> 'f) -> ('d & lst(any, x6) & lst('e, x4) | 'a & lst(any, x6) & lst('e, x4) -> lst('f, lst(x3) | lst(tuple0) | 'g & lst(x2))) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) & ('b -> 'd & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = 'f, lst(x3) | lst(tuple0) | 'g & lst(x1) and x4 = lst(tuple0 | (any, x4)) and x5 = lst(tuple0 | (any, x5)) and x6 = 'd & (lst(any, x6) & lst('e, x5) | lst(tuple0))"
+        "('b & ('e -> 'f) -> ('d & lst(any, x6) & lst('e, x5) | 'a & lst(any, x6) & lst('e, x5) -> lst('f, lst(x2) | lst(tuple0) | 'g & lst(x3))) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) & ('b -> 'd & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = 'f, lst(x2) | lst(tuple0) | 'g & lst(x1) and x3 = tuple0 | (any, lst(x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = lst(tuple0 | (any, x5)) and x6 = 'd & (lst(any, x6) & lst('e, x4) | lst(tuple0))"
       ],
       [
-        "('b & ('e -> 'f) -> ('d & lst(any, x3) & lst('e, x6) | 'a & lst(any, x3) & lst('e, x6) -> lst('f, lst(x5) | lst(tuple0) | 'g & lst(x4))) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) & ('b -> 'd & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = 'd & (lst(any, x3) & lst('e, x2) | lst(tuple0)) and x4 = tuple0 | (any, lst(x4)) and x5 = 'f, lst(x5) | lst(tuple0) | 'g & lst(x1) and x6 = lst(tuple0 | (any, x6))",
+        "('b & ('e -> 'f) -> ('d & lst(any, x6) & lst('e, x5) | 'a & lst(any, x6) & lst('e, x5) -> lst('f, lst(x2) | lst(tuple0) | 'g & lst(x3))) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) & ('b -> 'd & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = 'f, lst(x2) | lst(tuple0) | 'g & lst(x1) and x3 = tuple0 | (any, lst(x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = lst(tuple0 | (any, x5)) and x6 = 'd & (lst(any, x6) & lst('e, x4) | lst(tuple0))",
         "'c"
       ]
     ]
@@ -5640,7 +5689,7 @@
     "constr": [
       [
         "'a",
-        "'a \\ (lst(x3) & ~lst('b, x2) & ~lst(tuple0) | lst(x3) & ~lst(x1) & ~lst(tuple0)) where x1 = any, 'a & (lst(x1) & lst('b, x2) | lst(tuple0)) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3))"
+        "'a \\ (lst(x2) & ~lst('b, x1) & ~lst(tuple0) | lst(x2) & ~lst(x3) & ~lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = any, 'a & (lst(x3) & lst('b, x1) | lst(tuple0))"
       ],
       [
         "'a \\ (lst(x2) & ~lst('b, x1) & ~lst(tuple0) | lst(x2) & ~lst(x3) & ~lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = any, 'a & (lst(x3) & lst('b, x1) | lst(tuple0))",
@@ -5654,10 +5703,10 @@
     "constr": [
       [
         "'e",
-        "('b & lst(any, x3) & lst('c, x6) | 'a & lst(any, x3) & lst('c, x6) -> lst('d, lst(x5) | lst(tuple0) | 'f & lst(x4))) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'e where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = 'b & (lst(any, x3) & lst('c, x2) | lst(tuple0)) and x4 = tuple0 | (any, lst(x4)) and x5 = 'd, lst(x5) | lst(tuple0) | 'f & lst(x1) and x6 = lst(tuple0 | (any, x6))"
+        "('b & lst(any, x2) & lst('c, x3) | 'a & lst(any, x2) & lst('c, x3) -> lst('d, lst(x5) | lst(tuple0) | 'f & lst(x6))) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'e where x1 = lst(tuple0 | (any, x1)) and x2 = 'b & (lst(any, x2) & lst('c, x1) | lst(tuple0)) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = 'd, lst(x5) | lst(tuple0) | 'f & lst(x4) and x6 = tuple0 | (any, lst(x6))"
       ],
       [
-        "('b & lst(any, x4) & lst('c, x6) | 'a & lst(any, x4) & lst('c, x6) -> lst('d, lst(x2) | lst(tuple0) | 'f & lst(x5))) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'e where x1 = tuple0 | (any, lst(x1)) and x2 = 'd, lst(x2) | lst(tuple0) | 'f & lst(x1) and x3 = lst(tuple0 | (any, x3)) and x4 = 'b & (lst(any, x4) & lst('c, x3) | lst(tuple0)) and x5 = tuple0 | (any, lst(x5)) and x6 = lst(tuple0 | (any, x6))",
+        "('b & lst(any, x3) & lst('c, x1) | 'a & lst(any, x3) & lst('c, x1) -> lst('d, lst(x5) | lst(tuple0) | 'f & lst(x6))) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'e where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = 'b & (lst(any, x3) & lst('c, x2) | lst(tuple0)) and x4 = tuple0 | (any, lst(x4)) and x5 = 'd, lst(x5) | lst(tuple0) | 'f & lst(x4) and x6 = tuple0 | (any, lst(x6))",
         "'e"
       ]
     ]
@@ -5779,10 +5828,10 @@
     "constr": [
       [
         "'e",
-        "('a & lst(any, 'b & lst(tuple0)) & lst('c, x2) -> lst('d, lst(tuple0) | 'f & lst(x1))) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'e where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2))"
+        "('a & lst(any, 'b & lst(tuple0)) & lst('c, x1) -> lst('d, lst(tuple0) | 'f & lst(x2))) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'e where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2))"
       ],
       [
-        "('a & lst(any, 'b & lst(tuple0)) & lst('c, x2) -> lst('d, lst(tuple0) | 'f & lst(x1))) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'e where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2))",
+        "('a & lst(any, 'b & lst(tuple0)) & lst('c, x1) -> lst('d, lst(tuple0) | 'f & lst(x2))) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'e where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2))",
         "'e"
       ]
     ]
@@ -5840,7 +5889,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "(('a -> 'b) -> (lst(any, x3) & lst('a, x4) -> lst('b, x1)) & (lst(tuple0) -> lst(tuple0))) & (any -> lst(tuple0) -> lst(tuple0)) where x1 = lst('b, x1) | lst(tuple0) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(any, x3) & lst('a, x2) | lst(tuple0) and x4 = lst(tuple0 | (any, x4))",
+        "(('a -> 'b) -> (lst(any, x3) & lst('a, x1) -> lst('b, x4)) & (lst(tuple0) -> lst(tuple0))) & (any -> lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(any, x3) & lst('a, x2) | lst(tuple0) and x4 = lst('b, x4) | lst(tuple0)",
         "(('a -> 'b) -> (lst('a, x1) & lst(any, lst(tuple0)) -> lst('b, lst(tuple0))) & (lst(tuple0) -> lst(tuple0))) & (any -> lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1))"
       ]
     ]
@@ -5871,7 +5920,7 @@
     "constr": [
       [
         "(('a -> 'b) -> (lst('a, x1) & lst(any, lst(tuple0)) -> lst('b, lst(tuple0))) & (lst(tuple0) -> lst(tuple0))) & (any -> lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
-        "(('a -> 'b) -> (lst(any, x2) & lst('a, x4) -> lst('b, x3)) & (lst(tuple0) -> lst(tuple0))) & (any -> lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(any, x2) & lst('a, x1) | lst(tuple0) and x3 = lst('b, x3) | lst(tuple0) and x4 = lst(tuple0 | (any, x4))"
+        "(('a -> 'b) -> (lst(any, x3) & lst('a, x1) -> lst('b, x4)) & (lst(tuple0) -> lst(tuple0))) & (any -> lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(any, x3) & lst('a, x2) | lst(tuple0) and x4 = lst('b, x4) | lst(tuple0)"
       ]
     ]
   },
@@ -6255,7 +6304,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "lst(x2) \\ lst('b, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = 'b | 'a, lst(x2) | lst(tuple0)",
+        "lst(x1) \\ lst('b, x2) where x1 = 'b | 'a, lst(x1) | lst(tuple0) and x2 = lst(tuple0 | (any, x2))",
         "~lst(tuple0)"
       ]
     ],
@@ -6266,7 +6315,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "lst(x1) \\ lst('b, x2) where x1 = 'b | 'a, lst(x1) | lst(tuple0) and x2 = lst(tuple0 | (any, x2))",
+        "lst(x2) \\ lst('b, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = 'b | 'a, lst(x2) | lst(tuple0)",
         "lst(tuple0)"
       ]
     ],
@@ -6302,7 +6351,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "lst(x1) \\ lst('b, x2) where x1 = 'b | 'a, lst(x1) | lst(tuple0) and x2 = lst(tuple0 | (any, x2))",
+        "lst(x2) \\ lst('b, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = 'b | 'a, lst(x2) | lst(tuple0)",
         "lst('c, x1) where x1 = lst(tuple0 | (any, x1))"
       ]
     ],
@@ -6330,7 +6379,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "('d -> ~(bool() \\ bool(~true))) & ('c -> any) -> x1 -> x2 where x1 = lst(tuple0 | ('d | 'c, x1)) and x2 = lst(tuple0 | ('c \\ 'd, x2))",
+        "('d -> ~(bool() \\ bool(~true))) & ('c -> any) -> x2 -> x1 where x1 = lst(tuple0 | ('c \\ 'd, x1)) and x2 = lst(tuple0 | ('d | 'c, x2))",
         "('b -> ~bool(true)) & ('a -> any) -> 'e"
       ]
     ],
@@ -6367,7 +6416,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "x1 -> x2 where x1 = lst(tuple0 | ('c & 'a | 'b, x1)) and x2 = lst(tuple0 | ('c & 'a & ~'b, x2))",
+        "x2 -> x1 where x1 = lst(tuple0 | ('c & 'a & ~'b, x1)) and x2 = lst(tuple0 | ('c & 'a | 'b, x2))",
         "x1 -> 'd where x1 = lst('b | 'a, x1) | lst(tuple0)"
       ]
     ],
@@ -6442,7 +6491,7 @@
         "(x2 -> x1) | 'e where x1 = lst(tuple0 | ('c & 'b & ~'d | 'c & 'a & ~'b, x1)) and x2 = lst(tuple0 | ('c & 'b | 'd & 'b | 'c & 'a, x2))"
       ],
       [
-        "(x2 -> x1) | 'e where x1 = lst(tuple0 | ('c & 'b & ~'d | 'c & 'a & ~'b, x1)) and x2 = lst(tuple0 | ('c & 'b | 'd & 'b | 'c & 'a, x2))",
+        "(x1 -> x2) | 'e where x1 = lst(tuple0 | ('c & 'b | 'd & 'b | 'c & 'a, x1)) and x2 = lst(tuple0 | ('c & 'b & ~'d | 'c & 'a & ~'b, x2))",
         "'e"
       ]
     ]
@@ -6452,7 +6501,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "x1 -> x2 where x1 = lst(tuple0 | ('c & 'a | 'b, x1)) and x2 = lst(tuple0 | ('c & 'a & ~'b, x2))",
+        "x2 -> x1 where x1 = lst(tuple0 | ('c & 'a & ~'b, x1)) and x2 = lst(tuple0 | ('c & 'a | 'b, x2))",
         "x1 -> 'd where x1 = lst('b | 'a, x1) | lst(tuple0)"
       ]
     ],
@@ -6498,7 +6547,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "lst('b, x2) & lst(x1) where x1 = 'b | 'a, lst(x1) | lst(tuple0) and x2 = lst(tuple0 | (any, x2))",
+        "lst('b, x1) & lst(x2) where x1 = lst(tuple0 | (any, x1)) and x2 = 'b | 'a, lst(x2) | lst(tuple0)",
         "~lst(tuple0)"
       ]
     ],
@@ -6574,7 +6623,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "('d -> ~(bool() \\ bool(~true))) & ('c -> any) -> x2 -> x1 where x1 = lst(tuple0 | ('c \\ 'd, x1)) and x2 = lst(tuple0 | ('d | 'c, x2))",
+        "('d -> ~(bool() \\ bool(~true))) & ('c -> any) -> x1 -> x2 where x1 = lst(tuple0 | ('d | 'c, x1)) and x2 = lst(tuple0 | ('c \\ 'd, x2))",
         "('b -> ~bool(true)) & ('a -> any) -> 'e"
       ]
     ],
@@ -6598,10 +6647,10 @@
     "constr": [
       [
         "'e",
-        "(x2 -> x1) | 'e where x1 = lst(tuple0 | ('c & 'b & ~'d | 'c & 'a & ~'b, x1)) and x2 = lst(tuple0 | ('c & 'b | 'd & 'b | 'c & 'a, x2))"
+        "(x1 -> x2) | 'e where x1 = lst(tuple0 | ('c & 'b | 'd & 'b | 'c & 'a, x1)) and x2 = lst(tuple0 | ('c & 'b & ~'d | 'c & 'a & ~'b, x2))"
       ],
       [
-        "(x2 -> x1) | 'e where x1 = lst(tuple0 | ('c & 'b & ~'d | 'c & 'a & ~'b, x1)) and x2 = lst(tuple0 | ('c & 'b | 'd & 'b | 'c & 'a, x2))",
+        "(x1 -> x2) | 'e where x1 = lst(tuple0 | ('c & 'b | 'd & 'b | 'c & 'a, x1)) and x2 = lst(tuple0 | ('c & 'b & ~'d | 'c & 'a & ~'b, x2))",
         "'e"
       ]
     ]
@@ -6611,7 +6660,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "x2 -> x1 where x1 = lst(tuple0 | ('c & 'a & ~'b, x1)) and x2 = lst(tuple0 | ('c & 'a | 'b, x2))",
+        "x1 -> x2 where x1 = lst(tuple0 | ('c & 'a | 'b, x1)) and x2 = lst(tuple0 | ('c & 'a & ~'b, x2))",
         "x1 -> 'd where x1 = lst('b | 'a, x1) | lst(tuple0)"
       ]
     ],
@@ -6684,7 +6733,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "lst(x1) \\ lst('b, x2) where x1 = 'b | 'a, lst(x1) | lst(tuple0) and x2 = lst(tuple0 | (any, x2))",
+        "lst(x2) \\ lst('b, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = 'b | 'a, lst(x2) | lst(tuple0)",
         "any"
       ]
     ],
@@ -6695,7 +6744,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "lst(x2) \\ lst('b, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = 'b | 'a, lst(x2) | lst(tuple0)",
+        "lst(x1) \\ lst('b, x2) where x1 = 'b | 'a, lst(x1) | lst(tuple0) and x2 = lst(tuple0 | (any, x2))",
         "lst(any, x1) | lst(tuple0) where x1 = lst(tuple0 | (any, x1))"
       ]
     ],
@@ -6706,7 +6755,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "lst(x1) \\ lst('b, x2) where x1 = 'b | 'a, lst(x1) | lst(tuple0) and x2 = lst(tuple0 | (any, x2))",
+        "lst(x2) \\ lst('b, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = 'b | 'a, lst(x2) | lst(tuple0)",
         "~lst(tuple0)"
       ]
     ],
@@ -6717,7 +6766,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "lst(x1) \\ lst('b, x2) where x1 = 'b | 'a, lst(x1) | lst(tuple0) and x2 = lst(tuple0 | (any, x2))",
+        "lst(x2) \\ lst('b, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = 'b | 'a, lst(x2) | lst(tuple0)",
         "lst(tuple0)"
       ]
     ],
@@ -6841,7 +6890,7 @@
     "constr": [
       [
         "'c",
-        "'c & (~(('b -> ~bool(true)) & ('a -> any) -> 'd & (x2 -> 'e & lst(x1))) | (('b -> ~bool(true)) & ('a -> any) -> 'f)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst('b | 'a, x2) | lst(tuple0)"
+        "'c & (~(('b -> ~bool(true)) & ('a -> any) -> 'd & (x1 -> 'e & lst(x2))) | (('b -> ~bool(true)) & ('a -> any) -> 'f)) where x1 = lst('b | 'a, x1) | lst(tuple0) and x2 = tuple0 | (any, lst(x2))"
       ],
       [
         "'c & (~(('b -> ~bool(true)) & ('a -> any) -> 'd & (x2 -> 'e & lst(x1))) | (('b -> ~bool(true)) & ('a -> any) -> 'f)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst('b | 'a, x2) | lst(tuple0)",
@@ -6866,10 +6915,10 @@
     "constr": [
       [
         "'c",
-        "'c & (~(x1 -> 'd & lst(x3)) | (x2 -> 'e)) where x1 = lst('b | 'a, x1) | lst(tuple0) and x2 = lst('b | 'a, x2) | lst(tuple0) and x3 = tuple0 | (any, lst(x3))"
+        "'c & (~(x3 -> 'd & lst(x1)) | (x2 -> 'e)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst('b | 'a, x2) | lst(tuple0) and x3 = lst('b | 'a, x3) | lst(tuple0)"
       ],
       [
-        "'c & (~(x2 -> 'd & lst(x1)) | (x3 -> 'e)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst('b | 'a, x2) | lst(tuple0) and x3 = lst('b | 'a, x3) | lst(tuple0)",
+        "'c & (~(x3 -> 'd & lst(x1)) | (x2 -> 'e)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst('b | 'a, x2) | lst(tuple0) and x3 = lst('b | 'a, x3) | lst(tuple0)",
         "'c"
       ]
     ]
@@ -6879,7 +6928,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "lst('b, x2) & lst(x1) where x1 = 'b | 'a, lst(x1) | lst(tuple0) and x2 = lst(tuple0 | (any, x2))",
+        "lst('b, x1) & lst(x2) where x1 = lst(tuple0 | (any, x1)) and x2 = 'b | 'a, lst(x2) | lst(tuple0)",
         "any"
       ]
     ],
@@ -6901,7 +6950,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "lst('b, x1) & lst(x2) where x1 = lst(tuple0 | (any, x1)) and x2 = 'b | 'a, lst(x2) | lst(tuple0)",
+        "lst('b, x2) & lst(x1) where x1 = 'b | 'a, lst(x1) | lst(tuple0) and x2 = lst(tuple0 | (any, x2))",
         "~lst(tuple0)"
       ]
     ],
@@ -7002,7 +7051,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "'c & (x1 -> 'd & lst(x2)) where x1 = lst('b | 'a, x1) | lst(tuple0) and x2 = tuple0 | (any, lst(x2))",
+        "'c & (x2 -> 'd & lst(x1)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst('b | 'a, x2) | lst(tuple0)",
         "x1 -> 'e where x1 = lst('b | 'a, x1) | lst(tuple0)"
       ]
     ],
@@ -7051,10 +7100,10 @@
     "constr": [
       [
         "'c",
-        "(('b -> ~bool(true)) & ('a -> any) -> x4 -> lst(x3) | lst(tuple0) | 'd & lst(x1)) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = 'a \\ 'b, lst(x3) | lst(tuple0) | 'd & lst(x2) and x4 = lst('b | 'a, x4) | lst(tuple0)"
+        "(('b -> ~bool(true)) & ('a -> any) -> x4 -> lst(x2) | lst(tuple0) | 'd & lst(x3)) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = 'a \\ 'b, lst(x2) | lst(tuple0) | 'd & lst(x1) and x3 = tuple0 | (any, lst(x3)) and x4 = lst('b | 'a, x4) | lst(tuple0)"
       ],
       [
-        "(('b -> ~bool(true)) & ('a -> any) -> x4 -> lst(x3) | lst(tuple0) | 'd & lst(x1)) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = 'a \\ 'b, lst(x3) | lst(tuple0) | 'd & lst(x2) and x4 = lst('b | 'a, x4) | lst(tuple0)",
+        "(('b -> ~bool(true)) & ('a -> any) -> x4 -> lst(x2) | lst(tuple0) | 'd & lst(x3)) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = 'a \\ 'b, lst(x2) | lst(tuple0) | 'd & lst(x1) and x3 = tuple0 | (any, lst(x3)) and x4 = lst('b | 'a, x4) | lst(tuple0)",
         "'c"
       ]
     ]
@@ -7065,10 +7114,10 @@
     "constr": [
       [
         "'c",
-        "(x4 -> lst(x2) | lst(tuple0) | 'd & lst(x3)) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = 'a \\ 'b, lst(x2) | lst(tuple0) | 'd & lst(x1) and x3 = tuple0 | (any, lst(x3)) and x4 = lst('b | 'a, x4) | lst(tuple0)"
+        "(x2 -> lst(x4) | lst(tuple0) | 'd & lst(x1)) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = lst('b | 'a, x2) | lst(tuple0) and x3 = tuple0 | (any, lst(x3)) and x4 = 'a \\ 'b, lst(x4) | lst(tuple0) | 'd & lst(x3)"
       ],
       [
-        "(x1 -> lst(x4) | lst(tuple0) | 'd & lst(x3)) | 'c where x1 = lst('b | 'a, x1) | lst(tuple0) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = 'a \\ 'b, lst(x4) | lst(tuple0) | 'd & lst(x2)",
+        "(x4 -> lst(x3) | lst(tuple0) | 'd & lst(x1)) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = 'a \\ 'b, lst(x3) | lst(tuple0) | 'd & lst(x2) and x4 = lst('b | 'a, x4) | lst(tuple0)",
         "'c"
       ]
     ]
@@ -7198,7 +7247,7 @@
     "constr": [
       [
         "'a",
-        "'a \\ (lst(any, lst(x1)) \\ lst(any, 'b & lst(x1))) where x1 = tuple0 | (any, lst(x1))"
+        "'a \\ (lst(any, x1) \\ lst(any, 'b & lst(tuple0 | (any, x1)))) where x1 = lst(tuple0 | (any, x1))"
       ],
       [
         "'a \\ (lst(any, lst(x1)) \\ lst(any, 'b & lst(x1))) where x1 = tuple0 | (any, lst(x1))",
@@ -7223,10 +7272,10 @@
     "constr": [
       [
         "'a",
-        "'a \\ (lst(any, 'b & lst(x1)) \\ lst('c, x2)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2))"
+        "'a \\ (lst(any, 'b & lst(x2)) \\ lst('c, x1)) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2))"
       ],
       [
-        "'a \\ (lst(any, 'b & lst(x2)) \\ lst('c, x1)) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2))",
+        "'a \\ (lst(any, 'b & lst(x1)) \\ lst('c, x2)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2))",
         "'a"
       ]
     ]
@@ -7352,7 +7401,7 @@
         "('b & ('e -> empty) -> ('d & lst(any, x2) & lst('e, x3) | 'a & lst(any, x2) & lst('e, x3) -> empty) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = 'd & (lst(any, x2) & lst('e, x1) | lst(tuple0)) and x3 = lst(tuple0 | (any, x3))"
       ],
       [
-        "('b & ('e -> empty) -> ('d & lst(any, x3) & lst('e, x2) | 'a & lst(any, x3) & lst('e, x2) -> empty) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = 'd & (lst(any, x3) & lst('e, x1) | lst(tuple0))",
+        "('b & ('e -> empty) -> ('d & lst(any, x2) & lst('e, x3) | 'a & lst(any, x2) & lst('e, x3) -> empty) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = 'd & (lst(any, x2) & lst('e, x1) | lst(tuple0)) and x3 = lst(tuple0 | (any, x3))",
         "'c"
       ]
     ]
@@ -7363,10 +7412,10 @@
     "constr": [
       [
         "'a",
-        "'a \\ (lst(x3) & ~lst('b, x2) & ~lst(tuple0) | lst(x3) & ~lst(x1) & ~lst(tuple0)) where x1 = any, 'a & (lst(x1) & lst('b, x2) | lst(tuple0)) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3))"
+        "'a \\ (lst(x1) & ~lst('b, x2) & ~lst(tuple0) | lst(x1) & ~lst(x3) & ~lst(tuple0)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = any, 'a & (lst(x3) & lst('b, x2) | lst(tuple0))"
       ],
       [
-        "'a \\ (lst(x3) & ~lst('b, x2) & ~lst(tuple0) | lst(x3) & ~lst(x1) & ~lst(tuple0)) where x1 = any, 'a & (lst(x1) & lst('b, x2) | lst(tuple0)) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3))",
+        "'a \\ (lst(x1) & ~lst('b, x3) & ~lst(tuple0) | lst(x1) & ~lst(x2) & ~lst(tuple0)) where x1 = tuple0 | (any, lst(x1)) and x2 = any, 'a & (lst(x2) & lst('b, x3) | lst(tuple0)) and x3 = lst(tuple0 | (any, x3))",
         "'a"
       ]
     ]
@@ -7380,7 +7429,7 @@
         "('b & lst(any, x2) & lst('c, x3) | 'a & lst(any, x2) & lst('c, x3) -> empty) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = lst(tuple0 | (any, x1)) and x2 = 'b & (lst(any, x2) & lst('c, x1) | lst(tuple0)) and x3 = lst(tuple0 | (any, x3))"
       ],
       [
-        "('b & lst(any, x2) & lst('c, x3) | 'a & lst(any, x2) & lst('c, x3) -> empty) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = lst(tuple0 | (any, x1)) and x2 = 'b & (lst(any, x2) & lst('c, x1) | lst(tuple0)) and x3 = lst(tuple0 | (any, x3))",
+        "('b & lst(any, x3) & lst('c, x1) | 'a & lst(any, x3) & lst('c, x1) -> empty) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = 'b & (lst(any, x3) & lst('c, x2) | lst(tuple0))",
         "'d"
       ]
     ]
@@ -7440,7 +7489,7 @@
     "mono": [],
     "constr": [
       [
-        "('a -> empty) -> (lst(any, x3) & lst('a, x1) -> empty) & (lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(any, x3) & lst('a, x2) | lst(tuple0)",
+        "('a -> empty) -> (lst(any, x2) & lst('a, x3) -> empty) & (lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(any, x2) & lst('a, x1) | lst(tuple0) and x3 = lst(tuple0 | (any, x3))",
         "arrow -> lst(tuple0) -> lst(tuple0)"
       ]
     ]
@@ -7474,7 +7523,7 @@
     "mono": [],
     "constr": [
       [
-        "'b & ('e -> 'h \\ bool(true)) -> ('a & lst('e, x1) & lst(any, 'd & lst(x2)) -> 'g) & ('a & lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2))",
+        "'b & ('e -> 'h \\ bool(true)) -> ('a & lst('e, x2) & lst(any, 'd & lst(x1)) -> 'g) & ('a & lst(tuple0) -> lst(tuple0)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2))",
         "'c & ('b & ('e -> 'h \\ bool(true)) -> 'f & ('d & lst(x1) -> 'g)) where x1 = tuple0 | (any, lst(x1))"
       ]
     ]
@@ -7485,7 +7534,7 @@
     "constr": [
       [
         "'a",
-        "'b & (lst(x2) & lst('c, x1) | lst(tuple0)) | 'a where x1 = lst(tuple0 | (any, x1)) and x2 = any, 'b & (lst(x2) & lst('c, x1) | lst(tuple0))"
+        "'b & (lst(x1) & lst('c, x2) | lst(tuple0)) | 'a where x1 = any, 'b & (lst(x1) & lst('c, x2) | lst(tuple0)) and x2 = lst(tuple0 | (any, x2))"
       ],
       [
         "'b & (lst(x2) & lst('c, x1) | lst(tuple0)) | 'a where x1 = lst(tuple0 | (any, x1)) and x2 = any, 'b & (lst(x2) & lst('c, x1) | lst(tuple0))",
@@ -7499,10 +7548,10 @@
     "constr": [
       [
         "'c",
-        "('b & ('e -> 'g \\ bool(true)) -> ('d & lst(any, x2) & lst('e, x3) | 'a & lst(any, x2) & lst('e, x3) -> lst(tuple0) | 'f) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = 'd & (lst(any, x2) & lst('e, x1) | lst(tuple0)) and x3 = lst(tuple0 | (any, x3))"
+        "('b & ('e -> 'g \\ bool(true)) -> ('d & lst(any, x3) & lst('e, x2) | 'a & lst(any, x3) & lst('e, x2) -> lst(tuple0) | 'f) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = 'd & (lst(any, x3) & lst('e, x1) | lst(tuple0))"
       ],
       [
-        "('b & ('e -> 'g \\ bool(true)) -> ('d & lst(any, x3) & lst('e, x1) | 'a & lst(any, x3) & lst('e, x1) -> lst(tuple0) | 'f) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = 'd & (lst(any, x3) & lst('e, x2) | lst(tuple0))",
+        "('b & ('e -> 'g \\ bool(true)) -> ('d & lst(any, x3) & lst('e, x2) | 'a & lst(any, x3) & lst('e, x2) -> lst(tuple0) | 'f) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = 'd & (lst(any, x3) & lst('e, x1) | lst(tuple0))",
         "'c"
       ]
     ]
@@ -7516,7 +7565,7 @@
         "'a \\ (lst(x1) & ~lst('b, x2) & ~lst(tuple0) | lst(x1) & ~lst(x3) & ~lst(tuple0)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = any, 'a & (lst(x3) & lst('b, x2) | lst(tuple0))"
       ],
       [
-        "'a \\ (lst(x1) & ~lst('b, x3) & ~lst(tuple0) | lst(x1) & ~lst(x2) & ~lst(tuple0)) where x1 = tuple0 | (any, lst(x1)) and x2 = any, 'a & (lst(x2) & lst('b, x3) | lst(tuple0)) and x3 = lst(tuple0 | (any, x3))",
+        "'a \\ (lst(x1) & ~lst('b, x2) & ~lst(tuple0) | lst(x1) & ~lst(x3) & ~lst(tuple0)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = any, 'a & (lst(x3) & lst('b, x2) | lst(tuple0))",
         "'a"
       ]
     ]
@@ -7530,7 +7579,7 @@
         "('b & lst(any, x2) & lst('c, x3) | 'a & lst(any, x2) & lst('c, x3) -> lst(tuple0) | 'e) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = lst(tuple0 | (any, x1)) and x2 = 'b & (lst(any, x2) & lst('c, x1) | lst(tuple0)) and x3 = lst(tuple0 | (any, x3))"
       ],
       [
-        "('b & lst(any, x3) & lst('c, x1) | 'a & lst(any, x3) & lst('c, x1) -> lst(tuple0) | 'e) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = 'b & (lst(any, x3) & lst('c, x2) | lst(tuple0))",
+        "('b & lst(any, x2) & lst('c, x3) | 'a & lst(any, x2) & lst('c, x3) -> lst(tuple0) | 'e) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = lst(tuple0 | (any, x1)) and x2 = 'b & (lst(any, x2) & lst('c, x1) | lst(tuple0)) and x3 = lst(tuple0 | (any, x3))",
         "'d"
       ]
     ]
@@ -7593,7 +7642,7 @@
     "mono": [],
     "constr": [
       [
-        "('a -> ~bool(true)) -> (lst(any, x2) & lst('a, x3) -> lst(tuple0)) & (lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(any, x2) & lst('a, x1) | lst(tuple0) and x3 = lst(tuple0 | (any, x3))",
+        "('a -> ~bool(true)) -> (lst(any, x3) & lst('a, x2) -> lst(tuple0)) & (lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(any, x3) & lst('a, x1) | lst(tuple0)",
         "arrow -> lst(tuple0) -> lst(tuple0)"
       ]
     ]
@@ -7654,8 +7703,8 @@
     "mono": [],
     "constr": [
       [
-        "'b & ('e -> 'h & bool(true)) -> ('a & lst('e, x3) & lst(any, 'd & lst(x1)) -> lst('e, 'g & lst(x2))) & ('a & lst(tuple0) -> lst(tuple0)) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | (any, x3))",
-        "'c & ('b & ('e -> 'h & bool(true)) -> 'f & ('d & lst(x2) -> 'g & lst(x1))) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2))"
+        "'b & ('e -> 'h & bool(true)) -> ('a & lst('e, x3) & lst(any, 'd & lst(x2)) -> lst('e, 'g & lst(x1))) & ('a & lst(tuple0) -> lst(tuple0)) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | (any, x3))",
+        "'c & ('b & ('e -> 'h & bool(true)) -> 'f & ('d & lst(x1) -> 'g & lst(x2))) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2))"
       ]
     ]
   },
@@ -7665,7 +7714,7 @@
     "constr": [
       [
         "'a",
-        "'b & (lst(x2) & lst('c, x1) | lst(tuple0)) | 'a where x1 = lst(tuple0 | (any, x1)) and x2 = any, 'b & (lst(x2) & lst('c, x1) | lst(tuple0))"
+        "'b & (lst(x1) & lst('c, x2) | lst(tuple0)) | 'a where x1 = any, 'b & (lst(x1) & lst('c, x2) | lst(tuple0)) and x2 = lst(tuple0 | (any, x2))"
       ],
       [
         "'b & (lst(x1) & lst('c, x2) | lst(tuple0)) | 'a where x1 = any, 'b & (lst(x1) & lst('c, x2) | lst(tuple0)) and x2 = lst(tuple0 | (any, x2))",
@@ -7679,10 +7728,10 @@
     "constr": [
       [
         "'c",
-        "('b & ('e -> 'g & bool(true)) -> ('d & lst(any, x6) & lst('e, x2) | 'a & lst(any, x6) & lst('e, x2) -> lst('e, lst(x4) | lst(tuple0) | 'f & lst(x1))) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = 'e, lst(x4) | lst(tuple0) | 'f & lst(x3) and x5 = lst(tuple0 | (any, x5)) and x6 = 'd & (lst(any, x6) & lst('e, x5) | lst(tuple0))"
+        "('b & ('e -> 'g & bool(true)) -> ('d & lst(any, x2) & lst('e, x6) | 'a & lst(any, x2) & lst('e, x6) -> lst('e, lst(x5) | lst(tuple0) | 'f & lst(x4))) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = 'd & (lst(any, x2) & lst('e, x1) | lst(tuple0)) and x3 = tuple0 | (any, lst(x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = 'e, lst(x5) | lst(tuple0) | 'f & lst(x3) and x6 = lst(tuple0 | (any, x6))"
       ],
       [
-        "('b & ('e -> 'g & bool(true)) -> ('d & lst(any, x6) & lst('e, x4) | 'a & lst(any, x6) & lst('e, x4) -> lst('e, lst(x3) | lst(tuple0) | 'f & lst(x1))) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = 'e, lst(x3) | lst(tuple0) | 'f & lst(x2) and x4 = lst(tuple0 | (any, x4)) and x5 = lst(tuple0 | (any, x5)) and x6 = 'd & (lst(any, x6) & lst('e, x5) | lst(tuple0))",
+        "('b & ('e -> 'g & bool(true)) -> ('d & lst(any, x6) & lst('e, x4) | 'a & lst(any, x6) & lst('e, x4) -> lst('e, lst(x3) | lst(tuple0) | 'f & lst(x2))) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = 'e, lst(x3) | lst(tuple0) | 'f & lst(x1) and x4 = lst(tuple0 | (any, x4)) and x5 = lst(tuple0 | (any, x5)) and x6 = 'd & (lst(any, x6) & lst('e, x5) | lst(tuple0))",
         "'c"
       ]
     ]
@@ -7696,7 +7745,7 @@
         "'a \\ (lst(x2) & ~lst('b, x1) & ~lst(tuple0) | lst(x2) & ~lst(x3) & ~lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = any, 'a & (lst(x3) & lst('b, x1) | lst(tuple0))"
       ],
       [
-        "'a \\ (lst(x2) & ~lst('b, x3) & ~lst(tuple0) | lst(x2) & ~lst(x1) & ~lst(tuple0)) where x1 = any, 'a & (lst(x1) & lst('b, x3) | lst(tuple0)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | (any, x3))",
+        "'a \\ (lst(x1) & ~lst('b, x2) & ~lst(tuple0) | lst(x1) & ~lst(x3) & ~lst(tuple0)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = any, 'a & (lst(x3) & lst('b, x2) | lst(tuple0))",
         "'a"
       ]
     ]
@@ -7707,10 +7756,10 @@
     "constr": [
       [
         "'d",
-        "('b & lst(any, x6) & lst('c, x1) | 'a & lst(any, x6) & lst('c, x1) -> lst('c, lst(x4) | lst(tuple0) | 'e & lst(x3))) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = 'c, lst(x4) | lst(tuple0) | 'e & lst(x2) and x5 = lst(tuple0 | (any, x5)) and x6 = 'b & (lst(any, x6) & lst('c, x5) | lst(tuple0))"
+        "('b & lst(any, x2) & lst('c, x5) | 'a & lst(any, x2) & lst('c, x5) -> lst('c, lst(x6) | lst(tuple0) | 'e & lst(x3))) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = lst(tuple0 | (any, x1)) and x2 = 'b & (lst(any, x2) & lst('c, x1) | lst(tuple0)) and x3 = tuple0 | (any, lst(x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5)) and x6 = 'c, lst(x6) | lst(tuple0) | 'e & lst(x4)"
       ],
       [
-        "('b & lst(any, x3) & lst('c, x1) | 'a & lst(any, x3) & lst('c, x1) -> lst('c, lst(x6) | lst(tuple0) | 'e & lst(x5))) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = 'b & (lst(any, x3) & lst('c, x2) | lst(tuple0)) and x4 = tuple0 | (any, lst(x4)) and x5 = tuple0 | (any, lst(x5)) and x6 = 'c, lst(x6) | lst(tuple0) | 'e & lst(x4)",
+        "('b & lst(any, x2) & lst('c, x6) | 'a & lst(any, x2) & lst('c, x6) -> lst('c, lst(x4) | lst(tuple0) | 'e & lst(x5))) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = lst(tuple0 | (any, x1)) and x2 = 'b & (lst(any, x2) & lst('c, x1) | lst(tuple0)) and x3 = tuple0 | (any, lst(x3)) and x4 = 'c, lst(x4) | lst(tuple0) | 'e & lst(x3) and x5 = tuple0 | (any, lst(x5)) and x6 = lst(tuple0 | (any, x6))",
         "'d"
       ]
     ]
@@ -7816,7 +7865,7 @@
     "constr": [
       [
         "'c",
-        "('b & ('e -> 'g & bool(true)) -> ('a & lst(any, 'd & lst(tuple0)) & lst('e, x2) -> lst('e, lst(tuple0) | 'f & lst(x1))) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2))"
+        "('b & ('e -> 'g & bool(true)) -> ('a & lst(any, 'd & lst(tuple0)) & lst('e, x1) -> lst('e, lst(tuple0) | 'f & lst(x2))) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2))"
       ],
       [
         "('b & ('e -> 'g & bool(true)) -> ('a & lst(any, 'd & lst(tuple0)) & lst('e, x2) -> lst('e, lst(tuple0) | 'f & lst(x1))) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2))",
@@ -7847,7 +7896,7 @@
         "('a & lst(any, 'b & lst(tuple0)) & lst('c, x2) -> lst('c, lst(tuple0) | 'e & lst(x1))) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2))"
       ],
       [
-        "('a & lst(any, 'b & lst(tuple0)) & lst('c, x1) -> lst('c, lst(tuple0) | 'e & lst(x2))) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2))",
+        "('a & lst(any, 'b & lst(tuple0)) & lst('c, x2) -> lst('c, lst(tuple0) | 'e & lst(x1))) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2))",
         "'d"
       ]
     ]
@@ -7905,7 +7954,7 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "('a -> bool(true)) -> (lst(any, x3) & lst('a, x1) -> lst('a, x4)) & (lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(any, x3) & lst('a, x2) | lst(tuple0) and x4 = lst('a, x4) | lst(tuple0)",
+        "('a -> bool(true)) -> (lst(any, x4) & lst('a, x1) -> lst('a, x2)) & (lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst('a, x2) | lst(tuple0) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(any, x4) & lst('a, x3) | lst(tuple0)",
         "('a -> bool(true)) -> (lst('a, x1) & lst(any, lst(tuple0)) -> lst('a, lst(tuple0))) & (lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1))"
       ]
     ]
@@ -7936,7 +7985,7 @@
     "constr": [
       [
         "('a -> bool(true)) -> (lst('a, x1) & lst(any, lst(tuple0)) -> lst('a, lst(tuple0))) & (lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
-        "('a -> bool(true)) -> (lst(any, x4) & lst('a, x2) -> lst('a, x1)) & (lst(tuple0) -> lst(tuple0)) where x1 = lst('a, x1) | lst(tuple0) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(any, x4) & lst('a, x3) | lst(tuple0)"
+        "('a -> bool(true)) -> (lst(any, x2) & lst('a, x4) -> lst('a, x3)) & (lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(any, x2) & lst('a, x1) | lst(tuple0) and x3 = lst('a, x3) | lst(tuple0) and x4 = lst(tuple0 | (any, x4))"
       ]
     ]
   },
@@ -7969,8 +8018,8 @@
     "mono": [],
     "constr": [
       [
-        "'b & ('e -> 'h) -> ('a & lst('e, x1) & lst(any, 'd & lst(x2)) -> lst('e, 'g & lst(x3)) | 'g & lst(x4)) & ('a & lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = tuple0 | (any, lst(x4))",
-        "'c & ('b & ('e -> 'h) -> 'f & ('d & lst(x1) -> 'g & lst(x2))) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2))"
+        "'b & ('e -> 'h) -> ('a & lst('e, x3) & lst(any, 'd & lst(x4)) -> lst('e, 'g & lst(x1)) | 'g & lst(x2)) & ('a & lst(tuple0) -> lst(tuple0)) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4))",
+        "'c & ('b & ('e -> 'h) -> 'f & ('d & lst(x2) -> 'g & lst(x1))) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2))"
       ]
     ]
   },
@@ -7983,7 +8032,7 @@
         "'b & (lst(x1) & lst('c, x2) | lst(tuple0)) | 'a where x1 = any, 'b & (lst(x1) & lst('c, x2) | lst(tuple0)) and x2 = lst(tuple0 | (any, x2))"
       ],
       [
-        "'b & (lst(x2) & lst('c, x1) | lst(tuple0)) | 'a where x1 = lst(tuple0 | (any, x1)) and x2 = any, 'b & (lst(x2) & lst('c, x1) | lst(tuple0))",
+        "'b & (lst(x1) & lst('c, x2) | lst(tuple0)) | 'a where x1 = any, 'b & (lst(x1) & lst('c, x2) | lst(tuple0)) and x2 = lst(tuple0 | (any, x2))",
         "'a"
       ]
     ]
@@ -7994,10 +8043,10 @@
     "constr": [
       [
         "'c",
-        "('b & ('e -> 'g) -> ('d & lst(any, x5) & lst('e, x1) | 'a & lst(any, x5) & lst('e, x1) -> lst(x3) | lst(tuple0) | 'f & lst(x6)) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = 'e, lst(x3) | lst(tuple0) | 'f & lst(x2) and x4 = lst(tuple0 | (any, x4)) and x5 = 'd & (lst(any, x5) & lst('e, x4) | lst(tuple0)) and x6 = tuple0 | (any, lst(x6))"
+        "('b & ('e -> 'g) -> ('d & lst(any, x2) & lst('e, x6) | 'a & lst(any, x2) & lst('e, x6) -> lst(x4) | lst(tuple0) | 'f & lst(x5)) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = 'd & (lst(any, x2) & lst('e, x1) | lst(tuple0)) and x3 = tuple0 | (any, lst(x3)) and x4 = 'e, lst(x4) | lst(tuple0) | 'f & lst(x3) and x5 = tuple0 | (any, lst(x5)) and x6 = lst(tuple0 | (any, x6))"
       ],
       [
-        "('b & ('e -> 'g) -> ('d & lst(any, x5) & lst('e, x1) | 'a & lst(any, x5) & lst('e, x1) -> lst(x6) | lst(tuple0) | 'f & lst(x2)) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = 'd & (lst(any, x5) & lst('e, x4) | lst(tuple0)) and x6 = 'e, lst(x6) | lst(tuple0) | 'f & lst(x3)",
+        "('b & ('e -> 'g) -> ('d & lst(any, x2) & lst('e, x5) | 'a & lst(any, x2) & lst('e, x5) -> lst(x4) | lst(tuple0) | 'f & lst(x6)) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = 'd & (lst(any, x2) & lst('e, x1) | lst(tuple0)) and x3 = tuple0 | (any, lst(x3)) and x4 = 'e, lst(x4) | lst(tuple0) | 'f & lst(x3) and x5 = lst(tuple0 | (any, x5)) and x6 = tuple0 | (any, lst(x6))",
         "'c"
       ]
     ]
@@ -8022,10 +8071,10 @@
     "constr": [
       [
         "'d",
-        "('b & lst(any, x2) & lst('c, x3) | 'a & lst(any, x2) & lst('c, x3) -> lst(x5) | lst(tuple0) | 'e & lst(x6)) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = lst(tuple0 | (any, x1)) and x2 = 'b & (lst(any, x2) & lst('c, x1) | lst(tuple0)) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = 'c, lst(x5) | lst(tuple0) | 'e & lst(x4) and x6 = tuple0 | (any, lst(x6))"
+        "('b & lst(any, x4) & lst('c, x6) | 'a & lst(any, x4) & lst('c, x6) -> lst(x5) | lst(tuple0) | 'e & lst(x1)) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = 'b & (lst(any, x4) & lst('c, x3) | lst(tuple0)) and x5 = 'c, lst(x5) | lst(tuple0) | 'e & lst(x2) and x6 = lst(tuple0 | (any, x6))"
       ],
       [
-        "('b & lst(any, x3) & lst('c, x4) | 'a & lst(any, x3) & lst('c, x4) -> lst(x5) | lst(tuple0) | 'e & lst(x6)) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = 'b & (lst(any, x3) & lst('c, x1) | lst(tuple0)) and x4 = lst(tuple0 | (any, x4)) and x5 = 'c, lst(x5) | lst(tuple0) | 'e & lst(x2) and x6 = tuple0 | (any, lst(x6))",
+        "('b & lst(any, x4) & lst('c, x5) | 'a & lst(any, x4) & lst('c, x5) -> lst(x2) | lst(tuple0) | 'e & lst(x6)) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = tuple0 | (any, lst(x1)) and x2 = 'c, lst(x2) | lst(tuple0) | 'e & lst(x1) and x3 = lst(tuple0 | (any, x3)) and x4 = 'b & (lst(any, x4) & lst('c, x3) | lst(tuple0)) and x5 = lst(tuple0 | (any, x5)) and x6 = tuple0 | (any, lst(x6))",
         "'d"
       ]
     ]
@@ -8119,10 +8168,10 @@
     "constr": [
       [
         "'c",
-        "('b & ('e -> 'g) -> ('a & lst(any, 'd & lst(tuple0)) & lst('e, x3) -> lst('e, lst(tuple0) | 'f & lst(x1)) | lst(tuple0) | 'f & lst(x2)) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | (any, x3))"
+        "('b & ('e -> 'g) -> ('a & lst(any, 'd & lst(tuple0)) & lst('e, x1) -> lst('e, lst(tuple0) | 'f & lst(x2)) | lst(tuple0) | 'f & lst(x3)) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3))"
       ],
       [
-        "('b & ('e -> 'g) -> ('a & lst(any, 'd & lst(tuple0)) & lst('e, x3) -> lst('e, lst(tuple0) | 'f & lst(x2)) | lst(tuple0) | 'f & lst(x1)) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | (any, x3))",
+        "('b & ('e -> 'g) -> ('a & lst(any, 'd & lst(tuple0)) & lst('e, x1) -> lst('e, lst(tuple0) | 'f & lst(x2)) | lst(tuple0) | 'f & lst(x3)) & ('d & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0))) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3))",
         "'c"
       ]
     ]
@@ -8147,10 +8196,10 @@
     "constr": [
       [
         "'d",
-        "('a & lst(any, 'b & lst(tuple0)) & lst('c, x1) -> lst('c, lst(tuple0) | 'e & lst(x3)) | lst(tuple0) | 'e & lst(x2)) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3))"
+        "('a & lst(any, 'b & lst(tuple0)) & lst('c, x3) -> lst('c, lst(tuple0) | 'e & lst(x1)) | lst(tuple0) | 'e & lst(x2)) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | (any, x3))"
       ],
       [
-        "('a & lst(any, 'b & lst(tuple0)) & lst('c, x3) -> lst('c, lst(tuple0) | 'e & lst(x2)) | lst(tuple0) | 'e & lst(x1)) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | (any, x3))",
+        "('a & lst(any, 'b & lst(tuple0)) & lst('c, x1) -> lst('c, lst(tuple0) | 'e & lst(x2)) | lst(tuple0) | 'e & lst(x3)) & ('b & lst(tuple0) | 'a & lst(tuple0) -> lst(tuple0)) | 'd where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3))",
         "'d"
       ]
     ]
@@ -8236,7 +8285,7 @@
     "constr": [
       [
         "('a -> any) -> (lst('a, x1) & lst(any, lst(tuple0)) -> lst('a, lst(tuple0)) | lst(tuple0)) & (lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
-        "('a -> any) -> (lst(any, x3) & lst('a, x1) -> x4) & (lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(any, x3) & lst('a, x2) | lst(tuple0) and x4 = lst('a, x4) | lst(tuple0)"
+        "('a -> any) -> (lst(any, x2) & lst('a, x3) -> x4) & (lst(tuple0) -> lst(tuple0)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(any, x2) & lst('a, x1) | lst(tuple0) and x3 = lst(tuple0 | (any, x3)) and x4 = lst('a, x4) | lst(tuple0)"
       ]
     ]
   },
@@ -8742,7 +8791,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "(('d -> bool(true | false) | (bool(true), 'c), x3) -> x2) & (('d -> bool(false) | (bool(true), 'c), x3) -> x1) where x1 = lst(tuple0 | ('c, x1)) and x2 = lst(tuple0 | ('d | 'c, x2)) and x3 = lst(tuple0 | ('d, x3))",
+        "(('d -> bool(true | false) | (bool(true), 'c), x2) -> x3) & (('d -> bool(false) | (bool(true), 'c), x2) -> x1) where x1 = lst(tuple0 | ('c, x1)) and x2 = lst(tuple0 | ('d, x2)) and x3 = lst(tuple0 | ('d | 'c, x3))",
         "('b -> bool(true | false) | (bool(true), 'a), x1) -> 'e where x1 = lst('b, x1) | lst(tuple0)"
       ]
     ],
@@ -8795,7 +8844,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "(('d -> bool(true | false) | (bool(true), 'c), x3) -> x1) & (('d -> bool(false) | (bool(true), 'c), x3) -> x2) where x1 = lst(tuple0 | ('d | 'c, x1)) and x2 = lst(tuple0 | ('c, x2)) and x3 = lst(tuple0 | ('d, x3))",
+        "(('d -> bool(true | false) | (bool(true), 'c), x2) -> x3) & (('d -> bool(false) | (bool(true), 'c), x2) -> x1) where x1 = lst(tuple0 | ('c, x1)) and x2 = lst(tuple0 | ('d, x2)) and x3 = lst(tuple0 | ('d | 'c, x3))",
         "('b -> bool(true | false) | (bool(true), 'a), x1) -> 'e where x1 = lst('b, x1) | lst(tuple0)"
       ]
     ],
@@ -8892,7 +8941,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "(('d -> bool(true | false) | (bool(true), 'c), x2) -> x3) & (('d -> bool(false) | (bool(true), 'c), x2) -> x1) where x1 = lst(tuple0 | ('c, x1)) and x2 = lst(tuple0 | ('d, x2)) and x3 = lst(tuple0 | ('d | 'c, x3))",
+        "(('d -> bool(true | false) | (bool(true), 'c), x1) -> x2) & (('d -> bool(false) | (bool(true), 'c), x1) -> x3) where x1 = lst(tuple0 | ('d, x1)) and x2 = lst(tuple0 | ('d | 'c, x2)) and x3 = lst(tuple0 | ('c, x3))",
         "('b -> bool(true | false) | (bool(true), 'a), x1) -> 'e where x1 = lst('b, x1) | lst(tuple0)"
       ]
     ],
@@ -9190,7 +9239,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "(('d -> bool(true | false) | (bool(true), 'c), x1) -> x2) & (('d -> bool(false) | (bool(true), 'c), x1) -> x3) where x1 = lst(tuple0 | ('d, x1)) and x2 = lst(tuple0 | ('d | 'c, x2)) and x3 = lst(tuple0 | ('c, x3))",
+        "(('d -> bool(true | false) | (bool(true), 'c), x1) -> x3) & (('d -> bool(false) | (bool(true), 'c), x1) -> x2) where x1 = lst(tuple0 | ('d, x1)) and x2 = lst(tuple0 | ('c, x2)) and x3 = lst(tuple0 | ('d | 'c, x3))",
         "('b -> bool(false) | (bool(true), 'a), x1) -> 'e where x1 = lst('b, x1) | lst(tuple0)"
       ]
     ],
@@ -9275,7 +9324,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "(('d -> bool(true | false) | (bool(true), 'c), x1) -> x2) & (('d -> bool(false) | (bool(true), 'c), x1) -> x3) where x1 = lst(tuple0 | ('d, x1)) and x2 = lst(tuple0 | ('d | 'c, x2)) and x3 = lst(tuple0 | ('c, x3))",
+        "(('d -> bool(true | false) | (bool(true), 'c), x3) -> x1) & (('d -> bool(false) | (bool(true), 'c), x3) -> x2) where x1 = lst(tuple0 | ('d | 'c, x1)) and x2 = lst(tuple0 | ('c, x2)) and x3 = lst(tuple0 | ('d, x3))",
         "('b -> bool(false) | (bool(true), 'a), x1) -> 'e where x1 = lst('b, x1) | lst(tuple0)"
       ]
     ],
@@ -9661,7 +9710,7 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x4) \\ lst(x1, x3) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x4)), lst(x4) | lst(tuple0)",
+        "lst(x2) \\ lst(x4, x3) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(x2) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x2)), lst(x2) | lst(tuple0) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(tuple0 | (any, x4))",
         "any"
       ]
     ],
@@ -9672,7 +9721,7 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x3) \\ lst(x1, x4) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(x3) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x3)), lst(x3) | lst(tuple0) and x4 = lst(tuple0 | (any, x4))",
+        "lst(x2) \\ lst(x4, x3) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(x2) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x2)), lst(x2) | lst(tuple0) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(tuple0 | (any, x4))",
         "lst(any, x1) | lst(tuple0) where x1 = lst(tuple0 | (any, x1))"
       ]
     ],
@@ -9683,7 +9732,7 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x4) \\ lst(x1, x3) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x4)), lst(x4) | lst(tuple0)",
+        "lst(x2) \\ lst(x4, x3) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(x2) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x2)), lst(x2) | lst(tuple0) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(tuple0 | (any, x4))",
         "~lst(tuple0)"
       ]
     ],
@@ -9694,7 +9743,7 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x4) \\ lst(x1, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x4)), lst(x4) | lst(tuple0)",
+        "lst(x4) \\ lst(x2, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x4)), lst(x4) | lst(tuple0)",
         "lst(tuple0)"
       ]
     ],
@@ -9705,8 +9754,8 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x4) \\ lst(x1, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x4)), lst(x4) | lst(tuple0)",
-        "~lst(x1, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2))"
+        "lst(x3) \\ lst(x4, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(x3) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x3)), lst(x3) | lst(tuple0) and x4 = lst(tuple0 | (any, x4))",
+        "~lst(x2, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2))"
       ]
     ],
     "prio": [ "'a" ]
@@ -9716,8 +9765,8 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x4) \\ lst(x1, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x4)), lst(x4) | lst(tuple0)",
-        "lst(x1, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2))"
+        "lst(x2) \\ lst(x4, x3) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(x2) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x2)), lst(x2) | lst(tuple0) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(tuple0 | (any, x4))",
+        "lst(x2, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2))"
       ]
     ],
     "prio": [ "'a" ]
@@ -9727,7 +9776,7 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x4) \\ lst(x1, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x4)), lst(x4) | lst(tuple0)",
+        "lst(x3) \\ lst(x4, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(x3) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x3)), lst(x3) | lst(tuple0) and x4 = lst(tuple0 | (any, x4))",
         "lst(any, 'b & lst(x1)) where x1 = tuple0 | (any, lst(x1))"
       ]
     ],
@@ -9752,7 +9801,7 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x3) \\ lst(x1, x4) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(x3) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x3)), lst(x3) | lst(tuple0) and x4 = lst(tuple0 | (any, x4))",
+        "lst(x2) \\ lst(x4, x3) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(x2) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x2)), lst(x2) | lst(tuple0) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(tuple0 | (any, x4))",
         "lst('b, x1) where x1 = lst(tuple0 | (any, x1))"
       ]
     ],
@@ -9826,7 +9875,7 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x4) & lst(x1, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x4)), lst(x4) | lst(tuple0)",
+        "lst(x4) & lst(x3, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x4)), lst(x4) | lst(tuple0)",
         "any"
       ]
     ],
@@ -9837,7 +9886,7 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x4) & lst(x1, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x4)), lst(x4) | lst(tuple0)",
+        "lst(x3) & lst(x4, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(x3) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x3)), lst(x3) | lst(tuple0) and x4 = lst(tuple0 | (any, x4))",
         "lst(any, x1) | lst(tuple0) where x1 = lst(tuple0 | (any, x1))"
       ]
     ],
@@ -9848,7 +9897,7 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x4) & lst(x1, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x4)), lst(x4) | lst(tuple0)",
+        "lst(x2) & lst(x4, x3) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(x2) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x2)), lst(x2) | lst(tuple0) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(tuple0 | (any, x4))",
         "~lst(tuple0)"
       ]
     ],
@@ -9859,7 +9908,7 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x4) & lst(x1, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x4)), lst(x4) | lst(tuple0)",
+        "lst(x4) & lst(x2, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x4)), lst(x4) | lst(tuple0)",
         "lst(tuple0)"
       ]
     ],
@@ -9870,8 +9919,8 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x4) & lst(x1, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x4)), lst(x4) | lst(tuple0)",
-        "~lst(x1, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2))"
+        "lst(x3) & lst(x4, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(x3) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x3)), lst(x3) | lst(tuple0) and x4 = lst(tuple0 | (any, x4))",
+        "~lst(x2, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2))"
       ]
     ],
     "prio": [ "'a" ]
@@ -9881,7 +9930,7 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x3) & lst(x1, x4) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(x3) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x3)), lst(x3) | lst(tuple0) and x4 = lst(tuple0 | (any, x4))",
+        "lst(x2) & lst(x4, x3) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(x2) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x2)), lst(x2) | lst(tuple0) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(tuple0 | (any, x4))",
         "lst(any, 'b & lst(x1)) where x1 = tuple0 | (any, lst(x1))"
       ]
     ],
@@ -9906,7 +9955,7 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x4) & lst(x1, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x4)), lst(x4) | lst(tuple0)",
+        "lst(x4) & lst(x3, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x4)), lst(x4) | lst(tuple0)",
         "lst('b, x1) where x1 = lst(tuple0 | (any, x1))"
       ]
     ],
@@ -9918,7 +9967,7 @@
     "constr": [
       [
         "'b",
-        "lst(x2) \\ lst(any, x3) | lst(x1) | 'b where x1 = lst(x1) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x1)), lst(x1) | lst(tuple0) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | (any, x3))"
+        "lst(x1) \\ lst(any, x2) | lst(x3) | 'b where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(x3) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x3)), lst(x3) | lst(tuple0)"
       ],
       [
         "lst(x1) \\ lst(any, x2) | lst(x3) | 'b where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(x3) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x3)), lst(x3) | lst(tuple0)",
@@ -9931,8 +9980,8 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "'b & (lst(x3) | lst(tuple0) -> 'c & lst(x2)) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(x3) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x3)), lst(x3) | lst(tuple0)",
-        "lst(x1) \\ lst(any, x3) | lst(x2) -> 'd where x1 = tuple0 | (any, lst(x1)) and x2 = lst(x2) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x2)), lst(x2) | lst(tuple0) and x3 = lst(tuple0 | (any, x3))"
+        "'b & (lst(x2) | lst(tuple0) -> 'c & lst(x3)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(x2) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x2)), lst(x2) | lst(tuple0) and x3 = tuple0 | (any, lst(x3))",
+        "lst(x1) \\ lst(any, x2) | lst(x3) -> 'd where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(x3) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x3)), lst(x3) | lst(tuple0)"
       ]
     ],
     "prio": [ "'a", "'b", "'c" ]
@@ -9943,10 +9992,10 @@
     "constr": [
       [
         "'b",
-        "'b & (~(lst(x2) | lst(tuple0) -> 'c & lst(x3)) | (lst(x4) \\ lst(any, x5) | lst(x6) -> 'd)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(x2) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x2)), lst(x2) | lst(tuple0) and x3 = tuple0 | (any, lst(x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5)) and x6 = lst(x6) | lst(tuple0) | 'a \\ (lst(any, x5) \\ lst(x6)), lst(x6) | lst(tuple0)"
+        "'b & (~(lst(x5) | lst(tuple0) -> 'c & lst(x6)) | (lst(x3) \\ lst(any, x2) | lst(x4) -> 'd)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x4)), lst(x4) | lst(tuple0) and x5 = lst(x5) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x5)), lst(x5) | lst(tuple0) and x6 = tuple0 | (any, lst(x6))"
       ],
       [
-        "'b & (~(lst(x2) | lst(tuple0) -> 'c & lst(x3)) | (lst(x4) \\ lst(any, x5) | lst(x6) -> 'd)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(x2) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x2)), lst(x2) | lst(tuple0) and x3 = tuple0 | (any, lst(x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5)) and x6 = lst(x6) | lst(tuple0) | 'a \\ (lst(any, x5) \\ lst(x6)), lst(x6) | lst(tuple0)",
+        "'b & (~(lst(x4) | lst(tuple0) -> 'c & lst(x6)) | (lst(x5) \\ lst(any, x3) | lst(x1) -> 'd)) where x1 = lst(x1) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x1)), lst(x1) | lst(tuple0) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x4)), lst(x4) | lst(tuple0) and x5 = tuple0 | (any, lst(x5)) and x6 = tuple0 | (any, lst(x6))",
         "'b"
       ]
     ]
@@ -9968,7 +10017,7 @@
     "constr": [
       [
         "'b",
-        "'b & (~(lst(x5) | lst(tuple0) -> 'c & lst(x3)) | (lst(x2) | lst(tuple0) -> 'd)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(x2) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x2)), lst(x2) | lst(tuple0) and x3 = tuple0 | (any, lst(x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = lst(x5) | lst(tuple0) | 'a \\ (lst(any, x4) \\ lst(x5)), lst(x5) | lst(tuple0)"
+        "'b & (~(lst(x2) | lst(tuple0) -> 'c & lst(x5)) | (lst(x4) | lst(tuple0) -> 'd)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(x2) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x2)), lst(x2) | lst(tuple0) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x4)), lst(x4) | lst(tuple0) and x5 = tuple0 | (any, lst(x5))"
       ],
       [
         "'b & (~(lst(x5) | lst(tuple0) -> 'c & lst(x2)) | (lst(x4) | lst(tuple0) -> 'd)) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x4)), lst(x4) | lst(tuple0) and x5 = lst(x5) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x5)), lst(x5) | lst(tuple0)",
@@ -10002,7 +10051,7 @@
     "constr": [
       [
         "'a",
-        "'a \\ (lst(x2) \\ lst(x3) | lst(x2) \\ lst(x1)) where x1 = tuple0 | ('b, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | ('c, lst(x3))"
+        "'a \\ (lst(x2) \\ lst(x1) | lst(x2) \\ lst(x3)) where x1 = tuple0 | ('c, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | ('b, lst(x3))"
       ],
       [
         "'a \\ (lst(x2) \\ lst(x3) | lst(x2) \\ lst(x1)) where x1 = tuple0 | ('b, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | ('c, lst(x3))",
@@ -10047,8 +10096,8 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x3) & lst(x1, x4) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(x3) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x3)), lst(x3) | lst(tuple0) and x4 = lst(tuple0 | (any, x4))",
-        "lst(x1, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2))"
+        "lst(x4) & lst(x2, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x4)), lst(x4) | lst(tuple0)",
+        "lst(x2, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2))"
       ]
     ],
     "prio": [ "'a" ]
@@ -10068,8 +10117,8 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x4) & lst(x1, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x4)), lst(x4) | lst(tuple0)",
-        "lst(x1, x2) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2))"
+        "lst(x4) & lst(x3, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x4)), lst(x4) | lst(tuple0)",
+        "lst(x2, x1) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2))"
       ]
     ],
     "prio": [ "'a" ]
@@ -10079,8 +10128,8 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "lst(x7) | lst(tuple0) -> lst('a \\ lst(x3), 'c & lst(x2) & lst(x4)) | lst(x5) where x1 = lst(tuple0 | ('e, x1)) and x2 = tuple0 | ('d, lst(x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = tuple0 | ('e, lst(x4)) and x5 = tuple0 | ('d, lst(x5)) | ('e, x1) and x6 = lst(tuple0 | (any, x6)) and x7 = lst(x7) | lst(tuple0) | 'a \\ (lst(any, x6) \\ lst(x7)), lst(x7) | lst(tuple0)",
-        "'b & (lst(x3) | lst(tuple0) -> 'c & lst(x2) & lst(x4)) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | ('d, lst(x2)) and x3 = lst(x3) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x3)), lst(x3) | lst(tuple0) and x4 = tuple0 | ('e, lst(x4))"
+        "lst(x7) | lst(tuple0) -> lst('a \\ lst(x1), 'c & lst(x5) & lst(x4)) | lst(x3) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | ('e, x2)) and x3 = tuple0 | ('d, lst(x3)) | ('e, x2) and x4 = tuple0 | ('e, lst(x4)) and x5 = tuple0 | ('d, lst(x5)) and x6 = lst(tuple0 | (any, x6)) and x7 = lst(x7) | lst(tuple0) | 'a \\ (lst(any, x6) \\ lst(x7)), lst(x7) | lst(tuple0)",
+        "'b & (lst(x4) | lst(tuple0) -> 'c & lst(x1) & lst(x3)) where x1 = tuple0 | ('d, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | ('e, lst(x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x4)), lst(x4) | lst(tuple0)"
       ]
     ]
   },
@@ -10093,7 +10142,7 @@
         "(lst(x3) | lst(tuple0) -> lst(x4)) | 'b where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(x3) | lst(tuple0) | 'a \\ (lst(any, x2) \\ lst(x3)), lst(x3) | lst(tuple0) and x4 = tuple0 | ('a \\ lst(x1) | 'c, lst(x4))"
       ],
       [
-        "(lst(x2) | lst(tuple0) -> lst(x4)) | 'b where x1 = lst(tuple0 | (any, x1)) and x2 = lst(x2) | lst(tuple0) | 'a \\ (lst(any, x1) \\ lst(x2)), lst(x2) | lst(tuple0) and x3 = tuple0 | (any, lst(x3)) and x4 = tuple0 | ('a \\ lst(x3) | 'c, lst(x4))",
+        "(lst(x4) | lst(tuple0) -> lst(x2)) | 'b where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | ('a \\ lst(x1) | 'c, lst(x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(x4) | lst(tuple0) | 'a \\ (lst(any, x3) \\ lst(x4)), lst(x4) | lst(tuple0)",
         "'b"
       ]
     ]
@@ -14726,7 +14775,7 @@
   {
     "vars": [],
     "mono": [],
-    "constr": [ [ "(Nil, ~Nil) & (Nil | int, Nil | int)", "any" ] ]
+    "constr": [ [ "(Nil | int, Nil | int) & (Nil, ~Nil)", "any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -14734,7 +14783,7 @@
     "constr": [
       [
         "'a -> __ref({ _0 :? 'a })",
-        "(Nil, ~Nil) & (Nil | int, Nil | int) -> 'b"
+        "(Nil | int, Nil | int) & (Nil, ~Nil) -> 'b"
       ]
     ]
   },
@@ -14742,8 +14791,8 @@
     "vars": [ "'a" ],
     "mono": [ "'a" ],
     "constr": [
-      [ "'a", "(Nil, ~Nil) & (Nil | int, Nil | int) | 'a" ],
-      [ "(Nil, ~Nil) & (Nil | int, Nil | int) | 'a", "'a" ]
+      [ "'a", "(Nil | int, Nil | int) & (Nil, ~Nil) | 'a" ],
+      [ "(Nil | int, Nil | int) & (Nil, ~Nil) | 'a", "'a" ]
     ]
   },
   {
@@ -14752,10 +14801,10 @@
     "constr": [
       [
         "'b",
-        "__ref({ _0 :? (Nil, ~Nil) & (Nil | int, Nil | int) | 'a }) | 'b"
+        "__ref({ _0 :? (Nil | int, Nil | int) & (Nil, ~Nil) | 'a }) | 'b"
       ],
       [
-        "__ref({ _0 :? (Nil, ~Nil) & (Nil | int, Nil | int) | 'a }) | 'b",
+        "__ref({ _0 :? (Nil | int, Nil | int) & (Nil, ~Nil) | 'a }) | 'b",
         "'b"
       ]
     ]
@@ -14763,17 +14812,17 @@
   {
     "vars": [],
     "mono": [],
-    "constr": [ [ "(Nil, ~Nil) & (Nil | int, Nil | int)", "~Nil" ] ]
+    "constr": [ [ "(Nil | int, Nil | int) & (Nil, ~Nil)", "~Nil" ] ]
   },
   {
     "vars": [],
     "mono": [],
-    "constr": [ [ "(Nil, ~Nil) & (Nil | int, Nil | int)", "Nil" ] ]
+    "constr": [ [ "(Nil | int, Nil | int) & (Nil, ~Nil)", "Nil" ] ]
   },
   {
     "vars": [ "'a" ],
     "mono": [],
-    "constr": [ [ "(Nil, ~Nil) & (Nil | int, Nil | int)", "'a, any" ] ]
+    "constr": [ [ "(Nil | int, Nil | int) & (Nil, ~Nil)", "'a, any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -14784,7 +14833,7 @@
   {
     "vars": [ "'a" ],
     "mono": [],
-    "constr": [ [ "(Nil, ~Nil) & (Nil | int, Nil | int)", "any, 'a" ] ]
+    "constr": [ [ "(Nil | int, Nil | int) & (Nil, ~Nil)", "any, 'a" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -16237,7 +16286,7 @@
     "mono": [ "'a" ],
     "constr": [
       [
-        "(__array({ _0 :? 'c }), int) | (__dict({ _0 :? 'd ; _1 :? 'c }), 'd) -> 'c",
+        "(__array({ _0 :? 'd }), int) | (__dict({ _0 :? 'c ; _1 :? 'd }), 'c) -> 'd",
         "'b -> 'a"
       ]
     ]
@@ -16380,7 +16429,7 @@
     "mono": [ "'a", "'b" ],
     "constr": [
       [
-        "(__array({ _0 :? 'd }), int) | (__dict({ _0 :? 'e ; _1 :? 'd }), 'e) -> 'd",
+        "(__array({ _0 :? 'e }), int) | (__dict({ _0 :? 'd ; _1 :? 'e }), 'd) -> 'e",
         "(__array({ _0 :? 'b | 'a }), 0 | 'c & int) -> 'f"
       ]
     ],
@@ -16930,1359 +16979,6 @@
     "constr": [
       [ "'a", "'a & (13 | 42 | str(_abc))" ],
       [ "'a & (13 | 42 | str(_abc))", "'a" ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "constr": [
-      [
-        "'a & (~(str(_uminus) | str(_add)), any) & (~str(_uminus), ~tuple2)",
-        "(str(_const), any) | (str(_uminus), any) | (str(_add), tuple2)"
-      ]
-    ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "'a",
-        "'a \\ ((~(str(_uminus) | str(_add)), any) & (~str(_uminus), ~tuple2) & ~(str(_const), any))"
-      ],
-      [
-        "'a \\ ((~(str(_uminus) | str(_add)), any) & (~str(_uminus), ~tuple2) & ~(str(_const), any))",
-        "'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "constr": [
-      [ "'a & (~str(_uminus), ~tuple2) & (str(_const), any)", "any, 'b" ]
-    ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "'a",
-        "'a \\ ((~str(_uminus), ~tuple2) & (str(_const), any) & ~(any, 'b))"
-      ],
-      [
-        "'a \\ ((~str(_uminus), ~tuple2) & (str(_const), any) & ~(any, 'b))",
-        "'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "constr": [
-      [
-        "'a & tuple2 & ~(~str(_uminus), ~tuple2) & ~(str(_uminus), any) & ~(str(_add), tuple2)",
-        "(str(_const), any) | (str(_uminus), any) | (str(_add), tuple2)"
-      ]
-    ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "'a",
-        "'a \\ (tuple2 & ~(~str(_uminus), ~tuple2) & ~(str(_const), any) & ~(str(_uminus), any) & ~(str(_add), tuple2))"
-      ],
-      [
-        "'a \\ (tuple2 & ~(~str(_uminus), ~tuple2) & ~(str(_const), any) & ~(str(_uminus), any) & ~(str(_add), tuple2))",
-        "'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "constr": [
-      [ "'a & (str(_const), any) & ~(~str(_uminus), ~tuple2)", "any, 'b" ]
-    ],
-    "prio": [ "'a", "'b" ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a", "'b" ],
-    "constr": [
-      [
-        "'a",
-        "'a \\ ((str(_const), any) & ~(~str(_uminus), ~tuple2) & ~(any, 'b))"
-      ],
-      [
-        "'a \\ ((str(_const), any) & ~(~str(_uminus), ~tuple2) & ~(any, 'b))",
-        "'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "constr": [
-      [
-        "'a & tuple2 & ~(~(str(_uminus) | str(_add)), any) & ~(str(_uminus), any) & ~(str(_add), tuple2)",
-        "(str(_const), any) | (str(_uminus), any) | (str(_add), tuple2)"
-      ]
-    ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "'a",
-        "'a \\ (tuple2 & ~(~(str(_uminus) | str(_add)), any) & ~(str(_uminus), any) & ~(str(_add), tuple2))"
-      ],
-      [
-        "'a \\ (tuple2 & ~(~(str(_uminus) | str(_add)), any) & ~(str(_uminus), any) & ~(str(_add), tuple2))",
-        "'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "constr": [
-      [
-        "'a \\ tuple2",
-        "(str(_const), any) | (str(_uminus), any) | (str(_add), tuple2)"
-      ]
-    ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'a & tuple2" ], [ "'a & tuple2", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "constr": [
-      [
-        "'a & (str(_add), tuple2)",
-        "(str(_const), any) | (str(_uminus), any) | (str(_add), tuple2)"
-      ]
-    ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "constr": [ [ "'a & (str(_add), tuple2)", "any, 'b" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [ "'a", "'a \\ ((str(_add), tuple2) \\ (any, 'b))" ],
-      [ "'a \\ ((str(_add), tuple2) \\ (any, 'b))", "'a" ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "constr": [ [ "'a & tuple2", "any, 'b" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [ "'a", "'a \\ (tuple2 \\ (any, 'b))" ],
-      [ "'a \\ (tuple2 \\ (any, 'b))", "'a" ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d" ],
-    "mono": [],
-    "constr": [
-      [
-        "'a & (any, 'b \\ (tuple2 \\ (any, 'c))) & (str(_add), tuple2)",
-        "any, 'd"
-      ]
-    ],
-    "prio": [ "'a", "'b", "'c" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d" ],
-    "mono": [ "'a", "'b", "'c" ],
-    "constr": [
-      [
-        "'a",
-        "'a \\ ((any, 'b \\ (tuple2 \\ (any, 'c))) & (str(_add), tuple2) & ~(any, 'd))"
-      ],
-      [
-        "'a \\ ((any, 'b \\ (tuple2 \\ (any, 'c))) & (str(_add), tuple2) & ~(any, 'd))",
-        "'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [],
-    "constr": [ [ "'a & (any, 'b)", "'c, any" ] ],
-    "prio": [ "'a", "'b" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a", "'b" ],
-    "constr": [
-      [ "'a", "'a \\ ((any, 'b) \\ ('c, any))" ],
-      [ "'a \\ ((any, 'b) \\ ('c, any))", "'a" ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [],
-    "constr": [ [ "'a", "'b -> 'c" ] ],
-    "prio": [ "'a", "'b" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a", "'b" ],
-    "constr": [ [ "'a", "'a & ('b -> 'c)" ], [ "'a & ('b -> 'c)", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
-    "mono": [],
-    "constr": [ [ "'a & ('c -> 'd)", "'b -> 'e" ] ],
-    "prio": [ "'a", "'b", "'c", "'d" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
-    "mono": [ "'a", "'b", "'c", "'d" ],
-    "constr": [
-      [ "'a", "'a & (~('c -> 'd) | ('b -> 'e))" ],
-      [ "'a & (~('c -> 'd) | ('b -> 'e))", "'a" ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "constr": [ [ "'a", "any" ], [ "'b", "any" ] ],
-    "prio": [ "'a", "'b" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [],
-    "constr": [ [ "(int, int) -> int", "('a, 'b) -> 'c" ] ],
-    "prio": [ "'a", "'b" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'a & int" ], [ "'a & int", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'a & int" ], [ "'a & int", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "int | 'a" ], [ "int | 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "constr": [
-      [
-        "'a & (str(_uminus), any)",
-        "(str(_const), any) | (str(_uminus), any) | (str(_add), tuple2)"
-      ]
-    ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "constr": [ [ "'a & (str(_uminus), any)", "any, 'b" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [ "'a", "'a \\ ((str(_uminus), any) \\ (any, 'b))" ],
-      [ "'a \\ ((str(_uminus), any) \\ (any, 'b))", "'a" ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f", "'g" ],
-    "mono": [],
-    "constr": [ [ "'a & ('b -> 'e & int) & ('c -> 'd & int)", "'f -> 'g" ] ],
-    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f", "'g" ],
-    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "constr": [
-      [ "'a", "'a & (~('c -> 'd & int) | ~('b -> 'e & int) | ('f -> 'g))" ],
-      [ "'a & (~('c -> 'd & int) | ~('b -> 'e & int) | ('f -> 'g))", "'a" ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "constr": [ [ "0", "any" ], [ "'a", "any" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "constr": [ [ "(int, int) -> int", "(0, 'a) -> 'b" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'a & int" ], [ "'a & int", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "int | 'a" ], [ "int | 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
-  },
-  { "vars": [], "mono": [], "constr": [ [ "int", "empty" ] ] },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f", "'g", "'h", "'i", "'j" ],
-    "mono": [],
-    "constr": [
-      [
-        "'a & ((any, 'i) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, 'e) | ~('f, any)))) & (str(_add), tuple2) | (any, 'c) & (str(_const), any)) -> int | 'c",
-        "'b & ('i -> 'j & int) & ('e -> 'h & int) & ('f -> 'g & int)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "'a",
-        "'f & ((any, x6) & (str(_uminus), any) | (any, x7) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) | 'e & ((any, x6) & (str(_uminus), any) | (any, x7) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) | 'd & ((any, x6) & (str(_uminus), any) | (any, x7) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) | 'a where x1 = 'd & ((any, x6) & (str(_uminus), any) | (any, 'c \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) and x2 = 'e & ((any, x6) & (str(_uminus), any) | (any, 'c \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) and x3 = 'd & ((any, x6) & (str(_uminus), any) | (any, 'c \\ (tuple2 & (~(any, x3) | ~(x4, any)))) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) and x4 = 'e & ((any, x6) & (str(_uminus), any) | (any, 'c \\ (tuple2 & (~(any, x3) | ~(x4, any)))) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) and x5 = 'd & ((any, x6) & (str(_uminus), any) | (any, 'c \\ (tuple2 & (~(any, x5) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) and x6 = 'f & ((any, x6) & (str(_uminus), any) | (any, 'c \\ (tuple2 & (~(any, x5) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) and x7 = 'c \\ (tuple2 & (~(any, 'd & ((any, x6) & (str(_uminus), any) | (any, x7) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any))) | ~(x4, any)))"
-      ],
-      [
-        "'f & ((any, x4) & (str(_uminus), any) | (any, x7) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) | 'e & ((any, x4) & (str(_uminus), any) | (any, x7) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) | 'd & ((any, x4) & (str(_uminus), any) | (any, x7) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) | 'a where x1 = 'd & ((any, x4) & (str(_uminus), any) | (any, 'c \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) and x2 = 'e & ((any, x4) & (str(_uminus), any) | (any, 'c \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) and x3 = 'd & ((any, x4) & (str(_uminus), any) | (any, 'c \\ (tuple2 & (~(any, x3) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) and x4 = 'f & ((any, x4) & (str(_uminus), any) | (any, 'c \\ (tuple2 & (~(any, x3) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) and x5 = 'd & ((any, x4) & (str(_uminus), any) | (any, 'c \\ (tuple2 & (~(any, x5) | ~(x6, any)))) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) and x6 = 'e & ((any, x4) & (str(_uminus), any) | (any, 'c \\ (tuple2 & (~(any, x5) | ~(x6, any)))) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) and x7 = 'c \\ (tuple2 & (~(any, 'd & ((any, x4) & (str(_uminus), any) | (any, x7) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any))) | ~(x6, any)))",
-        "'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f", "'g" ],
-    "mono": [ "'b" ],
-    "constr": [
-      [
-        "'b",
-        "('g & ((any, x7) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x5) | ~(x4, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) | 'f & ((any, x7) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x5) | ~(x4, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) | 'e & ((any, x7) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x5) | ~(x4, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) | 'a & ((any, x7) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x5) | ~(x4, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) -> int) | 'b where x1 = 'e & ((any, x7) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x1) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) and x2 = 'e & ((any, x7) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x2) | ~(x4, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) and x3 = 'f & ((any, x7) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x1) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) and x4 = 'f & ((any, x7) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x2) | ~(x4, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) and x5 = 'e & ((any, x7) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x5) | ~(x4, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) and x6 = 'e & ((any, x7) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x6) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) and x7 = 'g & ((any, x7) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x6) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any))"
-      ],
-      [
-        "('g & ((any, x4) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x6) | ~(x7, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) | 'f & ((any, x4) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x6) | ~(x7, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) | 'e & ((any, x4) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x6) | ~(x7, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) | 'a & ((any, x4) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x6) | ~(x7, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) -> int) | 'b where x1 = 'e & ((any, x4) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) and x2 = 'f & ((any, x4) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) and x3 = 'e & ((any, x4) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x3) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) and x4 = 'g & ((any, x4) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x3) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) and x5 = 'e & ((any, x4) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x5) | ~(x7, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) and x6 = 'e & ((any, x4) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x6) | ~(x7, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) and x7 = 'f & ((any, x4) & (str(_uminus), any) | (any, 'd \\ (tuple2 & (~(any, x5) | ~(x7, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any))",
-        "'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'a & int" ], [ "'a & int", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
-    "mono": [ "'c" ],
-    "constr": [
-      [
-        "'c",
-        "x7 where x1 = 'c & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x1) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x2 = 'c & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x3 = 'd & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x1) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x4 = 'e & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x5 = 'c & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x5) | ~(x6, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x6 = 'd & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x5) | ~(x6, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x7 = 'c & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x7) | ~(x6, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any))"
-      ],
-      [
-        "x7 where x1 = 'c & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x1) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x2 = 'c & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x3 = 'd & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x4 = 'e & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x1) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x5 = 'c & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x5) | ~(x6, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x6 = 'd & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x5) | ~(x6, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x7 = 'c & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x7) | ~(x6, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any))",
-        "'c"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
-    "mono": [ "'d" ],
-    "constr": [
-      [
-        "'d",
-        "x6 where x1 = 'c & ((any, x5) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x1) | ~(x6, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x2 = 'c & ((any, x5) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x3 = 'd & ((any, x5) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x4 = 'c & ((any, x5) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x4) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x5 = 'e & ((any, x5) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x4) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x6 = 'd & ((any, x5) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x1) | ~(x6, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any))"
-      ],
-      [
-        "x6 where x1 = 'c & ((any, x5) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x2 = 'd & ((any, x5) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x3 = 'c & ((any, x5) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x3) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x4 = 'c & ((any, x5) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x4) | ~(x6, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x5 = 'e & ((any, x5) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x3) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x6 = 'd & ((any, x5) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x4) | ~(x6, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any))",
-        "'d"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "int | 'a" ], [ "int | 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "int | 'a" ], [ "int | 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
-    "mono": [ "'e" ],
-    "constr": [
-      [
-        "'e",
-        "x4 where x1 = 'c & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x1) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x2 = 'c & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x3 = 'd & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x1) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x4 = 'e & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any))"
-      ],
-      [
-        "x4 where x1 = 'c & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x1) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x2 = 'c & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x3 = 'd & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x4 = 'e & ((any, x4) & (str(_uminus), any) | (any, 'b \\ (tuple2 & (~(any, x1) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any))",
-        "'e"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "int | 'a" ], [ "int | 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "'a",
-        "'d & ((any, x1) & (str(_uminus), any) | (any, 'b & int) & (str(_const), any)) | 'c & ((any, x1) & (str(_uminus), any) | (any, 'b & int) & (str(_const), any)) | 'a where x1 = 'd & ((any, x1) & (str(_uminus), any) | (any, 'b & int) & (str(_const), any))"
-      ],
-      [
-        "'d & ((any, x1) & (str(_uminus), any) | (any, 'b & int) & (str(_const), any)) | 'c & ((any, x1) & (str(_uminus), any) | (any, 'b & int) & (str(_const), any)) | 'a where x1 = 'd & ((any, x1) & (str(_uminus), any) | (any, 'b & int) & (str(_const), any))",
-        "'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
-    "mono": [ "'b" ],
-    "constr": [
-      [
-        "'b",
-        "('e & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any)) | 'd & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any)) | 'a & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any)) -> int) | 'b where x1 = 'e & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any))"
-      ],
-      [
-        "('e & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any)) | 'd & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any)) | 'a & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any)) -> int) | 'b where x1 = 'e & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any))",
-        "'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'a & int" ], [ "'a & int", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'b" ],
-    "constr": [
-      [
-        "'b",
-        "'b & ((any, x1) & (str(_uminus), any) | (any, 'a & int) & (str(_const), any)) where x1 = 'c & ((any, x1) & (str(_uminus), any) | (any, 'a & int) & (str(_const), any))"
-      ],
-      [
-        "'b & ((any, x1) & (str(_uminus), any) | (any, 'a & int) & (str(_const), any)) where x1 = 'c & ((any, x1) & (str(_uminus), any) | (any, 'a & int) & (str(_const), any))",
-        "'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "int | 'a" ], [ "int | 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'b" ],
-    "constr": [
-      [
-        "'b",
-        "x1 where x1 = 'b & ((any, x1) & (str(_uminus), any) | (any, 'a & int) & (str(_const), any))"
-      ],
-      [
-        "x1 where x1 = 'b & ((any, x1) & (str(_uminus), any) | (any, 'a & int) & (str(_const), any))",
-        "'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "int | 'a" ], [ "int | 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "'a",
-        "'d & ((any, x1) & (str(_uminus), any) | (any, 'b & int) & (str(_const), any)) | 'c & ((any, x1) & (str(_uminus), any) | (any, 'b & int) & (str(_const), any)) | 'a where x1 = 'd & ((any, x1) & (str(_uminus), any) | (any, 'b & int) & (str(_const), any))"
-      ],
-      [
-        "'d & ((any, x1) & (str(_uminus), any) | (any, 'b & int) & (str(_const), any)) | 'c & ((any, x1) & (str(_uminus), any) | (any, 'b & int) & (str(_const), any)) | 'a where x1 = 'd & ((any, x1) & (str(_uminus), any) | (any, 'b & int) & (str(_const), any))",
-        "'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
-    "mono": [ "'b" ],
-    "constr": [
-      [
-        "'b",
-        "('e & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any)) | 'd & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any)) | 'a & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any)) -> int) | 'b where x1 = 'e & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any))"
-      ],
-      [
-        "('e & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any)) | 'd & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any)) | 'a & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any)) -> int) | 'b where x1 = 'e & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any))",
-        "'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'a & int" ], [ "'a & int", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'b" ],
-    "constr": [
-      [
-        "'b",
-        "'b & ((any, x1) & (str(_uminus), any) | (any, 'a & int) & (str(_const), any)) where x1 = 'c & ((any, x1) & (str(_uminus), any) | (any, 'a & int) & (str(_const), any))"
-      ],
-      [
-        "'b & ((any, x1) & (str(_uminus), any) | (any, 'a & int) & (str(_const), any)) where x1 = 'c & ((any, x1) & (str(_uminus), any) | (any, 'a & int) & (str(_const), any))",
-        "'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "int | 'a" ], [ "int | 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'b" ],
-    "constr": [
-      [
-        "'b",
-        "x1 where x1 = 'b & ((any, x1) & (str(_uminus), any) | (any, 'a & int) & (str(_const), any))"
-      ],
-      [
-        "x1 where x1 = 'b & ((any, x1) & (str(_uminus), any) | (any, 'a & int) & (str(_const), any))",
-        "'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "int | 'a" ], [ "int | 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "'a",
-        "'c & ((any, x1) & (str(_uminus), any) | (any, 'b & int) & (str(_const), any)) | 'a where x1 = 'c & ((any, x1) & (str(_uminus), any) | (any, 'b & int) & (str(_const), any))"
-      ],
-      [
-        "'c & ((any, x1) & (str(_uminus), any) | (any, 'b & int) & (str(_const), any)) | 'a where x1 = 'c & ((any, x1) & (str(_uminus), any) | (any, 'b & int) & (str(_const), any))",
-        "'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d" ],
-    "mono": [ "'b" ],
-    "constr": [
-      [
-        "'b",
-        "('d & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any)) | 'a & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any)) -> int) | 'b where x1 = 'd & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any))"
-      ],
-      [
-        "('d & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any)) | 'a & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any)) -> int) | 'b where x1 = 'd & ((any, x1) & (str(_uminus), any) | (any, 'c & int) & (str(_const), any))",
-        "'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'a & int" ], [ "'a & int", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'b" ],
-    "constr": [
-      [
-        "'b",
-        "x1 where x1 = 'b & ((any, x1) & (str(_uminus), any) | (any, 'a & int) & (str(_const), any))"
-      ],
-      [
-        "x1 where x1 = 'b & ((any, x1) & (str(_uminus), any) | (any, 'a & int) & (str(_const), any))",
-        "'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "int | 'a" ], [ "int | 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "'a",
-        "'e & ((any, x3) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) | 'd & ((any, x3) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) | 'a where x1 = 'd & ((any, 'c \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) and x2 = 'e & ((any, 'c \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) and x3 = 'c \\ (tuple2 & (~(any, 'd & ((any, x3) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any))) | ~(x2, any)))"
-      ],
-      [
-        "'e & ((any, x3) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) | 'd & ((any, x3) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) | 'a where x1 = 'd & ((any, 'c \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) and x2 = 'e & ((any, 'c \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any)) and x3 = 'c \\ (tuple2 & (~(any, 'd & ((any, x3) & (str(_add), tuple2) | (any, 'b & int) & (str(_const), any))) | ~(x2, any)))",
-        "'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "mono": [ "'b" ],
-    "constr": [
-      [
-        "'b",
-        "('f & ((any, 'd \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) | 'e & ((any, 'd \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) | 'a & ((any, 'd \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) -> int) | 'b where x1 = 'e & ((any, 'd \\ (tuple2 & (~(any, x1) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) and x2 = 'e & ((any, 'd \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) and x3 = 'f & ((any, 'd \\ (tuple2 & (~(any, x1) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any))"
-      ],
-      [
-        "('f & ((any, 'd \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) | 'e & ((any, 'd \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) | 'a & ((any, 'd \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) -> int) | 'b where x1 = 'e & ((any, 'd \\ (tuple2 & (~(any, x1) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) and x2 = 'e & ((any, 'd \\ (tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any)) and x3 = 'f & ((any, 'd \\ (tuple2 & (~(any, x1) | ~(x3, any)))) & (str(_add), tuple2) | (any, 'c & int) & (str(_const), any))",
-        "'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'a & int" ], [ "'a & int", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d" ],
-    "mono": [ "'c" ],
-    "constr": [
-      [
-        "'c",
-        "x3 where x1 = 'c & ((any, 'b \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x2 = 'd & ((any, 'b \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x3 = 'c & ((any, 'b \\ (tuple2 & (~(any, x3) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any))"
-      ],
-      [
-        "x3 where x1 = 'c & ((any, 'b \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x2 = 'd & ((any, 'b \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x3 = 'c & ((any, 'b \\ (tuple2 & (~(any, x3) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any))",
-        "'c"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d" ],
-    "mono": [ "'d" ],
-    "constr": [
-      [
-        "'d",
-        "x2 where x1 = 'c & ((any, 'b \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x2 = 'd & ((any, 'b \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any))"
-      ],
-      [
-        "x2 where x1 = 'c & ((any, 'b \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any)) and x2 = 'd & ((any, 'b \\ (tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, 'a & int) & (str(_const), any))",
-        "'d"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "int | 'a" ], [ "int | 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "int | 'a" ], [ "int | 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [ "'a", "'c & (any, 'b & int) & (str(_const), any) | 'a" ],
-      [ "'c & (any, 'b & int) & (str(_const), any) | 'a", "'a" ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d" ],
-    "mono": [ "'b" ],
-    "constr": [
-      [
-        "'b",
-        "('d & (any, 'c & int) & (str(_const), any) | 'a & (any, 'c & int) & (str(_const), any) -> int) | 'b"
-      ],
-      [
-        "('d & (any, 'c & int) & (str(_const), any) | 'a & (any, 'c & int) & (str(_const), any) -> int) | 'b",
-        "'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'a & int" ], [ "'a & int", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'b" ],
-    "constr": [
-      [ "'b", "'b & (any, 'a & int) & (str(_const), any)" ],
-      [ "'b & (any, 'a & int) & (str(_const), any)", "'b" ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "int | 'a" ], [ "int | 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [ "'a", "'c & (any, 'b & int) & (str(_const), any) | 'a" ],
-      [ "'c & (any, 'b & int) & (str(_const), any) | 'a", "'a" ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d" ],
-    "mono": [ "'b" ],
-    "constr": [
-      [
-        "'b",
-        "('d & (any, 'c & int) & (str(_const), any) | 'a & (any, 'c & int) & (str(_const), any) -> int) | 'b"
-      ],
-      [
-        "('d & (any, 'c & int) & (str(_const), any) | 'a & (any, 'c & int) & (str(_const), any) -> int) | 'b",
-        "'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'a & int" ], [ "'a & int", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'b" ],
-    "constr": [
-      [ "'b", "'b & (any, 'a & int) & (str(_const), any)" ],
-      [ "'b & (any, 'a & int) & (str(_const), any)", "'b" ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "int | 'a" ], [ "int | 'a", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'b" ],
-    "constr": [
-      [ "'b", "('a & (any, 'c) & (str(_const), any) -> int | 'c) | 'b" ],
-      [ "('a & (any, 'c) & (str(_const), any) -> int | 'c) | 'b", "'b" ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "empty" ], [ "empty", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "(any, int) & (str(_const), any) -> int",
-        "(any, 'a) & (str(_const), any) -> int | 'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "(any, int) & (str(_const), any) -> int",
-        "(any, 'a) & (str(_const), any) -> int | 'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "(any, ~(tuple2 & (~(any, x4) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) -> int where x1 = (any, ~(tuple2 & (~(any, x1) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x2 = (any, ~(tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x3 = (any, ~(tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x4 = (any, ~(tuple2 & (~(any, x4) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x5 = (any, ~(tuple2 & (~(any, x1) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any)",
-        "(any, 'a) & (str(_const), any) -> int | 'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "(any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any) -> int where x1 = (any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any)",
-        "(any, 'a) & (str(_const), any) -> int | 'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "(any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any) -> int where x1 = (any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any)",
-        "(any, 'a) & (str(_const), any) -> int | 'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "(any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any) -> int where x1 = (any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any)",
-        "(any, 'a) & (str(_const), any) -> int | 'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "(any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x12) | ~(x15, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) -> int where x1 = (any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x2 = (any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x3 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x3) | ~(x15, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x4 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x4) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x5 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x4) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x6 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x6) | ~(x8, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x7 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x7) | ~(x8, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x8 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x7) | ~(x8, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x9 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x6) | ~(x8, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x10 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x10) | ~(x11, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x11 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x10) | ~(x11, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x12 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x12) | ~(x11, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x13 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x13) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x14 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x13) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x15 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x3) | ~(x15, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x16 = (any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x16) | ~(x2, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x17 = (any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x16) | ~(x2, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any)",
-        "(any, 'a) & (str(_const), any) -> int | 'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "constr": [
-      [
-        "(any, 'a) & (str(_const), any) -> int | 'a",
-        "(any, int) & (str(_const), any) -> int"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "constr": [
-      [
-        "(any, 'a) & (str(_const), any) -> int | 'a",
-        "(any, int) & (str(_const), any) -> int"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "constr": [
-      [
-        "(any, 'a) & (str(_const), any) -> int | 'a",
-        "(any, ~(tuple2 & (~(any, x4) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) -> int where x1 = (any, ~(tuple2 & (~(any, x1) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x2 = (any, ~(tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x3 = (any, ~(tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x4 = (any, ~(tuple2 & (~(any, x4) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x5 = (any, ~(tuple2 & (~(any, x1) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any)"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "constr": [
-      [
-        "(any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any) -> int where x1 = (any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any)",
-        "(any, ~(tuple2 & (~(any, x4) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) -> int where x1 = (any, ~(tuple2 & (~(any, x1) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x2 = (any, ~(tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x3 = (any, ~(tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x4 = (any, ~(tuple2 & (~(any, x4) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x5 = (any, ~(tuple2 & (~(any, x1) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any)"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "constr": [
-      [
-        "(any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any) -> int where x1 = (any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any)",
-        "(any, ~(tuple2 & (~(any, x4) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) -> int where x1 = (any, ~(tuple2 & (~(any, x1) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x2 = (any, ~(tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x3 = (any, ~(tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x4 = (any, ~(tuple2 & (~(any, x4) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x5 = (any, ~(tuple2 & (~(any, x1) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any)"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "constr": [
-      [
-        "(any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any) -> int where x1 = (any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any)",
-        "(any, ~(tuple2 & (~(any, x4) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) -> int where x1 = (any, ~(tuple2 & (~(any, x1) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x2 = (any, ~(tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x3 = (any, ~(tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x4 = (any, ~(tuple2 & (~(any, x4) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x5 = (any, ~(tuple2 & (~(any, x1) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any)"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "constr": [
-      [
-        "(any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x12) | ~(x15, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) -> int where x1 = (any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x2 = (any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x3 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x3) | ~(x15, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x4 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x4) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x5 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x4) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x6 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x6) | ~(x8, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x7 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x7) | ~(x8, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x8 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x7) | ~(x8, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x9 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x6) | ~(x8, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x10 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x10) | ~(x11, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x11 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x10) | ~(x11, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x12 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x12) | ~(x11, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x13 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x13) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x14 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x13) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x15 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x3) | ~(x15, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x16 = (any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x16) | ~(x2, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x17 = (any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x16) | ~(x2, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any)",
-        "(any, ~(tuple2 & (~(any, x4) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) -> int where x1 = (any, ~(tuple2 & (~(any, x1) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x2 = (any, ~(tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x3 = (any, ~(tuple2 & (~(any, x2) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x4 = (any, ~(tuple2 & (~(any, x4) | ~(x3, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x5 = (any, ~(tuple2 & (~(any, x1) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "constr": [
-      [
-        "(any, 'a) & (str(_const), any) -> int | 'a",
-        "(any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any) -> int where x1 = (any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any)"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "constr": [
-      [
-        "(any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any) -> int where x1 = (any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any)",
-        "(any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any) -> int where x1 = (any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "constr": [
-      [
-        "(any, 'a) & (str(_const), any) -> int | 'a",
-        "(any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any) -> int where x1 = (any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any)"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "constr": [
-      [
-        "(any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any) -> int where x1 = (any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any)",
-        "(any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any) -> int where x1 = (any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "constr": [
-      [
-        "(any, 'a) & (str(_const), any) -> int | 'a",
-        "(any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any) -> int where x1 = (any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any)"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "constr": [
-      [
-        "(any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x12) | ~(x15, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) -> int where x1 = (any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x2 = (any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x3 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x3) | ~(x15, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x4 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x4) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x5 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x4) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x6 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x6) | ~(x8, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x7 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x7) | ~(x8, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x8 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x7) | ~(x8, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x9 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x6) | ~(x8, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x10 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x10) | ~(x11, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x11 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x10) | ~(x11, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x12 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x12) | ~(x11, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x13 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x13) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x14 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x13) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x15 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x3) | ~(x15, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x16 = (any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x16) | ~(x2, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x17 = (any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x16) | ~(x2, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any)",
-        "(any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any) -> int where x1 = (any, x1) & (str(_uminus), any) | (any, int) & (str(_const), any)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "constr": [
-      [
-        "(any, 'a) & (str(_const), any) -> int | 'a",
-        "(any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x12) | ~(x15, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) -> int where x1 = (any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x2 = (any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x1) | ~(x2, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x3 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x3) | ~(x15, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x4 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x4) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x5 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x4) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x6 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x6) | ~(x8, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x7 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x7) | ~(x8, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x8 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x7) | ~(x8, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x9 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x6) | ~(x8, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x10 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x10) | ~(x11, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x11 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x10) | ~(x11, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x12 = (any, x9) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x12) | ~(x11, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x13 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x13) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x14 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x13) | ~(x5, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x15 = (any, x14) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x3) | ~(x15, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x16 = (any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x16) | ~(x2, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any) and x17 = (any, x17) & (str(_uminus), any) | (any, ~(tuple2 & (~(any, x16) | ~(x2, any)))) & (str(_add), tuple2) | (any, int) & (str(_const), any)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "constr": [
-      [
-        "'a \\ lst(tuple0)",
-        "lst(any, x1) | lst(tuple0) where x1 = lst(tuple0 | (any, x1))"
-      ]
-    ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "'a",
-        "'a & (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))"
-      ],
-      [
-        "'a & (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
-        "'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "constr": [
-      [
-        "'a & lst(any, x1) where x1 = lst(tuple0 | (any, x1))",
-        "lst(any, 'b & lst(x1)) where x1 = tuple0 | (any, lst(x1))"
-      ]
-    ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "'a",
-        "'a \\ (lst(any, x1) \\ lst(any, 'b & lst(tuple0 | (any, x1)))) where x1 = lst(tuple0 | (any, x1))"
-      ],
-      [
-        "'a \\ (lst(any, x1) \\ lst(any, 'b & lst(tuple0 | (any, x1)))) where x1 = lst(tuple0 | (any, x1))",
-        "'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [],
-    "constr": [
-      [
-        "'a & lst(any, 'b & lst(x1)) where x1 = tuple0 | (any, lst(x1))",
-        "lst('c, x1) where x1 = lst(tuple0 | (any, x1))"
-      ]
-    ],
-    "prio": [ "'a", "'b" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a", "'b" ],
-    "constr": [
-      [
-        "'a",
-        "'a \\ (lst(any, 'b & lst(x1)) \\ lst('c, x2)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2))"
-      ],
-      [
-        "'a \\ (lst(any, 'b & lst(x1)) \\ lst('c, x2)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2))",
-        "'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [],
-    "constr": [ [ "'a", "'b -> 'c" ] ],
-    "prio": [ "'a", "'b" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a", "'b" ],
-    "constr": [ [ "'a", "'a & ('b -> 'c)" ], [ "'a & ('b -> 'c)", "'a" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
-    "mono": [],
-    "constr": [ [ "'b", "'a & ('c -> 'd) -> 'e" ] ],
-    "prio": [ "'a", "'b", "'c", "'d" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
-    "mono": [ "'a", "'b", "'c", "'d" ],
-    "constr": [
-      [ "'b", "'b & ('a & ('c -> 'd) -> 'e)" ],
-      [ "'b & ('a & ('c -> 'd) -> 'e)", "'b" ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [],
-    "constr": [
-      [ "'b", "'a & lst(x1) -> 'c where x1 = tuple0 | (any, lst(x1))" ]
-    ],
-    "prio": [ "'a", "'b" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a", "'b" ],
-    "constr": [
-      [
-        "'b", "'b & ('a & lst(x1) -> 'c) where x1 = tuple0 | (any, lst(x1))"
-      ],
-      [
-        "'b & ('a & lst(x1) -> 'c) where x1 = tuple0 | (any, lst(x1))", "'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "constr": [
-      [ "'a", "any" ], [ "'b", "x1 where x1 = lst(tuple0 | (any, x1))" ]
-    ],
-    "prio": [ "'a", "'b" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [ "'a", "'a & lst(x1) where x1 = tuple0 | (any, lst(x1))" ],
-      [ "'a & lst(x1) where x1 = tuple0 | (any, lst(x1))", "'a" ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "constr": [
-      [
-        "'a & lst(tuple0)",
-        "lst(any, x1) | lst(tuple0) where x1 = lst(tuple0 | (any, x1))"
-      ]
-    ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f", "'g", "'h" ],
-    "mono": [],
-    "constr": [
-      [
-        "'b & ('e -> 'f) -> 'a & (lst('e, x3) & lst(any, 'd & lst(x1)) | lst(tuple0)) -> lst('f, 'h & lst(x2)) | lst(tuple0) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | (any, x3))",
-        "'c & ('b & ('e -> 'f) -> 'g & ('d & lst(x1) -> 'h & lst(x2))) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2))"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "'a",
-        "'b & (lst(x2) & lst('c, x1) | lst(tuple0)) | 'a where x1 = lst(tuple0 | (any, x1)) and x2 = any, 'b & (lst(x2) & lst('c, x1) | lst(tuple0))"
-      ],
-      [
-        "'b & (lst(x1) & lst('c, x2) | lst(tuple0)) | 'a where x1 = any, 'b & (lst(x1) & lst('c, x2) | lst(tuple0)) and x2 = lst(tuple0 | (any, x2))",
-        "'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f", "'g" ],
-    "mono": [ "'c" ],
-    "constr": [
-      [
-        "'c",
-        "('b & ('e -> 'f) -> 'd & (lst(any, x4) & lst('e, x2) | lst(tuple0)) | 'a & (lst(any, x4) & lst('e, x2) | lst(tuple0)) -> lst('f, lst(x5) | lst(tuple0) | 'g & lst(x6)) | lst(tuple0)) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = 'd & (lst(any, x4) & lst('e, x3) | lst(tuple0)) and x5 = 'f, lst(x5) | lst(tuple0) | 'g & lst(x1) and x6 = tuple0 | (any, lst(x6))"
-      ],
-      [
-        "('b & ('e -> 'f) -> 'd & (lst(any, x4) & lst('e, x2) | lst(tuple0)) | 'a & (lst(any, x4) & lst('e, x2) | lst(tuple0)) -> lst('f, lst(x6) | lst(tuple0) | 'g & lst(x5)) | lst(tuple0)) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = 'd & (lst(any, x4) & lst('e, x3) | lst(tuple0)) and x5 = tuple0 | (any, lst(x5)) and x6 = 'f, lst(x6) | lst(tuple0) | 'g & lst(x1)",
-        "'c"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [
-        "'a",
-        "'a \\ (lst(x1) & ~lst('b, x2) & ~lst(tuple0) | lst(x1) & ~lst(x3) & ~lst(tuple0)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = any, 'a & (lst(x3) & lst('b, x2) | lst(tuple0))"
-      ],
-      [
-        "'a \\ (lst(x2) & ~lst('b, x3) & ~lst(tuple0) | lst(x2) & ~lst(x1) & ~lst(tuple0)) where x1 = any, 'a & (lst(x1) & lst('b, x3) | lst(tuple0)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | (any, x3))",
-        "'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "mono": [ "'e" ],
-    "constr": [
-      [
-        "'e",
-        "('b & (lst(any, x5) & lst('c, x6) | lst(tuple0)) | 'a & (lst(any, x5) & lst('c, x6) | lst(tuple0)) -> lst('d, lst(x2) | lst(tuple0) | 'f & lst(x3)) | lst(tuple0)) | 'e where x1 = tuple0 | (any, lst(x1)) and x2 = 'd, lst(x2) | lst(tuple0) | 'f & lst(x1) and x3 = tuple0 | (any, lst(x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = 'b & (lst(any, x5) & lst('c, x4) | lst(tuple0)) and x6 = lst(tuple0 | (any, x6))"
-      ],
-      [
-        "('b & (lst(any, x6) & lst('c, x4) | lst(tuple0)) | 'a & (lst(any, x6) & lst('c, x4) | lst(tuple0)) -> lst('d, lst(x2) | lst(tuple0) | 'f & lst(x3)) | lst(tuple0)) | 'e where x1 = tuple0 | (any, lst(x1)) and x2 = 'd, lst(x2) | lst(tuple0) | 'f & lst(x1) and x3 = tuple0 | (any, lst(x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = lst(tuple0 | (any, x5)) and x6 = 'b & (lst(any, x6) & lst('c, x5) | lst(tuple0))",
-        "'e"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'b" ],
-    "constr": [
-      [
-        "'b",
-        "lst(x2) | lst(tuple0) | 'b where x1 = tuple0 | (any, lst(x1)) and x2 = 'a, lst(x2) | lst(tuple0) | 'b & lst(x1)"
-      ],
-      [
-        "lst(x2) | lst(tuple0) | 'b where x1 = tuple0 | (any, lst(x1)) and x2 = 'a, lst(x2) | lst(tuple0) | 'b & lst(x1)",
-        "'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "mono": [ "'c" ],
-    "constr": [
-      [
-        "'c",
-        "('b & ('d -> 'e) -> 'a & lst(tuple0) -> lst('e, 'f & lst(x1)) | lst(tuple0)) | 'c where x1 = tuple0 | (any, lst(x1))"
-      ],
-      [
-        "('b & ('d -> 'e) -> 'a & lst(tuple0) -> lst('e, 'f & lst(x1)) | lst(tuple0)) | 'c where x1 = tuple0 | (any, lst(x1))",
-        "'c"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [
-      [ "'a", "'a \\ lst(x1) where x1 = tuple0 | (any, lst(x1))" ],
-      [ "'a \\ lst(x1) where x1 = tuple0 | (any, lst(x1))", "'a" ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d" ],
-    "mono": [ "'c" ],
-    "constr": [
-      [
-        "'c",
-        "('a & lst(tuple0) -> lst('b, 'd & lst(x1)) | lst(tuple0)) | 'c where x1 = tuple0 | (any, lst(x1))"
-      ],
-      [
-        "('a & lst(tuple0) -> lst('b, 'd & lst(x1)) | lst(tuple0)) | 'c where x1 = tuple0 | (any, lst(x1))",
-        "'c"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "'a \\ ('b -> 'c)" ], [ "'a \\ ('b -> 'c)", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "arrow | 'a" ], [ "arrow | 'a", "'a" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "constr": [ [ "arrow -> lst(tuple0) -> lst(tuple0)", "arrow" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "constr": [
-      [
-        "('a -> 'b) -> lst(any, x3) & lst('a, x1) | lst(tuple0) -> lst('b, x4) | lst(tuple0) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(any, x3) & lst('a, x2) | lst(tuple0) and x4 = lst('b, x4) | lst(tuple0)",
-        "arrow -> lst(tuple0) -> lst(tuple0)"
-      ]
     ]
   },
   {
