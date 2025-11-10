@@ -117,14 +117,15 @@ end = struct
       [], [] -> 0
     | _, [] -> 1
     | [], _ -> -1
-    | (_, h1)::ll1, (_, h2)::ll2 -> Int.compare h1 h2 |> ccmp compare ll1 ll2
+    | (x1, h1)::ll1, (x2, h2)::ll2 ->
+      Int.compare h1 h2 |> ccmp X.compare x1 x2 |> ccmp compare ll1 ll2
   let rec equal l1 l2 = 
     l1 == l2 (* still implement structural equality in case hashconsing is disabled *)
     || match l1, l2 with
       [], [] -> true
     | _, [] | [], _ -> false
     | (x1, h1)::ll1, (x2, h2)::ll2 -> 
-      h1 == h2 && X.equal x1 x2 && equal ll1 ll2
+      Int.equal h1 h2 && X.equal x1 x2 && equal ll1 ll2
 
   let[@inline always] hash = function
       [] -> const0
