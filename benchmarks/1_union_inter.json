@@ -25734,12 +25734,12 @@
     "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
-      [ "'a & int", "any" ],
-      [ "'b & bool(true | false)", "any" ],
-      [ "'c & int", "any" ],
-      [ "'d & bool(true | false)", "any" ],
-      [ "'e & int", "any" ],
-      [ "'f & bool(true | false)", "any" ]
+      [ "'f & int", "any" ],
+      [ "'e & bool(true | false)", "any" ],
+      [ "'d & int", "any" ],
+      [ "'c & bool(true | false)", "any" ],
+      [ "'b & int", "any" ],
+      [ "'a & bool(true | false)", "any" ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
   },
@@ -25748,7 +25748,7 @@
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
       [
-        "'a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e & int, 'f & bool(true | false)",
+        "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b & int, 'a & bool(true | false)",
         "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
@@ -25758,12 +25758,12 @@
     "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
-      [ "'a & int", "any" ],
-      [ "'b & bool(true | false)", "any" ],
-      [ "'c & int", "any" ],
-      [ "'d & bool(true | false)", "any" ],
-      [ "'e & int", "any" ],
-      [ "'f & bool(true | false)", "any" ]
+      [ "'f & int", "any" ],
+      [ "'e & bool(true | false)", "any" ],
+      [ "'d & int", "any" ],
+      [ "'c & bool(true | false)", "any" ],
+      [ "'b & int", "any" ],
+      [ "'a & bool(true | false)", "any" ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
   },
@@ -25772,7 +25772,7 @@
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
       [
-        "'a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e & int, 'f & bool(true | false)",
+        "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b & int, 'a & bool(true | false)",
         "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
@@ -25788,12 +25788,12 @@
     "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
-      [ "'a & int", "any" ],
-      [ "'b & bool(true | false)", "any" ],
-      [ "'c & int", "any" ],
-      [ "'d & bool(true | false)", "any" ],
-      [ "'e & int", "any" ],
-      [ "'f \\ bool(true | false)", "any" ]
+      [ "'f & int", "any" ],
+      [ "'e & bool(true | false)", "any" ],
+      [ "'d & int", "any" ],
+      [ "'c & bool(true | false)", "any" ],
+      [ "'b & int", "any" ],
+      [ "'a \\ bool(true | false)", "any" ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
   },
@@ -25802,7 +25802,7 @@
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
       [
-        "'a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e & int, 'f \\ bool(true | false)",
+        "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b & int, 'a \\ bool(true | false)",
         "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
@@ -25813,7 +25813,7 @@
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
       [
-        "'a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e & int, 'f \\ bool(true | false)",
+        "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b & int, 'a \\ bool(true | false)",
         "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
@@ -25835,12 +25835,12 @@
     "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
-      [ "'a & int", "any" ],
-      [ "'b & bool(true | false)", "any" ],
-      [ "'c & int", "any" ],
-      [ "'d & bool(true | false)", "any" ],
-      [ "'e \\ int", "any" ],
-      [ "'f", "any" ]
+      [ "'f & int", "any" ],
+      [ "'e & bool(true | false)", "any" ],
+      [ "'d & int", "any" ],
+      [ "'c & bool(true | false)", "any" ],
+      [ "'b \\ int", "any" ],
+      [ "'a", "any" ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
   },
@@ -25849,7 +25849,7 @@
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
       [
-        "'a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e \\ int, 'f",
+        "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b \\ int, 'a",
         "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
@@ -25860,119 +25860,7 @@
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
       [
-        "'a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e \\ int, 'f",
-        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
-      ]
-    ],
-    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a \\ bool(true | false)", "any" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "any" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "any" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "constr": [
-      [ "'a & int", "any" ],
-      [ "'b & bool(true | false)", "any" ],
-      [ "'c & int", "any" ],
-      [ "'d \\ bool(true | false)", "any" ],
-      [ "'e", "any" ],
-      [ "'f", "any" ]
-    ],
-    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "constr": [
-      [
-        "'a & int, 'b & bool(true | false), 'c & int, 'd \\ bool(true | false), 'e, 'f",
-        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
-      ]
-    ],
-    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "constr": [
-      [
-        "'a & int, 'b & bool(true | false), 'c & int, 'd \\ bool(true | false), 'e, 'f",
-        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
-      ]
-    ],
-    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a \\ int", "any" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "any" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "any" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "any" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "constr": [
-      [ "'a & int", "any" ],
-      [ "'b & bool(true | false)", "any" ],
-      [ "'c \\ int", "any" ],
-      [ "'d", "any" ],
-      [ "'e", "any" ],
-      [ "'f", "any" ]
-    ],
-    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "constr": [
-      [
-        "'a & int, 'b & bool(true | false), 'c \\ int, 'd, 'e, 'f",
-        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
-      ]
-    ],
-    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "constr": [
-      [
-        "'a & int, 'b & bool(true | false), 'c \\ int, 'd, 'e, 'f",
+        "'f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b \\ int, 'a",
         "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
@@ -25997,98 +25885,15 @@
     "prio": [ "'a" ]
   },
   {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "any" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "any" ] ],
-    "prio": [ "'a" ]
-  },
-  {
     "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
-      [ "'a & int", "any" ],
-      [ "'b \\ bool(true | false)", "any" ],
-      [ "'c", "any" ],
-      [ "'d", "any" ],
-      [ "'e", "any" ],
-      [ "'f", "any" ]
-    ],
-    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "constr": [
-      [
-        "'a & int, 'b \\ bool(true | false), 'c, 'd, 'e, 'f",
-        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
-      ]
-    ],
-    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "constr": [
-      [
-        "'a & int, 'b \\ bool(true | false), 'c, 'd, 'e, 'f",
-        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
-      ]
-    ],
-    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a \\ int", "any" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "any" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "any" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "any" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "any" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "constr": [ [ "'a", "any" ] ],
-    "prio": [ "'a" ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "constr": [
-      [ "'a \\ int", "any" ],
+      [ "'f & int", "any" ],
+      [ "'e & bool(true | false)", "any" ],
+      [ "'d & int", "any" ],
+      [ "'c \\ bool(true | false)", "any" ],
       [ "'b", "any" ],
-      [ "'c", "any" ],
-      [ "'d", "any" ],
-      [ "'e", "any" ],
-      [ "'f", "any" ]
+      [ "'a", "any" ]
     ],
     "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
   },
@@ -26097,7 +25902,7 @@
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
       [
-        "'a \\ int, 'b, 'c, 'd, 'e, 'f",
+        "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
         "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
       ]
     ],
@@ -26108,7 +25913,202 @@
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
       [
-        "'a \\ int, 'b, 'c, 'd, 'e, 'f",
+        "'f & int, 'e & bool(true | false), 'd & int, 'c \\ bool(true | false), 'b, 'a",
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
+      ]
+    ],
+    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a \\ int", "any" ] ],
+    "prio": [ "'a" ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "any" ] ],
+    "prio": [ "'a" ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "any" ] ],
+    "prio": [ "'a" ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "any" ] ],
+    "prio": [ "'a" ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "constr": [
+      [ "'f & int", "any" ],
+      [ "'e & bool(true | false)", "any" ],
+      [ "'d \\ int", "any" ],
+      [ "'c", "any" ],
+      [ "'b", "any" ],
+      [ "'a", "any" ]
+    ],
+    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "constr": [
+      [
+        "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
+      ]
+    ],
+    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "constr": [
+      [
+        "'f & int, 'e & bool(true | false), 'd \\ int, 'c, 'b, 'a",
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
+      ]
+    ],
+    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a \\ bool(true | false)", "any" ] ],
+    "prio": [ "'a" ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "any" ] ],
+    "prio": [ "'a" ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "any" ] ],
+    "prio": [ "'a" ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "any" ] ],
+    "prio": [ "'a" ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "any" ] ],
+    "prio": [ "'a" ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "constr": [
+      [ "'f & int", "any" ],
+      [ "'e \\ bool(true | false)", "any" ],
+      [ "'d", "any" ],
+      [ "'c", "any" ],
+      [ "'b", "any" ],
+      [ "'a", "any" ]
+    ],
+    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "constr": [
+      [
+        "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
+      ]
+    ],
+    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "constr": [
+      [
+        "'f & int, 'e \\ bool(true | false), 'd, 'c, 'b, 'a",
+        "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
+      ]
+    ],
+    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a \\ int", "any" ] ],
+    "prio": [ "'a" ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "any" ] ],
+    "prio": [ "'a" ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "any" ] ],
+    "prio": [ "'a" ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "any" ] ],
+    "prio": [ "'a" ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "any" ] ],
+    "prio": [ "'a" ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "constr": [ [ "'a", "any" ] ],
+    "prio": [ "'a" ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "constr": [
+      [ "'f \\ int", "any" ],
+      [ "'e", "any" ],
+      [ "'d", "any" ],
+      [ "'c", "any" ],
+      [ "'b", "any" ],
+      [ "'a", "any" ]
+    ],
+    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "constr": [
+      [
+        "'f \\ int, 'e, 'd, 'c, 'b, 'a",
+        "~(int, bool(true | false), int, bool(true | false), int, bool(true | false))"
+      ]
+    ],
+    "prio": [ "'a", "'b", "'c", "'d", "'e", "'f" ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "constr": [
+      [
+        "'f \\ int, 'e, 'd, 'c, 'b, 'a",
         "int, bool(true | false), int, bool(true | false), int, bool(true | false)"
       ]
     ],
@@ -26119,7 +26119,7 @@
     "mono": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
     "constr": [
       [
-        "'a -> 'b -> 'c -> 'd -> 'e -> 'f -> bool(false) | ('a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e & int, 'f & bool(true | false))",
+        "'f -> 'e -> 'd -> 'c -> 'b -> 'a -> bool(false) | ('f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b & int, 'a & bool(true | false))",
         "'g"
       ]
     ]
@@ -26130,10 +26130,10 @@
     "constr": [
       [
         "'g",
-        "('a -> 'b -> 'c -> 'd -> 'e -> 'f -> bool(false) | ('a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e & int, 'f & bool(true | false))) | 'g"
+        "('f -> 'e -> 'd -> 'c -> 'b -> 'a -> bool(false) | ('f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b & int, 'a & bool(true | false))) | 'g"
       ],
       [
-        "('a -> 'b -> 'c -> 'd -> 'e -> 'f -> bool(false) | ('a & int, 'b & bool(true | false), 'c & int, 'd & bool(true | false), 'e & int, 'f & bool(true | false))) | 'g",
+        "('f -> 'e -> 'd -> 'c -> 'b -> 'a -> bool(false) | ('f & int, 'e & bool(true | false), 'd & int, 'c & bool(true | false), 'b & int, 'a & bool(true | false))) | 'g",
         "'g"
       ]
     ]
