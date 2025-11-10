@@ -120,7 +120,7 @@ BT with type key=V.t and type res=R.t = struct
   let update t key r =
     match H.find_opt t.table key, t.stack  with
     | Some ({ active = true; result = Some old_r; _ } as cp), Cons s ->
-      if not (R.equal r old_r) || not Config.subtyping_reuse_cache then begin
+      if not (R.equal r old_r) then begin
         List.iter (invalidate t.table key) cp.dependencies;
         cp.result <- Some r;
       end;
@@ -151,15 +151,13 @@ BT with type key=V.t and type res=R.t = struct
 
   let update t key r =
     match !t with
-    | [] -> assert false
-    | d::t' ->
+    | [] | [_] -> assert false
+    | d::prev_d::t' ->
       let old_r = M.find key d in
-      if not (R.equal r old_r) || not Config.subtyping_reuse_cache
-      then t := t'
+      if Config.subtyping_cache = BasicCache then
+        t := prev_d::t'
+      else if not (R.equal r old_r) then
+        t := (M.add key r prev_d)::t'
       else
-        let t' = match t' with
-        | [] -> assert false
-        | _::t' -> d::t'
-        in
-        t := t'
+        t := d::t'
 end

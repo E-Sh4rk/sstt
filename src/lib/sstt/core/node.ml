@@ -109,7 +109,7 @@ include (struct
     module NMap = Map.Make(PreNode)
     module VDMap = Map.Make(VDescr)
     module Table = (val
-        if Config.subtyping_hash_based_cache
+        if Config.subtyping_cache = HashCache
         then (module Bttable.Make(VDescr)(Bool) : Bttable.BT with type key = VDescr.t and type res = Bool.t)
         else (module Bttable.Make'(VDescr)(Bool) : Bttable.BT with type key = VDescr.t and type res = Bool.t)
       )
