@@ -102,7 +102,7 @@ module MemoCons = Hash.Memo1(
   struct
     type nonrec t = (Number.t * Number.t) * t
     let equal ((a1,b1), l1) ((a2, b2), l2)  =
-      (l1 == l2 && Number.equal a1 a2 && Number.equal b1 b2)
+      (equal l1 l2 && Number.equal a1 a2 && Number.equal b1 b2)
     let hash ((a,b), l) = Hash.mix3 (Number.hash a) (Number.hash b) (hash l)
   end
   )
