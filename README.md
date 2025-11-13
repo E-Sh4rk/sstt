@@ -2,12 +2,38 @@
 
 ## Instructions for the reviewers of PLDI
 
+### Testing the prebuilt REPL (Wasm)
+
+SSTT features a REPL that can be tested directly in the web browser.
+
+```
+cd web
+python3 -m http.server 8080
+```
+
+The SSTT REPL should then be accessible from your web browser: http://localhost:8080/  
+Examples can be found in `REPL.md` or `src/tests/tests.txt`.
+
+Note: this Wasm version is slower than the native version.
+
+### Running the benchmarks
+
+The Wasm build does not include the benchmarks.
+To run the benchmarks, the [OCaml Package Manager](https://opam.ocaml.org/) must be installed first.
+
 ```
 opam switch create sstt 5.3.0
 eval $(opam env --switch=sstt)
 make deps
 make benchmark
 ```
+
+Some remarks:
+- The benchmark files can be found in `benchmarks/`.
+- The corpuses that have been used to generate the benchmark files can be found in `corpuses/`.
+- To run the benchmarks on the CDuce backend instead of SSTT, you can modify `src/bin/benchmark.ml`
+(definition `use_cduce_backend`)
+- The configuration of SSTT (hash-consing, semantic simplification, etc.) can be modified in `src/lib/sstt/core/utils/config.ml`
 
 ## General instructions and documentation
 
