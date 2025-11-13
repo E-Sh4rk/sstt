@@ -1,5 +1,5 @@
-  exception InvalidAccess
-  (** Raised if a entry is used more than once. *)
+exception InvalidAccess
+(** Raised if a entry is used more than once. *)
 
 module type BT = sig
   type key
@@ -68,14 +68,13 @@ module type BT = sig
 
       @raise InvalidAccess if the value is not already in the table.
   *)
-
 end
 
-module Make (V : Hashtbl.HashedType) (R : sig type t val equal : t -> t-> bool end):
-BT with type key=V.t and type res=R.t = struct
-  module H = Hashtbl.Make (V)
+module Make(V : Hashtbl.HashedType)(R : sig type t val equal : t -> t-> bool end):
+  BT with type key=V.t and type res=R.t = struct
   type key=V.t
   type res=R.t
+  module H = Hashtbl.Make(V)
 
   type stack = 
       Cons of { key : V.t; mutable marked : bool ; next : stack }
@@ -130,7 +129,7 @@ BT with type key=V.t and type res=R.t = struct
 end
 
 module Make' (V : Map.OrderedType) (R : sig type t val equal : t -> t-> bool end) :
-BT with type key=V.t and type res=R.t = struct
+  BT with type key=V.t and type res=R.t = struct
   type key=V.t
   type res=R.t
 
