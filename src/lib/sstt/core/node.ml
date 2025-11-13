@@ -107,7 +107,6 @@ include (struct
   and PreNode : PreNode with type t = AnyEmpty.t and type vdescr = VDescr.t and type descr = VDescr.Descr.t = struct
     (* The PreNode module that contain the entry points of all functions on types. *)
     module NMap = Map.Make(PreNode)
-    module VDMap = Map.Make(VDescr)
     module Table = Bttable.Make(VDescr)(Bool)
     type _ Effect.t += GetCache: (Table.t) t
 
