@@ -1,0 +1,12 @@
+The following libraries are distributed with CDuce as permitted by their respective licenses.
+For each library, its license is distributed in the LICENSES/ subdirectory :
+
+libcurl-4.dll     LICENSES/libcurl.LICENSE.txt
+libeay32.dll      LICENSES/openssl.LICENSE.txt
+libnghttp2-14.dll LICENSES/nghttp2.LICENSE.txt
+libexpat-1.dll    LICENSES/expat.LICENSE.txt
+libssh2-1.dll     LICENSES/libssh2.LICENSE.txt
+ssleay32.dll      LICENSES/openssl.LICENSE.txt
+zlib1.dll         LICENSES/zlib.LICENSE.txt
+libzstd-1.dll     LICNESES/zstd.LICENSE.txt
+

@@ -1,0 +1,9 @@
+(cram
+ (package cduce-tools)
+ (applies_to :whole_subtree)
+ (deps
+  (source_tree ../common/)
+  %{bin:cduce}
+  %{bin:cduce_mktop}
+  (glob_files ./*)
+  (package cduce)))

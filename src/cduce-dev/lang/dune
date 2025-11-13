@@ -1,0 +1,38 @@
+(include_subdirs unqualified)
+
+(library
+ (name cduce_core)
+ (public_name cduce.lib.core)
+ (libraries cduce-types sedlex menhirLib)
+ (flags
+  (-open Cduce_types))
+ (modules
+  ((:standard version)
+   \
+   ocaml_obj_compat_407
+   ocaml_obj_compat_409))
+ (preprocess
+  (pps sedlex.ppx)))
+
+(rule
+ (deps runtime/ocaml_obj_compat_407.ml)
+ (target ocaml_obj_compat.ml)
+ (action
+  (copy %{deps} %{target}))
+ (enabled_if
+  (< %{ocaml_version} 4.09)))
+
+(rule
+ (deps runtime/ocaml_obj_compat_409.ml)
+ (target ocaml_obj_compat.ml)
+ (action
+  (copy %{deps} %{target}))
+ (enabled_if
+  (>= %{ocaml_version} 4.09)))
+
+(rule
+ (target version.ml)
+ (action
+  (write-file
+   %{target}
+   "let cduce_version = \"%{version:cduce}\"\nlet ocaml_compiler = \"%{ocaml_version}\"\n")))

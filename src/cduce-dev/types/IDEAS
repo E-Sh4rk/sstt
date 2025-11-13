@@ -1,0 +1,30 @@
+- Define a 'widening functions'  (types -> types) such two
+  equivalent types become physically equal
+
+
+- Cache typing derivations, to avoid duplicating work when typing
+  invariant parts of overloaded functions. One has to restrict
+  the typing environment to the set of free variables for the 
+  expression, and compare it to previous typing of this expression;
+  if the same environment has been used before, reuse the result.
+
+  Need to benchmark and define heuristics to know when to apply
+  this mechanism => empirical.
+
+
+- Remember compiled regexp when printing; same with XML sugar
+
+- When an arrow constraint is not satisfied when typing a function,
+  point to the specific branch ...
+  Better: alternate mode of typing << check that this expression
+  has at most this type >> 
+
+  DONE
+
+
+- Convert:  (e1,e2) @ e3   =====>   (e1,e2 @ e3)
+  _before_ typing (to better propagate type information downto e1)
+
+
+- Problem with parser:  keyword and tags may collide ...
+  ex: <map>  in XHTML

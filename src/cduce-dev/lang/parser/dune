@@ -1,0 +1,4 @@
+(menhir
+ (modules parser)
+ (flags --table --inspection)
+ (infer true))

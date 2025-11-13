@@ -1,0 +1,111 @@
+(* Patricia trees 
+   Chris Okasaki and Andrew Gill's paper Fast Mergeable Integer Maps
+   http://ittc.ku.edu/~andygill/papers/IntMap98.pdf
+*)
+
+
+
+type Leaf('a) = <leaf key=Caml_int> 'a
+
+type Branch('a) = <brch pre=Caml_int bit=Caml_int>[ (Leaf('a)|Branch('a)) (Leaf('a)|Branch('a)) ]
+
+type Dict('a) = [] | Branch('a) | Leaf('a)
+
+
+let lowest_bit (x: Caml_int): Caml_int = Ocaml.Stdlib.land x (-x :? Caml_int) 
+
+let branching_bit (p0: Caml_int)(p1: Caml_int): Caml_int = lowest_bit (Ocaml.Stdlib.lxor p0 p1)
+
+
+let mask (p: Caml_int) (m: Caml_int): Caml_int = 
+  Ocaml.Stdlib.land p (Ocaml.Stdlib.pred m)
+
+let match_prefix (k: Caml_int)(p: Caml_int)(m: Caml_int): Bool = 
+  mask k m = p 
+
+let zero_bit (k: Caml_int)(m: Caml_int): Bool =  Ocaml.Stdlib.land k m = 0 
+
+let lookup (k: Caml_int) (d: Dict ('a)) : ['a?] =
+  match d with
+   | [] -> []
+   | <brch pre=p bit=m>[ t0 t1 ] ->
+       if not (match_prefix k p m) then []
+       else if zero_bit k m then lookup k t0
+                             else lookup k t1
+   | <leaf key=j> x -> if j=k then [ x ] else []
+;;
+
+let join (p0: Caml_int) (t0: Dict('a)\[]) (p1: Caml_int) (t1: Dict('a)\[]): Branch('a) = 
+  let m = branching_bit p0 p1 in
+  if zero_bit p0 m then 
+    <brch pre=(mask p0 m) bit=m>[t0 t1]
+  else 
+    <brch pre=(mask p0 m) bit=m>[t1 t0]
+
+
+let insert (c: 'a -> 'a -> 'a) (k: Caml_int) (x: 'a) (t: Dict('a)): Leaf('a)|Branch('a) = 
+  let ins (Leaf('a)|Branch('a) -> Leaf('a)|Branch('a) ; [] -> Leaf('a) )
+    |  [] -> <leaf key=k> x
+    |  (<leaf key=j>y)&t -> 
+           if j=k then <leaf key=k>(c x y)
+           else join k (<leaf key=k>x) j t
+    |  (<brch pre=p bit=m>[ t0 t1 ])&t ->
+           if match_prefix k p m then
+	      if zero_bit k m then <brch pre=p bit=m>[ (ins t0) t1 ]
+                              else <brch pre=p bit=m>[ t0 (ins t1) ]
+           else  join k (<leaf key=k>x) p t
+  in ins t 
+
+let max (x: 'a)(y: 'b): 'a|'b = if (x >> y) then x else y;;
+
+let swap (f : 'a -> 'a -> 'a) (x: 'a) (y: 'a): 'a = f y x;;
+
+
+let merge (c: 'a -> 'a -> 'a): (Dict('a),Dict('a)) -> Dict('a) =
+  fun aux(  ([],[]) -> [] 
+          ; (Dict('a),Dict('a))\([],[]) -> Dict('a)\[] 
+          ; (Branch('a),Branch('a)) -> Branch('a) )
+    | ([],t) | (t,[]) -> t
+    | (<leaf key=k>x , t) -> insert c k x t      
+    | (t , <leaf key=k>x) -> insert (swap c) k x t  
+    | (<brch pre=p bit=m>[ s0 s1 ] , <brch pre=q bit=n>[ t0 t1 ])&(s,t) ->
+        if (m=n) && (p=q) then 
+         <brch pre=p bit=m>[ (aux(s0,t0)) (aux(s1,t1)) ]
+        else if (m << n) && (match_prefix q p m) then
+          if zero_bit q m then <brch pre=p bit=m>[ (aux(s0,t)) s1 ]
+	     	      	  else <brch pre=p bit=m>[ s0 (aux(s1,t)) ]
+        else if (m >> n) && (match_prefix p q n) then
+          if zero_bit p n then <brch pre=q bit=n>[ (aux(s,t0)) t1 ]
+	     	      	  else <brch pre=q bit=n>[ t0 (aux(s,t1)) ]
+        else join p s q t
+
+let iteri (f : Caml_int -> 'a -> []) (m : Dict('a)) : [] =
+  match m with
+    [] -> []
+    | <leaf key=k>v -> f k v
+    | <brch ..>[t1 t2] -> iteri f t1 ; iteri f t2
+
+
+let iter (f : 'a -> []) (m : Dict ('a)) : [] =
+  iteri (fun ( _ : Any) (x : 'a) : [] = f x) m
+
+/*
+*/
+let update (_ : 'a) (x : 'a) : 'a = x
+;;
+
+let init (data : [(Caml_int, 'a)*]) : Dict ('a) =
+  let acc = ref (Dict('a)) [] in
+  let [] =
+    transform data with
+      (x, y) -> acc := insert update x y !acc
+  in
+  !acc
+
+
+let [] =
+    let map1 = init [ (1, "A") (2, "B") (1, "C" )] in
+    let map2 = init [ (1, "HELLO") (* replaces "A" and "C" *)
+                      (3, "WORLD")  (0, "0") ] in
+    let map3 = merge update (map1, map2) in 
+    iter (fun (x : 'a ) : [] = print [ !(string_of x) '\n' ]) map3

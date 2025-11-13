@@ -1,0 +1,37 @@
+include "../../../common/utils.cd"
+
+(* OCaml''s module for Complex numbers *)
+
+type Real = Float | Int
+
+type Complex = { re = Float im = Float }
+
+type Number = Real | Complex
+
+let p1 : Complex = Ocaml.Stdlib.Complex.add Ocaml.Stdlib.Complex.one Ocaml.Stdlib.Complex.i
+
+let [] = print_value p1
+
+let [] = print_value (Ocaml.Stdlib.Complex.norm p1)
+
+
+let fun mult (Int -> Int -> Int;
+              Int -> Float -> Float;
+              Int -> Complex -> Complex;
+              Float -> Real -> Real;
+              Float -> Complex -> Complex;
+              Complex -> Number -> Complex)
+     x&Int -> (fun (Int -> Int; Float -> Float ; Complex -> Complex)
+        y & Real -> x * y
+      | y & Complex -> Ocaml.Stdlib.Complex.mul { re= (1.0 * x); im=0.0} y)
+
+   | x&Float -> (fun (Complex -> Complex;Real -> Float)
+        y & Real -> x * y
+      | y & Complex -> Ocaml.Stdlib.Complex.mul { re= x; im=0.0} y)
+
+   | x&Complex -> (fun (Number -> Complex)
+     y & Real -> Ocaml.Stdlib.Complex.mul x {re = (1.0 * y); im=0.0 }
+   | y & Complex -> Ocaml.Stdlib.Complex.mul x y
+   )
+;;
+let [] = print_value (mult p1 (mult 10 (mult  3.14 p1)))

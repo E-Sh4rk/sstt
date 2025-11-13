@@ -1,0 +1,7 @@
+(cram
+ (package cduce)
+ (applies_to :whole_subtree)
+ (deps
+  (source_tree ../common/)
+  %{bin:cduce}
+  bin/test_printer.exe))

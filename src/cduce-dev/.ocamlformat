@@ -1,0 +1,11 @@
+profile = conventional
+break-cases = all
+break-fun-decl = fit-or-vertical
+exp-grouping = preserve
+if-then-else = compact
+let-and = sparse
+single-case = sparse
+type-decl = sparse
+dock-collection-brackets = true
+version = 0.23.0
+

@@ -1,0 +1,17 @@
+.vscode/**
+**/*.cm[aoix]
+**/*.cmx[sa]
+**/*.[oa]
+**/*.cmt
+**/*.cmtiCduce_lib.ml
+Cduce_lib.mli
+Cduce_lib.ml
+Makefile.conf
+cduce
+cduce.byte
+cduce.modules
+cduce.opt
+configure.log
+_build/**
+**/.merlin
+cduce-*.zip

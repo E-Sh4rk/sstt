@@ -1,0 +1,69 @@
+(** Input types **)
+
+
+
+type Site = <site>[ <title>String Header? Footer? H_script* Page ]
+type Header = <header>[ <global_header>Content Item* ]
+type Footer = <footer>[ Item* ]
+type Page =  <page name=Latin1 url=?String new=?""
+    vertbar=?("true"|"false")>[ <title>String <banner>[InlineText*]?
+    <page_header>Flow? <page_footer>Flow? Item*]
+type External = <external href=String title=String name=String>[]
+
+type Item = 
+    <box ({title=String; link=String; short=?String} | {})>Content
+  | <halfwidth_box title=String link=String position=?("left"|"right") short=?String>Content
+  | <halfwidth_box position=?("left"|"right")>Content
+  | <meta>Content
+  | <left>Content
+  | <footnotes>[]
+  | Page
+  | External
+
+type Author = <author presenter=?("yes"|"no")>String
+type Paper = 
+  <paper file=?String old=?"">[ 
+     <title>String Author+ <comment>[InlineText*] <abstract>Content ]
+
+type Slides = 
+  <slides file=String>[ <title>String Author+ <comment>[InlineText*] ]
+
+type Link =
+  <link url=String title=String>[ InlineText* ]
+
+type Content =      
+   [ ( <p style=?String>[InlineText*]
+     | <ol style=?String>[<li>Content +]
+     | <section title=String>Content
+     | <sample highlight=?"true"|"false">String
+     | <xmlsample highlight=?"true"|"false">String
+     | <sessionsample highlight=?"true"|"false">String
+     | H_table
+     | Paper | Slides | Link
+     | <boxes-toc short=?"" sections=?"">[]
+     | <pages-toc sections=?"">[]
+     | <site-toc>[]
+     | <local-links href=String>[]
+     | <two-columns>[ <left>Content <right>Content ]
+     | <note title=?String> Content
+     | <footnotes>[]
+     | <xhtml>Flow
+     | <demo label=?String prefix=?String>String 
+     | <ul>[<li>Content +]
+     | InlineText
+     )* ]
+
+type InlineText =
+     Char
+   | <(`b|`i|`tt|`em) style=?String>[InlineText*]
+   | <code>String
+   | <local href=String>String
+   | <footnote nocount=?"true">[InlineText*]
+   | H_a | H_img | H_br |H_script
+   | <thumbnail href=String width=?IntStr height=?IntStr>[]
+   | <thumbnails href=String width=?IntStr height=?IntStr>[ PCDATA ]
+
+type IntStr = ['0'--'9'+]
+
+
+

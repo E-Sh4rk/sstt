@@ -1,0 +1,18 @@
+type Special = H_br | H_span | H_bdo | H_map | H_object | H_img;;
+type Fontstyle = H_tt | H_i | H_b | H_big | H_small;;
+type Phrase = H_em | H_strong | H_dfn | H_code | H_q |
+                   H_samp | H_kbd | H_var | H_cite | H_abbr | H_acronym | H_sub
+                   | H_sup;;
+type InlineForms = H_input | H_select | H_textarea | H_label | H_button;;
+type MiscInline = H_ins | H_del | H_script;;
+type Misc = H_noscript | MiscInline;;
+type Inline = H_a | Special | Fontstyle | Phrase | InlineForms;;
+type Inlines = [ (Char | Inline | MiscInline)* ];;
+
+type Heading = H_h1 | H_h2 | H_h3 | H_h4 | H_h5 | H_h6;;
+type Lists = H_ul | H_ol | H_dl;;
+type Blocktext = H_pre | H_hr | H_blockquote | H_address;;
+type Block =  H_p | Heading | H_div | Lists | Blocktext | H_fieldset | H_table;;
+type Blocks = [ (Block | H_form | Misc)* ];;
+
+type Flow = [ (Char | Block | H_form | Inline | Misc)* ];;

@@ -1,0 +1,79 @@
+type list ('a) = [ 'a* ]
+
+let length (l : ['a*]) : Int =
+    let loop (l : ['a*]) (acc : Int) : Int =
+        match l with
+            [] -> acc
+            | (_, ll) -> loop ll (1+acc)
+    in
+    loop l 0
+
+let hd (['a+] -> 'a) (x, _) -> x
+let tl (['a+] -> ['a*]) (_, x) -> x
+
+let nth (n : Int) (l : ['a*]) : 'a =
+    match (n, l) with
+        | (0, (x, _)) -> x
+        | (m, (_, ll)) -> nth (m - 1) ll
+        | _ -> raise "List.nth: Invalid argument"
+
+let fold_left (f : 'a -> 'b -> 'a) (acc : 'a) (l : ['b*]) :'a =
+    match l with
+        [] -> acc
+        | (x, ll) -> fold_left f (f acc x) ll
+
+let fold_right (f : 'a -> 'b -> 'b) (l : ['a*]) (acc : 'b) :'b=
+    match l with
+        [] -> acc
+        | (x, ll) -> f x (fold_right f ll acc) 
+
+
+let rev_append (l1 :['a*]) (l2: ['b*]) : [('a|'b)*] =
+ fold_left (fun (acc:[('a|'b)*]) (x: 'a) : [('a|'b)*] = (x,acc)) l2 l1
+
+let rev (l :['a*]) : ['a*] = rev_append l []
+
+let concat (l1 : ['a*]) (l2: ['b*]) : ['a* 'b* ] =
+    match l1 with
+        [] -> l2
+        | (x, ll) -> (x, concat ll l2)
+
+let flatten ( (X where X = 'a\[Any*] | [ X* ]) -> ['a*])
+     | [] -> []
+     | [h ; t] -> (flatten h)@(flatten t)
+     | x -> [x]
+
+let iter (f : 'a -> []) (l : ['a*]) : [] =
+    match l with
+        [] -> []
+        | (x, ll) -> f x; iter f ll
+
+
+let sort (cmp:('a -> 'a -> Int)) (l: ['a*]): ['a*]=
+    let rev_merge (l1 : ['a*]) (l2 : ['a*])  (acc : ['a*]) : ['a*] =
+        match (l1, l2) with
+        | ([], ll)| (ll,[]) -> rev_append ll acc  
+        | ((e1, ll1), (e2, ll2)) -> 
+            if cmp e1 e2 >> 0 then rev_merge ll1 l2 (e1, acc)
+            else rev_merge l1 ll2 (e2, acc)
+    in
+    let split (l: ['a*]) (acc1: ['a*]) (acc2: ['a*])  : (['a*],['a*]) =
+            match l with
+            |   [] -> (acc1, acc2)
+            |   [x] -> ((x,acc1), acc2)
+            |   [ x y ; ll] -> split ll (x, acc1) (y,acc2)
+    in
+    let loop (['a*] -> ['a*]) 
+        [] -> []
+        | [_]& x -> x
+        | l -> let (l1, l2) = split l [] [] in
+                rev_merge (loop l1) (loop l2) []
+    in
+    loop l
+
+let init (n : Int) (f : Int -> 'a) : ['a*] =
+    let loop (i : Int) : ['a*] =
+        if i = n then []
+        else (f i, loop (i+1))
+    in loop 0
+

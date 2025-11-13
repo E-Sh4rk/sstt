@@ -1,5 +1,16 @@
 # Simple Set-Theoretic Types (SSTT) library
 
+## Instructions for the reviewers of PLDI
+
+```
+opam switch create sstt 5.3.0
+eval $(opam env --switch=sstt)
+make deps
+make benchmark
+```
+
+## General instructions and documentation
+
 SSTT is an OCaml library for manipulating set-theoretic types.  
 **Disclaimer: this library is a work in progress and is subject to breaking change.**
 

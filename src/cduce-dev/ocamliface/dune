@@ -1,0 +1,42 @@
+(* -*- tuareg -*- *)
+let () =
+  let (major, minor, _patch), _flag = 
+    try
+     Scanf.sscanf Jbuild_plugin.V1.ocaml_version
+                  "%d.%d.%d%s"
+                  (fun x y z s -> (x, y, z), s)
+    with Scanf.Scan_failure _ -> (0,0,0), ""
+  in
+  let num_version = major * 100 + minor in
+  Jbuild_plugin.V1.send (Printf.sprintf {|
+(library
+ (name cduce_ocamliface)
+ (public_name cduce.lib.ocamliface)
+ (library_flags (-linkall))
+ (flags (-open Cduce_types))
+ (libraries
+  cduce-types
+  cduce_core
+  (select
+   mlstub.ml
+   from
+   (ocaml-compiler-libs.common -> mlstub.real.ml)
+   (-> mlstub.empty.ml))
+  (select
+   mltypes.ml
+   from
+   (ocaml-compiler-libs.common -> mltypes.real.ml)
+   (-> mltypes.empty.ml))
+  (select
+   mltypes.mli
+   from
+   (ocaml-compiler-libs.common -> mltypes.real.mli)
+   (-> mltypes.empty.mli))))
+
+(rule
+ (deps mlcompat.cpp.ml)
+ (target mlcompat.ml)
+ (action
+  (run
+   %%{cc} -E -x c -D COMPILER_LIBS_%%{lib-available:ocaml-compiler-libs.common} -D OCAML_VERSION=%d %%{deps} -o %%{target})))
+  |} num_version)

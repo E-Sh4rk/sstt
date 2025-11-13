@@ -1,0 +1,26 @@
+(library
+ (name misc)
+ (public_name cduce-types.misc)
+ (modules_without_implementation styler)
+ (modules
+  ((:standard)
+   \
+   textStyling_407
+   textStyling_generic))
+ (wrapped false))
+
+(rule
+ (deps textStyling_407.ml)
+ (target textStyling.ml)
+ (action
+  (copy %{deps} %{target}))
+ (enabled_if
+  (< %{ocaml_version} 4.08)))
+
+(rule
+ (deps textStyling_generic.ml)
+ (target textStyling.ml)
+ (action
+  (copy %{deps} %{target}))
+ (enabled_if
+  (>= %{ocaml_version} 4.08)))

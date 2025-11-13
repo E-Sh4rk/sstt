@@ -1,0 +1,18 @@
+include "../../../common/utils.cd"
+
+let traverse (dir : Latin1) : [String*] =
+    let content = Ocaml.Stdlib.Sys.readdir dir in
+    let dirs = transform content with
+        [ Char * '.cd' ] & f -> [ f ]
+        | d -> let path = dir @ "/" @ d in
+            if Ocaml.Stdlib.Sys.is_directory path then
+             traverse path
+    in
+    dirs
+;;
+
+let [] =
+    let dirs = traverse ".." in
+    let dirs2 = traverse "../../../common" in
+    transform sort_string_list (dirs@dirs2) with f -> print_utf8 (f @ "\n")
+;;

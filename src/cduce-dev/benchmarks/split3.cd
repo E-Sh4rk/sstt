@@ -1,0 +1,30 @@
+type Person = FPerson | MPerson
+type FPerson = <person gender="F" >[ Name Children ]
+type MPerson = <person gender="M">[ Name Children ]
+type Children = <children>[Person*]
+type Name = <name>[ PCDATA ]
+
+type Man = <man name=String>[ Sons Daughters ]
+type Woman = <woman name=String>[ Sons Daughters ]
+type Sons = <sons>[ Man* ]
+type Daughters = <daughters>[ Woman* ]
+
+let split_m (MPerson -> Man)
+ <_ ..>[ <_>n <_>[(mc::<_ gender="M">_ | fc::_)*] ] ->
+   let s = map mc with x -> split_m x in
+   let d = map fc with x -> split_f x in       
+   <man name=n>[ <sons>s  <daughters>d ] 
+
+let split_f (FPerson -> Woman)
+ <_ ..>[ <_>n <_>[(mc::<_ gender="M">_ | fc::_)*] ] ->
+   let s = map mc with x -> split_m x in
+   let d = map fc with x -> split_f x in       
+   <woman name=n>[ <sons>s  <daughters>d ] 
+
+match argv [] with
+  | [ f ] -> 
+   (match load_xml f with
+    |  <doc>(l & [Person*]) -> 
+         <doc>(map l with x & MPerson -> split_m x | x & FPerson -> split_f x)
+    | _ -> raise "Invalid document") 
+  | _ -> raise "Invalid command line"

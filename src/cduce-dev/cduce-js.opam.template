@@ -1,0 +1,8 @@
+depends: [
+  "cduce" {= version}
+]
+depopts: [
+ "js_of_ocaml-compiler" {>= "3.7.1"}
+ "js_of_ocaml-ppx" {>= "3.7.1"}
+ "zarith_stubs_js" { >= "v0.15.0"}
+]

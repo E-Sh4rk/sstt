@@ -1,0 +1,55 @@
+(lang dune 3.0)
+
+(name cduce)
+
+(version 0.7.0-rc11)
+
+(source
+ (uri "git+https://gitlab.math.univ-paris-diderot.fr/cduce/cduce/"))
+
+(license MIT)
+
+(authors "Alain Frisch")
+
+(maintainers "Kim Nguyen")
+
+(homepage "https://www.cduce.org")
+
+(bug_reports
+ "https://gitlab.math.univ-paris-diderot.fr/cduce/cduce/-/issues")
+
+(generate_opam_files true)
+
+(using menhir 2.0)
+(cram enable)
+
+(package
+ (name cduce-types)
+ (synopsis "CDuce type library")
+ (description
+  "This library implements set-theoretic types with\n semantic subtyping. It is at the heart of the CDuce compiler, but\n can also be reused as a stand-alone library to experiment with\n semantic subtyping."))
+
+(package
+ (name cduce)
+ (synopsis "The CDuce compiler")
+ (description
+  "CDuce is a functional, impure, staticaly typed\n programming language. It features a OCaml-like syntax with built-in constructs for\n extensible records, overloaded functions and XML document and document types.\n Its type system is based on semantic subtyping and features regular expresison\n types.")
+ (depends cduce-types))
+
+(package
+ (name cduce-js)
+ (synopsis "The CDuce compiler (JavaScript)")
+ (description
+  "A JavaScript and HTML based version of the CDuce toplevel together with js_of_ocaml compatible version of the runtime.")
+ (depends cduce-types))
+
+(package
+ (name cduce-tools)
+ (synopsis "The CDuce extra tools")
+ (description
+  "\| CDuce is a functional, impure, staticaly typed\n programming language.
+  "\| This package provides several optional tools :"
+  "\|   * dtd2cduce : translates a DTD into a set of CDuce type definitions.
+  "\|   * cduce_mktop : creates a custom CDuce toplevel with embedded OCaml primitives.
+  )
+ (depends cduce))

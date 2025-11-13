@@ -1,0 +1,72 @@
+let pretty (x : Int) : String = string_of x
+;;
+
+let even (Int -> Bool; ('a\Int) -> ('a\Int))
+| x & Int -> (x mod 2) = 0
+| x -> x
+;;
+
+let mmap (f : 'a -> 'b) (l : [ ('a) *] ) : [ ('b) *] =
+  match l with
+    [] -> []
+  | (e, ll) -> (f e, mmap f ll)
+;;
+
+let map_even = mmap even in map_even []
+;;
+
+let g ( (Int -> Int) -> Int -> Int;
+        (Bool -> Bool) -> Bool -> Bool) x -> x
+;;
+let id ('a -> 'a) x -> x;;
+
+let gid = g id;;
+
+let id2g = id (id g);;
+
+let churchtrue (x : 'a) (_ : 'b) : 'a = x in churchtrue 42;;
+
+let max (x : 'a) (y : 'a) : 'a = if x >> y then x else y;;
+
+max 42;;
+
+
+
+(* some tricky examples *)
+
+let f (_ : ('a | 'b | 'c)) (_ : (Int&'d&'e \1--3 )) : Any = raise "123";;
+
+
+let e = (even mmap) in (e (max 4),
+
+let x = id (even (e even)) in x);; (* same type as map_even *)
+/*
+The type is below is [ (1--6 | 'a -> 1--6 | 'a)* ]
+with weak variables 'a that cannot be safely generlized.
+
+let twisted = id even (even mmap) even (mmap max [1 2 3 4 5 6]);;
+
+
+let apply_to_3 (f: Int -> 'a): 'a = f 3 in
+    mmap apply_to_3 twisted
+;;
+*/
+
+type A('a) = <a>('a)
+
+type B('a) = <b>[ A('a) | B('a) ];;
+
+let f (_ : 'a -> 'a -> 'a )(z : 'a) (_ : A('a) | B('a)) : A('a) = <a>z;;
+
+let sum (x : Int) (y : Int) : Int = x + y;;
+
+let x = f sum;;
+
+let f ( x : B('a) ) : 'a =
+    match x with
+    <b>[ <a>i ] -> i
+   |<b>[ y  ] ->  f y
+;;
+
+let v = f <b>[<b>[<a>32]]
+;;

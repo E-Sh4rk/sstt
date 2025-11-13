@@ -1,0 +1,386 @@
+workflow:
+  rules:
+    - if: $CI_COMMIT_REF_NAME =~ /-for(-windows)?-ci$/
+      when: always
+
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^dev$|^main$/
+      when: always
+
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: always
+
+stages:
+    - compile
+    - test
+    - package
+
+.compile_template: &compile_template
+  stage: compile
+  script:
+    - dune build -p cduce-types,cduce,cduce-js,cduce-tools
+    - tools/cache_ci_build.sh push "$REMOTE_USER" "$REMOTE_HOST" "$REMOTE_DIR" "$CI_COMMIT_REF_SLUG"
+
+.test_template: &test_template
+  stage: test
+  script:
+    - tools/cache_ci_build.sh pull "$REMOTE_USER" "$REMOTE_HOST" "$REMOTE_DIR" "$CI_COMMIT_REF_SLUG"
+    - dune build @runtest
+
+.package_template: &package_template
+  stage: package
+  script:
+    - tools/cache_ci_build.sh pull "$REMOTE_USER" "$REMOTE_HOST" "$REMOTE_DIR" "$CI_COMMIT_REF_SLUG"
+    - opam pin -y -k path -w cduce-types .
+    - opam pin -y -k path -w cduce .
+    - opam pin -y -k path -w cduce-js .
+    - opam pin -y -k path -w cduce-tools .
+    - tools/cache_ci_build.sh delete "$REMOTE_USER" "$REMOTE_HOST" "$REMOTE_DIR" "$CI_COMMIT_REF_SLUG"
+
+compile_4.08:
+  image: ocaml-cduce:4.08
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.08"
+  <<: *compile_template
+
+test_4.08:
+  image: ocaml-cduce:4.08
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.08"
+  needs: [ "compile_4.08" ]
+  <<: *test_template
+
+package_4.08:
+  image: ocaml-cduce:4.08
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.08"
+  needs: [ "test_4.08" ]
+  <<: *package_template
+
+
+compile_4.09:
+  image: ocaml-cduce:4.09
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.09"
+  <<: *compile_template
+
+test_4.09:
+  image: ocaml-cduce:4.09
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.09"
+  needs: [ "compile_4.09" ]
+  <<: *test_template
+
+package_4.09:
+  image: ocaml-cduce:4.09
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.09"
+  needs: [ "test_4.09" ]
+  <<: *package_template
+
+
+compile_4.10:
+  image: ocaml-cduce:4.10
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.10"
+  <<: *compile_template
+
+test_4.10:
+  image: ocaml-cduce:4.10
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.10"
+  needs: [ "compile_4.10" ]
+  <<: *test_template
+
+package_4.10:
+  image: ocaml-cduce:4.10
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.10"
+  needs: [ "test_4.10" ]
+  <<: *package_template
+
+
+compile_4.11:
+  image: ocaml-cduce:4.11
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.11"
+  <<: *compile_template
+
+test_4.11:
+  image: ocaml-cduce:4.11
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.11"
+  needs: [ "compile_4.11" ]
+  <<: *test_template
+
+package_4.11:
+  image: ocaml-cduce:4.11
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.11"
+  needs: [ "test_4.11" ]
+  <<: *package_template
+
+
+compile_4.12:
+  image: ocaml-cduce:4.12
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.12"
+  <<: *compile_template
+
+test_4.12:
+  image: ocaml-cduce:4.12
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.12"
+  needs: [ "compile_4.12" ]
+  <<: *test_template
+
+package_4.12:
+  image: ocaml-cduce:4.12
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.12"
+  needs: [ "test_4.12" ]
+  <<: *package_template
+
+
+compile_4.13:
+  image: ocaml-cduce:4.13
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.13"
+  <<: *compile_template
+
+test_4.13:
+  image: ocaml-cduce:4.13
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.13"
+  needs: [ "compile_4.13" ]
+  <<: *test_template
+
+package_4.13:
+  image: ocaml-cduce:4.13
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.13"
+  needs: [ "test_4.13" ]
+  <<: *package_template
+
+
+compile_4.14:
+  image: ocaml-cduce:4.14
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.14"
+  <<: *compile_template
+
+test_4.14:
+  image: ocaml-cduce:4.14
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.14"
+  needs: [ "compile_4.14" ]
+  <<: *test_template
+
+package_4.14:
+  image: ocaml-cduce:4.14
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/4.14"
+  needs: [ "test_4.14" ]
+  <<: *package_template
+
+
+compile_5.0:
+  image: ocaml-cduce:5.0
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/5.0"
+  <<: *compile_template
+
+test_5.0:
+  image: ocaml-cduce:5.0
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/5.0"
+  needs: [ "compile_5.0" ]
+  <<: *test_template
+
+package_5.0:
+  image: ocaml-cduce:5.0
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/5.0"
+  needs: [ "test_5.0" ]
+  <<: *package_template
+
+
+compile_5.1:
+  image: ocaml-cduce:5.1
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/5.1"
+  <<: *compile_template
+
+test_5.1:
+  image: ocaml-cduce:5.1
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/5.1"
+  needs: [ "compile_5.1" ]
+  <<: *test_template
+
+package_5.1:
+  image: ocaml-cduce:5.1
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/5.1"
+  needs: [ "test_5.1" ]
+  <<: *package_template
+
+
+compile_5.2:
+  image: ocaml-cduce:5.2
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/5.2"
+  <<: *compile_template
+
+test_5.2:
+  image: ocaml-cduce:5.2
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/5.2"
+  needs: [ "compile_5.2" ]
+  <<: *test_template
+
+package_5.2:
+  image: ocaml-cduce:5.2
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/5.2"
+  needs: [ "test_5.2" ]
+  <<: *package_template
+
+
+compile_5.3:
+  image: ocaml-cduce:5.3
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/5.3"
+  <<: *compile_template
+
+test_5.3:
+  image: ocaml-cduce:5.3
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/5.3"
+  needs: [ "compile_5.3" ]
+  <<: *test_template
+
+package_5.3:
+  image: ocaml-cduce:5.3
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "172.17.0.1"
+     REMOTE_DIR: "cache/5.3"
+  needs: [ "test_5.3" ]
+  <<: *package_template
+
+
+compile_windows:
+  rules:
+    - if: $CI_COMMIT_REF_NAME =~ /-for-windows-ci$/
+      when: always
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^dev$|^main$/
+      when: always
+    - if: $TEST_WINDOWS == "force" && $CI_PIPELINE_SOURCE == "web"
+      when: always
+  tags:
+    - windows
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "10.0.2.2"
+     REMOTE_DIR: "cache/windows"
+  <<: *compile_template
+
+test_windows:
+  rules:
+    - if: $CI_COMMIT_REF_NAME =~ /-for-windows-ci$/
+      when: always
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^dev$|^main$/
+      when: always
+    - if: $TEST_WINDOWS == "force" && $CI_PIPELINE_SOURCE == "web"
+      when: always
+  tags:
+    - windows
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "10.0.2.2"
+     REMOTE_DIR: "cache/windows"
+  needs: [ "compile_windows" ]
+  <<: *test_template
+
+package_windows:
+  rules:
+    - if: $CI_COMMIT_REF_NAME =~ /-for-windows-ci$/
+      when: always
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^dev$|^main$/
+      when: always
+    - if: $TEST_WINDOWS == "force" && $CI_PIPELINE_SOURCE == "web"
+      when: always
+  tags:
+    - windows
+  variables:
+     REMOTE_USER: "gitlab-cache"
+     REMOTE_HOST: "10.0.2.2"
+     REMOTE_DIR: "cache/windows"
+  needs: [ "test_windows" ]
+  <<: *package_template
+
+

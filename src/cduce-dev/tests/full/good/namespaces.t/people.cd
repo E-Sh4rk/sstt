@@ -1,0 +1,24 @@
+(*namespace definition*)
+namespace owl="http://www.w3.org/2002/07/owl#"
+namespace xml="http://www.w3.org/XML/1998/namespace"
+namespace xsd="http://www.w3.org/2001/XMLSchema#"
+namespace rdfs="http://www.w3.org/2000/01/rdf-schema#"
+namespace skos="http://www.w3.org/2004/02/skos/core#"
+namespace rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#";;
+
+(*load ontology as plain XML*)
+let people  = match argv [] with
+              (people_rdf, _) | (people_rdf := "people.rdf") -> load_xml people_rdf
+;;
+
+(*define minimal ontology structure*)
+type Ontology = <rdf:RDF xml:base=String> [ AnyXml* ];;
+
+(*define an ontology inside CDuce*)
+let myOnt = <rdf:RDF xml:base="my first ontology"> [ ];;
+
+(*verify if myOnt has Ontology type*)
+let ont :? Ontology = myOnt;;
+
+(*verify if poeople has Ontology type*)
+let ont :? Ontology = people;;

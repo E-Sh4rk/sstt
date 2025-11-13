@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<site>
+<title>CDuce</title>
+
+<header>
+<global_header>
+<p>
+
+</p>
+</global_header>
+</header>
+
+<footer>
+<meta>
+<p>
+<a href="mailto:webmaster@cduce.org">Webmaster</a> -
+<local href="sitemap">Site map</local>
+</p>
+</meta>
+</footer>
+
+
+<include file="../../../common/memento.xml"/>
+
+</site>

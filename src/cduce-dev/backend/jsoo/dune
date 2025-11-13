@@ -1,0 +1,7 @@
+(library
+ (name cduce_jsoo_backend)
+ (public_name cduce-js.lib.jsoo_backend)
+ (library_flags (-linkall))
+ (libraries cduce-types cduce.lib.core)
+ (preprocess
+  (pps js_of_ocaml-ppx)))

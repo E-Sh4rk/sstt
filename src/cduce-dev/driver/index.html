@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en:US">
+
+<head>
+    <title>CDuce Toplevel</title>
+    <meta charset="utf-8" />
+    <style>
+        #toplevel {
+            width: 100vw;
+            height: 50vh;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+        }
+
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        #cduce-top-container {
+            position: relative;
+            height: 50vh;
+            width: 90vw;
+            background: black;
+            padding: 0;
+            margin: 0;
+        }
+
+        #cduce-top-console,
+        #cduce-top-input {
+            position: absolute;
+            margin: 0;
+            padding: 0.5vh;
+            /*background: black;*/
+            font-family: monospace;
+            white-space: pre;
+            font-size: 2vh;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        #cduce-top-console {
+            overflow-x: hidden;
+            overflow-y: auto;
+            color: gray;
+        }
+
+        #cduce-top-input {
+            color: white;
+            white-space: pre-wrap;
+            overflow: auto;
+            max-height: 12vh;
+            line-height: 3vh;
+            min-height: 3vh;
+        }
+
+        #cduce-top-input::before {
+            content: ">";
+        }
+
+        #cduce-top-console .cduce-top-out:last-child {
+            font-weight: bold;
+            color: white;
+        }
+
+        #cduce-top-console .cduce-top-err:last-child {
+            font-weight: bold;
+            color: red;
+        }
+
+        #cduce-top-console .cduce-top-err {
+            color: firebrick;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="toplevel">
+    </div>
+    <div id="info">
+        You can use CTRL-Enter or end your sentence with <tt>;;</tt> to evaluate
+        it. <br />
+        CTRL-&uarr; and CTRL-&darr; allow you to navigate your history.
+    </div>
+    <script type="text/javascript" src="cduce_js_top.bc.js"></script>
+    <script type="text/javascript">
+        cduce_top_install("toplevel");
+    </script>
+</body>
+
+</html>

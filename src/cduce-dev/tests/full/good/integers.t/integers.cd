@@ -1,0 +1,41 @@
+include "../../../common/utils.cd"
+;;
+
+let fun facto (Int -> Int)
+ | 0 | 1 -> 1
+ | n -> n * (facto (n - 1))
+;;
+print_value (facto 10000);;
+
+
+type Pos = 0--*;;
+
+let fun abs (Int -> Pos)
+  | (x & Pos) -> x
+  | x -> 0 - x
+;;
+print_value (abs (-30));;
+
+let fun wrap (0--100 -> 0--10)
+ | x & 0--10 -> x
+ | x -> wrap (x - 10)
+;;
+print_value (wrap 67);;
+let non_0 (Int -> (Int \ 0)) 0 -> raise "0" | n -> n
+;;
+
+type Expr =
+    (`add, Expr, Expr)
+  | (`mul, Expr, Expr)
+  | (`sub, Expr, Expr)
+  | (`div, Expr, Expr)
+  | Int;;
+
+let fun eval ( Expr -> Int )
+  | (`add,x,y) -> eval x + eval y
+  | (`mul,x,y) -> eval x * eval y
+  | (`sub,x,y) -> eval x - eval y
+  | (`div,x,y) -> (eval x) div (non_0 (eval y))
+  | n -> n
+;;
+print_value (eval (`add, 10, (`add, 20, 5)));;

@@ -1,0 +1,3 @@
+(executables
+ (names sandbox pretty_test test_tallying test_perf)
+ (libraries cduce_lib))

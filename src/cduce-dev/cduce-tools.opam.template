@@ -1,0 +1,9 @@
+depends: [
+  "ocaml" {>= "4.08.1"}
+  "dune" {>= "2.8.0"}
+  "cduce" {= version}
+  "ocamlfind" {>= "1.9.1"}
+]
+depopts: [
+ "pxp" {>= "1.2.9"}
+]

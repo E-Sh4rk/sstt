@@ -1,0 +1,232 @@
+type RBtree('a) = Btree('a) | Rtree('a)
+
+type Btree('a) = [] | <black elem='a>[ RBtree('a) RBtree('a) ]
+
+(* Red rooted RB tree: *)
+type Rtree('a) = <red elem='a>[ Btree('a) Btree('a) ]
+
+type Wrongtree('a) =    <red elem='a>( [ Rtree('a) Btree('a) ]
+                                     | [ Btree('a) Rtree('a) ])
+
+type Unbalanced('a) = <black elem='a>( [ Wrongtree ('a) RBtree('a) ]
+                                     | [ RBtree ('a) Wrongtree('a) ])
+
+
+;;
+
+
+(***************
+	 Was ill typed, see rb-fail.cd
+
+************)
+
+let balance ( Unbalanced('a) -> Rtree('a) ; ('b \Unbalanced(Any)) -> ('b\Unbalanced(Any)) )
+  | <black (z)>[ <red (y)>[ <red (x)>[ a b ] c ] d ]
+  | <black (z)>[ <red (x)>[ a <red (y)>[ b c ] ] d ]
+  | <black (x)>[ a <red (z)>[ <red (y)>[ b c ] d ] ]
+  | <black (x)>[ a <red (y)>[ b <red (z)>[ c d ] ] ] ->
+        <red (y)>[ <black (x)>[ a b ] <black (z)>[ c d ] ]
+  | x -> x
+;;
+
+/*
+(*                                                                               *)
+(* Version 1: restrict the domain of balance to trees (ie, RBtree | Unbalanced)  *)
+(*                                                                               *)
+
+let balance ( Unbalanced('a) -> Rtree('a) ; 'b & RBtree('a) -> 'b & RBtree('a) )
+  | <black (z)>[ <red (y)>[ <red (x)>[ a b ] c ] d ]
+  | <black (z)>[ <red (x)>[ a <red (y)>[ b c ] ] d ]
+  | <black (x)>[ a <red (z)>[ <red (y)>[ b c ] d ] ]
+  | <black (x)>[ a <red (y)>[ b <red (z)>[ c d ] ] ] ->
+        <red (y)>[ <black (x)>[ a b ] <black (z)>[ c d ] ]
+  | x -> x
+;;
+
+
+(*                                                                               *)
+(* Version 2: restrict the first branch to Unbalanced trees whatever             *)
+(*            type it contains                                                   *)
+(*                                                                               *)
+
+
+let balance ( Unbalanced('a) -> Rtree('a) ; 'b\Unbalanced(Any) -> 'b\Unbalanced(Any) )
+  | (<black (z)>[ <red (y)>[ <red (x)>[ a b ] c ] d ]
+  | <black (z)>[ <red (x)>[ a <red (y)>[ b c ] ] d ]
+  | <black (x)>[ a <red (z)>[ <red (y)>[ b c ] d ] ]
+  | <black (x)>[ a <red (y)>[ b <red (z)>[ c d ] ] ]) & Unbalanced(Any) ->
+        <red (y)>[ <black (x)>[ a b ] <black (z)>[ c d ] ]
+  | x -> x
+;;
+
+
+(*                                                                               *)
+(* Version 3: Use the accepted type of the first branch (i.e. UTree)             *)
+(*            to specify the behavious when the second branch is taken           *)
+(*                                                                               *)
+
+
+type  UTree = <black (Any)>[ <red (Any)>[ <red (Any)>[ Any Any ] Any ] Any ] 
+             | <black (Any)>[ <red (Any)>[ Any <red (Any)>[ Any Any ] ] Any ] 
+             | <black (Any)>[ Any <red (Any)>[ <red (Any)>[ Any Any ] Any ] ] 
+             | <black (Any)>[ Any <red (Any)>[ Any <red (Any)>[ Any Any ] ] ]
+;;
+
+let balance ( Unbalanced('a) -> Rtree('a) ; 'b\UTree -> 'b\UTree )
+  | <black (z)>[ <red (y)>[ <red (x)>[ a b ] c ] d ]
+  | <black (z)>[ <red (x)>[ a <red (y)>[ b c ] ] d ]
+  | <black (x)>[ a <red (z)>[ <red (y)>[ b c ] d ] ]
+  | <black (x)>[ a <red (y)>[ b <red (z)>[ c d ] ] ] ->
+        <red (y)>[ <black (x)>[ a b ] <black (z)>[ c d ] ]
+  | x -> x
+;;
+
+
+*/
+(* Here we start the definition of         *)
+(* standard operations for red-black trees *)
+
+let insert (x : 'a) (t : Btree('a)) : Btree('a)\[]=
+  let ins_aux ( [] -> Rtree('a);
+                Btree('a)\[] -> RBtree('a)\[];
+                Rtree('a) -> Rtree('a)|Wrongtree('a) )
+    | [] -> <red elem=x>[ [] [] ]
+    | (<(color) elem=y>[ a b ]) & z ->
+           if x << y then 
+           balance <(color) elem=y>[ (ins_aux a) b ]
+	   else if x >> y then balance <(color) elem=y>[ a (ins_aux b) ]
+	   else z
+    in match ins_aux t with
+       | <_ (y)>[ a b ] -> <black (y)>[ a b ]
+;;
+
+let is_empty ([] -> `true; Any \ [] -> `false)  (*better type (Any\[] -> `false ; [] ->`true ) *)
+  | [] -> `true
+  | _ -> `false
+
+
+
+let iter (f : 'a -> []) (t : RBtree('a)) : [] =
+  match t with
+    [] -> []
+  | < _ elem=x>[t1 t2] ->  iter f t1;f x; iter f t2
+;;
+
+let member 
+    ('a -> [] -> `false; 'a -> RBtree ('a) -> Bool) x ->
+    (fun ([] -> `false; RBtree ('a) -> Bool)
+        [] -> `false
+        | <_ elem=y>[ left right ] ->
+       (y = x) || ( member x (if x<<y then left else right))) 
+
+
+let singleton (x : 'a): Btree('a)  = <black elem=x>[ [] [] ]
+
+
+let cardinal ([] -> 0; RBtree('a) \ [] -> 1--*)
+  | [] -> 0
+  | <_ ..>[ l r ] -> cardinal l + cardinal r + 1
+
+/*
+
+(* The though case: deletion *)
+
+
+   (* remove the rightmost leave of the tree and return a flag to state
+      whether the resulting tree decreased the the depth of black nodes *)
+      
+let remove_min (RBtree('a)\[] -> [RBtree('a) Bool 'a])
+      (* black leaf: remove it and flag the depth decrease *)
+    | <black elem=x>[ [] [] ] ->                 
+        [ [] `true x ]
+      (* black node with red child: promote the child to black *)
+    | <black elem=x>[ ([] <red elem=y>[ l r ])
+                    | (<red elem=y>[ l r ] [] )] ->
+        [ <black elem=y>[ l r ] `false x ]
+      (* you cannot have a red node with one empty sibling *)  
+    | <black elem=Any>[ ([] <red ..>Any)
+                    | (<red ..>Any []) ] ->
+        raise "impossible"
+      (* red node with at least on empty child : remove it without any flag *)
+    | <red elem=x>[ ([] n) | (n []) ] ->
+        [ n `false x ]
+      (* general case of a node with two non empty childs *)
+    | <(c) elem=x>[ l\[] r\[] ] ->
+        let [ ll d e ] = remove_min l in
+  let tree = <(c) elem=x>[ ll r ] in
+  if d then
+          (bubble_left tree)@[e]
+  else
+    [ tree `false e ]
+    | _ -> raise "impossible"
+
+
+let blackify( (<_ ('a)>'b)  -> <black ('a)>'b )
+  | <_ (x)>y -> <black (x)>y
+
+let redify( (<_ ('a)>'b)  -> <red ('a)>'b )
+  | <_ (x)>y -> <red (x)>y
+
+
+
+  (* increase the black depth of the right child of the argument and
+     flag whether the black depth of the tree is still to be incremented  *)
+
+   let bubble_right ( RBtree('a)\[] -> (Btree('a) , Bool) )
+     | <black elem=y>[<red elem=x>[ ll\[] <black elem=re>[c d]] (e&<black ..>_) ] ->
+         ( <black elem=re>[ <black elem=x>[(balance (redify ll)) c]
+                            <black elem=y>[d e]
+                	  ] , `true)
+     | <_ ..>[ [] _ ] ->
+          raise "impossible"
+     | <(c) elem=e>[ l r ] ->
+          (<black elem=e>[ (balance(redify l)) r ] , (c = `black))
+
+
+  (* increase the right depth of the right child of the argument and
+     flag whether the black depth of the tree is still to be incremented  *)  
+
+    let bubble_left ( RBtree('a)\[] -> (Btree('a) , Bool) )
+      | <black elem=z>[ (e&<black ..>_) <red elem=x>[ <black elem=w>[a b] ll\[] ] ] ->
+         ( <black elem=w>[ <black elem=z>[ e a ]
+                           <black elem=x>[ b (balance (redify ll)) ]
+                	 ] , `true )
+      | <_ ..>[ _ [] ] -> 
+          raise "impossible"
+      | <(c) elem=e>[ l r ] ->
+          (<black elem=e>[ l (balance (redify r)) ], (c = `black))
+  
+
+let remove(x : 'a)(t : RBtree('a) ) : RBtree('a) =
+  let remove_aux(RBtree('a) -> (RBtree('a),Bool) )
+    | [] ->
+         ([],`false)
+    | <(c) elem=y>[ l r ] & tree ->
+        if (x << y ) then
+	  let (ll,d) = remove_aux l in
+	  let tree = <(c) elem=y>[ ll r ] in   (* we must prove that tree is well-formed *)
+	  if d then bubble_left tree else (tree,`false)
+	else if (x >> y) then
+	  let (rr,d) = remove_aux r in
+	  let tree = <(c) elem=y>[ l rr ] in
+	  if d then bubble_right tree else (tree,`false)
+	else (* x = y *)
+	   match tree with
+	     | <(c) ..>[ [] [] ] -> ([], (c = `black))
+	     | <black ..>[ ([] y) | (y []) ] -> (blackify y,`false)
+	     | <(c) ..>[ l r ] ->
+	          let [ ll d z ] = remove_min l in
+		  let tree = <(c) elem=z>[ ll r] in
+		  if d then bubble_left tree else (tree, `false)
+   in
+   let (sol,_) = remove_aux t in sol
+*/
+
+
+let [] = 
+  let t = ref (Btree(Int)) [] in
+  let [] =
+    transform [ 100 10 1 300 4 24424 17 ] with
+             x -> t := insert x !t 
+  in
+  iter (fun (Int -> []) x -> print [ !(string_of x) '\n']) !t

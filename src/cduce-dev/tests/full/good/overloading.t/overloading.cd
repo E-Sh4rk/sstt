@@ -1,0 +1,87 @@
+type Person = FPerson | MPerson
+type FPerson = <person gender = "F" >[ Name Children (Tel | Email)?]
+type MPerson = <person gender="M">[ Name Children (Tel | Email)?]
+type Children = <children>[Person*]
+type Name = <name>[ PCDATA ]
+type Tel = <tel kind=?"home"|"work">['0'--'9'+ '-' '0'--'9'+]
+type Email = <email>[PCDATA '@' PCDATA]
+
+type Man = <man name=String>[ Sons Daughters ]
+type Woman = <woman name=String>[ Sons Daughters ]
+type Sons = <sons>[ Man* ]
+type Daughters = <daughters>[ Woman* ]
+
+let fun sort (MPerson -> Man ; FPerson -> Woman)
+   <person gender=g>[ <name>n <children>[(mc::MPerson | fc::FPerson)*]; _] ->
+       let tag = match g with "F" -> `woman | "M" -> `man in
+       let s = map mc with x -> sort x in
+       let d = map fc with x -> sort x in
+           <(tag) name=n>[ <sons>s  <daughters>d ]
+
+let fun sort2 (MPerson -> Man ; FPerson -> Woman)
+   <person gender=(("F" & (tag := `woman)) | (tag := `man))>[ <name>n <children>[(mc::MPerson | fc::FPerson)*]; _] ->
+       let s = map mc with x -> sort x in
+       let d = map fc with x -> sort x in
+           <(tag) name=n>[ <sons>s  <daughters>d ]
+
+
+let base : Person =
+<person gender="M">[
+  <name>"Claude"
+  <children>[
+    <person gender="F">[
+      <name>"Véronique"
+      <children>[
+        <person gender="F">[
+          <name>"Ilaria"
+          <children>[]
+        ]
+      ]
+    <tel> "314-1592654"
+    ]
+  ]
+];;
+
+
+
+print (print_xml (sort2 base));;
+
+
+(*
+
+let fun contact(Person -> String)
+ | <person>[ _ _ ((<tel kind="work"> x) | (<email> x) | (<tel> x))] -> x
+ | _ ->"no contact";;
+
+
+contact(
+    <person gender="F">[
+      <name>"Véronique"
+      <children>[
+        <person gender="F">[
+          <name>"Ilaria"
+          <children>[]
+        ]
+      ]
+    <tel> "314-1592654"
+    ])
+;;
+
+contact base;;
+
+(* compilation efficace avec _ a la place de person *)
+
+let fun name (Person | Man | Woman -> String)
+  <person>[ <name>n ; _ ]
+| <_ name=n>_ -> n;;
+
+
+name base;;
+name (sort base);;
+
+transform [ base base ] with
+        <person>[  n  <children>[Person]; _] -> [n]
+  | _ -> [];;
+
+
+*)

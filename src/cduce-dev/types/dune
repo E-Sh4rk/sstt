@@ -1,0 +1,11 @@
+(env
+ (_
+  (ocamlopt_flags
+   (:standard -inline 1000))
+  (flags
+   (:standard -w -58))))
+
+(library
+ (name cduce_types)
+ (public_name cduce-types)
+ (libraries zarith misc))

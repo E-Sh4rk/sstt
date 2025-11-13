@@ -1,0 +1,10 @@
+let fun fmap (('a -> 'b) -> ['a*] -> ['b*]) f ->
+  (fun (['a*] -> ['b*]) [] -> [] | (h, t) -> (f h, fmap f t) )
+
+;;
+
+let fun even (Int -> Bool; ('c \ Int) -> ('c \ Int)) x & Int -> x mod 2 = 0 | y -> y;;
+
+let l = fmap even [1 2 3 4 `HELLO ]
+
+let [] = print (string_of l);;

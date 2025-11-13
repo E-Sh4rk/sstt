@@ -1,0 +1,67 @@
+(library
+ (name cduce_native_backend)
+ (public_name cduce.lib.native_backend)
+ (library_flags (-linkall))
+ (modules
+  (:standard
+   \
+   ("cduce_pxp" cduce_netclient cduce_netstring)))
+ (libraries
+  unix
+  cduce-types
+  cduce_core
+  (select
+   cduce_curl.ml
+   from
+   (curl -> cduce_curl.real.ml)
+   (-> cduce_curl.empty.ml))
+  (select
+   cduce_expat.ml
+   from
+   (expat -> cduce_expat.real.ml)
+   (-> cduce_expat.empty.ml))
+  (select
+   cduce_markup.ml
+   from
+   (markup -> cduce_markup.real.ml)
+   (-> cduce_markup.empty.ml))
+  ;Trickery to only include threads library when netstring is present
+  (select
+   fake_cduce_netclient.ml
+   from
+   (cduce_netclient -> fake_cduce_netclient.empty.ml)
+   (-> fake_cduce_netclient.empty.ml))
+  (select
+   fake_cduce_pxp.ml
+   from
+   (cduce_pxp -> fake_cduce_pxp.empty.ml)
+   (-> fake_cduce_pxp.empty.ml))
+  (select
+   fake_cduce_netstring.ml
+   from
+   (cduce_netstring -> fake_cduce_netstring.empty.ml)
+   (-> fake_cduce_netstring.empty.ml))))
+
+(library
+ (name cduce_pxp)
+ (public_name cduce.lib.native_backend.pxp)
+ (optional)
+ (modules cduce_pxp)
+ (library_flags (-linkall))
+ (libraries threads.posix pxp cduce-types cduce_core))
+
+(library
+ (name cduce_netclient)
+ (public_name cduce.lib.native_backend.netclient)
+ (optional)
+ (modules cduce_netclient)
+ (library_flags (-linkall))
+ (libraries threads.posix netclient cduce-types cduce_core))
+
+(library
+ (name cduce_netstring)
+ (public_name cduce.lib.native_backend.netstring)
+ (optional)
+ (modules cduce_netstring)
+ (library_flags (-linkall))
+ (libraries threads.posix netstring cduce-types cduce_core))

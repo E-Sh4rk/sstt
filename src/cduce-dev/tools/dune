@@ -1,0 +1,15 @@
+(executable
+ (name dtd2cduce)
+ (public_name dtd2cduce)
+ (package cduce-tools)
+ (optional)
+ (modules dtd2cduce)
+ (libraries threads.posix netcgi2 pxp))
+
+(executable
+ (name cduce_mktop)
+ (public_name cduce_mktop)
+ (package cduce-tools)
+ (optional)
+ (modules cduce_mktop)
+ (libraries unix))

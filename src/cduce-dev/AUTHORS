@@ -1,0 +1,21 @@
+Original developer:
+  Alain Frisch
+
+Current developpers and maintainers (code and documentation):
+  Giuseppe Castagna
+  Kim Nguyen
+  Mattias Roux
+
+Research project leaders:
+  Giuseppe Castagna
+  Kim Nguyen
+
+People formerly involved:
+  Pietro Abate (original implementation of the polymorphic extension)
+  Véronique Benzaken (research project lead on the CQL subset)
+  Lucas Coatanlem (rewrite of the XML Schema support)
+  Julien Demouth (original implementation of the OCaml/CDuce interface)
+  Julien Lopez (implementation of the OCaml/CDuce interface with polymorphism)
+  Jérôme Maloberti (OCaml/CGI bridge)
+  Cédric Miachon (original author and maintainer of the CQL subset)
+  Stefano Zacchiroli (original implementation of the XML Schema support)

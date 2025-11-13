@@ -1,0 +1,12 @@
+include "../../../common/utils.cd"
+
+let of_list_123 = Gen.of_list [ 1 2 3];;
+
+let fun loop ([] -> []) [] ->
+    match Gen.next (of_list_123) with
+          [] -> []
+        | s -> print_value s;
+               loop []
+;;
+
+let [] = loop [];;

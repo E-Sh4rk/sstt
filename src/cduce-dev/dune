@@ -1,0 +1,46 @@
+(library
+ (name cduce_lib)
+ (public_name cduce.lib)
+ (library_flags (-linkall))
+ (modes byte native)
+ (modules cduce_lib)
+ (libraries
+  cduce-types
+  cduce.lib.core
+  cduce.lib.native_backend
+  cduce.lib.ocamliface))
+
+(env
+ (_
+  (ocamlopt_flags
+   (:standard -inline 1000))
+  (js_of_ocaml
+   (compilation_mode whole_program))
+  (flags
+   (:standard -w -58))))
+
+(rule
+ (deps)
+ (target cduce_lib.ml)
+ (action
+  (write-file %{target} "include Cduce_core\ninclude Cduce_native_backend")))
+
+(library
+ (name cduce_lib_js)
+ (public_name cduce-js.lib.js)
+ (library_flags (-linkall))
+ (modules cduce_lib_js)
+ (modes byte)
+ (libraries cduce-types cduce.lib.core cduce-js.lib.jsoo_backend))
+
+(rule
+ (deps)
+ (target cduce_lib_js.ml)
+ (action
+  (write-file %{target} "include Cduce_core\ninclude Cduce_jsoo_backend")))
+
+(rule
+ (alias binary)
+ (deps driver/cduce.exe)
+ (action
+  (echo "")))

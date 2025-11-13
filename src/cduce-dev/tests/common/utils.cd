@@ -1,0 +1,19 @@
+let print_value (v : Any) : [] =
+    print_utf8 (string_of v);
+    print_utf8 "\n"
+;;
+
+let split (e : String, l : [String*], acc1 : [String*], acc2 : [String*]) :
+  ([String*], [String*]) =
+ match l with
+     [] -> (acc1, acc2)
+    | (x, ll) -> if x <= e then split (e, ll, (x, acc1), acc2)
+                 else split (e, ll, acc1, (x,acc2))
+;;
+
+let sort_string_list (l : [String*]) : [String*] =
+    match l with
+        [] -> []
+    | (elem, rest) -> let (l1, l2) = split (elem, rest,[],[]) in
+    (sort_string_list l1) @ [elem] @ (sort_string_list l2)
+;;

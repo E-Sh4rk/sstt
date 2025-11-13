@@ -1,0 +1,4 @@
+(executable
+ (name test_printer)
+ (modules test_printer)
+ (libraries cduce.lib cduce-types))

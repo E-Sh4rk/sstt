@@ -1,0 +1,88 @@
+
+- Define a small library to pretty print xml documents
+  e.g.  pretty_dump_xml_to_file (shorter name of course)
+
+
+- Dans l'evaluateur, pour les appels en position terminale, essayer de réutiliser
+  l'environnement (si c'est la bonne taille, réutiliser le bloc; si c'est les bonnes
+  valeurs, juste utiliser le même bloc).
+
+- Problem: a custom toplevel doesn't find ./cdo2ml (should put the path
+  to cduce's directory in the toplevel?)
+
+
+======================================================================
+Alain 2005-06-18
+
+Simplifier la sérialisation/déserialisation des structures internes;
+utiliser les fonctions de sérialisation de Caml.
+
+Plan d'attaque:
+
+- utiliser des clés de hachage au lieu d'entiers séquentiels pour représenter
+  les namespaces, tags, labels, identificateurs; signaler quand même 
+  les collisions dans chaque espace de nommage.
+
+    type 'a t
+    val mk: int -> 'a t = "%identity"
+    val get: 'a t -> int = "%identity"
+
+  (autre avantage: possibilité de generer statiquement tables de dispatch
+  sur les atomes)
+
+  
+- pour les structures cycliques (types, patterns, automates): attacher
+  un identifiant unique d'unité de compilation dans chaque noeud;
+  interdire deux unités avec même id. Accepter que les mêmes noeuds
+  se retrouvent dupliqués en mémoire (on peut quand detecter l'égalité
+  en regardant id d'unité + id séquentiel).
+
+
+Autres idées:
+
+- applatir la representation des valeurs.
+  | Atom of ns * local
+  | Xml of ns * local * fields * v
+
+  (support du système de types pour interdire autre chose en position
+  de tag / attribut - bonne chose de toute manière).
+
+- représentation plus compacte des descriptions de types, liste
+  chainée par ordre croissant des constructeurs:
+
+   type descr =
+    | Prod of BoolPair.t * descr
+    | Times of BoolPair.t * descr
+    | ...
+    | Empty
+
+  Avantage: opérations plus rapides ? (à vérifier)   Bien choisir
+  l'ordre.
+  Supprimer clé de hash stockée.
+
+- Utiliser un générateur automatique pour les fonctions de hash/comparaison.
+
+======================================================================
+Alain 2005-03-04
+
+Handle OCaml exception in the OCaml/CDuce interface
+
+======================================================================
+Beppe 2003-11-30
+
+Add url support for non selfcontained documents and expat
+
+
+======================================================================
+Beppe 2003-01-23
+
+Add the following types. 
+
+<!--> String
+<? T> String
+<!cdata> String
+
+Alain 2003-05-15
+  Il faut faire attention: on ne veut pas de commentaires dans la
+  representation interne, on ne veut pas distinguer section CDATA, etc...
+

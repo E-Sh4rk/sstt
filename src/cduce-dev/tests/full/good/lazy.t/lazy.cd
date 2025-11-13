@@ -1,0 +1,10 @@
+let f = 
+ let r = ref ((`Cached,Int)| `None) `None in
+ fun ([] : []) : Int =
+  match !r with
+  | (`Cached,x) -> x
+  | `None -> let x = (print "EVAL\n"; 10) in r := (`Cached,x); x;;
+
+
+f [];;
+f [];;

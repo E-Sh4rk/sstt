@@ -1,0 +1,21 @@
+type Person = FPerson | MPerson
+type FPerson = <person gender = "F" >[ Name Children ]
+type MPerson = <person gender="M">[ Name Children ]
+type Children = <children>[Person*]
+type Name = <name>[ PCDATA ]
+
+type Man = <man name=String>[ Sons Daughters ]
+type Woman = <woman name=String>[ Sons Daughters ]
+type Sons = <sons>[ Man* ]
+type Daughters = <daughters>[ Woman* ]
+
+let split (MPerson -> Man ; FPerson -> Woman)
+ <person gender=g>[ <name>n <children>[(mc::MPerson | fc::FPerson)*] ] ->
+   let tag = match g with "F" -> `woman | "M" -> `man in
+   let s = map mc with x -> split x in
+   let d = map fc with x -> split x in       
+   <(tag) name=n>[ <sons>s  <daughters>d ] 
+
+match argv [] with
+  | [ f ] -> load_xml f
+  | _ -> raise "Invalid command line"

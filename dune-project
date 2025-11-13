@@ -29,7 +29,7 @@
 (package
  (name sstt-repl)
  (synopsis "Simple Set-Theoretic Types REPL library")
- (depends sstt menhir (cduce-types (= dev)) (cduce  (= dev)))
+ (depends sstt menhir sedlex)
 )
 
 (package

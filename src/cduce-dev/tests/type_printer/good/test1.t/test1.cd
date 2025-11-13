@@ -1,0 +1,18 @@
+type t = Int
+
+type s = (Int -> Int) & ( (Bool | Int) -> Float)
+
+type u = [ Int | Int * | Bool ]
+
+type S2 = `a | `b
+type S1 = `e | (`c,(S2,S2)) |  (`s,(S1,S1))
+type S3 = ((`d,X7) -> (`c,(`a,`a))) & ((`c,X7) -> (`c,(`e,`e))) &
+          ((`d,X6) -> (`c,(`b,`b))) & ((`c,X6) -> (`c,(X5,X5))) &
+          ((`c,(X1,X4)) -> (`c,(X1,X1))) & (`e -> `e) where
+            X1 = Any \ ((`c,X3) | (`d,X2) | `e) and
+            X2 = (S1,S1) and
+            X3 = (S2,S2) and
+            X4 = Any and
+            X5 = (`d,(S1,S1)) | (`c,(S2,S2)) and
+            X6 = ((`c,X3) | (`d,X2),X4) and
+            X7 = (`e,X4)

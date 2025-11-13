@@ -2,17 +2,14 @@
 opam-version: "2.0"
 version: "0.1.0"
 synopsis: "Simple Set-Theoretic Types REPL library"
-maintainer: ["Mickael Laurent" "Kim Nguyen"]
-authors: ["Mickael Laurent" "Kim Nguyen"]
+maintainer: ["Anonymous" "Anonymous"]
+authors: ["Anonymous" "Anonymous"]
 license: "MIT"
-homepage: "https://github.com/E-Sh4rk/sstt"
-bug-reports: "https://github.com/E-Sh4rk/sstt/issues"
 depends: [
   "dune" {>= "3.17"}
   "sstt"
   "menhir"
-  "cduce-types" {= "dev"}
-  "cduce" {= "dev"}
+  "sedlex"
   "odoc" {with-doc}
 ]
 build: [
@@ -28,8 +25,4 @@ build: [
     "@runtest" {with-test}
     "@doc" {with-doc}
   ]
-]
-pin-depends: [
-  [ "cduce-types.dev" "git+https://gitlab.math.univ-paris-diderot.fr/cduce/cduce" ]
-  [ "cduce.dev" "git+https://gitlab.math.univ-paris-diderot.fr/cduce/cduce" ]
 ]

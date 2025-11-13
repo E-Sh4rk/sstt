@@ -1,0 +1,19 @@
+type Addrbook = <addrbook>[Person*]
+type Person = <person>[(Name Tel? Email* )]
+type Name = <name>String
+type Tel = <tel>String
+type Email = <email>String
+
+let mkTelbook ([Person*] -> [<entry>[Name Tel] *])
+  | [ <person>[ (n & Name) (t & Tel) ; _ ]; rest] ->  
+      [ <entry>[n t]; mkTelbook rest ]
+  | [ <person>[ Name ; _ ] ; rest] ->  mkTelbook rest
+  | [] -> []
+ 
+
+match argv [] with
+  | [ f ] -> 
+   (match load_xml f with
+    | <addrbook>(x & [Person*]) -> mkTelbook x
+    | _ -> raise "Invalid document") 
+  | _ -> raise "Invalid command line"

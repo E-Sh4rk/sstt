@@ -1,0 +1,83 @@
+(executable
+ (name cduce)
+ (public_name cduce)
+ (package cduce)
+ (modules cduce)
+ (flags
+  (:standard -w -3))
+ (libraries cduce-types cduce.lib zarith)
+ (modes byte native))
+
+(executable
+ (name cduce_bootstrap)
+ (modules cduce_bootstrap)
+ (libraries
+  cduce-types
+  cduce.lib
+  (select
+   cduce_bootstrap.ml
+   from
+   (ocaml-compiler-libs.common -> cduce_bootstrap.ocamliface.ml)
+   (-> cduce_bootstrap.no_ocamliface.ml)))
+ (modes byte native))
+
+(rule
+ (deps ocaml.prims cduce_bootstrap.exe)
+ (target cduce.ml)
+ (action
+  (ignore-stderr
+   (with-stdout-to
+    %{target}
+    (run ./cduce_bootstrap.exe -I %{lib:zarith:z.cmi} --topstub ocaml.prims)))))
+
+(rule
+ (target jsoo.inc)
+ (enabled_if
+  (>= %{ocaml-config:version} "5.0.0"))
+ (action
+  (write-file %{target} "--enable=effects")))
+
+(rule
+ (target jsoo.inc)
+ (enabled_if
+  (< %{ocaml-config:version} "5.0.0"))
+ (action
+  (write-file %{target} "()")))
+
+(rule
+ (deps cduce_js_compat_500.ml)
+ (target cduce_js_compat.ml)
+ (enabled_if
+  (< %{version:js_of_ocaml-compiler} "6.0.0"))
+ (action
+  (copy %{deps} %{target})))
+
+(rule
+ (deps cduce_js_compat_600.ml)
+ (target cduce_js_compat.ml)
+ (enabled_if
+  (>= %{version:js_of_ocaml-compiler} "6.0.0"))
+ (action
+  (copy %{deps} %{target})))
+
+(executable
+ (name cduce_js_top)
+ (modules cduce_js_top cduce_js_compat)
+ (libraries cduce-types cduce-js.lib.js zarith_stubs_js)
+ (modes js)
+ (js_of_ocaml
+  (flags
+   (:standard
+    (:include jsoo.inc))))
+ (preprocess
+  (pps js_of_ocaml-ppx)))
+
+(install
+ (package cduce-js)
+ (section share)
+ (files cduce_js_top.bc.js))
+
+(install
+ (package cduce-js)
+ (section share)
+ (files index.html))

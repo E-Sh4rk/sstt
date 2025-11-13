@@ -1,0 +1,39 @@
+type Content = [(Name Addr Tel?)*];;
+type Addrbook = <addrbook>Content;;
+type Name = <name>[ PCDATA ];;
+type Addr = <addr>[ PCDATA ];;
+type Tel = <tel>[ PCDATA ];;
+
+let addrbook : Addrbook = <addrbook>[
+  <name>"Haruo Hosoya"
+  <addr>"Tokyo"
+  <name>"Benjamin Pierce"
+  <addr>"Philadelphia"
+  <tel>"123-456-789"
+  <name>"Peter Buneman"
+  <addr>"Scotland"
+ ]
+
+include "../../../common/utils.cd"
+
+(* converting an address book into a telephone list
+   with a recursive function
+ *)
+
+let mkTelListContent ([ (Name Addr Tel?)* ] -> [ (Name Tel)* ])
+| [ <name>n <addr>_ <tel>t ; rest] -> [ <name>n <tel>t ; mkTelListContent rest] 
+| [ <name>_ <addr>_; rest] -> mkTelListContent rest
+| [ ] -> [ ]
+;;
+let [] =
+  match addrbook with <_>c ->
+  print_value (mkTelListContent c);;
+
+(* converting an address book with an accumulating pattern *)
+
+let mkTelListAcc (Addrbook -> [ (Name Tel)* ])
+<_>[ ( ( (x::Name) Addr (x::Tel) ) | _ )* ] ->  x
+;;
+
+let [] = print_value (mkTelListAcc addrbook)
+;;

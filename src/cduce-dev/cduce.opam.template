@@ -1,0 +1,19 @@
+depends: [
+  "ocaml" {>= "4.08.1"}
+  "dune" {>= "2.8.0"}
+  "menhir" {>= "20200123"}
+  "menhirLib" {>= "20200123" }
+  "cduce-types" {=  version}
+  "odoc" {>= "1.5.0"}
+  "sedlex" {>= "2.0"}
+]
+depopts: [
+  "ocaml-compiler-libs" {>= "v0.9.0"}
+  "ocurl" { os != "win32" & >= "0.9.2" }
+  ("ocurl" { os = "win32" & >= "0.9.2" } &
+   "conf-libssl" { os = "win32" & >= "3" })
+  "ocamlnet" { >= "4.1.8"}
+  "ocaml-expat" {>= "1.1.0" }
+  "pxp" {>= "1.2.9"}
+  "markup" {>= "1.0.0-1"}
+]

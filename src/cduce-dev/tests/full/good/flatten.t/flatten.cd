@@ -1,0 +1,21 @@
+type Tree('a) = ('a\[Any*]) | [ (Tree('a))* ]
+
+let flatten ( Tree('a) -> ['a*])
+     | [] -> []
+     | [h ; t] -> (flatten h)@(flatten t)
+     | x -> [x]
+
+
+;;
+
+(*
+Ce qui est intéressant est que Any <: Tree(Any) ... donc on peux
+appliquer flatten à n'importe quelle expressions:
+
+
+# flatten [ 3 'r' [ 4 [ `true 5 ]] [ "quo" [[ `false ] "stop" ] ] ];;
+- : [ (Bool | 3--5 | 'o'--'u')* ] = [ 3 'r' 4 true 5 'quo' false 'stop' ]
+*)
+
+let _ = print (string_of 
+     (flatten [ 3 'r' [ 4 [ `true 5 ]] [ "quo" [[ `false ] "stop" ] ] ]))
