@@ -2,7 +2,7 @@ open Sstt_repl
 open Output
 open Sstt
 
-let use_cduce_backend = true
+let use_cduce_backend = false
 
 (* Parsing of benchmark files *)
 exception InvalidFormat
