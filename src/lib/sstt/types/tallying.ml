@@ -175,7 +175,7 @@ module Make(VO:VarOrder) = struct
 
   end
 
-  module VDHash = Hashtbl.Make (VDescr)
+  module VDHash = Hashtbl.Make(VDescr)
   let norm_tuple_gen ~any ~conj ~diff ~norm delta n (ps, ns) =
     (* Same algorithm as for subtyping tuples.
        We define it outside norm below so that its type can be

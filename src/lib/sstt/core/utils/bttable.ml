@@ -1,4 +1,4 @@
-module Make (V : Hashtbl.HashedType) (R : sig type t val equal : t -> t-> bool end): sig
+module Make(V : Hashtbl.HashedType)(R : sig type t val equal : t -> t-> bool end): sig
 
   (** 
      Hash table specialized for computations over co-inductive structures.
@@ -69,7 +69,7 @@ module Make (V : Hashtbl.HashedType) (R : sig type t val equal : t -> t-> bool e
   *)
 
 end = struct
-  module H = Hashtbl.Make (V)
+  module H = Hashtbl.Make(V)
 
   exception InvalidAccess
   type stack = 

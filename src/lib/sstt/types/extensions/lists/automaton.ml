@@ -1,6 +1,6 @@
 open Sstt_utils
 
-module Make (R : Regexp.Regexp) = struct
+module Make(R : Regexp.Regexp) = struct
   module State = Int
   type state = State.t
   module States = Set.Make(Int)

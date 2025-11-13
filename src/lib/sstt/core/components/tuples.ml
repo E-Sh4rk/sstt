@@ -118,7 +118,7 @@ end
 
 module Make(N:Node) = struct
   module Comp = MakeC(N)
-  include Indexed.Make (Comp)
+  include Indexed.Make(Comp)
   let mk_comp p = mk p
   let mk a = mk (Comp.mk a)
 end
