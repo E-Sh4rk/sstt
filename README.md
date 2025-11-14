@@ -2,6 +2,20 @@
 
 ## Instructions for the reviewers of PLDI
 
+This directory contains an instrumented version of the SSTT library that
+facilitates the activation/deactivation of some optimizations and the measure of performance.
+It also embeds the benchmark files and corpuses used in the paper, as well as
+the [CDuce implementation](https://gitlab.math.univ-paris-diderot.fr/cduce/cduce)
+that can be used as a back-end for some benchmarks.
+
+- BDTs are defined in `src/lib/sstt/core/utils/bdd.ml`
+- Components are defined in `src/lib/sstt/core/components/`
+- Nodes and descirptors are defined in `src/lib/sstt/core/`
+- Subtyping is defined in a modular way, in each component (function `is_empty`)
+- Tallying is defined in `src/lib/sstt/types/tallying.ml`
+- Extensions (encodings) are defined in `src/lib/sstt/types/extensions/`
+- Pretty-printing is defined in `src/lib/sstt/types/printer/`
+
 ### Testing the prebuilt REPL (Wasm)
 
 SSTT features a REPL that can be tested directly in the web browser.
