@@ -109,6 +109,10 @@ module type Set = sig
   val empty : t
   (** The empty set. *)
 
+  val is_empty : t -> bool
+
+  val subset : t -> t -> bool
+
   val elements : t -> elt list
   (** Return the elements of the set as a sorted list. *)
 
@@ -129,6 +133,13 @@ module type Set = sig
   val union : t -> t -> t
   (** The union of two sets. If an element compares equal in both set, the
       element of the first set is kept.*)
+
+  val inter : t -> t -> t
+  (** The intersection of two sets. If an element compares equal in both set, the
+      element of the first set is kept. *)
+
+  val diff : t -> t -> t
+  (** The difference of two sets. *)
 
   val cardinal : t -> int
   (** Return the number of elements in the set. *)
@@ -182,6 +193,8 @@ module type Map = sig
 
   val map : (value -> value) -> t -> t
   (** Return a map with the same keys and updated values *)
+
+  val filter_map : (key -> value -> value option) -> t -> t
 
   val of_list : (key * value) list -> t
   (** Build from a list of bindings *)
@@ -263,8 +276,26 @@ struct
         if c < 0 then x1 $:: union ll1 l2
         else if c = 0 then x1 $:: union ll1 ll2
         else x2 $:: union l1 ll2
+    let rec inter l1 l2 =
+      match l1, l2 with
+        ([], _) | (_, []) -> []
+      | (x1, _) :: ll1, (x2, _) :: ll2 ->
+        let c = X.compare x1 x2 in
+        if c < 0 then inter ll1 l2
+        else if c = 0 then x1 $:: inter ll1 ll2
+        else inter l1 ll2
+    let rec diff l1 l2 =
+      match l1, l2 with
+        ([], _) -> []
+      | (l, []) -> l
+      | (x1, _) :: ll1, (x2, _) :: ll2 ->
+        let c = X.compare x1 x2 in
+        if c < 0 then x1 $:: diff ll1 l2
+        else if c = 0 then diff ll1 ll2
+        else diff l1 ll2
     let cardinal t = Stdlib.List.length t
-
+    let is_empty = Stdlib.List.is_empty
+    let subset t1 t2 = diff t1 t2 |> is_empty
   end
 
   module MapList (K : Comparable) (V : Comparable)
@@ -352,7 +383,7 @@ struct
 
     let dom (lk, _) = lk
 
-    let filter_map f lk lv =
+    let filter_map f (lk, lv) =
       let rec loop lk lv =
         match lk with
           [] -> empty
@@ -373,10 +404,10 @@ struct
     let merge f (lk1, lv1) (lk2, lv2) =
       let rec loop lk1 lv1 lk2 lv2 =
         match lk1 with
-          [] -> filter_map (fun k v -> f k None (Some v)) lk2 lv2
+          [] -> filter_map (fun k v -> f k None (Some v)) (lk2, lv2)
         | (k1, _)::llk1 ->
           match lk2 with
-            [] -> filter_map (fun k v -> f k (Some v) None) lk1 lv1
+            [] -> filter_map (fun k v -> f k (Some v) None) (lk1, lv1)
           | (k2, _)::llk2 ->
             let (v1, _), llv1 = uncons lv1 in
             let (v2, _), llv2 = uncons lv2 in

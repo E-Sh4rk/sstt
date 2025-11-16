@@ -137,6 +137,7 @@ module Make(N:Node) = struct
       Records.direct_nodes t.records ;
       Intervals.direct_nodes t.intervals
     ] |> List.concat
+  let direct_row_vars t = Records.direct_row_vars t.records
 
   let construct (pos, cs) =
     let res = of_components (cs, false) in
@@ -145,11 +146,14 @@ module Make(N:Node) = struct
   let destruct t =
     let pos, t = not t.others, if t.others then neg t else t in
     (pos, components t |> fst)
-
+  
   let simplify = unop Enums.simplify Tags.simplify Tuples.simplify
       Arrows.simplify Records.simplify Intervals.simplify Fun.id
   let map_nodes f = unop (Enums.map_nodes f) (Tags.map_nodes f) (Tuples.map_nodes f)
       (Arrows.map_nodes f) (Records.map_nodes f) (Intervals.map_nodes f) Fun.id
+  let substitute s t =
+    let records = Records.substitute s t.records in
+    if records == t.records then t else { t with records }
 
   let compare t1 t2 =
     Bool.compare t1.others t2.others |> ccmp

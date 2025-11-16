@@ -49,3 +49,25 @@ module VarSet = Set.Make(Var)
 (** @canonical Sstt.VarMap *)
 module VarMap = Map.Make(Var)
 (** Maps indexed by type variables. *)
+
+
+(** @canonical Sstt.RowVar *)
+module RowVar = Id.NamedIdentifier()
+(** Row variables. *)
+
+(** @canonical Sstt.RowVarSet *)
+module RowVarSet = Set.Make(RowVar)
+(** Sets of row variables. *)
+
+(** @canonical Sstt.RowVarMap *)
+module RowVarMap = Map.Make(RowVar)
+(** Maps indexed by row variables. *)
+
+
+(** @canonical Sstt.MixVarSet *)
+module MixVarSet = Id.MixSet(VarSet)(RowVarSet)
+(** Sets of type and row variables. *)
+
+(** @canonical Sstt.MixVarMap *)
+module MixVarMap = Id.MixMap(VarMap)(RowVarMap)
+(** Maps indexed by type and row variables. *)

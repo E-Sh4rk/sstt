@@ -49,7 +49,7 @@ type t = line list
 and line = L of Node.t * t
 
 let any_enum = Enums.any |> Descr.mk_enums |> Ty.mk_descr
-let to_t h _ _ cmp =
+let to_t h _ cmp =
   let (_, pty) = Op.TagComp.as_atom cmp in
   if Ty.leq pty any_enum && (Ty.vars_toplevel pty |> VarSet.is_empty)
   then

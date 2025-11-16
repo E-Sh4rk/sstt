@@ -9,13 +9,13 @@ Currently, it supports the following type constructors:
 - Integer intervals
 - Arrows
 - Tuples of any arity
-- Records
-- Type variables
+- Records with row polymorphism
+- Type variables and row variables
 
 The following operations are implemented:
 - Semantic subtyping
 - DNF extraction and simplification
-- Projections, application, record merging
+- Usual type operators such as projections and application
 - Substitution
 - Tallying (= unification but with subtyping constraints)
 - Pretty printing (or more generally, extraction of an algebraic representation)
