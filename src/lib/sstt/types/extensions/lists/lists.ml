@@ -63,14 +63,14 @@ type repr = R of node | B of basic list
 
 module VDHash = Hashtbl.Make(VDescr)
 
-let to_repr node ctx ty =
+let to_repr build ty =
   let hd_tbl : Printer.descr VDHash.t = VDHash.create 8 in
   let tl_tbl = VDHash.create 8 in
   let cpt = ref 0 in
   let descr ty =
     match VDHash.find_opt hd_tbl (Ty.def ty) with
       Some d -> d
-    | None -> let d = node ctx ty in
+    | None -> let d = build ty in
       VDHash.add hd_tbl (Ty.def ty) d; d
   in
   let rec try_graph_node ty =
@@ -161,10 +161,10 @@ let to_regexp automaton =
   automaton |> Automaton.to_regexp |> Regexp.simple_re simpl_union
   |> Regexp.to_ext |> convert_regexp
 
-let to_t node ctx comp =
+let to_t ctx comp =
   try
     let ty = Descr.mk_tagcomp comp |> Ty.mk_descr in
-    Some (match to_repr node ctx ty with
+    Some (match to_repr (ctx.Printer.build) ty with
         | R r -> Regexp (r |> to_automaton |> to_regexp)
         | B bs -> Basic bs)
   with _ -> None

@@ -4,13 +4,25 @@
 type unop =
   | Neg
 
+(** Unary field operators *)
+type funop =
+  | FNeg
+
 (** Binary operators *)
 type binop =
   | Diff | Arrow
 
+(** Binary field operators *)
+type fbinop =
+  | FDiff
+
 (** Variadic operators *)
 type varop =
   | Tuple | Cup | Cap
+
+(** Variadic field operators *)
+type fvarop =
+  | FCup | FCap
 
 (** Associativity *)
 type assoc = Left | Right | NoAssoc
@@ -24,16 +36,26 @@ let varop_info v = match v with
   | Cup -> fs "@ |@ ", 2, NoAssoc
   | Cap -> fs "@ &@ ", 3, NoAssoc
 
+let fvarop_info v = match v with
+  | FCup -> fs "@ |@ ", 2, NoAssoc
+  | FCap -> fs "@ &@ ", 3, NoAssoc
+
 (** Returns the separator, the priority (as an integer) and the associativity of
     a binary operator. *)
 let binop_info b = match b with
   | Arrow -> fs "@ ->@ ", 1, Right
   | Diff -> fs "@ \\@ ", 4, Left
 
+let fbinop_info b = match b with
+  | FDiff -> fs "@ \\@ ", 4, Left
+
 (** Returns the separator, the priority (as an integer) and the associativity of
     a unary operator. *)
 let unop_info u = match u with
   | Neg -> fs "~", 5, NoAssoc
+
+let funop_info u = match u with
+  | FNeg -> fs "~", 5, NoAssoc
 
 (** Maximum priority *)
 let max_prec = 100

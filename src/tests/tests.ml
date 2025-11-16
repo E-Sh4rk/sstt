@@ -45,10 +45,21 @@ let%expect_test "tests" =
     record3: true
     record4: false
     record5: true
-    record5: true
-    record6: { l1 : false ; l2 : int ..}
-    record7: { l1 : bool ; l2 : int ..} \ { l1 : true ; l2 : int }
-    record8: { l1 : false ; l2 : int }
+    record6: true
+    record7: false
+    record8: true
+    record9: false
+    record10: true
+    record11: { a : int }
+    record12: { a : int ; b : 42 }
+    record13: { a : 73 ; b : 42 }
+    record14: { a : 73 ; b : 42 ;; `s }
+    record15: empty
+    record16: { l : 42 ;; x1 } where x1 = int | { l : 42 ;; x1 }
+    record17: false
+    record18: { l1 : false ; l2 : int ..}
+    record19: { l1 : bool ; l2 : int ..} \ { l1 : true ; l2 : int }
+    record20: { l1 : false ; l2 : int }
     arrow1: false
     arrow2: true
     arrow3: true
@@ -72,7 +83,7 @@ let%expect_test "tests" =
     var5: 'x
     print1: (any -> any) | (int -> bool -> true)
     print2: (true, true) | (false, false)
-    print3: { l1 : true ; l2 : true ..} | { l1 : false ; l2 : true }
+    print3: { l1 : false ; l2 : true } | { l1 : true ; l2 : true ..}
     print4: nil | int | (any, x1) where x1 = nil | (any, x1)
     print5: (int -> int) -> bool -> bool
     print6: 'b & ('a, 'b) | 'a
@@ -146,8 +157,8 @@ let%expect_test "tests" =
                'B: 'B & 'b
              ]
     tally11: [
-               'X: 'X | 'b | 'a ;
-               'Y: 'Y & 'b & 'a
+               'X: 'X | 'a | 'b ;
+               'Y: 'Y & 'a & 'b
              ]
     tally12: [
                'X: empty
@@ -180,6 +191,32 @@ let%expect_test "tests" =
                'X: 'A | 'X ;
                'Y: 'B & 'Y
              ]
+    tally_row1: [
+                  `R: {  ;; `S & `R }
+                ]
+    tally_row2: [
+                  `R: {  ;; `R & `s }
+                ]
+    tally_row3: [
+                  `S: {  ;; `S | `r }
+                ]
+    tally_row4:
+    tally_row5: [
+                  `R: { a : `R ; b : 73 | `R ;; empty? | `R }
+                ]
+    tally_row6: [
+                  'X: { a : empty? ; b : 73 | `R ;; empty? | `R } | 'X ;
+                  `R: { a : `R ; b : 73 | `R ;; empty? | `R }
+                ]
+    tally_row7: [
+                  'X: { a : empty? ; b : 73 | `R ;; empty? | `R } | 'X ;
+                  `R: { a : 42 | `R ; b : 73 | `R ;; empty? | `R }
+                ]
+    tally_row8: [
+                  'X: { a : 73 | 'A ; b : 73 | `R ;; empty? | `R } | 'X ;
+                  'A: 73 | 'A ;
+                  `R: { a : 42 | `R ; b : 73 | `R ;; empty? | `R }
+                ]
     app1: int
     app2: any
     app3: (-5..5)

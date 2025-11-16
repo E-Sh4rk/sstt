@@ -13,12 +13,18 @@ module NodeId : sig
   val pp : Format.formatter -> t -> unit
 end
 
+(** Field operation  *)
+type 'd fop =
+  | FVarop of fvarop * 'd fop list
+  | FBinop of fbinop * 'd fop * 'd fop
+  | FUnop of funop * 'd fop
+  | FTy of 'd * bool
+  | FRowVar of RowVar.t
+
 type builtin =
   | Empty | Any | AnyTuple | AnyEnum | AnyTag | AnyInt
   | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of Tag.t
-type t = { main : descr ; defs : def list }
-and def = NodeId.t * descr
-and descr = { op : op ; ty : Ty.t }
+type descr = { op : op ; ty : Ty.t }
 and op =
   | Extension of extension_node
   | Alias of string
@@ -28,13 +34,14 @@ and op =
   | Enum of Enum.t
   | Tag of Tag.t * descr
   | Interval of Z.t option * Z.t option
-  | Record of (Label.t * descr * bool) list * bool
+  | Record of (Label.t * descr fop) list * descr fop
   | Varop of varop * descr list
   | Binop of binop * descr * descr
   | Unop of unop * descr
 and extension_node
+type def = NodeId.t * descr
+type 'm t = { main : 'm ; defs : def list }
 
-type ctx
 (** A pretty-printing context. *)
 
 type aliases = (Ty.t * string) list
@@ -42,9 +49,10 @@ type aliases = (Ty.t * string) list
 (* Printer extensions types and helper *)
 
 type extension_builder
+type build_ctx = { build : Ty.t -> descr ; build_fop : Ty.F.t -> descr fop }
 
 val builder :
-  to_t:((ctx -> Ty.t -> descr) -> ctx -> TagComp.t -> 'a option) ->
+  to_t:(build_ctx -> TagComp.t -> 'a option) ->
   map:((descr -> descr) -> 'a -> 'a) ->
   print:(int -> assoc -> Format.formatter -> 'a -> unit) ->
   extension_builder
@@ -72,7 +80,8 @@ val cup_descr : descr -> descr -> descr
 val cap_descr : descr -> descr -> descr
 val neg_descr : descr -> descr
 val map_descr : (descr -> op) -> descr -> descr
-val map : (descr -> op) -> t -> t
+val map_fop : ('a -> 'b) -> 'a fop -> 'b fop
+val map : (descr -> op) -> descr t -> descr t
 
 val empty_params : params
 
@@ -82,10 +91,19 @@ val merge_params : params list -> params
     recognizing type aliases and extensions in [params]. If [~factorize] is [true]
     (default: [false]), some nodes may be factorized by introducing intermediate definitions
     when it makes the result more concise. *)
-val get : ?factorize:bool -> params -> Ty.t -> t
+val get : ?factorize:bool -> params -> Ty.t -> descr t
+
+(** [get'] is the same as [get] but for converting multiple types at once. *)
+val get' : ?factorize:bool -> params -> Ty.t list -> descr list t
+
+(** [get_field f fty] transforms the field type [fty] into an algebraic form. *)
+val get_field : ?factorize:bool -> params -> Ty.F.t -> descr fop t
+
+(** [get_field'] is the same as [get_field] but for converting multiple fields at once. *)
+val get_field' : ?factorize:bool -> params -> Ty.F.t list -> descr fop list t
 
 (** [print fmt t] prints the algebraic form [t] using formatter [fmt]. *)
-val print : Format.formatter -> t -> unit
+val print : Format.formatter -> descr t -> unit
 
 (** [print_descr fmt d] prints the printer descriptor [d] using formatter [fmt]. *)
 val print_descr : Format.formatter -> descr -> unit
@@ -98,9 +116,16 @@ val print_descr_atomic : Format.formatter -> descr -> unit
     with precedence [prec] and associativity [assoc], using formatter [fmt]. *)
 val print_descr_ctx : int -> assoc -> Format.formatter -> descr -> unit
 
+(** [print_field fmt fop] prints the algebraic form [fop] using formatter [fmt]. *)
+val print_field_ctx : int -> assoc -> Format.formatter -> descr fop -> unit
+
 (** [print_ty params fmt ty] prints the type [ty] using formatter [fmt],
     recognizing type aliases and extensions in [params]. Same as [print fmt (get params ty)]. *)
 val print_ty : params -> Format.formatter -> Ty.t -> unit
+
+(** [print_row params fmt r] prints the row [r] using formatter [fmt],
+    recognizing type aliases and extensions in [params]. *)
+val print_row : params -> Format.formatter -> Row.t -> unit
 
 (** [print_subst params fmt s] prints the substitution [s] using formatter [fmt],
     recognizing type aliases and extensions in [params]. *)
@@ -109,6 +134,10 @@ val print_subst : params -> Format.formatter -> Subst.t -> unit
 (** [print_ty' fmt ty] prints the type [ty] using formatter [fmt].
     Same as [print_ty [] fmt ty]. *)
 val print_ty' : Format.formatter -> Ty.t -> unit
+
+(** [print_row' fmt r] prints the row [r] using formatter [fmt].
+    Same as [print_row [] fmt r]. *)
+val print_row' : Format.formatter -> Row.t -> unit
 
 (** [print_subst' fmt s] prints the substitution [s] using formatter [fmt].
     Same as [print_subst [] fmt s]. *)

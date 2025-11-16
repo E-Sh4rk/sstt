@@ -124,7 +124,7 @@ val constrs : (Ty.t * Ty.t) list =
   [(x1 where x1 = nil | (42, x1), x1 where x1 = nil | ('a, x1));
    (x1 where x1 = nil | ('a, x1), x1 where x1 = nil | (int, x1))]
 
-# Tallying.tally VarSet.empty constrs ;;
+# Tallying.tally MixVarSet.empty constrs ;;
 - : Subst.t list = [[
                       'a: 42 | 'a & int
                     ]]

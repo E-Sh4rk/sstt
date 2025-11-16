@@ -270,6 +270,145 @@ module type ComponentFamilyOps = sig
   val map_nodes : (node -> node) -> t -> t
 end
 
+(* OTy *)
+
+module type OTy = sig
+    (** Optional types are subsets of {%html: <span style='font-size:large'>𝟙</span>%}{m \cup\bot}. They are used for the type of
+        record fields, to denote the fact that a field may be absent.
+    *)
+
+    type node
+    (** An alias for the type {!Ty.t}. *)
+
+    type t = node * bool
+    (** The type of optional types. Whenever
+        the boolean component is [true], it means that the type contains the
+        undefined element {m \bot}. Otherwise, when the boolean component is [false],
+        the type is equivalent to a plain {!Ty.t} type. *)
+
+
+    include TyBase with type node := node and type t := t (** @inline *)
+
+
+    val absent : t
+    (** [absent] is the singleton type containing the undefined value, {m \bot}. *)
+
+    val required : node -> t
+    (** [required t] returns the type [t, false]. *)
+
+    val optional : node -> t
+    (** [optional t] returns [t, true] which represents the type {m t\cup \bot}. *)
+
+    (** @inline *)
+    include SetTheoretic with type t := t
+
+    val is_absent : t -> bool
+    (** Tests whether {m \bot \equiv t}. *)
+
+    val is_required : t -> bool
+    (** Tests whether {m \bot \not\in t}. *)
+
+    val is_optional : t -> bool
+    (** Tests whether {m \bot \in t}*)
+
+    val get : t -> node
+    (** Returns [get (t, b)] returns [t]. *)
+  end
+
+(* Polymorphic layers *)
+
+module type Polymorphic = sig
+
+  type leaf
+  type var
+  type t
+  module VarSet : Set.S with type elt=var
+
+  (**@inline*)
+  include TyBase with type t := t
+
+  (** {1 Constructors } *)
+
+  val mk_var : var -> t
+  (** [mk_var v] builds a full descriptor from a given variable. *)
+
+  val mk_descr : leaf -> t
+  (** [mk_descr d] creates a full descriptor from the monomorphic descriptor [d]. *)
+
+  val get_descr : t -> leaf
+  (** [get_descr t] extracts a monomorphic descriptor from [t],
+      which describes [t] by ignoring its top-level variables. *)
+
+  val get_vars : t -> VarSet.t
+  (** [get_vars t] extracts the top-level variables in [t]. *)
+
+  (** {1 Set-theoretic } *)
+
+  (** @inline *)
+  include SetTheoretic with type t := t
+
+  (** {1 Explicit Disjunctive Normal Form }*)
+
+  val dnf : t -> (var, leaf) dnf
+  (** Return an explicit DNF representation from a full descriptor. *)
+
+  val of_dnf : (var, leaf) dnf -> t
+  (** Builds a full descriptor from a DNF. *)
+
+  (** {1 Misc. operations }*)
+
+  val map : (leaf -> leaf) -> t -> t
+  (** [map f t] replaces every descriptor [d] in [t] by the descriptor [f d]. *)
+
+  val map_nodes : (node -> node) -> t -> t
+  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
+
+end
+
+(* Expose some additional internal methods,
+   required for the recursive definitions *)
+module type Polymorphic' = sig
+
+  include Polymorphic
+  module VarMap : Map.S with type key=var
+  include SetTheoreticOps with type t := t
+
+  val simplify : t -> t
+  val direct_nodes : t -> node list
+  val direct_vars : t -> VarSet.t
+  val substitute : t VarMap.t -> t -> t
+end
+
+(* FTy *)
+
+module type FTy = sig
+
+  type node
+  type t
+
+  module OTy : OTy with type node := node
+
+  (**@inline*)
+  include Polymorphic with type t := t and type node := node
+    and type leaf := OTy.t and type var := RowVar.t
+    and module VarSet := RowVarSet
+
+end
+
+module type FTy' = sig
+
+  type node
+  type t
+
+  module OTy : OTy with type node := node
+
+  (**@inline*)
+  include Polymorphic' with type t := t and type node := node
+    and type leaf := OTy.t and type var := RowVar.t
+    and module VarMap := RowVarMap and module VarSet := RowVarSet
+
+end
+
 (* Enums *)
 
 module type EnumAtom = Id.NamedIdentifier
@@ -423,13 +562,11 @@ module type RecordAtom = sig
   type node
   (** An alias for the type {!Sstt.Ty.t}. *)
 
-  type oty = node * bool
-  (** An optional type (see {!Sstt.Ty.O}). *)
+  type field
 
-  module LabelMap : Hash.Map with type key = Label.t and type value = oty
-
-  type t = { bindings : LabelMap.t;(** mapping from labels to optional types *)
-             opened : bool (** if [true], denotes an open record *)
+  module LabelMap : Hash.Map with type key = Label.t and type value = field
+  type t = { bindings : LabelMap.t;(** mapping from labels to field types *)
+             tail : field (** tail of the record *)
            }
   (** A single record type.  *)
 
@@ -439,41 +576,38 @@ module type RecordAtom = sig
       the record values captured by [t]: even if a binding is present
       in [t], it could be associated with a possibly absent type. *)
 
-  val find : Label.t -> t -> oty
+  val find : Label.t -> t -> field
   (** [find l t] returns the type associated with the label [l] in [t],
       even if [t] does not have an explicit binding for [l]. *)
 
-  val default : t -> oty option -> oty
-  (** [default t ot oty] returns [t'] if [ot] is [Some t'], otherwise returns
-      the default type for a missing label in [t]. *)
+  val default : t -> field option -> field
+  (** [default t ofty] returns [fty] if [ofty] is [Some fty], otherwise returns
+      the tail type for [t]. *)
 
-  val to_tuple : LabelMap.Set.t -> t -> oty list
-  (** [to_tuple lst r] returns the list of {!oty} associated with each
+  val to_tuple : LabelMap.Set.t -> t -> field list
+  (** [to_tuple lst r] returns the list of fields associated with each
       label of [lst] in [r]. *)
-
-  val to_tuple_with_default : LabelMap.Set.t -> t -> oty list
-  (** [to_tuple_with_default lst r] returns the list [d :: to_tuple lst r] where
-      - [d] is {!Sstt.Ty.O.any} if [r] is an open record
-      - [d] is {!Sstt.Ty.O.absent} if [r] is a closed record
-  *)
 
   include Comparable with type t := t
   val map_nodes : (node -> node) -> t -> t
   (** [map_nodes f r] applies [f] to all nodes in [r.bindings]. *)
 
+  val substitute : t RowVarMap.t -> t -> t
+  (** [substitute s r] applies the substitution [s] to [r]. *)
+
+  val vars_toplevel : t -> RowVarSet.t
+  (** [vars_toplevel s r] returns the top-level row variables in [r]. *)
 end
 
 module type RecordAtom' = sig
   type node
-  type oty = node * bool
-  module LabelMap : Hash.Map with type key = Label.t and type value = oty
+  type field
+  module LabelMap : Hash.Map with type key = Label.t and type value = field
 
-  type t = { bindings : LabelMap.t ; opened : bool ; required : LabelMap.Set.t option }
+  type t = { bindings : LabelMap.t ; tail : field ;
+             exists : (LabelMap.Set.t * field) list }
   (** A compact representation for record types.
-      The [bindings] and [opened] field have the same meaning as in {!Records.Atom.t}.
-      When the field [required] is equal to [Some labels],
-      it means that [t] requires at least one field not in [labels] to be present. *)
-
+      The [bindings] and [tail] fields have the same meaning as in {!Records.Atom.t}. *)
 
   val dom : t -> LabelMap.Set.t
   (** [dom t] returns the set of explicit labels in [t].
@@ -481,13 +615,13 @@ module type RecordAtom' = sig
       the record values captured by [t]: even if a binding is present
       in [t], it could be associated with a possibly absent type. *)
 
-  val find : Label.t -> t -> oty
+  val find : Label.t -> t -> field
   (** [find l t] returns the type associated with the label [l] in [t],
       even if [t] does not have an explicit binding for [l]. *)
 
-  val default : t -> oty option -> oty
-  (** [default t ot oty] returns [t'] if [ot] is [Some t'], otherwise returns
-      the default type for a missing label in [t]. *)
+  val default : t -> field option -> field
+  (** [default t ofty] returns [fty] if [ofty] is [Some fty], otherwise returns
+      the tail type for [t]. *)
 
   include Comparable with type t := t
 end
@@ -505,11 +639,13 @@ module type Records = sig
   *)
 
   type node
+  
+  module FTy : FTy with type node := node
 
   (** @inline*)
   include ComponentBase with type t := t
                          and type node := node
-                         and module type Atom := (RecordAtom with type node := node)
+                         and module type Atom := (RecordAtom with type node := node and type field := FTy.t)
 
 
   (** @inline*)
@@ -517,12 +653,11 @@ module type Records = sig
                               and type node := node
                               and type atom := Atom.t
 
-  val dnf_line_to_tuple : (Atom.t list * Atom.t list) -> (Atom.oty list list * Atom.oty list list) * int
-  (** [dnf_line_to_tuple (ps, ns)] converts a line of a [Record] DNF to
-      a line of tuples. Each record is projected to a tuple that has as many components
-      as the number of distinct labels in [ps] and [ns]. The function also returns the size of the tuples
-      in the result (which is the number of labels plus one).
-  *)
+
+  val dnf_line_to_types : (Atom.t list * Atom.t list) -> (FTy.t * FTy.t list) * (FTy.t * FTy.t list) list
+  (** [dnf_line_to_types (ps, ns)] converts a line of a [Record] DNF to a tuple ([p'], [ns']),
+  where [p'] is a pair composed of the tail and field types of the positive side,
+  and [ns] is a list pair composed of the tail and field types of the negative side. *)
 
   (** @inline
 
@@ -543,7 +678,7 @@ module type Records = sig
       any record which has both labels associated to their original type but which {i also has an
       extra label} that is neither {m x} nor {m y}.
   *)
-  include OptComponent with module type Atom' := (RecordAtom' with type node := node and module LabelMap := Atom.LabelMap)
+  include OptComponent with module type Atom' := (RecordAtom' with type node := node and type field := FTy.t and module LabelMap := Atom.LabelMap)
 
   (** @inline*)
   include OptComponentOps with type t := t
@@ -858,8 +993,7 @@ end
 module type VDescr = sig
   (** Full descriptors with top-level variables. *)
 
-  (** {1 Basics }*)
-
+  type node
   type t
   (** The type of descriptors with top-level variables (vdescr). It represents a union of intersections of
       positive and negative variables together with type descriptors of type {!Descr.t}:
@@ -869,64 +1003,39 @@ module type VDescr = sig
       }
   *)
 
-  (**@inline*)
-  include TyBase with type t := t
-
-  (** {1 Descriptors } *)
-
   module Descr : Descr with type node := node
 
-  val mk_var : Var.t -> t
-  (** [mk_var v] builds a full descriptor from a given type variable. *)
+  (**@inline*)
+  include Polymorphic with type t := t and type node := node
+    and type leaf := Descr.t and type var := Var.t
+    and module VarSet := VarSet
 
-  val mk_descr : Descr.t -> t
-  (** [mk_descr d] creates a full descriptor from the monomorphic descriptor [d]. *)
+  val substitute : (t, Descr.Records.Atom.t) MixVarMap.t -> t -> t
 
-  val get_descr : t -> Descr.t
-  (** [get_descr t] extracts a monomorphic descriptor from [t],
-      which describes [t] by ignoring its top-level type variables. *)
+end
 
-  (** {1 Explicit Disjunctive Normal Form }*)
+module type VDescr' = sig
 
-  val dnf : t -> (Var.t, Descr.t) dnf
-  (** Return an explicit DNF representation from a full descriptor. *)
+  type node
+  type t
+  module Descr : Descr with type node := node
+  include Polymorphic' with type t := t and type node := node
+    and type leaf := Descr.t and type var := Var.t
+    and module VarMap := VarMap and module VarSet := VarSet
 
-  val of_dnf : (Var.t, Descr.t) dnf -> t
-  (** Builds a full descriptor from a DNF. *)
-
-  (** {1 Misc. operations }*)
-
-  val map : (Descr.t -> Descr.t) -> t -> t
-  (** [map f t] replaces every descriptor [d] in [t] by the descriptor [f d]. *)
-
-  val map_nodes : (node -> node) -> t -> t
-  (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
-
+  val substitute : (t, Descr.Records.Atom.t) MixVarMap.t -> t -> t
+  val direct_row_vars : t -> RowVarSet.t
 end
 
 (* Nodes (internal signature, not exposed to the user) *)
-
-(* Expose some additional internal VDescr methods,
-   required for the recursive definition *)
-module type VDescr' = sig
-  include VDescr
-
-  val cap : t -> t -> t
-  val cup : t -> t -> t
-  val diff : t -> t -> t
-  val neg : t -> t
-  val is_empty : t -> bool
-
-  val simplify : t -> t
-  val direct_nodes : t -> node list
-  val direct_vars : t -> Var.t list
-  val substitute : t VarMap.t -> t -> t
-end
 
 module type PreNode = sig
   type t
   type vdescr
   type descr
+  type row
+
+  type subst = (t, row) MixVarMap.t
 
   include Comparable with type t:=t
   val def : t -> vdescr
@@ -942,10 +1051,14 @@ module type PreNode = sig
 
   val vars : t -> VarSet.t
   val vars_toplevel : t -> VarSet.t
+  val row_vars : t -> RowVarSet.t
+  val row_vars_toplevel : t -> RowVarSet.t
+  val all_vars : t -> MixVarSet.t
+  val all_vars_toplevel : t -> MixVarSet.t
   val nodes : t -> t list
 
   val of_eqs : (Var.t * t) list -> (Var.t * t) list
-  val substitute : t VarMap.t -> t -> t
+  val substitute : subst -> t -> t
   val factorize : t -> t
   val simplify : t -> unit
 
@@ -1039,6 +1152,18 @@ module type Ty = sig
       of variables that are not below a constructor.
   *)
 
+  val row_vars : t -> RowVarSet.t
+  (** [row_vars t] returns the set of all row variables in [t]. *)
+
+  val row_vars_toplevel : t -> RowVarSet.t
+  (** [row_vars_toplevel t] returns the top-level row variables of [t], that is, occurrences
+      of row variables that are in a record at top-level.
+  *)
+
+  val all_vars : t -> MixVarSet.t
+  
+  val all_vars_toplevel : t -> MixVarSet.t
+
   val nodes : t -> t list
   (** [nodes t] returns all the nodes appearing in [t] (including [t] itself). *)
 
@@ -1047,8 +1172,10 @@ module type Ty = sig
       satisfying the system of equations [x1=t1], ..., [xn=tn].
       Raises: [Invalid_argument] if the set of equations is not contractive. *)
 
+  type row = VDescr.Descr.Records.Atom.t
+  type subst = (t, row) MixVarMap.t
 
-  val substitute : t VarMap.t -> t -> t
+  val substitute : subst -> t -> t
   (** [substitute s t] applies the type variable substitution [s] to [t]. *)
 
   val factorize : t -> t
@@ -1057,49 +1184,8 @@ module type Ty = sig
   *)
 
 
-  (** {1 Optional types }*)
+  (** {1 Field types and optional types }*)
 
-  module O : sig
-    (** Optional types are subsets of {%html: <span style='font-size:large'>𝟙</span>%}{m \cup\bot}. They are used for the type of
-        record fields, to denote the fact that a field may be absent.
-    *)
-
-    type node = t
-    (** An alias for the type {!Ty.t}. *)
-
-    type t = node * bool
-    (** The type of optional types. Whenever
-        the boolean component is [true], it means that the type contains the
-        undefined element {m \bot}. Otherwise, when the boolean component is [false],
-        the type is equivalent to a plain {!Ty.t} type. *)
-
-
-    include TyBase with type node := node and type t := t (** @inline *)
-
-
-    val absent : t
-    (** [absent] is the singleton type containing the undefined value, {m \bot}. *)
-
-    val required : node -> t
-    (** [required t] returns the type [t, false]. *)
-
-    val optional : node -> t
-    (** [optional t] returns [t, true] which represents the type {m t\cup \bot}. *)
-
-    (** @inline *)
-    include SetTheoretic with type t := t
-
-    val is_absent : t -> bool
-    (** Tests whether {m \bot \equiv t}. *)
-
-    val is_required : t -> bool
-    (** Tests whether {m \bot \not\in t}. *)
-
-    val is_optional : t -> bool
-    (** Tests whether {m \bot \in t}*)
-
-    val get : t -> node
-    (** Returns [get (t, b)] returns [t]. *)
-  end
-
+  module F = VDescr.Descr.Records.FTy
+  module O = F.OTy
 end
