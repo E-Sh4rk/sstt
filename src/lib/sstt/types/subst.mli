@@ -18,54 +18,83 @@ val singleton : Var.t -> Ty.t -> t
 (** [singleton v t] is the substitutions that maps every variable to itself,
     except [v] which is mapped to [t]. *)
 
+val singleton_row : RowVar.t -> Row.t -> t
+
 val of_list : (Var.t * Ty.t) list -> t
 (** Creates a substitution from the given list of variables. If a variable
     occurs several times, the last occurrence is used.
 *)
+
+val of_list_row : (RowVar.t * Row.t) list -> t
+
+val of_list' : (Var.t * Ty.t) list -> (RowVar.t * Row.t) list -> t
 
 val refresh : ?names:(Var.t -> string) -> VarSet.t -> t * t
 (** [refresh ~names vs] returns a substitution mapping each variable
     in [vs] to a fresh one, together with its inverse substitution.
     If [names] is omitted, each fresh variable will have the same name as the original one. *)
 
+val refresh_row : ?names:(RowVar.t -> string) -> RowVarSet.t -> t * t
+
 val domain : t -> VarSet.t
 (** Returns the domain of a substitution, that is the set of variables for which
     the substitution is not the identity.
 *)
+
+val domain_row : t -> RowVarSet.t
 
 val intro : t -> VarSet.t
 (** Returns the set of introduced variables, that is, type variables that may appear
     after applying the substitution to a type.
 *)
 
+val intro_row : t -> RowVarSet.t
+
 val bindings : t -> (Var.t * Ty.t) list
-(** Returns the substution as a list of bindings from variables to types.
-*)
+(** Returns the substution as a list of bindings from variables to types. *)
+
+val bindings_row : t -> (RowVar.t * Row.t) list
 
 val find : t -> Var.t -> Ty.t
 (** Returns the type associated with a variable. This function always succeeds, and will return 
     the type {m \alpha }, if the variable {m \alpha} is not in the domain of the substitution. *)
 
+val find_row : t -> RowVar.t -> Row.t
+
 val add : Var.t -> Ty.t -> t -> t
 (** Adds a new binding to the given substitution. If the new binding is the
     identity for the given variable, the substitution is unchanged. *)
 
+val add_row : RowVar.t -> Row.t -> t -> t
+
 val remove : Var.t -> t -> t
 (** Remove a variable from the domain of the substitution. *)
 
+val remove_row : RowVar.t -> t -> t
+
 val restrict : VarSet.t -> t -> t
-(** Restrict the domain of a substitution. *)
+(** Restrict the domain of a substitution. Keep the row variable bindings. *)
+
+val restrict_row : RowVarSet.t -> t -> t
 
 val filter : (Var.t -> Ty.t -> bool) -> t -> t
 (** [filter p s] restricts the substitution to all variables of the domain for
-    which [p] returns [true].*)
+    which [p] returns [true]. Keep the row variable bindings. *)
+
+val filter_row : (RowVar.t -> Row.t -> bool) -> t -> t
 
 val map : (Ty.t -> Ty.t) -> t -> t
-(** [map f s] returns the substitution where [f] is applied to each type [t] in the domain of [s]. *)
+(** [map f s] returns the substitution where [f] is applied to each type [t] in the domain of [s].
+    Keep the row bindings unchanged. *)
+
+val map_row : (Row.t -> Row.t) -> t -> t
 
 val compose : t -> t -> t
 (** [compose s2 s1] returns a substitution [s] such that applying [s]
     has the same effect as applying [s1] and then [s2]. *)
+
+val combine : t -> t -> t
+(** Combines two substitutions whose domains are disjoint. *)
 
 val equiv : t -> t -> bool
 (** Checks whether two substitutions are equivalent, that is, they have the same

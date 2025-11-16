@@ -289,6 +289,10 @@ module Make(VS:VarSettings) = struct
         let t = Ty.O.cap s1 s2 in
         Ty.O.is_required t && Ty.O.get t |> Ty.is_empty
       in
+      (* TODO *)
+      let ps = fst line |> List.map (List.map Ty.F.get_descr) in
+      let ns = snd line |> List.map (List.map Ty.F.get_descr) in
+      let line = ps, ns in
       norm_tuple_gen ~any:Ty.O.any ~conj:Ty.O.conj
         ~diff:Ty.O.diff ~disjoint ~norm:norm_oty n line
     and norm_oty (n,o) =

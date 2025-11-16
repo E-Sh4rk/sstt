@@ -42,10 +42,16 @@ and op =
   | Enum of Enum.t
   | Tag of Tag.t * descr
   | Interval of Z.t option * Z.t option
-  | Record of (Label.t * descr * bool) list * bool
+  | Record of (Label.t * fop) list * fop
   | Varop of varop * descr list
   | Binop of binop * descr * descr
   | Unop of unop * descr
+and fop =
+  | FVarop of fvarop * fop list
+  | FBinop of fbinop * fop * fop
+  | FUnop of funop * fop
+  | FTy of descr * bool
+  | FRowVar of RowVar.t
 and extension_node = E : {
     value : 'a;
     map : (descr  -> descr) -> 'a -> 'a;
@@ -76,12 +82,21 @@ let map_descr f d = (* Assumes f preserves semantic equivalence *)
       | Enum enum -> Enum enum
       | Tag (tag, d) -> Tag (tag, aux d)
       | Interval (lb, ub) -> Interval (lb, ub)
-      | Record (bindings, b) ->
-        Record (List.map (fun (l,d,b) -> l, aux d, b) bindings, b)
+      | Record (bindings, fop) ->
+        Record (List.map (fun (l,fop) -> l, aux_fop fop) bindings, aux_fop fop)
       | Varop (v, ds) -> Varop (v, List.map aux ds)
       | Binop (b, d1, d2) -> Binop (b, aux d1, aux d2)
       | Unop (u, d) -> Unop (u, aux d)
     in { d with op = f { d with op } }
+  and aux_fop fop =
+    let fop = match fop with
+      | FVarop (v, fops) -> FVarop (v, List.map aux_fop fops)
+      | FBinop (b, fop1, fop2) -> FBinop (b, aux_fop fop1, aux_fop fop2)
+      | FUnop (u, fop) -> FUnop (u, aux_fop fop)
+      | FTy (d, b) -> FTy (aux d, b)
+      | FRowVar v -> FRowVar v
+    in
+    fop
   in
   aux d
 
@@ -175,11 +190,19 @@ let tuple lst =
   let tys = List.map (fun d -> d.ty) lst in
   { op = Varop (Tuple, lst) ; ty = D.mk_tuple tys |> Ty.mk_descr }
 
-let record bindings opened =
+let rec ty_of_fop fop =
+  match fop with
+  | FRowVar v -> Ty.F.mk_var v
+  | FTy (d,b) -> Ty.F.mk_descr (d.ty,b)
+  | FUnop (FNeg, fop) -> Ty.F.neg (ty_of_fop fop)
+  | FBinop (FDiff, fop1, fop2) -> Ty.F.diff (ty_of_fop fop1) (ty_of_fop fop2)
+  | FVarop (FCup, fops) -> Ty.F.disj (List.map ty_of_fop fops)
+  | FVarop (FCap, fops) -> Ty.F.conj (List.map ty_of_fop fops)
+let record bindings tail =
   let nbindings = bindings |>
-                  List.map (fun (l, d, b) -> (l, (d.ty, b))) |> LabelMap.of_list in
-  { op = Record (bindings, opened) ;
-    ty = D.mk_record { bindings=nbindings ; opened } |> Ty.mk_descr }
+    List.map (fun (l, fop) -> (l, ty_of_fop fop)) |> LabelMap.of_list in
+  { op = Record (bindings, tail) ;
+    ty = { bindings=nbindings ; tail=ty_of_fop tail } |> D.mk_record |> Ty.mk_descr }
 
 let tag tag d =
   { op = Tag (tag,d) ; ty = D.mk_tag (tag, d.ty) |> Ty.mk_descr }
@@ -277,13 +300,31 @@ let resolve_tuples ctx a =
     ) |> union in
   if pos then d else neg d
 
+let resolve_field ctx f =
+  let aux_oty oty =
+    FTy (node ctx (Ty.O.get oty), Ty.O.is_optional oty)
+  in
+  let aux_var v = FRowVar v in
+  let aux_ps ps = ps |> List.map aux_var in
+  let aux_ns ns = ns |> List.map aux_var |> List.map (fun v -> FUnop (FNeg, v)) in
+  let aux_line (ps, ns, oty) =
+    let fops, fops' = aux_ps ps, aux_ns ns in
+    let oty = match aux_oty oty with
+    | FTy ({ ty ; _ }, true) when Ty.is_any ty -> []
+    | oty -> [oty]
+    in
+    let fops = fops@fops'@oty in
+    match fops with [] -> FTy (any, true) | [fop] -> fop | fops -> FVarop (FCap, fops)
+  in
+  let fops = Ty.F.dnf f |> List.map aux_line in
+  match fops with [] -> FTy (empty, false) | [fop] -> fop | fops -> FVarop (FCup, fops)
+
 let resolve_records ctx a =
   let open Records.Atom in
   let resolve_rec r =
-    let bindings = r.bindings |> LabelMap.bindings |> List.map (fun (l,(n,b)) ->
-        (l, node ctx n, b)
-      ) in
-    record bindings r.opened
+    let bindings = r.bindings |> LabelMap.bindings
+      |> List.map (fun (l,f) -> (l, resolve_field ctx f)) in
+    record bindings (resolve_field ctx r.tail)
   in
   Records.dnf a |> resolve_dnf resolve_rec
 
@@ -510,17 +551,15 @@ let rec print_descr prec assoc fmt d =
       Format.fprintf fmt "%a(%a)"
         Tag.pp t print_descr' d
     | Interval (lb,ub) -> Format.fprintf fmt "%a" print_interval (lb,ub)
-    | Record (bindings,opened) ->
-      let print_binding fmt (l,d,b) =
-        Format.fprintf fmt "%a %s %a"
+    | Record (bindings,tail) ->
+      let print_binding fmt (l,f) =
+        Format.fprintf fmt "%a : %a"
           Label.pp l
-          (if b then ":?" else ":")
-          print_descr' d
+          print_fop' f
       in
-      Format.fprintf fmt "{ %a %s}"
-        (print_seq print_binding " ; ")
-        bindings
-        (if opened then ".." else "")
+      Format.fprintf fmt "{ %a %a}"
+        (print_seq print_binding " ; ") bindings
+        print_tail tail
     | Varop (v,ds) ->
       let sym,prec',_ as opinfo = varop_info v in
       Prec.fprintf prec assoc opinfo fmt "%a"
@@ -537,7 +576,39 @@ let rec print_descr prec assoc fmt d =
   in
   aux prec assoc fmt d
 
+and print_fop prec assoc fmt fop =
+  let rec aux prec assoc fmt fop =
+    match fop with
+    | FRowVar v -> Format.fprintf fmt "%a" RowVar.pp v
+    | FTy (d, opt) ->
+      if opt then
+        Format.fprintf fmt "%a?" (print_descr max_prec NoAssoc) d
+      else
+        print_descr prec assoc fmt d
+    | FVarop (v,fops) ->
+      let sym,prec',_ as opinfo = fvarop_info v in
+      Prec.fprintf prec assoc opinfo fmt "%a"
+        (print_seq (aux prec' NoAssoc) sym)
+        fops
+    | FBinop (b,fop1,fop2) ->
+      let sym,prec',_ as opinfo = fbinop_info b in
+      Prec.fprintf prec assoc opinfo fmt "%a%s%a"
+        (aux prec' Left) fop1 sym
+        (aux prec' Right) fop2
+    | FUnop (u,fop) ->
+      let sym,prec',_ as opinfo = funop_info u in
+      Prec.fprintf prec assoc opinfo fmt "%s%a" sym (aux prec' NoAssoc) fop
+  in
+  aux prec assoc fmt fop
+
+and print_tail fmt tail =
+  match tail with
+  | FTy ({ op=Builtin Any ; _ }, true) -> Format.fprintf fmt ".."
+  | FTy ({ op=Builtin Empty ; _ }, true) -> Format.fprintf fmt ""
+  | _ -> Format.fprintf fmt ";; %a " print_fop' tail
+
 and print_descr' fmt d = print_descr min_prec NoAssoc fmt d
+and print_fop' fmt fop = print_fop min_prec NoAssoc fmt fop
 
 and print_def fmt (n,d) =
   Format.fprintf fmt "%a = %a" NodeId.pp n print_descr' d

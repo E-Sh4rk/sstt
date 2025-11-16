@@ -44,7 +44,17 @@ let%expect_test "tests" =
     record3: true
     record4: false
     record5: true
-    record5: true
+    record6: true
+    record7: false
+    record8: true
+    record9: false
+    record10: true
+    record11: { a : int }
+    record12: { a : int ; b : 42 }
+    record13: { a : 73 ; b : 42 }
+    record14: { a : 73 ; b : 42 ;; `s }
+    record15: empty
+    record16: { l : 42 ;; int | { l : 42 ;; x1 } } where x1 = int | { l : 42 ;; x1 }
     arrow1: false
     arrow2: true
     arrow3: true
@@ -142,8 +152,8 @@ let%expect_test "tests" =
               'B: 'B & 'b
             ]
     tally11: [
-               'X: 'X | 'b | 'a ;
-               'Y: 'Y & 'b & 'a
+               'X: 'X | 'a | 'b ;
+               'Y: 'Y & 'a & 'b
              ]
     tally12: [
                'X: empty

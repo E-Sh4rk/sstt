@@ -28,10 +28,16 @@ and op =
   | Enum of Enum.t
   | Tag of Tag.t * descr
   | Interval of Z.t option * Z.t option
-  | Record of (Label.t * descr * bool) list * bool
+  | Record of (Label.t * fop) list * fop
   | Varop of varop * descr list
   | Binop of binop * descr * descr
   | Unop of unop * descr
+and fop =
+  | FVarop of fvarop * fop list
+  | FBinop of fbinop * fop * fop
+  | FUnop of funop * fop
+  | FTy of descr * bool
+  | FRowVar of RowVar.t
 and extension_node
 
 type ctx
