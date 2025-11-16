@@ -102,7 +102,8 @@ include (struct
       any.simplified <- true;
       any.dependencies <- Some (NSet.singleton any)
   end
-  and Node : Node with type t = AnyEmpty.t and type vdescr = VDescr.t and type descr = VDescr.Descr.t = struct
+  and Node : Node with type t = AnyEmpty.t and type vdescr = VDescr.t and type descr = VDescr.Descr.t
+                   and type row = VDescr.Descr.Records.Atom.t = struct
     (* The module which contains any and empty that is passed to Vdescr.Make *)
     include PreNode
     (* We need to duplicate these here, has the one in PreNode are uninitialized  *)
@@ -115,7 +116,8 @@ include (struct
   end
   and NSet : Set.S with type elt = AnyEmpty.t = Set.Make(PreNode) (* Sets of Node.t, but use PreNode to have a well defined cycle *)
   and VDescr : VDescr' with type node = Node.t = Vdescr.Make(Node) (* Instanciate VDescr *)
-  and PreNode : PreNode with type t = AnyEmpty.t and type vdescr = VDescr.t and type descr = VDescr.Descr.t = struct
+  and PreNode : PreNode with type t = AnyEmpty.t and type vdescr = VDescr.t and type descr = VDescr.Descr.t
+                         and type row = VDescr.Descr.Records.Atom.t = struct
     (* The PreNode module that contain the entry points of all functions on types. *)
     module NH = Hashtbl.Make(PreNode)
     module Table = Bttable.Make(VDescr)(Bool)
@@ -127,6 +129,10 @@ include (struct
     type t = TyRef.t
     open TyRef
     open AnyEmpty
+
+    type row = VDescr.Descr.Records.Atom.t
+    type subst = (t, row) MixVarMap.t
+
 
     let has_def t = Option.is_some t.def
     let def t = t.def |> Option.get
@@ -221,9 +227,14 @@ include (struct
       | Some d -> d
       | None -> let d = dependencies t in t.dependencies <- Some d; d
 
-    let vars_toplevel t = def t |> VDescr.direct_vars |> VarSet.of_list
+    let vars_toplevel t = def t |> VDescr.direct_vars
+    let row_vars_toplevel t = def t |> VDescr.direct_row_vars
+    let all_vars_toplevel t = MixVarSet.of_set (vars_toplevel t) (row_vars_toplevel t)
     let vars t =
       NSet.fold (fun n -> VarSet.union (vars_toplevel n)) (dependencies t) VarSet.empty
+    let row_vars t =
+      NSet.fold (fun n -> RowVarSet.union (row_vars_toplevel n)) (dependencies t) RowVarSet.empty
+    let all_vars t = MixVarSet.of_set (vars t) (row_vars t)
 
     let of_eqs eqs =
       let deps = eqs
@@ -252,8 +263,9 @@ include (struct
               let s = eqs |> List.filter_map (fun (v,n) ->
                   let nn = new_node n in
                   if has_def nn then Some (v, def nn) else None
-                ) |> VarMap.of_list in
-              let d = def n |> VDescr.map_nodes new_node |> VDescr.substitute s in
+                ) in
+              let d = def n |> VDescr.map_nodes new_node
+              |> VDescr.substitute (MixVarMap.of_list1 s) in
               define nn d
             end ;
             define_all (NSet.remove n deps)
@@ -262,12 +274,15 @@ include (struct
       eqs |> List.map (fun (v,n) -> v,new_node n)
 
     let substitute s t =
-      let dom = VarMap.fold (fun n _ -> VarSet.add n) s VarSet.empty in
-      let s = s |> VarMap.map (fun n -> def n) in
+      if MixVarMap.is_empty s then t else
+      let dom = MixVarMap.fold
+        (fun n _ -> MixVarSet.add1 n)
+        (fun r _ -> MixVarSet.add2 r)
+          s MixVarSet.empty in
+      let s = s |> MixVarMap.map1 (fun n -> def n) in
       (* Optimisation: reuse nodes if possible *)
-      let unchanged n = VarSet.disjoint (vars n) dom in
-      let deps = dependencies t
-                 |> NSet.filter  (fun n -> unchanged n |> not) in
+      let unchanged n = MixVarSet.disjoint (all_vars n) dom in
+      let deps = dependencies t |> NSet.filter (fun n -> unchanged n |> not) in
       let copies = NH.create 10 in
       let () = NSet.iter (fun n -> NH.add copies n (mk ())) deps in
       let new_node n =
@@ -312,6 +327,7 @@ include (struct
   let () = AnyEmpty.init VDescr.empty VDescr.any (* Delayed initialization. *)
 
 end : sig (* Hide everything, we could also add that in a .mli file. *)
-           module rec Node : (Node with type vdescr = VDescr.t and type descr = VDescr.Descr.t)
+           module rec Node : (Node with type vdescr = VDescr.t and type descr = VDescr.Descr.t
+                                    and type row=VDescr.Descr.Records.Atom.t)
            and VDescr : VDescr with type node = Node.t
          end)

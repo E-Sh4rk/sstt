@@ -29,11 +29,12 @@ module Ty : Ty = struct
   module N = Node.Node
 
   type t = N.t
+  type row = N.row
+  type subst = N.subst
 
   module VDescr = Node.VDescr
-  module O = struct
-    include Records.OTy(N)
-  end
+  module F = VDescr.Descr.Records.FTy
+  module O = F.OTy
   let simpl t = N.with_own_cache N.simplify t ; t
   let s f t = f t |> simpl
   let s' f t = simpl t |> f
@@ -52,6 +53,8 @@ module Ty : Ty = struct
   let disj ts = N.disj ts |> simpl
 
   let vars, vars_toplevel, nodes = s' N.vars, s' N.vars_toplevel, s' N.nodes
+  let row_vars, row_vars_toplevel = s' N.row_vars, s' N.row_vars_toplevel
+  let all_vars, all_vars_toplevel = s' N.all_vars, s' N.all_vars_toplevel
   let of_eqs eqs = N.of_eqs eqs |> List.map (fun (v,ty) -> v, simpl ty)
   let substitute s t = N.substitute s t |> simpl
   let factorize t = N.with_own_cache N.factorize t |> simpl

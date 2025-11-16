@@ -22,10 +22,10 @@ let parse_atom_or_builtin str =
 
 %token<string> STRING
 %token<Z.t> INT
-%token<string> ID, TAGID, VARID, MVARID
+%token<string> ID, TAGID, VARID, MVARID, RVARID, MRVARID
 %token DEFINE TYPE WHERE AND
 %token BREAK COMMA EQUAL COLON SEMICOLON
-%token DPOINT OCOLON
+%token DPOINT QUESTION_MARK
 %token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
 %token LEQ GEQ
 %token TOR TAND TNEG TDIFF TARROW
@@ -86,8 +86,10 @@ tsubst:
 | LBRACKET bindings=separated_list(SEMICOLON, subst_binding) RBRACKET { bindings }
 
 %inline subst_binding:
-| v=VARID COLON ty=ty { (false, v, ty) }
-| v=MVARID COLON ty=ty { (true, v, ty) }
+| v=VARID COLON ty=ty { (Poly, v, ty) }
+| v=MVARID COLON ty=ty { (Mono, v, ty) }
+| v=RVARID COLON ty=ty { (PolyRow, v, ty) }
+| v=MRVARID COLON ty=ty { (MonoRow, v, ty) }
 
 tally:
 | LBRACKET cs=separated_nonempty_list(SEMICOLON, tally_binding) RBRACKET { cs }
@@ -114,24 +116,25 @@ simple_ty:
 | ty1=simple_ty TDIFF ty2=simple_ty { TBinop (TDiff, ty1, ty2) }
 | ty1=simple_ty TAND ty2=simple_ty { TBinop (TCap, ty1, ty2) }
 | TNEG ty=simple_ty { TUnop (TNeg, ty) }
+| ty=atomic_ty QUESTION_MARK { TUnop (TOption, ty) }
 | ty1=simple_ty TARROW ty2=simple_ty { TBinop (TArrow, ty1, ty2) }
 
 atomic_ty:
 | id=ID { parse_atom_or_builtin id }
 | id=TAGID ty=ty RPAREN { TTag (id, Some ty) }
 | id=TAGID RPAREN { TTag (id, None) }
-| id=VARID { TVar id }
-| id=MVARID { TVarMono id }
+| id=VARID { TVar (Poly, id) } | id=MVARID { TVar (Mono, id) }
+| id=RVARID { TVar (PolyRow, id) } | id=MRVARID { TVar (MonoRow, id) }
 | i=INT { TInterval (Some i, Some i) }
 | LPAREN i1=INT? DPOINT i2=INT? RPAREN { TInterval (i1,i2) }
-| LBRACE bindings=separated_list(SEMICOLON, record_field) o=record_kind RBRACE { TRecord (bindings, o) }
+| LBRACE bindings=separated_list(SEMICOLON, record_field) tl=record_tail RBRACE { TRecord (bindings, tl) }
 | LPAREN ty=ty RPAREN { ty }
 | LPAREN RPAREN { TBuiltin (TAnyTupleComp 0) }
 
-%inline record_kind:
-| DPOINT { true }
-| { false }
+%inline record_tail:
+| BREAK ty=ty { ty }
+| DPOINT { TUnop (TOption, TBuiltin TAny) }
+| { TUnop (TOption, TBuiltin TEmpty) }
 
-record_field:
-| l=ID COLON ty=ty { (l, ty, false) }
-| l=ID OCOLON ty=ty { (l, ty, true) }
+%inline record_field:
+| l=ID COLON ty=ty { (l, ty) }

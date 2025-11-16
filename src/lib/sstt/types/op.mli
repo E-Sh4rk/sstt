@@ -61,8 +61,18 @@ end
 module Records : sig
   (** Operations on record types. *)
 
+  module Atom : sig
+    module LabelMap : Map.S with type key=Label.t
+    type t = { bindings : Ty.O.t LabelMap.t ; tail : Ty.O.t }
+    val dom : t -> LabelSet.t
+    val find : Label.t -> t -> Ty.O.t
+  end
+
   type t = Records.t
-  type atom = Records.Atom.t
+  type atom = Atom.t
+
+  (** [of_atom t] returns the record component of an atom. *)
+  val of_atom : atom -> t
 
   (** [as_union t] over-approximates [t] as an union of non-empty atoms. *)
   val as_union : t -> atom list

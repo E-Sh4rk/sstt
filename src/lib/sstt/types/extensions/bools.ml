@@ -25,7 +25,7 @@ let components { t ; f } =
     f, false
   ] |> List.filter_map (fun (b,k) -> if b then Some k else None)
 
-let to_t _ _ comp =
+let to_t _ comp =
   let (_, pty) = Op.TagComp.as_atom comp in
   if Ty.leq pty any_p && (Ty.vars_toplevel pty |> VarSet.is_empty)
   then

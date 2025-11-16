@@ -8,8 +8,7 @@ val flt : k -> Ty.t
 val any : Ty.t
 
 type t = { ninf : bool ; neg : bool ; nzero : bool ; pzero : bool ; pos : bool ; pinf : bool ; nan : bool }
-val to_t : (Printer.ctx -> Ty.t -> Printer.descr) -> Printer.ctx
-            -> TagComp.t -> t option
+val to_t : Printer.build_ctx -> TagComp.t -> t option
 val map : ((Printer.descr -> Printer.descr) -> t -> t)
 
 val any_t : t

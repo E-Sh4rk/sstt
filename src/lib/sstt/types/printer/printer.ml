@@ -26,12 +26,18 @@ module NISet = Set.Make(NodeId)
 module VDHash = Hashtbl.Make(VD)
 module TagMap = Map.Make(Tag)
 
+(** Field operation  *)
+type 'd fop =
+  | FVarop of fvarop * 'd fop list
+  | FBinop of fbinop * 'd fop * 'd fop
+  | FUnop of funop * 'd fop
+  | FTy of 'd * bool
+  | FRowVar of RowVar.t
+
 type builtin =
   | Empty | Any | AnyTuple | AnyEnum | AnyTag | AnyInt
   | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of Tag.t
-type t = { main : descr ; defs : def list }
-and def = NodeId.t * descr
-and descr = { op : op ; ty : Ty.t }
+type descr = { op : op ; ty : Ty.t }
 and op =
   | Extension of extension_node
   | Alias of string
@@ -41,7 +47,7 @@ and op =
   | Enum of Enum.t
   | Tag of Tag.t * descr
   | Interval of Z.t option * Z.t option
-  | Record of (Label.t * descr * bool) list * bool
+  | Record of (Label.t * descr fop) list * descr fop
   | Varop of varop * descr list
   | Binop of binop * descr * descr
   | Unop of unop * descr
@@ -50,6 +56,8 @@ and extension_node = E : {
     map : (descr  -> descr) -> 'a -> 'a;
     print : int -> assoc -> Format.formatter -> 'a -> unit
   } -> extension_node
+type def = NodeId.t * descr
+type 'm t = { main : 'm ; defs : def list }
 
 (* Extensions *)
 type aliases = (Ty.t * string) list
@@ -64,6 +72,17 @@ and ctx = {
 }
 
 
+let map_fop fty fop =
+  let rec aux fop =
+    match fop with
+    | FVarop (v, fops) -> FVarop (v, List.map aux fops)
+    | FBinop (b, fop1, fop2) -> FBinop (b, aux fop1, aux fop2)
+    | FUnop (u, fop) -> FUnop (u, aux fop)
+    | FTy (d, b) -> FTy (fty d, b)
+    | FRowVar v -> FRowVar v
+  in
+  aux fop
+
 let map_descr f d = (* Assumes f preserves semantic equivalence *)
   let rec aux d =
     let op = match d.op with
@@ -75,8 +94,8 @@ let map_descr f d = (* Assumes f preserves semantic equivalence *)
       | Enum enum -> Enum enum
       | Tag (tag, d) -> Tag (tag, aux d)
       | Interval (lb, ub) -> Interval (lb, ub)
-      | Record (bindings, b) ->
-        Record (List.map (fun (l,d,b) -> l, aux d, b) bindings, b)
+      | Record (bindings, fop) ->
+        Record (List.map (fun (l,fop) -> l, map_fop aux fop) bindings, map_fop aux fop)
       | Varop (v, ds) -> Varop (v, List.map aux ds)
       | Binop (b, d1, d2) -> Binop (b, aux d1, aux d2)
       | Unop (u, d) -> Unop (u, aux d)
@@ -84,9 +103,9 @@ let map_descr f d = (* Assumes f preserves semantic equivalence *)
   in
   aux d
 
-let map_t f t =
-  let main = map_descr f t.main in
-  let defs = t.defs |> List.map (fun (id,d) -> (id,map_descr f d)) in
+let map_t map_m f t =
+  let main = map_m (map_descr f) t.main in
+  let defs = t.defs |> List.map (fun (id,d) -> id,map_descr f d) in
   { main ; defs }
 
 let nodes_in_descr d =
@@ -98,24 +117,29 @@ let nodes_in_descr d =
   map_descr f d |> ignore ;
   !res
 
+let nodes_in_t map_m t =
+  let res = ref NISet.empty in
+  let _ = map_m (fun d -> res := NISet.union (!res) (nodes_in_descr d) ; d) t.main in
+  t.defs |> List.map (fun (_,d) -> nodes_in_descr d) |> List.fold_left NISet.union !res
+
 let size_of_descr d =
   let res = ref 0 in
   let f d = res := !res + 1 ; d.op in
   map_descr f d |> ignore ;
   !res
 
-let size_t t =
-  List.fold_left (fun n (_,d) ->
-      n + 3 + size_of_descr d
-    ) (size_of_descr t.main) t.defs
+let size_t map_m t =
+  let res = ref 0 in
+  let _ = map_m (fun d -> res := !res + (size_of_descr d) ; d) t.main in
+  t.defs |> List.map (fun (_,d) -> size_of_descr d + 3) |> List.fold_left (+) !res
 
-let subst n d t =
+let subst map_m n d t =
   let aux d' =
     match d'.op with
     | Node n' when NodeId.equal n n' -> d.op
     | _ -> d'.op
   in
-  map_t aux t
+  map_t map_m aux t
 
 let neg d =
   match d.op with
@@ -174,11 +198,19 @@ let tuple lst =
   let tys = List.map (fun d -> d.ty) lst in
   { op = Varop (Tuple, lst) ; ty = D.mk_tuple tys |> Ty.mk_descr }
 
-let record bindings opened =
+let rec ty_of_fop fop =
+  match fop with
+  | FRowVar v -> Ty.F.mk_var v
+  | FTy (d,b) -> Ty.F.mk_descr (d.ty,b)
+  | FUnop (FNeg, fop) -> Ty.F.neg (ty_of_fop fop)
+  | FBinop (FDiff, fop1, fop2) -> Ty.F.diff (ty_of_fop fop1) (ty_of_fop fop2)
+  | FVarop (FCup, fops) -> Ty.F.disj (List.map ty_of_fop fops)
+  | FVarop (FCap, fops) -> Ty.F.conj (List.map ty_of_fop fops)
+let record bindings tail =
   let nbindings = bindings |>
-                  List.map (fun (l, d, b) -> (l, (d.ty, b))) |> LabelMap.of_list in
-  { op = Record (bindings, opened) ;
-    ty = D.mk_record { bindings=nbindings ; opened } |> Ty.mk_descr }
+                  List.map (fun (l, fop) -> (l, ty_of_fop fop)) |> LabelMap.of_list in
+  { op = Record (bindings, tail) ;
+    ty = { bindings=nbindings ; tail=ty_of_fop tail } |> D.mk_record |> Ty.mk_descr }
 
 let tag tag d =
   { op = Tag (tag,d) ; ty = D.mk_tag (tag, d.ty) |> Ty.mk_descr }
@@ -209,11 +241,10 @@ let node ctx ty =
     VDHash.add ctx.nodes def nid  ;
     { op = Node nid ; ty }
 
-let build_t (params:params) ty =
+let build_ctx params =
   let aliases = params.aliases |> List.map (fun (ty, s) -> (ty, Alias s)) in
   let extensions = params.extensions |> TagMap.of_list in
-  let ctx = { nodes=VDHash.create 16 ; aliases ; extensions } in
-  ctx, { main = node ctx ty ; defs = [] }
+  { nodes=VDHash.create 16 ; aliases ; extensions }
 
 (* Step 2 : Resolve missing definitions (and recognize Ext type aliases) *)
 
@@ -276,13 +307,31 @@ let resolve_tuples ctx a =
     ) |> union in
   if pos then d else neg d
 
+let resolve_field nf f =
+  let aux_oty oty =
+    FTy (nf (Ty.O.get oty), Ty.O.is_optional oty)
+  in
+  let aux_var v = FRowVar v in
+  let aux_ps ps = ps |> List.map aux_var in
+  let aux_ns ns = ns |> List.map aux_var |> List.map (fun v -> FUnop (FNeg, v)) in
+  let aux_line (ps, ns, oty) =
+    let fops, fops' = aux_ps ps, aux_ns ns in
+    let oty = match aux_oty oty with
+      | FTy ({ ty ; _ }, true) when Ty.is_any ty -> []
+      | oty -> [oty]
+    in
+    let fops = fops@fops'@oty in
+    match fops with [] -> FTy (any, true) | [fop] -> fop | fops -> FVarop (FCap, fops)
+  in
+  let fops = Ty.F.dnf f |> List.map aux_line in
+  match fops with [] -> FTy (empty, false) | [fop] -> fop | fops -> FVarop (FCup, fops)
+
 let resolve_records ctx a =
   let open Records.Atom in
   let resolve_rec r =
-    let bindings = r.bindings |> LabelMap.bindings |> List.map (fun (l,(n,b)) ->
-        (l, node ctx n, b)
-      ) in
-    record bindings r.opened
+    let bindings = r.bindings |> LabelMap.bindings
+                   |> List.map (fun (l,f) -> (l, resolve_field (node ctx) f)) in
+    record bindings (resolve_field (node ctx) r.tail)
   in
   Records.dnf a |> resolve_dnf resolve_rec
 
@@ -372,21 +421,21 @@ let resolve_def ctx def =
     def |> VD.dnf |> List.map resolve_dnf |> union
   | Some d -> d
 
-let rec resolve_missing_defs ctx t =
+let rec resolve_missing_defs ctx defs =
   let used_defs = ctx.nodes |> VDHash.to_seq |> List.of_seq in
   let to_define = used_defs |> List.find_opt (fun (_,nid) ->
-      t.defs |> List.exists (fun (nid',_) -> NodeId.equal nid nid') |> not
+      defs |> List.exists (fun (nid',_) -> NodeId.equal nid nid') |> not
     ) in
   match to_define with
-  | None -> t
+  | None -> defs
   | Some (def,nid) ->
     let descr = resolve_def ctx def in
-    resolve_missing_defs ctx { t with defs = (nid,descr)::t.defs }
+    resolve_missing_defs ctx ((nid,descr)::defs)
 
 (* Step 3 : Inline nodes when relevant, remove unused nodes *)
 
-let used_nodes t =
-  let res = nodes_in_descr t.main in
+let used_nodes map_m t =
+  let res = nodes_in_t map_m { main=t.main ; defs=[] } in
   let rec aux nodes =
     let add_nodes nodes (n, d) =
       if NISet.mem n nodes
@@ -398,20 +447,20 @@ let used_nodes t =
   in
   aux res
 
-let remove_unused_nodes t =
-  let used = used_nodes t in
+let remove_unused_nodes map_m t =
+  let used = used_nodes map_m t in
   let defs = t.defs |> List.filter (fun (n,_) -> NISet.mem n used) in
   { t with defs }
 
-let inline' metric t =
-  let t = remove_unused_nodes t in
+let inline' map_m metric t =
+  let t = remove_unused_nodes map_m t in
   let rec aux t =
     let size = metric t in
     let rec try_inline defs =
       match defs with
       | [] -> None
       | (n,d)::defs ->
-        let t' = subst n d t |> remove_unused_nodes in
+        let t' = subst map_m n d t |> remove_unused_nodes map_m in
         if metric t' < size
         then Some t'
         else try_inline defs
@@ -422,25 +471,25 @@ let inline' metric t =
   in
   aux t
 
-let inline_mid t = inline' size_t t
-let inline_max t =
+let inline_mid map_m t = inline' map_m (size_t map_m) t
+let inline_max map_m t =
   let nb_defs t = List.length t.defs in
-  inline' nb_defs t
+  inline' map_m nb_defs t
 
 (* Step 4 : Syntactic simplifications *)
 
-let simplify t =
+let simplify map_m t =
   let f d =
     match d.op with
     | Varop (Cap, [ d ; { op = Unop (Neg, dn) ; _ } ]) -> Binop (Diff, d, dn)
     | op -> op
   in
-  map_t f t
+  map_t map_m f t
 
 (* Step 5 : Rename nodes *)
 
 module StrSet = Set.Make(String)
-let names t =
+let names map_m t =
   let res = ref StrSet.empty in
   let f d = match d.op with
     | Alias str -> res := StrSet.add str !res ; Alias str
@@ -450,10 +499,9 @@ let names t =
     | Enum e -> res := StrSet.add (Enum.name e) !res ; Enum e
     | op -> op
   in
-  map_t f t |> ignore ;
-  !res
-let rename_nodes t =
-  let names = names t in
+  let _ = map_t map_m f t in !res
+let rename_nodes map_m t =
+  let names = names map_m t in
   let c = ref 0 in
   let rec next_name () =
     c := !c + 1 ;
@@ -509,17 +557,15 @@ let rec print_descr prec assoc fmt d =
       fprintf fmt "%a(%a)"
         Tag.pp t print_descr' d
     | Interval (lb,ub) -> fprintf fmt "%a" print_interval (lb,ub)
-    | Record (bindings,opened) ->
-      let print_binding fmt (l,d,b) =
-        fprintf fmt "%a %s@ %a"
+    | Record (bindings,tail) ->
+      let print_binding fmt (l,f) =
+        Format.fprintf fmt "%a :@ %a"
           Label.pp l
-          (if b then ":?" else ":")
-          print_descr' d
+          print_fop' f
       in
-      fprintf fmt "{@ %a@ %s}"
-        (Prec.print_seq print_binding " ;@ ")
-        bindings
-        (if opened then ".." else "")
+      Format.fprintf fmt "{@ %a@ %a}"
+        (Prec.print_seq print_binding " ;@ ") bindings
+        print_tail tail
     | Varop (v,ds) ->
       let sym,prec',_ as opinfo = varop_info v in
       Prec.fprintf prec assoc opinfo fmt "%a"
@@ -536,7 +582,39 @@ let rec print_descr prec assoc fmt d =
   in
   aux prec assoc fmt d
 
+and print_fop prec assoc fmt fop =
+  let rec aux prec assoc fmt fop =
+    match fop with
+    | FRowVar v -> Format.fprintf fmt "%a" RowVar.pp v
+    | FTy (d, opt) ->
+      if opt then
+        Format.fprintf fmt "%a?" (print_descr max_prec NoAssoc) d
+      else
+        print_descr prec assoc fmt d
+    | FVarop (v,fops) ->
+      let sym,prec',_ as opinfo = fvarop_info v in
+      Prec.fprintf prec assoc opinfo fmt "%a"
+        (print_seq (aux prec' NoAssoc) sym)
+        fops
+    | FBinop (b,fop1,fop2) ->
+      let sym,prec',_ as opinfo = fbinop_info b in
+      Prec.fprintf prec assoc opinfo fmt "%a%(%)%a"
+        (aux prec' Left) fop1 sym
+        (aux prec' Right) fop2
+    | FUnop (u,fop) ->
+      let sym,prec',_ as opinfo = funop_info u in
+      Prec.fprintf prec assoc opinfo fmt "%(%)%a" sym (aux prec' NoAssoc) fop
+  in
+  aux prec assoc fmt fop
+
+and print_tail fmt tail =
+  match tail with
+  | FTy ({ op=Builtin Any ; _ }, true) -> Format.fprintf fmt ".."
+  | FTy ({ op=Builtin Empty ; _ }, true) -> Format.fprintf fmt ""
+  | _ -> Format.fprintf fmt ";;@ %a@ " print_fop' tail
+
 and print_descr' fmt d = print_descr min_prec NoAssoc fmt d
+and print_fop' fmt fop = print_fop min_prec NoAssoc fmt fop
 
 and print_def fmt (n,d) =
   Format.fprintf fmt "%a =@ %a" NodeId.pp n print_descr' d
@@ -549,9 +627,11 @@ and print_t fmt t =
     Format.fprintf fmt "@ where@ %a" (print_seq print_def "@ and@ ") defs
 
 (* MAIN *)
+type build_ctx = { build : Ty.t -> descr ; build_fop : Ty.F.t -> descr fop }
 let builder ~to_t ~map ~print =
   (fun ctx ty ->
-     match to_t node ctx ty with
+     let build_ctx = { build=node ctx ; build_fop=resolve_field (node ctx) } in
+     match to_t build_ctx ty with
        None -> None
      | Some value -> Some (E {value; map; print})
   )
@@ -559,35 +639,81 @@ let builder ~to_t ~map ~print =
 let print_extension_node_ctx prec assoc fmt (E e) =
   e.print prec assoc fmt e.value
 
+let get' ?(factorize=false) customs tys =
+  let map_m f main = List.map f main in
+  let ctx = build_ctx customs in
+  let main = List.map (node ctx) tys in
+  let defs = resolve_missing_defs ctx [] in
+  let t = { main ; defs } in
+  let t = if factorize then inline_mid map_m t else inline_max map_m t in
+  let t = simplify map_m t in
+  rename_nodes map_m t; t
+
 let get ?(factorize=false) customs ty =
-  let (ctx, t) = build_t customs ty in
-  let t = resolve_missing_defs ctx t in
-  let t = if factorize then inline_mid t else inline_max t in
-  let t = simplify t in
-  rename_nodes t;
-  t
+  match get' ~factorize customs [ty] with
+  | { main=[d] ; defs } -> { main=d ; defs }
+  | _ -> assert false
+
+let get_field' ?(factorize=false) customs ftys =
+  let map_m f main = List.map (map_fop f) main in
+  let ctx = build_ctx customs in
+  let main = List.map (resolve_field (node ctx)) ftys in
+  let defs = resolve_missing_defs ctx [] in
+  let t = { main ; defs } in
+  let t = if factorize then inline_mid map_m t else inline_max map_m t in
+  let t = simplify map_m t in
+  rename_nodes map_m t; t
+
+let get_field ?(factorize=false) customs fty =
+  match get_field' ~factorize customs [fty] with
+  | { main=[d] ; defs } -> { main=d ; defs }
+  | _ -> assert false
 
 let print = print_t
 let print_descr_atomic = print_descr max_prec NoAssoc
-let print_descr, print_descr_ctx = print_descr', print_descr
+let print_descr, print_descr_ctx, print_field_ctx = print_descr', print_descr, print_fop
 
 let print_ty customs fmt ty =
   let ast = get customs ty in
   Format.fprintf fmt "%a" print ast
 
+let print_row customs fmt r =
+  let bindings, tail = Row.bindings r, Row.tail r in
+  let tail, fields, defs =
+    match get_field' customs (tail::List.map snd bindings) with
+    | { main=tl::bindings ; defs } -> tl, bindings, defs
+    | _ -> assert false
+  in
+  let bindings = List.combine (List.map fst bindings) fields in
+  let ast = { main={ ty=Ty.any ; op=Record (bindings, tail) } ; defs } in
+  print fmt ast
+
 let print_subst customs fmt s =
   let print_ty = print_ty customs in
-  let pp_binding fmt (v,ty) =
+  let print_row = print_row customs in
+  let pp_binding1 fmt (v,ty) =
     Format.fprintf fmt "@,@[<hov>%a: %a@]" Var.pp v print_ty ty
   in
+  let pp_binding2 fmt (v,r) =
+    Format.fprintf fmt "@,@[<hov>%a: %a@]" RowVar.pp v print_row r
+  in
+  let pp_binding' fmt b =
+    match b with
+    | `T (v,ty) -> pp_binding1 fmt (v,ty)
+    | `R (v,r) -> pp_binding2 fmt (v,r)
+  in
+  let b1 = Subst.bindings1 s |> List.map (fun b -> `T b) in
+  let b2 = Subst.bindings2 s |> List.map (fun b -> `R b) in
   Format.fprintf fmt "@[<v 0>[@[<v 1>%a@]@,]@]"
-    (print_seq pp_binding " ;") (Subst.bindings s)
+    (print_seq pp_binding' " ;") (b1@b2)
 
 let print_ty' = print_ty empty_params
 let print_subst' = print_subst empty_params
+let print_row' = print_row empty_params
 
 let cap_descr = cap'
 let cup_descr = cup'
 let neg_descr = neg
 let map_descr = map_descr
-let map = map_t
+let map_fop = map_fop
+let map = map_t Fun.id

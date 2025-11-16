@@ -1,5 +1,7 @@
 (** {1 Operations on types }*)
 
+module Row = Row
+
 module Subst = Subst
 
 module Op = Op
