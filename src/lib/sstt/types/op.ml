@@ -70,48 +70,60 @@ module TupleComp = struct
 end
 
 module Records = struct
+  module Atom = struct
+    type t = { bindings : Ty.O.t LabelMap.t ; tail : Ty.O.t }
+    let dom t = LabelMap.bindings t.bindings |> List.map fst |> LabelSet.of_list
+    let find lbl t =
+      match LabelMap.find_opt lbl t.bindings with
+      | Some f -> f
+      | None -> t.tail
+  end
+
   type t = Records.t
-  type atom = Records.Atom.t
+  type atom = Atom.t
 
   let as_union t =
-    let open Records.Atom in
     Records.dnf' t |> List.map (fun t ->
-        { bindings=t.Records.Atom'.bindings ; opened=t.opened }
+        { Atom.bindings=LabelMap.map Ty.F.get_descr t.Records.Atom'.bindings ;
+          tail=Ty.F.get_descr t.tail }
       )
 
+  let conv_atom { Atom.bindings ; tail } =
+    { Records.Atom.bindings=LabelMap.map Ty.F.mk_descr bindings ;
+         tail=Ty.F.mk_descr tail }
+
   let of_union lst =
-    Records.of_dnf (List.map (fun atom -> [atom],[]) lst)
+    Records.of_dnf (List.map (fun a -> [conv_atom a],[]) lst)
+  let of_atom a = [[conv_atom a],[]] |> Records.of_dnf
 
   let approx t =
-    let open Records.Atom in
     let union_a a1 a2 =
-      let dom = LabelSet.union (dom a1) (dom a2) in
+      let dom = LabelSet.union (Atom.dom a1) (Atom.dom a2) in
       let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
-          (lbl, Ty.O.cup (find lbl a1) (find lbl a2))
+          (lbl, Ty.O.cup (Atom.find lbl a1) (Atom.find lbl a2))
         ) |> LabelMap.of_list in
-      { bindings ; opened = a1.opened || a2.opened }
+      { Atom.bindings ; Atom.tail = Ty.O.cup a1.tail a2.tail }
     in
     match as_union t with
     | [] -> raise EmptyAtom
     | hd::tl -> List.fold_left union_a hd tl
 
   let proj label t =
-    as_union t |> List.map (Records.Atom.find label) |> Ty.O.disj
+    as_union t |> List.map (Atom.find label) |> Ty.O.disj
 
   let merge a1 a2 =
-    let open Records.Atom in
-    let dom = LabelSet.union (dom a1) (dom a2) in
+    let dom = LabelSet.union (Atom.dom a1) (Atom.dom a2) in
     let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
-        let oty1, oty2 = find lbl a1, find lbl a2 in
+        let oty1, oty2 = Atom.find lbl a1, Atom.find lbl a2 in
         let oty = if snd oty2 then Ty.O.cup oty1 (fst oty2, false) else oty2 in
         (lbl, oty)
       ) |> LabelMap.of_list in
-    { bindings ; opened = a1.opened || a2.opened } |> Records.mk
+    let tail = if snd a2.tail then Ty.O.cup a1.tail (fst a2.tail, false) else a2.tail in
+    { bindings ; tail } |> of_atom
 
   let remove a lbl =
-    let open Records.Atom in
-    let bindings = a.bindings |> LabelMap.add lbl (Ty.O.absent) in
-    { a with bindings } |> Records.mk
+    let bindings = a.Atom.bindings |> LabelMap.add lbl (Ty.O.absent) in
+    { bindings ; tail=a.tail } |> of_atom
 
 end
 

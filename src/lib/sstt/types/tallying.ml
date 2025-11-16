@@ -282,6 +282,10 @@ module Make(VS:VarSettings) = struct
       TagComp.line_emptiness_checks norm_ty tag line |> CSS.disj
     and norm_record (ps, ns) =
       let line, n = Records.dnf_line_to_tuple (ps, ns) in
+      (* TODO *)
+      let ps = fst line |> List.map (List.map Ty.F.get_descr) in
+      let ns = snd line |> List.map (List.map Ty.F.get_descr) in
+      let line = ps, ns in
       norm_tuple_gen ~any:Ty.O.any ~conj:Ty.O.conj
         ~diff:Ty.O.diff ~norm:norm_oty n line
     and norm_oty (n,o) =

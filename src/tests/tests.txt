@@ -35,7 +35,18 @@ type unit = () ;;
 "record3" { l1 : any } & { l1 : any ; l2 : any ..} <= empty ;;
 "record4" { l1 : any ..} & { l1 : any ; l2 : any ..} <= empty ;;
 "record5" { l1 : bool ; l2 : true } <= { l1 : true ; l2 : true ..} | { l1 : false ; l2 : true } ;;
-"record5" { l1 : true ; l2 : true ..} | { l1 : false ; l2 : true } <= { l1 : bool ; l2 : true ..} ;;
+"record6" { l1 : true ; l2 : true ..} | { l1 : false ; l2 : true } <= { l1 : bool ; l2 : true ..} ;;
+
+"record7" { l1:42 } <= { ;; int } ;;
+"record8" { l1:42 } <= { ;; int? } ;;
+"record9" { l1:42 ;; int? } <= { l1:42 ; l2:73 ..} ;;
+"record10" { l1:42 ;; int? } <= { l1:42 ..} ;;
+"record11" { ;; `r } [ `r : { a:int } ; 'b : 42 ] ;;
+"record12" { b:'b ;; `r } [ `r : { a:int } ; 'b : 42 ] ;;
+"record13" { b:'b ; a : 73 ;; `r } [ `r : { a:int } ; 'b : 42 ] ;;
+"record14" { b:'b ; a : 73 ;; `r } [ `r : { a:int ;; `s } ; 'b : 42 ] ;;
+"record15" { l:42 ;; X } where X = { l:42 ;; X } ;;
+"record16" { l:42 ;; X|int } where X = { l:42 ;; X|int } ;;
 
 "arrow1" bool -> bool <= false -> false ;;
 "arrow2" bool -> true <= bool -> bool ;;

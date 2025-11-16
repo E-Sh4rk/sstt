@@ -1,19 +1,19 @@
 open Sstt
 
+type var_kind = Mono | Poly | MonoRow | PolyRow
 type builtin =
   | TEmpty | TAny | TAnyTuple | TAnyEnum | TAnyTag | TAnyInt
   | TAnyArrow | TAnyRecord | TAnyTupleComp of int
 type varop = TTuple
 type binop = TCap | TCup | TDiff | TArrow
-type unop = TNeg
+type unop = TNeg | TOption
 type ty =
   | TBuiltin of builtin
   | TNamed of string
   | TTag of string * ty option
-  | TVar of string
-  | TVarMono of string
+  | TVar of var_kind * string
   | TInterval of Z.t option * Z.t option
-  | TRecord of (string * ty * bool) list * bool
+  | TRecord of (string * ty) list * ty
   | TVarop of varop * ty list
   | TBinop of binop * ty * ty
   | TUnop of unop * ty
@@ -21,7 +21,7 @@ type ty =
 
 type op = LEQ | EQ | GEQ
 
-type subst = (bool * string * ty) list
+type subst = (var_kind * string * ty) list
 type tally = (ty * op * ty) list
 type expr =
   | CTy of ty
@@ -51,9 +51,12 @@ type env = { eenv : Enum.t StrMap.t ;
              tenv : Ty.t StrMap.t ;
              venv : Var.t StrMap.t ;
              mvenv : Var.t StrMap.t ;
+             rvenv : RowVar.t StrMap.t ;
+             mrvenv : RowVar.t StrMap.t ;
              mono : VarSet.t ;
+             rmono : RowVarSet.t ;
              lenv : Label.t StrMap.t
-}
+           }
 
 val empty_env : env
 

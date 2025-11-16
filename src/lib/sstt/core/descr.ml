@@ -129,10 +129,13 @@ module Make(N:Node) = struct
       Intervals.direct_nodes t.intervals
     ] |> List.concat
 
+  let direct_row_vars t = Records.direct_row_vars t.records
+
   let simplify = unop Enums.simplify Tags.simplify Tuples.simplify
       Arrows.simplify Records.simplify Intervals.simplify
   let map_nodes f = unop (Enums.map_nodes f) (Tags.map_nodes f) (Tuples.map_nodes f)
       (Arrows.map_nodes f) (Records.map_nodes f) (Intervals.map_nodes f)
+  let substitute s t = { t with records = Records.substitute s t.records }
 
   let compare t1 t2 =
     Enums.compare t1.enums t2.enums |> ccmp
