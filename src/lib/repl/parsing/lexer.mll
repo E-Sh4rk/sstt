@@ -24,6 +24,8 @@ let tagid = ['a'-'z''A'-'Z''_']['a'-'z''A'-'Z''0'-'9''_''\'']*'('
 
 let varid = '\''['A'-'Z']['a'-'z''A'-'Z''0'-'9''_']*
 let mvarid = '\''['a'-'z']['a'-'z''A'-'Z''0'-'9''_']*
+let rvarid = '`'['A'-'Z']['a'-'z''A'-'Z''0'-'9''_']*
+let mrvarid = '`'['a'-'z']['a'-'z''A'-'Z''0'-'9''_']*
 
 let int = ('+'|'-')? ['0'-'9']+ ('_'+ ['0'-'9']+)*
 
@@ -33,12 +35,12 @@ rule token = parse
 | '"'      { read_string (Buffer.create 17) lexbuf }
 | id as s  { ID s }
 | tagid as s  { TAGID (String.sub s 0 (String.length s - 1)) }
-| varid as s  { VARID s }
-| mvarid as s  { MVARID s }
+| varid as s  { VARID s } | mvarid as s  { MVARID s }
+| rvarid as s  { RVARID s } | mrvarid as s  { MRVARID s }
 | newline  { Lexing.new_line lexbuf ; token lexbuf }
 | blank    { token lexbuf }
 | ";;" { BREAK } | ',' { COMMA } | ':' { COLON } | ';' { SEMICOLON } | '=' { EQUAL }
-| ".." { DPOINT } | ":?" { OCOLON }
+| ".." { DPOINT } | "?" { QUESTION_MARK }
 | '(' { LPAREN } | ')' { RPAREN } | "{" { LBRACE } | "}" { RBRACE }
 | "[" { LBRACKET } | "]" { RBRACKET }
 | "<=" { LEQ } | ">=" { GEQ }

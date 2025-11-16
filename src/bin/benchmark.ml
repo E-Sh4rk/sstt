@@ -4,7 +4,8 @@ open Sstt
 
 (* Parsing of benchmark files *)
 exception InvalidFormat
-type ('v,'t) bench = { vars:'v list ; mono:'v list ; cs:('t*'t) list ; prio:'v list }
+type ('v,'rv,'t) bench =
+    { vars:'v list ; mono:'v list ; rvars:'rv list ; rmono: 'rv list ; cs:('t*'t) list }
 let parse_string xml : string =
     match xml with `String str -> str | _ -> raise InvalidFormat
 let parse_ty xml =
@@ -27,9 +28,9 @@ let parse_bench xml =
     try match xml with
     | `Assoc assoc ->
         let vars, mono = extract_string_list "vars" assoc, extract_string_list "mono" assoc in
+        let rvars, rmono = extract_string_list "rvars" assoc, extract_string_list "rmono" assoc in
         let cs = List.assoc "constr" assoc |> parse_list (parse_pair parse_ty parse_ty) in
-        let prio = extract_string_list "prio" assoc in
-        { vars ; mono ; cs ; prio }
+        { vars ; mono ; rvars ; rmono ; cs }
     | _ -> raise InvalidFormat
     with Invalid_argument _ -> raise InvalidFormat
 let parse_file fn =
@@ -40,7 +41,7 @@ let parse_file fn =
 
 (* Build types in benchmarks *)
 let build_bench b =
-    let venv = ref Ast.StrMap.empty in
+    let venv, rvenv = ref Ast.StrMap.empty, ref Ast.StrMap.empty in
     let var str =
         match Ast.StrMap.find_opt str !venv with
         | Some v -> v
@@ -49,17 +50,24 @@ let build_bench b =
             venv := Ast.StrMap.add str v !venv ;
             v
     in
-    let vars = List.map var b.vars in
-    let mono = List.map var b.mono in
-    let prio = List.map var b.prio in
-    let env = ref { Ast.empty_env with venv = !venv ; mvenv = !venv } in
+    let rvar str =
+        match Ast.StrMap.find_opt str !rvenv with
+        | Some v -> v
+        | None ->
+            let v = RowVar.mk str in
+            rvenv := Ast.StrMap.add str v !rvenv ;
+            v
+    in
+    let vars, rvars = List.map var b.vars, List.map rvar b.rvars in
+    let mono, rmono = List.map var b.mono, List.map rvar b.rmono in
+    let env = ref { Ast.empty_env with venv = !venv ; mvenv = !venv ; rvenv = !rvenv ; mrvenv = !rvenv } in
     let cs = b.cs |> List.map (fun (s,t) ->
             
         let (s,env') = Ast.build_ty !env s in
         let (t,env') = Ast.build_ty env' t in
         env := env' ; (s,t)
     ) in
-    { vars ; mono ; cs ; prio }
+    { vars ; mono ; rvars ; rmono ; cs }
 
 (* Command line *)
 let usage_msg = "sstt-bench [<file1>] [<file2>] ..."
@@ -90,8 +98,8 @@ let () =
                 let time2 = Unix.gettimeofday () in
                 print Msg "Building (average): %.02fs (%.00fus)" (all time1 time2) (avg time1 time2) ;
                 bench |> List.iter (fun b ->
-                    let mono, cs = VarSet.of_list b.mono, b.cs in
-                    let _ = Tallying.tally_with_priority b.prio mono cs in
+                    let delta, cs = MixVarSet.of_list b.mono b.rmono, b.cs in
+                    let _ =  Tallying.tally delta cs in
                     ()
                 ) ;
                 let time3 = Unix.gettimeofday () in

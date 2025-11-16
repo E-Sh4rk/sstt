@@ -4,23 +4,24 @@
 
 ### Types
 
-Types are built with the following constructors:
+Types `t` are built with the following constructors:
 - `empty`, `any`, `tuple`, `arrow`, `record`, `int`, `enum`
-- Monomorphic type variable `'x` (lowercase)
-- Polymorphic type variables `'X` (uppercase)
+- Monomorphic type variable `'x` (lowercase), polymorphic type variable `'X` (uppercase)
 - Enum `id`, where `id` is the identifier of an atom (enums that are not declared are created on-the-fly)
-- Tag `id(t)`, where `id` is the identifier of a tag (tags that are not declared are created on-the-fly with the `identity` property, or the `monotonic` property if their name
-starts with `_`, or `no property` if their name
-starts with `__`)
+- Tag `id(t)`, where `id` is the identifier of a tag (tags that are not declared are created on-the-fly with the `identity` property, or the `monotonic` property if their name starts with `_`, or `no property` if their name starts with `__`)
 - Arrow `t -> t`
 - Tuple `(t, ..., t)`
-- Closed record `{ label : t ; ... }`
-- Opened record `{ label : t ; ... ..}`
-- Interval `(i..i)`, `(i..)` or `(..i)`, where `i` is an integer
-- Singleton interval `i`, where `i` is an integer
+- Closed record `{ label : f ; ... }`, opened record `{ label : f ; ... ..}`, or record with custom tail `{ label : f ; ... ;; f }`,
+where `f` is a field type
+- Interval `(i..i)`, `(i..)` or `(..i)`, or singleton interval `i`, where `i` is an integer
 - Recursive type `t where id=t and ...`
 
-The usual set-theoretic operations can be used:
+Field types `f` are built with the following constructors:
+- Monomorphic row variable `` `x`` (lowercase), polymorphic row variable `` `X`` (uppercase)
+- Type `t`
+- Optional type `t?` (e.g. a missing field may be represented by the type `empty?`)
+
+The following set-theoretic connectives can be used for both types and field types:
 union `|`, intersection `&`, difference `\`, and negation `~`.
 
 The operator precedence is the usual one: `~`, `\`, `&`, `|`, `->`.

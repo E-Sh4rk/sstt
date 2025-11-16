@@ -59,8 +59,8 @@ let encode_params encoding ps =
         label_of_position false i, Ty.O.optional p
       ) |> LabelMap.of_list
   in
-  { Records.Atom.bindings ; Records.Atom.opened=false }
-  |> Descr.mk_record |> Ty.mk_descr
+  { Op.Records.Atom.bindings ; Op.Records.Atom.tail=Ty.O.absent }
+  |> Op.Records.of_atom |> Descr.mk_records |> Ty.mk_descr
 
 let mk tag ps =
   let encoding = encoding tag in
@@ -73,7 +73,7 @@ let mk_any tag =
   TagComp.any tag |> Descr.mk_tagcomp |> Ty.mk_descr
 
 let extract_dnf tag dnf =
-  let open Records.Atom in
+  let open Op.Records.Atom in
   let vs = parameters tag in
   let extract_param record i v =
     match v with
@@ -109,11 +109,11 @@ let destruct tag ty =
   ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
   |> TagComp.dnf |> extract_dnf tag
 
-let to_t node ctx comp =
+let to_t ctx comp =
   try
     let tag, dnf = TagComp.tag comp, TagComp.dnf comp in
     let params = extract_dnf tag dnf in
-    let map_node l = List.map (node ctx) l in
+    let map_node l = List.map ctx.Printer.build l in
     List.map (fun (p1, p2) ->
         List.map map_node p1, List.map map_node p2
       ) params |> Option.some

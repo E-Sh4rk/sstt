@@ -8,11 +8,12 @@ type res = RBool of bool list | RTy of Ty.t list | RSubst of Subst.t list
 let empty_env = empty_env
 
 let poly_leq env t1 t2 =
-  let vars = VarSet.union (Ty.vars t1) (Ty.vars t2) in
-  if VarSet.subset vars env.mono then
+  let vars = MixVarSet.union (Ty.all_vars t1) (Ty.all_vars t2) in
+  let mono = MixVarSet.of_set env.mono env.rmono in
+  if MixVarSet.subset vars mono then
     Ty.leq t1 t2
   else
-    Tallying.tally env.mono [ t1, t2 ] |> List.is_empty |> not
+    Tallying.tally mono [ t1, t2 ] |> List.is_empty |> not
 
 let rec compute_expr env e =
   match e with
@@ -24,7 +25,7 @@ let rec compute_expr env e =
     RSubst [s], env
   | CTally cs ->
     let cs, env = build_tally env cs in
-    RSubst (Tallying.tally env.mono cs), env
+    RSubst (Tallying.tally (MixVarSet.of_set env.mono env.rmono) cs), env
   | CCat (e1, e2) ->
     let r1, env = compute_expr env e1 in
     let r2, env = compute_expr env e2 in
