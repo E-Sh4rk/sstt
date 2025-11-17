@@ -30,8 +30,9 @@ module type TyBase = sig
   include Comparable with type t := t
 end
 
-module type SetTheoretic = sig
+module type SetOps = sig
   type t
+
   val cap : t -> t -> t
   (** The intersection of two types, {m t_1 \cap t_2}. *)
 
@@ -53,6 +54,12 @@ module type SetTheoretic = sig
   (** [disj l] is the union of all the types in [l]. It returns [empty] if
       [l] is the empty list.
   *)
+end
+
+module type SetTheoretic = sig
+
+  (** @inline *)
+  include SetOps
 
   val is_empty : t -> bool
   (** Emptyness test. [is_empty t] returns [true] if and only if [t] is semantically equivalent
@@ -1049,7 +1056,7 @@ module type Ty = sig
     (** [optional t] returns [t, true] which represents the type {m t\cup \bot}. *)
 
     (** @inline *)
-    include SetTheoretic with type t := t
+    include SetOps with type t := t
 
     val is_absent : t -> bool
     (** Tests whether {m \bot \equiv t}. *)
