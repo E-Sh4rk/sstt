@@ -30,7 +30,7 @@ module type TyBase = sig
   include Comparable with type t := t
 end
 
-module type SetOps = sig
+module type SetTheoretic = sig
   type t
 
   val cap : t -> t -> t
@@ -56,10 +56,9 @@ module type SetOps = sig
   *)
 end
 
-module type SetTheoretic = sig
+module type SetTheoreticOps = sig
 
-  (** @inline *)
-  include SetOps
+  type t
 
   val is_empty : t -> bool
   (** Emptyness test. [is_empty t] returns [true] if and only if [t] is semantically equivalent
@@ -908,6 +907,7 @@ module type PreNode = sig
   val get_descr : t -> descr
 
   include SetTheoretic with type t := t
+  include SetTheoreticOps with type t := t
   val with_own_cache : ('a -> 'b) -> 'a -> 'b
 
   val vars : t -> VarSet.t
@@ -968,6 +968,7 @@ module type Ty = sig
   (** The top type, {%html: <span style='font-size:large'>𝟙</span>%}. *)
 
   include SetTheoretic with type t := t
+  include SetTheoreticOps with type t := t
 
   (** {1 Full descriptors }
 
@@ -1056,7 +1057,7 @@ module type Ty = sig
     (** [optional t] returns [t, true] which represents the type {m t\cup \bot}. *)
 
     (** @inline *)
-    include SetOps with type t := t
+    include SetTheoretic with type t := t
 
     val is_absent : t -> bool
     (** Tests whether {m \bot \equiv t}. *)
