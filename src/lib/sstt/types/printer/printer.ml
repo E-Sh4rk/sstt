@@ -647,16 +647,33 @@ let print_ty customs fmt ty =
   let ast = get customs ty in
   Format.fprintf fmt "%a" print ast
 
+let print_row customs fmt r =
+  let ty = r |> Descr.mk_record |> Ty.mk_descr in
+  (* TODO: not correct if the row has an empty binding *)
+  print_ty customs fmt ty
+
 let print_subst customs fmt s =
   let print_ty = print_ty customs in
+  let print_row = print_row customs in
   let pp_binding fmt (v,ty) =
     Format.fprintf fmt "@,%a: %a" Var.pp v print_ty ty
   in
+  let pp_binding_row fmt (v,r) =
+    Format.fprintf fmt "@,%a: %a" RowVar.pp v print_row r
+  in
+  let pp_binding' fmt b =
+    match b with
+    | `T (v,ty) -> pp_binding fmt (v,ty)
+    | `R (v,r) -> pp_binding_row fmt (v,r)
+  in
+  let b1 = Subst.bindings s |> List.map (fun b -> `T b) in
+  let b2 = Subst.bindings_row s |> List.map (fun b -> `R b) in
   Format.fprintf fmt "@[<v 0>[@[<v 1>%a@]@,]@]"
-    (print_seq pp_binding " ;") (Subst.bindings s)
+    (print_seq pp_binding' " ;") (b1@b2)
 
 let print_ty' = print_ty empty_params
 let print_subst' = print_subst empty_params
+let print_row' = print_row empty_params
 
 let cap_descr = cap'
 let cup_descr = cup'

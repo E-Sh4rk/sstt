@@ -1,70 +1,93 @@
 open Core
 open Sstt_utils
 
-module type VarSettings = sig
-  val compare : Var.t -> Var.t -> int
-  val delta : VarSet.t
-end
+let solve_rectype v ty =
+  Ty.of_eqs [v, ty] |> List.hd |> snd
+let solve_recfield v f =
+  let module VHT = Hashtbl.Make(Var) in
+  let nodes = VHT.create 10 in
+  let f = f |> Ty.F.map_nodes (fun n ->
+      let v = Var.mk "" in
+      VHT.add nodes v n ; Ty.mk_var v
+    )
+  in
+  let eqs = VHT.to_seq nodes |> List.of_seq |> List.map (fun (v',ty') ->
+    v', Subst.apply (Subst.singleton_row v (Row.all_fields f)) ty'
+  ) in
+  let s = Ty.of_eqs eqs |> Subst.of_list in
+  f |> Ty.F.map_nodes (fun n -> Subst.apply s n)
+
+(* =============== Tallying algorithm =============== *)
 
 type constr = Ty.t * Ty.t
 
-
+module type VarSettings = sig
+  val delta : VarSet.t
+  val delta' : RowVarSet.t
+end
+  
 module Make(VS:VarSettings) = struct
-  module Var = struct
-    include Var
-    (* prevent from using default comparison*)
-    let equal (_:t) (_:t) = () [@@ocaml.warning "-32"]
-    let compare (_:t) (_:t) = () [@@ocaml.warning "-32"]
+  module type B = sig
+    type t
+    val is_mono : t -> bool
+    val cap : t -> t -> t
+    val cup : t -> t -> t
+    val neg : t -> t
+    val leq : t -> t -> bool
+    val compare : t -> t -> int
+  end
+  module type V = sig
+    type t
+    module Set : Set.S with type elt=t
+    val compare : t -> t -> int
+    val delta : Set.t
   end
 
-  module Constr = struct
-    type t = Ty.t * Var.t * Ty.t (* s ≤ α ≤ t *)
+  module C(V:V)(B:B) = struct
+    type t = B.t * V.t * B.t (* s ≤ α ≤ t *)
+    module V = V
+    module B = B
 
     (* C1 subsumes C2 if it has the same variable
        and gives better bounds (larger lower bound and smaller upper bound)
     *)
     let subsumes (t1, v1, t1') (t2, v2, t2') =
-      VS.compare v1 v2 = 0 &&
-      Ty.leq t2 t1 && Ty.leq t1' t2'
+      V.compare v1 v2 = 0 &&
+      B.leq t2 t1 && B.leq t1' t2'
 
     let compare (t1,v1,t1') (t2,v2,t2')=
-      VS.compare v1 v2 |> ccmp
-        Ty.compare t1 t2 |> ccmp
-        Ty.compare t1' t2'
+      V.compare v1 v2 |> ccmp
+        B.compare t1 t2 |> ccmp
+        B.compare t1' t2'
+
+    let unsat (s, _, t) =
+      B.is_mono s && B.is_mono t && not (B.leq s t)
   end
 
-  (* As in CDuce, we follow POPL'15 but keep constraint merged:
-     - A Constraint Set C, is a (sorted list of triples) (s, α, t)
-     - Adding a new constraint for an existing variable merges them.
-     - If such a constraint is trivially unsatifiable (because s and
-       t are both monomorphic and s ≤ t does not hold), then
-       a failure is returned
-  *)
-  module CS = struct
+  exception Unsat
+  module CS(V:V)(B:B) = struct
+    module V = V
+    module B = B
+    module C = C(V)(B)
+    type t = [] | (::) of C.t * t
 
-    type t = [] | (::) of Constr.t * t
-
-    exception Unsat
-
-    let assert_sat s t =
-      if VarSet.subset (Ty.vars s) VS.delta &&
-         VarSet.subset (Ty.vars t) VS.delta &&
-         not (Ty.leq s t)
+    let assert_sat c =
+      if C.unsat c
       then raise_notrace Unsat
     let any = []
     let is_any t = (t = [])
-    let singleton ((s, _, t) as e) = assert_sat s t; [e]
+    let singleton e = assert_sat e; [e]
     let merge (s, v, t) (s', _, t') =
-      let ss = Ty.cup s s' in
-      let tt = Ty.cap t t' in
-      assert_sat ss tt;
-      (ss, v, tt)
+      let ss = B.cup s s' in
+      let tt = B.cap t t' in
+      let merged = ss, v, tt in
+      assert_sat merged ; merged
 
     let rec add ((_, v, _) as c) l =
       match l with
         [] -> [ c ]
       | ((_, v', _) as c') :: ll ->
-        let n = VS.compare v v' in
+        let n = V.compare v v' in
         if n < 0 then c::l
         else if n = 0 then (merge c c')::ll
         else c' :: add c ll
@@ -74,7 +97,7 @@ module Make(VS:VarSettings) = struct
       | [],  _ -> l2
       | _, []  -> l1
       | ((_,v1, _) as c1)::ll1, ((_, v2, _) as c2)::ll2 ->
-        let n = VS.compare v1 v2 in
+        let n = V.compare v1 v2 in
         if n < 0 then c1 :: cap ll1 l2
         else if n > 0 then c2 :: cap l1 ll2
         else (merge c1 c2)::cap ll1 ll2
@@ -88,10 +111,10 @@ module Make(VS:VarSettings) = struct
       | _, [] -> true
       | [], _ -> false
       | ((_,v1, _) as c1)::ll1, ((_, v2, _) as c2)::ll2 ->
-        let n = VS.compare v1 v2 in
+        let n = V.compare v1 v2 in
         if n < 0 then subsumes ll1 l2
         else if n > 0 then false
-        else Constr.subsumes c1 c2 && subsumes ll1 ll2
+        else C.subsumes c1 c2 && subsumes ll1 ll2
 
     let rec compare l1 l2 =
       match l1, l2 with
@@ -99,12 +122,62 @@ module Make(VS:VarSettings) = struct
       | [], _ -> -1
       | _, [] -> 1
       | c1 :: ll1, c2 :: ll2 ->
-        let c = Constr.compare c1 c2 in
+        let c = C.compare c1 c2 in
         if c <> 0 then c else compare ll1 ll2
 
     let rec to_list_map f = function
         [] -> List.[]
       | e :: ll -> (f e)::to_list_map f ll
+  end
+  module TyB = struct
+    include Ty
+    let is_mono t =
+      VarSet.subset (Ty.vars t) VS.delta &&
+      RowVarSet.subset (Ty.row_vars t) VS.delta'
+  end
+  module TV = struct
+    type t = Var.t
+    let compare = Var.compare
+    let delta = VS.delta
+    module Set = VarSet
+  end
+  module VCS = CS(TV)(TyB)
+  module FTyB = struct
+    include Ty.F
+    let pack f = Row.all_fields f |> Descr.mk_record |> Ty.mk_descr
+    let is_mono f =
+      let t = pack f in
+      VarSet.subset (Ty.vars t) VS.delta &&
+      RowVarSet.subset (Ty.row_vars t) VS.delta'
+    let leq f1 f2 =
+      Ty.leq (pack f1) (pack f2)
+  end
+  module RV = struct
+    type t = RowVar.t
+    let compare = RowVar.compare
+    let delta = VS.delta'
+    module Set = RowVarSet
+  end
+  module FCS = CS(RV)(FTyB)
+
+  module CS' = struct
+    type t = VCS.t * FCS.t
+
+    let any = (VCS.any, FCS.any)
+    let is_any (vt,ft) = VCS.is_any vt && FCS.is_any ft
+    let singleton e = (VCS.singleton e, FCS.any)
+    let singleton' e = (VCS.any, FCS.singleton e)
+
+    (* let add (vt,ft) e = (VCS.add vt e, ft)
+    let add' (vt,ft) e = (vt, FCS.add ft e) *)
+
+    let cap (vt1, ft1) (vt2, ft2) = (VCS.cap vt1 vt2, FCS.cap ft1 ft2)
+
+    let subsumes (vt1, ft1) (vt2, ft2) =
+      VCS.subsumes vt1 vt2 && FCS.subsumes ft1 ft2
+
+    let compare (vt1, ft1) (vt2, ft2) =
+      VCS.compare vt1 vt2 |> ccmp FCS.compare ft1 ft2
   end
 
   module CSS = struct
@@ -113,29 +186,30 @@ module Make(VS:VarSettings) = struct
        that we don't want to add a constraint set that subsumes an already
        existing one.
     *)
-    type t = CS.t list
+    type t = CS'.t list
     let empty : t = []
     let is_empty = function [] -> true | _ -> false
-    let any : t = [CS.any]
-    let is_any = function [t] when CS.is_any t -> true | _ -> false
-    let singleton e = [e]
-    let single e = try singleton (CS.singleton e) with CS.Unsat -> empty
+    let any : t = [CS'.any]
+    let is_any = function [t] when CS'.is_any t -> true | _ -> false
+    let singleton (e:CS'.t) = [e]
+    let single e = try singleton (CS'.singleton e) with Unsat -> empty
+    let single' e = try singleton (CS'.singleton' e) with Unsat -> empty
     let rec insert_aux c l =
       match l with
         [] -> [c]
       | c' :: ll ->
-        let n = CS.compare c c' in
+        let n = CS'.compare c c' in
         if n < 0 then c::l
         else if n = 0 then l
         else c' :: insert_aux c ll
     let add c l =
-      if List.exists (CS.subsumes c) l then l
-      else List.filter (fun c' -> CS.subsumes c' c |> not) l |> insert_aux c
+      if List.exists (CS'.subsumes c) l then l
+      else List.filter (fun c' -> CS'.subsumes c' c |> not) l |> insert_aux c
 
     let cup t1 t2 = List.fold_left (fun acc cs -> add cs acc) t1 t2
     let cap t1 t2 =
       (cartesian_product t1 t2)
-      |> List.fold_left (fun acc (cs1,cs2) -> try add (CS.cap cs1 cs2) acc with CS.Unsat -> acc) empty
+      |> List.fold_left (fun acc (cs1,cs2) -> try add (CS'.cap cs1 cs2) acc with Unsat -> acc) empty
 
     let cup_lazy t1 t2 =
       if is_any t1 then any
@@ -146,15 +220,23 @@ module Make(VS:VarSettings) = struct
 
     let map_disj f t = List.fold_left (fun acc e -> cup_lazy acc (fun () -> f e))  empty t
     let map_conj f t = List.fold_left (fun acc e -> cap_lazy acc (fun () -> f e)) any t
-    let to_list l = l
+    let to_list (l:t) = l
   end
 
-  module Toplevel = struct
-    let to_ty e = [ e ] |> VDescr.of_dnf |> Ty.of_def
+  module type P = sig
+    module V : V
+    type descr
+    type t
+    val of_line : V.t list * V.t list * descr -> t
+    val empty : t
+    val any : t
+    val neg : t -> t
+  end
+  module Toplevel(P:P) = struct
 
-    let pos_var v e = (Ty.empty, v, Ty.neg (to_ty e))
+    let pos_var v e = (P.empty, v, P.neg (P.of_line e))
 
-    let neg_var v e = (to_ty e, v, Ty.any)
+    let neg_var v e = (P.of_line e, v, P.any)
 
     (* Extract a constraint for the smallest polymorphic (not in delta) top-level variable of a summand *)
     let extract_smallest (pvs, nvs, d) =
@@ -162,10 +244,10 @@ module Make(VS:VarSettings) = struct
         match l, o_min with
         | [], None -> None
         | [], Some v -> Some (v, acc)
-        | v :: ll, _ when VarSet.mem v VS.delta -> find_min_var (v::acc) o_min ll
+        | v :: ll, _ when P.V.Set.mem v P.V.delta -> find_min_var (v::acc) o_min ll
         | v :: ll, None -> find_min_var acc (Some v) ll
         | v :: ll, Some v_min ->
-          if VS.compare v v_min < 0 then
+          if P.V.compare v v_min < 0 then
             find_min_var (v_min::acc) (Some v) ll
           else find_min_var (v :: acc) o_min ll
       in
@@ -174,14 +256,29 @@ module Make(VS:VarSettings) = struct
       | Some (v, rem_pos), None -> Some (pos_var v (rem_pos, nvs, d))
       | None, Some (v, rem_neg) -> Some (neg_var v (pvs, rem_neg, d))
       | Some (vp, rem_pos), Some (vn, rem_neg) ->
-        if VS.compare vp vn < 0 then
+        if P.V.compare vp vn < 0 then
           Some (pos_var vp (rem_pos, nvs, d))
         else
           Some (neg_var vn (pvs, rem_neg, d))
-
+  end
+  module VP = struct
+    include Ty
+    module V = TV
+    type descr = Descr.t
+    let of_line line = VDescr.of_dnf [line] |> Ty.of_def
+  end
+  module VToplevel = Toplevel(VP)
+  module FP = struct
+    include Ty.F
+    module V = RV
+    type descr = Ty.O.t
+    let of_line line = Ty.F.of_dnf [line]
   end
 
+  module FToplevel = Toplevel(FP)
   module VDHash = Hashtbl.Make(VDescr)
+  module FTyHash = Hashtbl.Make(Ty.F)
+  
   let norm_tuple_gen ~any ~conj ~diff ~disjoint ~norm n (ps, ns) =
     (* Same algorithm as for subtyping tuples.
        We define it outside norm below so that its type can be
@@ -199,7 +296,7 @@ module Make(VS:VarSettings) = struct
               CSS.cap_lazy acc (psi acc ss ts)) diff acc ss tt
       )
     in psi CSS.any ps ns ()
-  let norm t =
+  let norm, norm_field =
     let memo = VDHash.create 16 in
     let rec norm_ty t =
       let vd = Ty.def t in
@@ -209,12 +306,12 @@ module Make(VS:VarSettings) = struct
         VDHash.add memo vd CSS.any;
         let res =
           if Ty.is_empty t then CSS.any
-          else if VarSet.subset (Ty.vars t) VS.delta then CSS.empty
+          else if TyB.is_mono t then CSS.empty
           else vd |> VDescr.dnf |> CSS.map_conj norm_summand
         in
         VDHash.remove memo vd ; res
     and norm_summand summand =
-      match Toplevel.extract_smallest summand with
+      match VToplevel.extract_smallest summand with
       | None ->
         let (_,_,d) = summand in
         norm_descr d
@@ -286,87 +383,143 @@ module Make(VS:VarSettings) = struct
     and norm_record (ps, ns) =
       let line, n = Records.dnf_line_to_tuple (ps, ns) in
       let disjoint s1 s2 =
-        let t = Ty.O.cap s1 s2 in
-        Ty.O.is_required t && Ty.O.get t |> Ty.is_empty
+        let o = Ty.F.cap s1 s2 |> Ty.F.get_descr in
+        Ty.O.is_required o && Ty.O.get o |> Ty.is_empty
       in
-      (* TODO *)
-      let ps = fst line |> List.map (List.map Ty.F.get_descr) in
-      let ns = snd line |> List.map (List.map Ty.F.get_descr) in
-      let line = ps, ns in
-      norm_tuple_gen ~any:Ty.O.any ~conj:Ty.O.conj
-        ~diff:Ty.O.diff ~disjoint ~norm:norm_oty n line
+      norm_tuple_gen ~any:Ty.F.any ~conj:Ty.F.conj
+        ~diff:Ty.F.diff ~disjoint ~norm:norm_field n line
+    and norm_field (f:Ty.F.t) =
+      f |> Ty.F.dnf |> CSS.map_conj norm_field_summand
+    and norm_field_summand summand =
+      match FToplevel.extract_smallest summand with
+      | None ->
+        let (_,_,oty) = summand in
+        norm_oty oty
+      | Some cs -> CSS.single' cs
     and norm_oty (n,o) =
       if o then CSS.empty else norm_ty n
     in
-    norm_ty t
+    norm_ty, norm_field
 
   let propagate cs =
     let memo_ty = VDHash.create 8 in
-    let rec aux prev (cs : CS.t) =
-      match cs with
-      | CS.[] -> prev |> CSS.singleton
-      | ((t',_, t) as constr) :: cs' ->
+    let memo_f = FTyHash.create 8 in
+    let rec aux (prev,prev') ((cs,cs') : CS'.t) =
+      let retry_with css =
+        let css' () = CS'.cap (prev,prev') (cs,cs') |> CSS.singleton in
+        let css = CSS.cap_lazy css css' in
+        css |> CSS.to_list |> CSS.map_disj (aux CS'.any)
+      in
+      match cs,cs' with
+      | VCS.[], FCS.[] -> (prev,prev') |> CSS.singleton
+      | ((t',_, t) as constr) :: tl, cs' ->
         let ty = Ty.diff t' t in
         if VDHash.mem memo_ty (Ty.def ty) then
-          aux (CS.add constr prev) cs'
+          aux (VCS.add constr prev, prev') (tl,cs')
         else
           let () = VDHash.add memo_ty (Ty.def ty) () in
-          let css = norm ty in
-          let css' () = cs |> CS.cap prev |> CSS.singleton in
-          let css = CSS.cap_lazy css css' in
-          let res = css |> CSS.to_list |> CSS.map_disj (aux CS.any) in
+          let res = norm ty |> retry_with in
           VDHash.remove memo_ty (Ty.def ty); res
+      | VCS.[], ((f',_, f) as constr) :: tl ->
+        let f = Ty.F.diff f' f in
+        if FTyHash.mem memo_f f then
+          aux (prev, FCS.add constr prev') (cs,tl)
+        else
+          let () = FTyHash.add memo_f f () in
+          let res = norm_field f |> retry_with in
+          FTyHash.remove memo_f f; res
     in
-    aux CS.any cs
+    aux CS'.any cs
 
-  let solve cs =
+  let solve (cs, cs' : VCS.t * FCS.t) =
     let renaming = ref Subst.identity in
     let to_eq (ty1, v, ty2) =
       let v' = Var.mk (Var.name v) in
       renaming := Subst.add v' (Ty.mk_var v) !renaming ;
       (v, Ty.cap (Ty.cup ty1 (Ty.mk_var v')) ty2)
     in
-    let rec unify eqs =
-      match eqs with
-      | [] -> Subst.identity
-      | (v,ty)::eqs ->
-        let (_,ty') = Ty.of_eqs [v, ty] |> List.hd in
-        let s = Subst.singleton v ty' in
-        let eqs' = eqs |> List.map (fun (v,eq) -> (v, Subst.apply s eq)) in
-        let res = unify eqs' in
-        Subst.add v (Subst.apply res ty') res
+    let to_eq' (f1, v, f2) =
+      let v' = RowVar.mk (RowVar.name v) in
+      renaming := Subst.add_row v' (Row.id_for v) !renaming ;
+      (v, Ty.F.cap (Ty.F.cup f1 (Ty.F.mk_var v')) f2)
     in
-    cs |> CS.to_list_map to_eq |> unify |> Subst.map (Subst.apply !renaming)
+    let rec unify eqs1 eqs2 =
+      match eqs1, eqs2 with
+      | [], [] -> Subst.identity
+      | (v,ty)::eqs1, eqs2 ->
+        let ty' = solve_rectype v ty in
+        let s = Subst.singleton v ty' in
+        let eqs1' = eqs1 |> List.map (fun (v,eq) -> (v, Subst.apply s eq)) in
+        let eqs2' = eqs2 |> List.map (fun (v,eq) -> (v, (Subst.apply_to_row s (Row.all_fields eq)).tail)) in
+        let res = unify eqs1' eqs2' in
+        Subst.add v (Subst.apply res ty') res
+      | [], (v,f)::eqs2 ->
+        let f' = solve_recfield v f |> Row.all_fields in
+        let s = Subst.singleton_row v f' in
+        let eqs1' = eqs1 |> List.map (fun (v,eq) -> (v, Subst.apply s eq)) in
+        let eqs2' = eqs2 |> List.map (fun (v,eq) -> (v, (Subst.apply_to_row s (Row.all_fields eq)).tail)) in
+        let res = unify eqs1' eqs2' in
+        Subst.add_row v (Subst.apply_to_row res f') res
+    in
+    let eqs1 = VCS.to_list_map to_eq cs in
+    let eqs2 = FCS.to_list_map to_eq' cs' in
+    unify eqs1 eqs2 |> Subst.map (Subst.apply !renaming)
 
   let tally cs =
-    let ncss = cs
-      |> CSS.map_conj (fun (s,t) -> norm (Ty.diff s t)) in
-    let mcss = ncss
-      |> CSS.to_list |> CSS.map_disj propagate in
+    let ncss = cs |> CSS.map_conj (fun (s,t) -> norm (Ty.diff s t)) in
+    let mcss = ncss |> CSS.to_list |> CSS.map_disj propagate in
     mcss |> CSS.to_list |> List.map solve
 end
 
-let tally_with_order cmp delta =
-  let module Tallying = Make(struct let compare = cmp let delta = delta end) in
-  Tallying.tally
-let tally = tally_with_order Var.compare 
+(* =============== Tallying with row variables =============== *)
 
-let tally_with_priority preserve =
-  let cnt = ref 0 in
-  let pmap = List.fold_left
-      (fun acc v -> cnt := !cnt + 1 ; VarMap.add v !cnt acc)
-      VarMap.empty preserve
-  in
-  let cmp v1 v2 =
-    match VarMap.find_opt v1 pmap, VarMap.find_opt v2 pmap with
-    | None, None -> Var.compare v1 v2
-    | Some _, None -> 1
-    | None, Some _ -> -1
-    | Some i1, Some i2 -> compare i2 i1
-  in
-  tally_with_order cmp
+  let labels_of_ty t =
+    let labels = ref LabelSet.empty in
+    let _ = Ty.nodes t |> List.iter (fun n ->
+        Ty.def n |> VDescr.map (fun d ->
+          let _ = d |> Descr.get_records |> Records.map (fun r ->
+              labels := LabelSet.union !labels (Records.Atom.dom r) ; r
+          ) in d
+        ) |> ignore
+      ) in !labels
+  let labels_of_constr (t1, t2) =
+    LabelSet.union (labels_of_ty t1) (labels_of_ty t2)
+  let labels_of_cs cs = cs
+    |> List.map labels_of_constr
+    |> List.fold_left LabelSet.union LabelSet.empty
+  let rvs_of_constr (t1, t2) =
+    RowVarSet.union (Ty.row_vars t1) (Ty.row_vars t2)
+  let rvs_of_cs cs = cs
+    |> List.map rvs_of_constr
+    |> List.fold_left RowVarSet.union RowVarSet.empty
+  module RVH = Hashtbl.Make(RowVar)
+  let tally_with_rows delta delta' cs =
+    let module Tallying = Make(struct let delta = delta let delta'=delta' end) in
+    (* Compute the set of labels, and substitute row variables accordingly *)
+    let labels = labels_of_cs cs |> LabelSet.elements in
+    let rvs = RowVarSet.diff (rvs_of_cs cs) delta' in
+    let original_rv = RVH.create 10 in
+    let s, rs = rvs |> RowVarSet.elements |> List.map (fun rv ->
+      let bindings = labels |> List.map (fun lbl ->
+          let rv' = RowVar.mk (RowVar.name rv) in
+          RVH.add original_rv rv' rv ;
+          lbl, rv'
+        ) in
+      (rv, { Records.Atom.bindings=LabelMap.of_list
+              (List.map (fun (lbl, rv') -> lbl, Ty.F.mk_var rv') bindings)
+           ; tail=Ty.F.mk_var rv }),
+      (List.map (fun (_, rv') -> rv', Row.id_for rv) bindings)
+    ) |> List.split in
+    let s, rs = Subst.of_list_row s, List.concat rs |> Subst.of_list_row in
+    cs |> List.map (fun (t1,t2) -> Subst.apply s t1, Subst.apply s t2) |> Tallying.tally |> List.map
+      (fun sol -> (Subst.compose sol s) |> Subst.compose rs |> Subst.restrict_row rvs)
 
-let decompose delta s1 s2 =
+(* =============== Exported functions =============== *)
+
+let tally = tally_with_rows
+
+let decompose delta _delta' s1 s2 =
+  (* TODO: handle row variables *)
   let vars1 = VarSet.union (Subst.domain s1) (Subst.intro s1) in
   let vars2 = VarSet.union (Subst.domain s2) (Subst.intro s2) in
   let vars = VarSet.union vars1 vars2 in
@@ -378,5 +531,5 @@ let decompose delta s1 s2 =
       [ t1, t2 ; t2, t1 ]
     )
   in
-  tally (VarSet.union delta fresh_vars) cs |> List.map
+  tally (VarSet.union delta fresh_vars) (RowVarSet.empty) cs |> List.map
     (fun s -> Subst.compose fresh_inv s |> Subst.restrict vars)

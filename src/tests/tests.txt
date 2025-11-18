@@ -110,6 +110,15 @@ type unit = () ;;
 "tally15" [ 'X, 'Y = int, bool ];;
 "tally16" [ 'X -> 'Y <= 'A -> 'B ] ;;
 
+"tally_row1" [ { ;; `R } <= { ;; `S } ] ;;
+"tally_row2" [ { ;; `R } <= { ;; `s } ] ;;
+"tally_row3" [ { ;; `r } <= { ;; `S } ] ;;
+"tally_row4" [ { ;; `r } <= { ;; `s } ] ;;
+"tally_row5" [ { a: any ;; `R } >= { a:42 ; b:73 } ] ;;
+"tally_row6" [ { a: any ;; `R } -> { a: empty? ;; `R } <= { a:42 ; b:73 } -> 'X ] ;;
+"tally_row7" [ { ;; `R } -> { a: empty? ;; `R } <= { a:42 ; b:73 } -> 'X ] ;;
+"tally_row8" [ ({ ;; `R }, 'A) -> { a: 'A ;; `R } <= ( { a:42 ; b:73 }, 73 ) -> 'X ] ;;
+
 "app1" int -> bool -> int 42 bool ;;
 "app2" int -> bool -> int bool 42 ;;
 "app3" (int -> true -> (..5)) & ((0..) -> bool -> (-5..)) 42 true ;;

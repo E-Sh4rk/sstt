@@ -2,6 +2,7 @@ open Core
 
 type t = Records.Atom.t
 val id_for : RowVar.t -> t
+val all_fields : Ty.F.t -> t
 
 val leq : t -> t -> bool
 val equiv : t -> t -> bool

@@ -1,9 +1,12 @@
 open Core
 
-type t = Records.Atom.t
-let id_for v = { Records.Atom.bindings=LabelMap.empty ; tail=Ty.F.mk_var v }
+(* TODO: keep rows simplified by removing redundant bindings? *)
 
-let pack_f f = Descr.mk_record { bindings=LabelMap.empty ; tail=f } |> Ty.mk_descr
+type t = Records.Atom.t
+let all_fields f = { Records.Atom.bindings=LabelMap.empty ; tail=f }
+let id_for v = all_fields (Ty.F.mk_var v)
+
+let pack_f f = Descr.mk_record (all_fields f) |> Ty.mk_descr
 let leq t1 t2 =
   let open Records.Atom in
   let dom = LabelSet.union (dom t1) (dom t2) |> LabelSet.elements in
