@@ -186,6 +186,32 @@ let%expect_test "tests" =
               'X: 'A | 'X ;
               'Y: 'B & 'Y
             ]
+    tally_row1: [
+                  `R: {  ;; `R & `S }
+                ]
+    tally_row2: [
+                  `R: {  ;; `R & `s }
+                ]
+    tally_row3: [
+                  `S: {  ;; `S | `r }
+                ]
+    tally_row4:
+    tally_row5: [
+                  `R: { a : `R ; b : 73 | `R ;; empty? | `R }
+                ]
+    tally_row6: [
+                  'X: { a : empty? ; b : 73 | `R ;; empty? | `R } | 'X ;
+                  `R: { a : `R ; b : 73 | `R ;; empty? | `R }
+                ]
+    tally_row7: [
+                  'X: { a : empty? ; b : 73 | `R ;; empty? | `R } | 'X ;
+                  `R: { a : 42 | `R ; b : 73 | `R ;; empty? | `R }
+                ]
+    tally_row8: [
+                  'X: { a : 73 | 'A ; b : 73 | `R ;; empty? | `R } | 'X ;
+                  'A: 73 | 'A ;
+                  `R: { a : 42 | `R ; b : 73 | `R ;; empty? | `R }
+                ]
     app1: int
     app2: any
     app3: (-5..5)

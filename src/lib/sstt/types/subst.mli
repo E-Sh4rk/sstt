@@ -106,3 +106,6 @@ val is_identity : t -> bool
 
 val apply : t -> Ty.t -> Ty.t
 (** Applies the given susbtitution to the given type. *)
+
+val apply_to_row : t -> Row.t -> Row.t
+(** Applies the given susbtitution to the given row type. *)

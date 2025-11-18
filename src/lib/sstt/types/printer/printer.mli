@@ -107,6 +107,10 @@ val print_descr_ctx : int -> assoc -> Format.formatter -> descr -> unit
     recognizing type aliases and extensions in [params]. Same as [print fmt (get params ty)]. *)
 val print_ty : params -> Format.formatter -> Ty.t -> unit
 
+(** [print_row params fmt r] prints the row [r] using formatter [fmt],
+    recognizing type aliases and extensions in [params]. *)
+val print_row : params -> Format.formatter -> Row.t -> unit
+
 (** [print_subst params fmt s] prints the substitution [s] using formatter [fmt],
     recognizing type aliases and extensions in [params]. *)
 val print_subst : params -> Format.formatter -> Subst.t -> unit
@@ -114,6 +118,10 @@ val print_subst : params -> Format.formatter -> Subst.t -> unit
 (** [print_ty' fmt ty] prints the type [ty] using formatter [fmt].
     Same as [print_ty [] fmt ty]. *)
 val print_ty' : Format.formatter -> Ty.t -> unit
+
+(** [print_row' fmt r] prints the row [r] using formatter [fmt].
+    Same as [print_row [] fmt r]. *)
+val print_row' : Format.formatter -> Row.t -> unit
 
 (** [print_subst' fmt s] prints the substitution [s] using formatter [fmt].
     Same as [print_subst [] fmt s]. *)

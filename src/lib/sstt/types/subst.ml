@@ -93,3 +93,4 @@ let equiv (s1,rs1) (s2,rs2) =
 let is_identity (s,rs) = VarMap.is_empty s && RowVarMap.is_empty rs
 
 let apply s ty = Ty.substitute s ty
+let apply_to_row s r = Row.substitute s r

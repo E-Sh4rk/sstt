@@ -12,7 +12,7 @@ let poly_leq env t1 t2 =
   if VarSet.subset vars env.mono then
     Ty.leq t1 t2
   else
-    Tallying.tally env.mono [ t1, t2 ] |> List.is_empty |> not
+    Tallying.tally env.mono env.rmono [ t1, t2 ] |> List.is_empty |> not
 
 let rec compute_expr env e =
   match e with
@@ -24,7 +24,7 @@ let rec compute_expr env e =
     RSubst [s], env
   | CTally cs ->
     let cs, env = build_tally env cs in
-    RSubst (Tallying.tally env.mono cs), env
+    RSubst (Tallying.tally env.mono env.rmono cs), env
   | CCat (e1, e2) ->
     let r1, env = compute_expr env e1 in
     let r2, env = compute_expr env e2 in
