@@ -192,7 +192,8 @@ module Make(VO:VarOrder) = struct
               CSS.cap_lazy delta acc (psi acc ss ts)) diff acc ss tt
       )
     in psi CSS.any ps ns ()
-  let norm memo delta t =
+  let norm delta t =
+    let memo = VDHash.create 16 in
     let rec norm_ty t =
       let vd = Ty.def t in
       match VDHash.find_opt memo vd  with
@@ -207,7 +208,7 @@ module Make(VO:VarOrder) = struct
           else
             vd |> VDescr.dnf |> CSS.map_conj delta norm_summand
         in
-        VDHash.replace memo vd res; res
+        VDHash.remove memo vd ; res
     and norm_summand summand =
       match Toplevel.extract_smallest delta summand with
       | None ->
@@ -287,7 +288,7 @@ module Make(VO:VarOrder) = struct
     in
     norm_ty t
 
-  let propagate memo delta cs =
+  let propagate delta cs =
     let memo_ty = VDHash.create 8 in
     let rec aux prev (cs : CS.t) =
       match cs with
@@ -298,7 +299,7 @@ module Make(VO:VarOrder) = struct
           aux (CS.add delta constr prev) cs'
         else
           let () = VDHash.add memo_ty (Ty.def ty) () in
-          let css = norm memo delta ty in
+          let css = norm delta ty in
           let css' () = cs |> CS.cap delta prev |> CSS.singleton in
           let css = CSS.cap_lazy delta css css' in
           let res = css |> CSS.to_list |> List.map (aux CS.any) |> CSS.disj in
@@ -326,20 +327,19 @@ module Make(VO:VarOrder) = struct
     cs |> CS.to_list_map to_eq |> unify |> Subst.map (Subst.apply !renaming)
 
   let tally delta cs =
-    let memo = VDHash.create 16 in
     let ncss = cs
-               |> CSS.map_conj delta (fun (s,t) -> norm memo delta (Ty.diff s t)) in
+      |> CSS.map_conj delta (fun (s,t) -> norm delta (Ty.diff s t)) in
     let mcss = ncss
-               |> CSS.to_list |> List.map (propagate memo delta) |> CSS.disj in
+      |> CSS.to_list |> List.map (propagate delta) |> CSS.disj in
     mcss |> CSS.to_list |> List.map solve
 end
 
 module Tallying = Make(Var)
 
 let tally = Tallying.tally 
-let tally_with_order cmp delta =
+let tally_with_order cmp =
   let module Tallying = Make(struct let compare = cmp end) in
-  Tallying.tally delta
+  Tallying.tally
 let tally_with_priority preserve =
   let cnt = ref 0 in
   let pmap = List.fold_left
