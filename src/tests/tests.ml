@@ -100,11 +100,11 @@ let%expect_test "tests" =
               'Y: 'Y & 'y
             ]
     tally6: [
-              'X: 'Z | 'X ;
-              'Y: 'Y & bool
+              'Z: empty
             ]
            [
-             'Z: empty
+             'X: 'Z | 'X ;
+             'Y: 'Y & bool
            ]
     tally7: [
               'X: 'X & 'x ;
@@ -166,15 +166,15 @@ let%expect_test "tests" =
                'Y: bool
              ]
     tally16: [
-               'X: 'A | 'X ;
-               'Y: 'B & 'Y
+               'A: empty
              ]
-            [
-              'A: empty
-            ]
             [
               'X: 'A | 'X ;
               'B: any
+            ]
+            [
+              'X: 'A | 'X ;
+              'Y: 'B & 'Y
             ]
     app1: int
     app2: any
