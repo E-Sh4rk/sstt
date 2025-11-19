@@ -137,13 +137,16 @@ module type ConstrComponentOps = sig
   (** [dnf t] returns a disjunctive normal form of [t]. *)
 
   val of_dnf : atom ldnf -> t
-  (** [dnf d] builds a component from a disjunctive normal form [d]. *)
+  (** [of_dnf d] builds a component from a disjunctive normal form [d]. *)
 
   val mk : atom -> t
   (** Creates a component from an atom. *)
 
   val map_nodes : (node -> node) -> t -> t
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
+
+  (** [map f t] replaces every atom [a] in [t] by [f a]. *)
+  val map : (atom -> atom) -> t -> t
 end
 
 module type IndexedComponentOps = sig
@@ -250,10 +253,9 @@ module type ComponentFamilyOps = sig
   val of_components : comp list * bool -> t
 
   val get : index -> t -> comp
-  (** [get n t] returns the tuple component of cardinality [n] in [t]. *)
+  (** [get i t] returns the component of index [i] in [t]. *)
 
-
-  (** [map f t] replaces every tuple component [p] in [t] by [f p]. *)
+  (** [map f t] replaces every component [p] in [t] by [f p]. *)
   val map : (comp -> comp) -> t -> t
 
   val construct : bool * comp list -> t

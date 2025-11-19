@@ -107,6 +107,7 @@ module MakeC(N:Node) = struct
 
   let direct_nodes (_,t) = Bdd.atoms t |> List.concat_map Atom.direct_nodes
   let map_nodes f (tag,t) = tag, Bdd.map_nodes (Atom.map_nodes f) t
+  let map f (tag,t) = tag, Bdd.map_nodes f t
 
   let simplify ((tag,t) as n) =
     let t' = Bdd.simplify (equiv tag) t in

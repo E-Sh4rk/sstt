@@ -57,6 +57,7 @@ module Make(N:Node) = struct
 
   let direct_nodes t = Bdd.atoms t |> List.concat_map Atom.direct_nodes
   let map_nodes f t = Bdd.map_nodes (Atom.map_nodes f) t
+  let map f t = Bdd.map_nodes f t
 
   let simplify t = Bdd.simplify equiv t
 
