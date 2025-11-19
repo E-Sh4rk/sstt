@@ -117,7 +117,7 @@ include (struct
   and VDescr : VDescr' with type node = Node.t = Vdescr.Make(Node) (* Instanciate VDescr *)
   and PreNode : PreNode with type t = AnyEmpty.t and type vdescr = VDescr.t and type descr = VDescr.Descr.t = struct
     (* The PreNode module that contain the entry points of all functions on types. *)
-    module NMap = Map.Make(PreNode)
+    module NH = Hashtbl.Make(PreNode)
     module Table = Bttable.Make(VDescr)(Bool)
     type _ Effect.t += GetCache: (Table.t) t
 
@@ -228,12 +228,13 @@ include (struct
     let of_eqs eqs =
       let deps = eqs
                  |> List.fold_left (fun acc (_, t) -> NSet.union (dependencies t) acc) NSet.empty in
-      let copies = NSet.fold (fun n acc -> NMap.add n (mk ()) acc) deps NMap.empty in
+      let copies = NH.create 10 in
+      let () = NSet.iter (fun n -> NH.add copies n (mk ())) deps in
       let new_node n =
         match eqs |> List.find_opt (fun (v,_) ->
             VDescr.equal (VDescr.mk_var v) (def n)) with
-        | None -> NMap.find n copies
-        | Some (_,n) -> NMap.find n copies (* Optimisation to avoid introducing a useless node *)
+        | None -> NH.find copies n
+        | Some (_,n) -> NH.find copies n (* Optimisation to avoid introducing a useless node *)
       in
       let rec define_all deps =
         if NSet.is_empty deps |> not then
@@ -267,9 +268,10 @@ include (struct
       let unchanged n = VarSet.disjoint (vars n) dom in
       let deps = dependencies t
                  |> NSet.filter  (fun n -> unchanged n |> not) in
-      let copies = NSet.fold (fun n acc -> NMap.add n (mk ()) acc) deps NMap.empty in
+      let copies = NH.create 10 in
+      let () = NSet.iter (fun n -> NH.add copies n (mk ())) deps in
       let new_node n =
-        match NMap.find_opt n copies with
+        match NH.find_opt copies n with
         | Some n -> n
         | None -> n
       in
@@ -280,10 +282,10 @@ include (struct
       new_node t
 
     let factorize t =
-      let cache = ref NMap.empty in
+      let cache = NH.create 10 in
       let nodes = ref [] in
       let rec aux t =
-        match NMap.find_opt t !cache with
+        match NH.find_opt cache t with
         | Some n -> n
         | None ->
           begin match
@@ -292,7 +294,7 @@ include (struct
             | Some (_, n) -> n
             | None ->
               let n = mk () in
-              cache := NMap.add t n (!cache);
+              NH.add cache t n;
               nodes := (t, n) :: !nodes;
               let vd = def t |> VDescr.map_nodes aux in
               define n vd ;
