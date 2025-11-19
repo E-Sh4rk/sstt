@@ -326,7 +326,6 @@ module Make(VO:VarOrder) = struct
     cs |> CS.to_list_map to_eq |> unify |> Subst.map (Subst.apply !renaming)
 
   let tally delta cs =
-    let delta = VarSet.of_list delta in
     let memo = VDHash.create 16 in
     let ncss = cs
                |> CSS.map_conj delta (fun (s,t) -> norm memo delta (Ty.diff s t)) in
@@ -337,11 +336,10 @@ end
 
 module Tallying = Make(Var)
 
-let tally delta =
-  Tallying.tally (VarSet.elements delta)
+let tally = Tallying.tally 
 let tally_with_order cmp delta =
   let module Tallying = Make(struct let compare = cmp end) in
-  Tallying.tally (VarSet.elements delta)
+  Tallying.tally delta
 let tally_with_priority preserve =
   let cnt = ref 0 in
   let pmap = List.fold_left
