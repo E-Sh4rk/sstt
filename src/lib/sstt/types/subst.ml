@@ -12,6 +12,11 @@ let of_list' lst1 lst2 =
   lst2 |> RowVarMap.of_list |> norm_row
 let of_list lst = of_list' lst []
 let of_list_row lst = of_list' [] lst
+
+let combine (s1,rs1) (s2,rs2) =
+  let union _ = raise (Invalid_argument "Domains are not disjoint") in
+  VarMap.union union s1 s2, RowVarMap.union union rs1 rs2
+
 let refresh ?names vs =
   let new_name = match names with None -> Var.name | Some f -> f in
   let (bindings, bindings') = vs |> VarSet.elements |> List.map
@@ -30,6 +35,10 @@ let refresh_row ?names vs =
     ) |> List.split in
   (VarMap.empty, RowVarMap.of_list rbindings),
   (VarMap.empty, RowVarMap.of_list rbindings')
+let refresh' ?names ?names_row vs vs_row =
+  let s, rs = refresh ?names vs in
+  let s_row, rs_row = refresh_row ?names:names_row vs_row in
+  combine s s_row, combine rs rs_row
 
 let singleton v ty = VarMap.singleton v ty |> norm, RowVarMap.empty
 let singleton_row v r = VarMap.empty, RowVarMap.singleton v r |> norm_row
@@ -82,10 +91,6 @@ let compose t2 t1 =
   let rbindings2 = bindings_row t2
     |> List.filter (fun (v, _) -> RowVarSet.mem v rdom1 |> not) in
   of_list' (bindings1@bindings2) (rbindings1@rbindings2)
-
-let combine (s1,rs1) (s2,rs2) =
-  let union _ = raise (Invalid_argument "Domains are not disjoint") in
-  VarMap.union union s1 s2, RowVarMap.union union rs1 rs2
 
 let equiv (s1,rs1) (s2,rs2) =
   VarMap.equal Ty.equiv s1 s2 &&

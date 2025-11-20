@@ -36,6 +36,9 @@ val refresh : ?names:(Var.t -> string) -> VarSet.t -> t * t
 
 val refresh_row : ?names:(RowVar.t -> string) -> RowVarSet.t -> t * t
 
+val refresh' : ?names:(Var.t -> string) -> ?names_row:(RowVar.t -> string)
+    -> VarSet.t -> RowVarSet.t -> t * t
+
 val domain : t -> VarSet.t
 (** Returns the domain of a substitution, that is the set of variables for which
     the substitution is not the identity.
