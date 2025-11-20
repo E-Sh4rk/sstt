@@ -503,24 +503,31 @@ end
     ) |> List.split in
     let s, rs = Subst.of_list_row s, List.concat rs |> Subst.of_list_row in
     cs |> List.map (fun (t1,t2) -> Subst.apply s t1, Subst.apply s t2) |> Tallying.tally |> List.map
-      (fun sol -> (Subst.compose sol s) |> Subst.compose rs |> Subst.restrict_row rvs)
+      (fun sol -> Subst.compose sol s |> Subst.compose rs |> Subst.restrict_row rvs)
 
 (* =============== Exported functions =============== *)
 
 let tally = tally_with_rows
 
-let decompose delta _delta' s1 s2 =
-  (* TODO: handle row variables *)
-  let vars1 = VarSet.union (Subst.domain s1) (Subst.intro s1) in
-  let vars2 = VarSet.union (Subst.domain s2) (Subst.intro s2) in
-  let vars = VarSet.union vars1 vars2 in
-  let fresh, fresh_inv = Subst.refresh (VarSet.diff vars delta) in
-  let fresh_vars = Subst.intro fresh in
+let decompose delta delta' s1 s2 =
+  let union_many = List.fold_left VarSet.union VarSet.empty in
+  let union_many' = List.fold_left RowVarSet.union RowVarSet.empty in
+  let vars = union_many
+    [Subst.domain s1 ; Subst.intro s1 ; Subst.domain s2 ; Subst.intro s2 ] in
+  let vars' = union_many'
+    [Subst.domain_row s1 ; Subst.intro_row s1 ; Subst.domain_row s2 ; Subst.intro_row s2 ] in
+  let fresh, fresh_inv = Subst.refresh' (VarSet.diff vars delta) (RowVarSet.diff vars' delta') in
+  let fresh_vars, fresh_vars' = Subst.intro fresh, Subst.intro_row fresh in
   let s2 = Subst.compose fresh s2 in
   let cs = VarSet.elements vars |> List.concat_map (fun v ->
       let t1, t2 = Subst.find s1 v, Subst.find s2 v in
       [ t1, t2 ; t2, t1 ]
     )
   in
-  tally (VarSet.union delta fresh_vars) (RowVarSet.empty) cs |> List.map
-    (fun s -> Subst.compose fresh_inv s |> Subst.restrict vars)
+  let cs' = RowVarSet.elements vars' |> List.concat_map (fun v ->
+      let r1, r2 = Subst.find_row s1 v, Subst.find_row s2 v in
+      Row.equiv_constraints r1 r2
+    )
+  in
+  tally (VarSet.union delta fresh_vars) (RowVarSet.union delta' fresh_vars') (cs@cs')
+  |> List.map (fun s -> Subst.compose fresh_inv s |> Subst.restrict vars |> Subst.restrict_row vars')

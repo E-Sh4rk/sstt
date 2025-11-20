@@ -7,12 +7,30 @@ let all_fields f = { Records.Atom.bindings=LabelMap.empty ; tail=f }
 let id_for v = all_fields (Ty.F.mk_var v)
 
 let pack_f f = Descr.mk_record (all_fields f) |> Ty.mk_descr
-let leq t1 t2 =
+let equiv t1 t2 =
   let open Records.Atom in
   let dom = LabelSet.union (dom t1) (dom t2) |> LabelSet.elements in
   let t1, t2 = to_tuple_with_tail dom t1, to_tuple_with_tail dom t2 in
-  List.for_all2 (fun f1 f2 -> Ty.leq (pack_f f1) (pack_f f2)) t1 t2
-let equiv t1 t2 = leq t1 t2 && leq t2 t1
+  List.for_all2 (fun f1 f2 -> Ty.equiv (pack_f f1) (pack_f f2)) t1 t2
+
+let equiv_constraints t1 t2 =
+  let open Records.Atom in
+  let field lbl f =
+    { bindings=LabelMap.singleton lbl f ; tail=Ty.F.any }
+    |> Descr.mk_record |> Ty.mk_descr
+  in
+  let tail_except ls f =
+    { bindings=List.map (fun l -> l,Ty.F.any) ls |> LabelMap.of_list ; tail=f }
+    |> Descr.mk_record |> Ty.mk_descr
+  in
+  let dom = LabelSet.union (dom t1) (dom t2) |> LabelSet.elements in
+  let cs = dom |> List.concat_map (fun l ->
+      let t1, t2 = find l t1 |> field l, find l t2 |> field l in
+      [(t1,t2) ; (t2,t1)]
+    )
+  in
+  let t1, t2 = tail_except dom t1.tail, tail_except dom t2.tail in
+  (t1,t2)::(t2,t1)::cs
 
 let substitute (s,rs) r =
   let open Records.Atom in
