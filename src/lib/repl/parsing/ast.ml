@@ -277,9 +277,8 @@ let build_row env t : Row.t * env =
           let f, env = build_field env t in
           (l,f)::res,env
         ) ([], env) bindings in
-    let bindings = LabelMap.of_list bindings in
     let tail, env = build_field env tl in
-    { Records.Atom.bindings ; tail }, env
+    Row.mk bindings tail, env
   | _ -> raise (Invalid_argument "Expected a row.")
 
 let build_subst env s =

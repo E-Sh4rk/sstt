@@ -143,7 +143,7 @@ module Make(VS:VarSettings) = struct
   module VCS = CS(TV)(TyB)
   module FTyB = struct
     include Ty.F
-    let pack f = Row.all_fields f |> Descr.mk_record |> Ty.mk_descr
+    let pack f = Row.all_fields f |> Row.to_record_atom |> Descr.mk_record |> Ty.mk_descr
     let is_mono f =
       let t = pack f in
       VarSet.subset (Ty.vars t) VS.delta &&
@@ -441,14 +441,14 @@ module Make(VS:VarSettings) = struct
         let ty' = solve_rectype v ty in
         let s = Subst.singleton v ty' in
         let eqs1' = eqs1 |> List.map (fun (v,eq) -> (v, Subst.apply s eq)) in
-        let eqs2' = eqs2 |> List.map (fun (v,eq) -> (v, (Subst.apply_to_row s (Row.all_fields eq)).tail)) in
+        let eqs2' = eqs2 |> List.map (fun (v,eq) -> (v, Row.tail (Subst.apply_to_row s (Row.all_fields eq)))) in
         let res = unify eqs1' eqs2' in
         Subst.add v (Subst.apply res ty') res
       | [], (v,f)::eqs2 ->
         let f' = solve_recfield v f |> Row.all_fields in
         let s = Subst.singleton_row v f' in
         let eqs1' = eqs1 |> List.map (fun (v,eq) -> (v, Subst.apply s eq)) in
-        let eqs2' = eqs2 |> List.map (fun (v,eq) -> (v, (Subst.apply_to_row s (Row.all_fields eq)).tail)) in
+        let eqs2' = eqs2 |> List.map (fun (v,eq) -> (v, Row.tail (Subst.apply_to_row s (Row.all_fields eq)))) in
         let res = unify eqs1' eqs2' in
         Subst.add_row v (Subst.apply_to_row res f') res
     in
@@ -496,9 +496,7 @@ let tally_with_rows delta delta' cs =
         RVH.add original_rv rv' rv ;
         lbl, rv'
       ) in
-    (rv, { Records.Atom.bindings=LabelMap.of_list
-            (List.map (fun (lbl, rv') -> lbl, Ty.F.mk_var rv') bindings)
-          ; tail=Ty.F.mk_var rv }),
+    (rv, Row.mk (List.map (fun (lbl, rv') -> lbl, Ty.F.mk_var rv') bindings) (Ty.F.mk_var rv)),
     (List.map (fun (_, rv') -> rv', Row.id_for rv) bindings)
   ) |> List.split in
   let s, rs = Subst.of_list_row s, List.concat rs |> Subst.of_list_row in
