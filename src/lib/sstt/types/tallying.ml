@@ -12,9 +12,9 @@ let solve_recfield v f =
     )
   in
   let eqs = VHT.to_seq nodes |> List.of_seq |> List.map (fun (v',ty') ->
-    v', Subst.apply (Subst.singleton_row v (Row.all_fields f)) ty'
+    v', Subst.apply (Subst.singleton2 v (Row.all_fields f)) ty'
   ) in
-  let s = Ty.of_eqs eqs |> Subst.of_list in
+  let s = Ty.of_eqs eqs |> Subst.of_list1 in
   f |> Ty.F.map_nodes (fun n -> Subst.apply s n)
 
 (* =============== Tallying algorithm =============== *)
@@ -419,12 +419,12 @@ module Make(VS:VarSettings) = struct
     let renaming = ref Subst.identity in
     let to_eq (ty1, v, ty2) =
       let v' = Var.mk (Var.name v) in
-      renaming := Subst.add v' (Ty.mk_var v) !renaming ;
+      renaming := Subst.add1 v' (Ty.mk_var v) !renaming ;
       (v, Ty.cap (Ty.cup ty1 (Ty.mk_var v')) ty2)
     in
     let to_eq' (f1, v, f2) =
       let v' = RowVar.mk (RowVar.name v) in
-      renaming := Subst.add_row v' (Row.id_for v) !renaming ;
+      renaming := Subst.add2 v' (Row.id_for v) !renaming ;
       (v, Ty.F.cap (Ty.F.cup f1 (Ty.F.mk_var v')) f2)
     in
     let rec unify eqs1 eqs2 =
@@ -432,22 +432,24 @@ module Make(VS:VarSettings) = struct
       | [], [] -> Subst.identity
       | (v,ty)::eqs1, eqs2 ->
         let ty' = solve_rectype v ty in
-        let s = Subst.singleton v ty' in
+        let s = Subst.singleton1 v ty' in
         let eqs1' = eqs1 |> List.map (fun (v,eq) -> (v, Subst.apply s eq)) in
         let eqs2' = eqs2 |> List.map (fun (v,eq) -> (v, Row.tail (Subst.apply_to_row s (Row.all_fields eq)))) in
         let res = unify eqs1' eqs2' in
-        Subst.add v (Subst.apply res ty') res
+        Subst.add1 v (Subst.apply res ty') res
       | [], (v,f)::eqs2 ->
         let f' = solve_recfield v f |> Row.all_fields in
-        let s = Subst.singleton_row v f' in
+        let s = Subst.singleton2 v f' in
         let eqs1' = eqs1 |> List.map (fun (v,eq) -> (v, Subst.apply s eq)) in
         let eqs2' = eqs2 |> List.map (fun (v,eq) -> (v, Row.tail (Subst.apply_to_row s (Row.all_fields eq)))) in
         let res = unify eqs1' eqs2' in
-        Subst.add_row v (Subst.apply_to_row res f') res
+        Subst.add2 v (Subst.apply_to_row res f') res
     in
     let eqs1 = VCS.to_list_map to_eq cs in
     let eqs2 = FCS.to_list_map to_eq' cs' in
-    unify eqs1 eqs2 |> Subst.map (Subst.apply !renaming)
+    unify eqs1 eqs2
+    |> Subst.map1 (Subst.apply !renaming)
+    |> Subst.map2 (Subst.apply_to_row !renaming)
 
   let tally cs =
     let ncss = cs |> CSS.map_conj (fun (s,t) -> norm (Ty.diff s t)) in
@@ -492,9 +494,9 @@ let tally_with_rows delta cs =
     (rv, Row.mk (List.map (fun (lbl, rv') -> lbl, Ty.F.mk_var rv') bindings) (Ty.F.mk_var rv)),
     (List.map (fun (_, rv') -> rv', Row.id_for rv) bindings)
   ) |> List.split in
-  let s, rs = Subst.of_list_row s, List.concat rs |> Subst.of_list_row in
+  let s, rs = Subst.of_list2 s, List.concat rs |> Subst.of_list2 in
   cs |> List.map (fun (t1,t2) -> Subst.apply s t1, Subst.apply s t2) |> Tallying.tally |> List.map
-    (fun sol -> Subst.compose sol s |> Subst.compose rs |> Subst.restrict_row rvs)
+    (fun sol -> Subst.compose sol s |> Subst.compose rs |> Subst.restrict2 rvs)
 
 (* =============== Exported functions =============== *)
 
@@ -503,19 +505,19 @@ let tally = tally_with_rows
 let decompose delta s1 s2 =
   let union_many = List.fold_left MixVarSet.union MixVarSet.empty in
   let vars = union_many
-    [Subst.domain' s1 ; Subst.intro' s1 ; Subst.domain' s2 ; Subst.intro' s2 ] in
-  let fresh, fresh_inv = Subst.refresh' (MixVarSet.diff vars delta) in
-  let fresh_vars = Subst.intro' fresh in
+    [Subst.domain s1 ; Subst.intro s1 ; Subst.domain s2 ; Subst.intro s2 ] in
+  let fresh, fresh_inv = Subst.refresh (MixVarSet.diff vars delta) in
+  let fresh_vars = Subst.intro fresh in
   let s2 = Subst.compose fresh s2 in
   let cs = MixVarSet.elements1 vars |> List.concat_map (fun v ->
-      let t1, t2 = Subst.find s1 v, Subst.find s2 v in
+      let t1, t2 = Subst.find1 s1 v, Subst.find1 s2 v in
       [ t1, t2 ; t2, t1 ]
     )
   in
   let cs' = MixVarSet.elements2 vars |> List.concat_map (fun v ->
-      let r1, r2 = Subst.find_row s1 v, Subst.find_row s2 v in
+      let r1, r2 = Subst.find2 s1 v, Subst.find2 s2 v in
       Row.equiv_constraints r1 r2
     )
   in
   tally (MixVarSet.union delta fresh_vars) (cs@cs')
-  |> List.map (fun s -> Subst.compose fresh_inv s |> Subst.restrict' vars)
+  |> List.map (fun s -> Subst.compose fresh_inv s |> Subst.restrict vars)

@@ -690,19 +690,19 @@ let print_row customs fmt r =
 let print_subst customs fmt s =
   let print_ty = print_ty customs in
   let print_row = print_row customs in
-  let pp_binding fmt (v,ty) =
+  let pp_binding1 fmt (v,ty) =
     Format.fprintf fmt "@,%a: %a" Var.pp v print_ty ty
   in
-  let pp_binding_row fmt (v,r) =
+  let pp_binding2 fmt (v,r) =
     Format.fprintf fmt "@,%a: %a" RowVar.pp v print_row r
   in
   let pp_binding' fmt b =
     match b with
-    | `T (v,ty) -> pp_binding fmt (v,ty)
-    | `R (v,r) -> pp_binding_row fmt (v,r)
+    | `T (v,ty) -> pp_binding1 fmt (v,ty)
+    | `R (v,r) -> pp_binding2 fmt (v,r)
   in
-  let b1 = Subst.bindings s |> List.map (fun b -> `T b) in
-  let b2 = Subst.bindings_row s |> List.map (fun b -> `R b) in
+  let b1 = Subst.bindings1 s |> List.map (fun b -> `T b) in
+  let b2 = Subst.bindings2 s |> List.map (fun b -> `R b) in
   Format.fprintf fmt "@[<v 0>[@[<v 1>%a@]@,]@]"
     (print_seq pp_binding' " ;") (b1@b2)
 
