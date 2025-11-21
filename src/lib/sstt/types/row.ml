@@ -45,10 +45,10 @@ let equiv_constraints t1 t2 =
   let t1, t2 = tail_except dom t1.tail, tail_except dom t2.tail in
   (t1,t2)::(t2,t1)::cs
 
-let substitute (s,rs) r =
+let substitute s r =
   let open Records.Atom in
-  let r = map_nodes (fun ty -> Ty.substitute (s,rs) ty) r in
-  substitute rs r |> norm
+  let r = map_nodes (fun ty -> Ty.substitute s ty) r in
+  substitute (MixVarMap.proj2 s) r |> norm
 
 let vars t =
   let vs = ref VarSet.empty in
@@ -58,6 +58,7 @@ let row_vars t =
   let vs = ref (Records.Atom.vars_toplevel t) in
   let _ = Records.Atom.map_nodes (fun n -> vs := RowVarSet.union !vs (Ty.row_vars n) ; n) t in
   !vs
+let all_vars t = MixVarSet.of_set (vars t) (row_vars t)
 
 let compare = Records.Atom.compare
 let equal = Records.Atom.equal

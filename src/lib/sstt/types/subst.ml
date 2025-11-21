@@ -1,22 +1,23 @@
 open Core
 
-type t = Ty.t VarMap.t * Row.t RowVarMap.t
-let identity = VarMap.empty, RowVarMap.empty
+type t = (Ty.t, Row.t) MixVarMap.t
+let identity = MixVarMap.empty
 
 let not_id v ty = Ty.equiv ty (Ty.mk_var v) |> not
 let not_id_row v r = Row.equiv r (Row.id_for v) |> not
 let norm s = VarMap.filter not_id s
 let norm_row rs = RowVarMap.filter not_id_row rs
 let of_list' lst1 lst2 =
-  lst1 |> VarMap.of_list |> norm,
-  lst2 |> RowVarMap.of_list |> norm_row
+  MixVarMap.of_map
+    (lst1 |> VarMap.of_list |> norm)
+    (lst2 |> RowVarMap.of_list |> norm_row)
 let of_list lst = of_list' lst []
 let of_list_row lst = of_list' [] lst
-let to_core_subst (s,rs) = s, RowVarMap.map Row.to_record_atom rs
+let to_core_subst s = MixVarMap.map2 Row.to_record_atom s
 
-let combine (s1,rs1) (s2,rs2) =
+let combine s1 s2 =
   let union _ = raise (Invalid_argument "Domains are not disjoint") in
-  VarMap.union union s1 s2, RowVarMap.union union rs1 rs2
+  MixVarMap.union union union s1 s2
 
 let refresh ?names vs =
   let new_name = match names with None -> Var.name | Some f -> f in
@@ -25,8 +26,7 @@ let refresh ?names vs =
       let v' = new_name v |> Var.mk in
       (v, Ty.mk_var v'), (v', Ty.mk_var v)
     ) |> List.split in
-  (VarMap.of_list bindings, RowVarMap.empty),
-  (VarMap.of_list bindings', RowVarMap.empty)
+  MixVarMap.of_list1 bindings, MixVarMap.of_list1 bindings'
 let refresh_row ?names vs =
   let new_name = match names with None -> RowVar.name | Some f -> f in
   let (rbindings, rbindings') = vs |> RowVarSet.elements |> List.map
@@ -34,32 +34,35 @@ let refresh_row ?names vs =
       let v' = new_name v |> RowVar.mk in
       (v, Row.id_for v'), (v', Row.id_for v)
     ) |> List.split in
-  (VarMap.empty, RowVarMap.of_list rbindings),
-  (VarMap.empty, RowVarMap.of_list rbindings')
-let refresh' ?names ?names_row vs vs_row =
-  let s, rs = refresh ?names vs in
-  let s_row, rs_row = refresh_row ?names:names_row vs_row in
+  MixVarMap.of_list2 rbindings, MixVarMap.of_list2 rbindings'
+let refresh' ?names ?names_row vs =
+  let s, rs = refresh ?names (MixVarSet.proj1 vs) in
+  let s_row, rs_row = refresh_row ?names:names_row (MixVarSet.proj2 vs) in
   combine s s_row, combine rs rs_row
 
-let singleton v ty = VarMap.singleton v ty |> norm, RowVarMap.empty
-let singleton_row v r = VarMap.empty, RowVarMap.singleton v r |> norm_row
-let bindings (s,_) = VarMap.bindings s
-let bindings_row (_,rs) = RowVarMap.bindings rs
-let add v ty (s,rs) =
-  (if not_id v ty then VarMap.add v ty s else s), rs
-let add_row v r (s,rs) =
-  s, (if not_id_row v r then RowVarMap.add v r rs else rs)
-let remove v (s,rs) = VarMap.remove v s, rs
-let remove_row v (s,rs) = s, RowVarMap.remove v rs
-let map f (s,rs) = VarMap.map f s |> norm, rs
-let map_row f (s,rs) = s, RowVarMap.map f rs |> norm_row
-let filter f (s,rs) = VarMap.filter f s, rs
-let filter_row f (s,rs) = s, RowVarMap.filter f rs
+let singleton v ty = MixVarMap.of_map1 (VarMap.singleton v ty |> norm)
+let singleton_row v r = MixVarMap.of_map2 (RowVarMap.singleton v r |> norm_row)
+let bindings s = MixVarMap.bindings1 s
+let bindings_row s = MixVarMap.bindings2 s
+let add v ty s = if not_id v ty then MixVarMap.add1 v ty s else s
+let add_row v r s = if not_id_row v r then MixVarMap.add2 v r s else s
+let remove v s = MixVarMap.remove1 v s
+let remove_row v s = MixVarMap.remove2 v s
+let map f s = MixVarMap.of_map
+  (MixVarMap.proj1 s |> VarMap.map f |> norm) (MixVarMap.proj2 s)
+let map_row f s = MixVarMap.of_map
+  (MixVarMap.proj1 s) (MixVarMap.proj2 s |> RowVarMap.map f |> norm_row)
+let filter f s = MixVarMap.filter1 f s
+let filter_row f s = MixVarMap.filter2 f s
 let restrict vs t = filter (fun v _ -> VarSet.mem v vs) t
 let restrict_row vs t = filter_row (fun v _ -> RowVarSet.mem v vs) t
+let restrict' vs t =
+  filter (fun v _ -> MixVarSet.mem1 v vs) t
+  |> filter_row (fun v _ -> MixVarSet.mem2 v vs)
 
 let domain t = bindings t |> List.map fst |> VarSet.of_list
 let domain_row t = bindings_row t |> List.map fst |> RowVarSet.of_list
+let domain' t = MixVarSet.of_set (domain t) (domain_row t)
 let intro t =
   let vs1 = bindings t |> List.map (fun (v,t) -> VarSet.remove v (Ty.vars t))
   |> List.fold_left VarSet.union VarSet.empty in
@@ -72,12 +75,13 @@ let intro_row t =
   let vs2 = bindings t |> List.map (fun (_,t) -> Ty.row_vars t)
   |> List.fold_left RowVarSet.union RowVarSet.empty in
   RowVarSet.union vs1 vs2
-let find (s,_) v =
-  match VarMap.find_opt v s with
+let intro' t = MixVarSet.of_set (intro t) (intro_row t)
+let find s v =
+  match MixVarMap.find_opt1 v s with
   | None -> Ty.mk_var v
   | Some t -> t
-let find_row (_,rs) v =
-  match RowVarMap.find_opt v rs with
+let find_row s v =
+  match MixVarMap.find_opt2 v s with
   | None -> Row.id_for v
   | Some r -> r
 
@@ -94,10 +98,8 @@ let compose t2 t1 =
     |> List.filter (fun (v, _) -> RowVarSet.mem v rdom1 |> not) in
   of_list' (bindings1@bindings2) (rbindings1@rbindings2)
 
-let equiv (s1,rs1) (s2,rs2) =
-  VarMap.equal Ty.equiv s1 s2 &&
-  RowVarMap.equal Row.equiv rs1 rs2
-let is_identity (s,rs) = VarMap.is_empty s && RowVarMap.is_empty rs
+let equiv s1 s2 = MixVarMap.equal Ty.equiv Row.equiv s1 s2
+let is_identity s = MixVarMap.is_empty s
 
 let apply s ty = Ty.substitute (to_core_subst s) ty
 let apply_to_row s r = Row.substitute (to_core_subst s) r

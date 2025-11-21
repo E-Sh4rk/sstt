@@ -989,7 +989,7 @@ module type VDescr = sig
     and type leaf := Descr.t and type var := Var.t
     and module VarSet := VarSet
 
-  val substitute : (t VarMap.t * Descr.Records.Atom.t RowVarMap.t) -> t -> t
+  val substitute : (t, Descr.Records.Atom.t) MixVarMap.t -> t -> t
 
 end
 
@@ -1002,7 +1002,7 @@ module type VDescr' = sig
     and type leaf := Descr.t and type var := Var.t
     and module VarMap := VarMap and module VarSet := VarSet
 
-  val substitute : (t VarMap.t * Descr.Records.Atom.t RowVarMap.t) -> t -> t
+  val substitute : (t, Descr.Records.Atom.t) MixVarMap.t -> t -> t
   val direct_row_vars : t -> RowVarSet.t
 end
 
@@ -1014,7 +1014,7 @@ module type PreNode = sig
   type descr
   type row
 
-  type subst = t VarMap.t * row RowVarMap.t
+  type subst = (t, row) MixVarMap.t
 
   include Comparable with type t:=t
   val def : t -> vdescr
@@ -1032,6 +1032,8 @@ module type PreNode = sig
   val vars_toplevel : t -> VarSet.t
   val row_vars : t -> RowVarSet.t
   val row_vars_toplevel : t -> RowVarSet.t
+  val all_vars : t -> MixVarSet.t
+  val all_vars_toplevel : t -> MixVarSet.t
   val nodes : t -> t list
 
   val of_eqs : (Var.t * t) list -> (Var.t * t) list
@@ -1137,6 +1139,10 @@ module type Ty = sig
       of row variables that are in a record at top-level.
   *)
 
+  val all_vars : t -> MixVarSet.t
+  
+  val all_vars_toplevel : t -> MixVarSet.t
+
   val nodes : t -> t list
   (** [nodes t] returns all the nodes appearing in [t] (including [t] itself). *)
 
@@ -1146,7 +1152,7 @@ module type Ty = sig
       Raises: [Invalid_argument] if the set of equations is not contractive. *)
 
   type row = VDescr.Descr.Records.Atom.t
-  type subst = t VarMap.t * row RowVarMap.t
+  type subst = (t, row) MixVarMap.t
 
   val substitute : subst -> t -> t
   (** [substitute s t] applies the type variable substitution [s] to [t]. *)

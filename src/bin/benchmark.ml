@@ -98,8 +98,8 @@ let () =
                 let time2 = Unix.gettimeofday () in
                 print Msg "Building (average): %.02fs (%.00fus)" (all time1 time2) (avg time1 time2) ;
                 bench |> List.iter (fun b ->
-                    let mono, rmono, cs = VarSet.of_list b.mono, RowVarSet.of_list b.rmono, b.cs in
-                    let _ =  Tallying.tally mono rmono cs in
+                    let delta, cs = MixVarSet.of_list b.mono b.rmono, b.cs in
+                    let _ =  Tallying.tally delta cs in
                     ()
                 ) ;
                 let time3 = Unix.gettimeofday () in
