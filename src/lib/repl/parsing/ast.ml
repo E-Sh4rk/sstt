@@ -305,7 +305,7 @@ let build_subst env s =
       in
       env := env' ; res
     ) |> List.split in
-  let s = Subst.of_list' (List.concat s) (List.concat rs) in
+  let s = Subst.of_list (List.concat s) (List.concat rs) in
   s, !env
 
 let build_tally env cs =

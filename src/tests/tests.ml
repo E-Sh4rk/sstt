@@ -187,7 +187,7 @@ let%expect_test "tests" =
               'Y: 'B & 'Y
             ]
     tally_row1: [
-                  `R: {  ;; `R & `S }
+                  `R: {  ;; `S & `R }
                 ]
     tally_row2: [
                   `R: {  ;; `R & `s }
