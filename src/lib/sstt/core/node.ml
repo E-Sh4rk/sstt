@@ -271,13 +271,13 @@ include (struct
       eqs |> List.map (fun (v,n) -> v,new_node n)
 
     let substitute (s,rs) t =
+      if VarMap.is_empty s && RowVarMap.is_empty rs then t else
       let dom = VarMap.fold (fun n _ -> VarSet.add n) s VarSet.empty in
       let rdom = RowVarMap.fold (fun r _ -> RowVarSet.add r) rs RowVarSet.empty in
       let s = s |> VarMap.map (fun n -> def n) in
       (* Optimisation: reuse nodes if possible *)
       let unchanged n = VarSet.disjoint (vars n) dom && RowVarSet.disjoint (row_vars n) rdom in
-      let deps = dependencies t
-                 |> NSet.filter  (fun n -> unchanged n |> not) in
+      let deps = dependencies t |> NSet.filter (fun n -> unchanged n |> not) in
       let copies = NH.create 10 in
       let () = NSet.iter (fun n -> NH.add copies n (mk ())) deps in
       let new_node n =
