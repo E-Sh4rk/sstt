@@ -131,7 +131,8 @@ include (struct
     open AnyEmpty
 
     type row = VDescr.Descr.Records.Atom.t
-    type subst = t VarMap.t * row RowVarMap.t
+    type subst = (t, row) MixVarMap.t
+
 
     let has_def t = Option.is_some t.def
     let def t = t.def |> Option.get
@@ -228,10 +229,12 @@ include (struct
 
     let vars_toplevel t = def t |> VDescr.direct_vars
     let row_vars_toplevel t = def t |> VDescr.direct_row_vars
+    let all_vars_toplevel t = MixVarSet.of_set (vars_toplevel t) (row_vars_toplevel t)
     let vars t =
       NSet.fold (fun n -> VarSet.union (vars_toplevel n)) (dependencies t) VarSet.empty
     let row_vars t =
       NSet.fold (fun n -> RowVarSet.union (row_vars_toplevel n)) (dependencies t) RowVarSet.empty
+    let all_vars t = MixVarSet.of_set (vars t) (row_vars t)
 
     let of_eqs eqs =
       let deps = eqs
@@ -260,9 +263,9 @@ include (struct
               let s = eqs |> List.filter_map (fun (v,n) ->
                   let nn = new_node n in
                   if has_def nn then Some (v, def nn) else None
-                ) |> VarMap.of_list in
+                ) in
               let d = def n |> VDescr.map_nodes new_node
-              |> VDescr.substitute (s,RowVarMap.empty) in
+              |> VDescr.substitute (MixVarMap.of_list1 s) in
               define nn d
             end ;
             define_all (NSet.remove n deps)
@@ -270,13 +273,15 @@ include (struct
       define_all deps ;
       eqs |> List.map (fun (v,n) -> v,new_node n)
 
-    let substitute (s,rs) t =
-      if VarMap.is_empty s && RowVarMap.is_empty rs then t else
-      let dom = VarMap.fold (fun n _ -> VarSet.add n) s VarSet.empty in
-      let rdom = RowVarMap.fold (fun r _ -> RowVarSet.add r) rs RowVarSet.empty in
-      let s = s |> VarMap.map (fun n -> def n) in
+    let substitute s t =
+      if MixVarMap.is_empty s then t else
+      let dom = MixVarMap.fold
+        (fun n _ -> MixVarSet.add1 n)
+        (fun r _ -> MixVarSet.add2 r)
+          s MixVarSet.empty in
+      let s = s |> MixVarMap.map1 (fun n -> def n) in
       (* Optimisation: reuse nodes if possible *)
-      let unchanged n = VarSet.disjoint (vars n) dom && RowVarSet.disjoint (row_vars n) rdom in
+      let unchanged n = MixVarSet.disjoint (all_vars n) dom in
       let deps = dependencies t |> NSet.filter (fun n -> unchanged n |> not) in
       let copies = NH.create 10 in
       let () = NSet.iter (fun n -> NH.add copies n (mk ())) deps in
@@ -286,7 +291,7 @@ include (struct
         | None -> n
       in
       deps |> NSet.iter (fun n ->
-          let d = def n |> VDescr.map_nodes new_node |> VDescr.substitute (s,rs) in
+          let d = def n |> VDescr.map_nodes new_node |> VDescr.substitute s in
           define (new_node n) d
         ) ;
       new_node t

@@ -39,7 +39,7 @@ val refresh : ?names:(Var.t -> string) -> VarSet.t -> t * t
 val refresh_row : ?names:(RowVar.t -> string) -> RowVarSet.t -> t * t
 
 val refresh' : ?names:(Var.t -> string) -> ?names_row:(RowVar.t -> string)
-    -> VarSet.t -> RowVarSet.t -> t * t
+    -> MixVarSet.t -> t * t
 
 val domain : t -> VarSet.t
 (** Returns the domain of a substitution, that is the set of variables for which
@@ -48,12 +48,16 @@ val domain : t -> VarSet.t
 
 val domain_row : t -> RowVarSet.t
 
+val domain' : t -> MixVarSet.t
+
 val intro : t -> VarSet.t
 (** Returns the set of introduced variables, that is, type variables that may appear
     after applying the substitution to a type.
 *)
 
 val intro_row : t -> RowVarSet.t
+
+val intro' : t -> MixVarSet.t
 
 val bindings : t -> (Var.t * Ty.t) list
 (** Returns the substution as a list of bindings from variables to types. *)
@@ -81,6 +85,8 @@ val restrict : VarSet.t -> t -> t
 (** Restrict the domain of a substitution. Keep the row variable bindings. *)
 
 val restrict_row : RowVarSet.t -> t -> t
+
+val restrict' : MixVarSet.t -> t -> t
 
 val filter : (Var.t -> Ty.t -> bool) -> t -> t
 (** [filter p s] restricts the substitution to all variables of the domain for

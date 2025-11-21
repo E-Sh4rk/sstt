@@ -22,8 +22,7 @@ let solve_recfield v f =
 type constr = Ty.t * Ty.t
 
 module type VarSettings = sig
-  val delta : VarSet.t
-  val delta' : RowVarSet.t
+  val delta : MixVarSet.t
 end
   
 module Make(VS:VarSettings) = struct
@@ -131,31 +130,25 @@ module Make(VS:VarSettings) = struct
   end
   module TyB = struct
     include Ty
-    let is_mono t =
-      VarSet.subset (Ty.vars t) VS.delta &&
-      RowVarSet.subset (Ty.row_vars t) VS.delta'
+    let is_mono t = MixVarSet.subset (Ty.all_vars t) VS.delta
   end
   module TV = struct
     type t = Var.t
     let compare = Var.compare
-    let delta = VS.delta
+    let delta = MixVarSet.proj1 VS.delta
     module Set = VarSet
   end
   module VCS = CS(TV)(TyB)
   module FTyB = struct
     include Ty.F
     let pack f = Row.all_fields f |> Row.to_record_atom |> Descr.mk_record |> Ty.mk_descr
-    let is_mono f =
-      let t = pack f in
-      VarSet.subset (Ty.vars t) VS.delta &&
-      RowVarSet.subset (Ty.row_vars t) VS.delta'
-    let leq f1 f2 =
-      Ty.leq (pack f1) (pack f2)
+    let is_mono f = MixVarSet.subset (pack f |> Ty.all_vars) VS.delta
+    let leq f1 f2 = Ty.leq (pack f1) (pack f2)
   end
   module RV = struct
     type t = RowVar.t
     let compare = RowVar.compare
-    let delta = VS.delta'
+    let delta = MixVarSet.proj2 VS.delta
     module Set = RowVarSet
   end
   module FCS = CS(RV)(FTyB)
@@ -493,11 +486,11 @@ let rvs_of_cs cs = cs
   |> List.map rvs_of_constr
   |> List.fold_left RowVarSet.union RowVarSet.empty
 module RVH = Hashtbl.Make(RowVar)
-let tally_with_rows delta delta' cs =
-  let module Tallying = Make(struct let delta = delta let delta'=delta' end) in
+let tally_with_rows delta cs =
+  let module Tallying = Make(struct let delta = delta end) in
   (* Compute the set of labels, and substitute row variables with "field variables" accordingly *)
   let labels = labels_of_cs cs |> LabelSet.elements in
-  let rvs = RowVarSet.diff (rvs_of_cs cs) delta' in
+  let rvs = RowVarSet.diff (rvs_of_cs cs) (MixVarSet.proj2 delta) in
   let original_rv = RVH.create 10 in
   let s, rs = rvs |> RowVarSet.elements |> List.map (fun rv ->
     let bindings = labels |> List.map (fun lbl ->
@@ -516,25 +509,22 @@ let tally_with_rows delta delta' cs =
 
 let tally = tally_with_rows
 
-let decompose delta delta' s1 s2 =
-  let union_many = List.fold_left VarSet.union VarSet.empty in
-  let union_many' = List.fold_left RowVarSet.union RowVarSet.empty in
+let decompose delta s1 s2 =
+  let union_many = List.fold_left MixVarSet.union MixVarSet.empty in
   let vars = union_many
-    [Subst.domain s1 ; Subst.intro s1 ; Subst.domain s2 ; Subst.intro s2 ] in
-  let vars' = union_many'
-    [Subst.domain_row s1 ; Subst.intro_row s1 ; Subst.domain_row s2 ; Subst.intro_row s2 ] in
-  let fresh, fresh_inv = Subst.refresh' (VarSet.diff vars delta) (RowVarSet.diff vars' delta') in
-  let fresh_vars, fresh_vars' = Subst.intro fresh, Subst.intro_row fresh in
+    [Subst.domain' s1 ; Subst.intro' s1 ; Subst.domain' s2 ; Subst.intro' s2 ] in
+  let fresh, fresh_inv = Subst.refresh' (MixVarSet.diff vars delta) in
+  let fresh_vars = Subst.intro' fresh in
   let s2 = Subst.compose fresh s2 in
-  let cs = VarSet.elements vars |> List.concat_map (fun v ->
+  let cs = MixVarSet.elements1 vars |> List.concat_map (fun v ->
       let t1, t2 = Subst.find s1 v, Subst.find s2 v in
       [ t1, t2 ; t2, t1 ]
     )
   in
-  let cs' = RowVarSet.elements vars' |> List.concat_map (fun v ->
+  let cs' = MixVarSet.elements2 vars |> List.concat_map (fun v ->
       let r1, r2 = Subst.find_row s1 v, Subst.find_row s2 v in
       Row.equiv_constraints r1 r2
     )
   in
-  tally (VarSet.union delta fresh_vars) (RowVarSet.union delta' fresh_vars') (cs@cs')
-  |> List.map (fun s -> Subst.compose fresh_inv s |> Subst.restrict vars |> Subst.restrict_row vars')
+  tally (MixVarSet.union delta fresh_vars) (cs@cs')
+  |> List.map (fun s -> Subst.compose fresh_inv s |> Subst.restrict' vars)

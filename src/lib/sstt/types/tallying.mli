@@ -11,14 +11,14 @@ type constr = Ty.t * Ty.t
     such that [Ty.leq s t].
 *)
 
-(** [tally mono mono' constrs] returns all solutions to the tallying instance
-    [constrs], considering that variables in [mono] and [mono'] cannot be substituted.
+(** [tally mono constrs] returns all solutions to the tallying instance
+    [constrs], considering that variables in [mono] cannot be substituted.
     The solutions returned do not feature any fresh type variable:
     the type variables already present in [constrs] are reused. *)
-val tally : VarSet.t -> RowVarSet.t -> constr list -> Subst.t list
+val tally : MixVarSet.t -> constr list -> Subst.t list
 
-(** [decompose mono mono' s1 s2] returns a set of substitutions [s] whose domain
-    is disjoint with [mono] and [mono'] and such that the composition of [s] and [s1] yields [s2].
+(** [decompose mono s1 s2] returns a set of substitutions [s] whose domain
+    is disjoint with [mono] and such that the composition of [s] and [s1] yields [s2].
     In particular, a non-empty result means that [s1] is more general than [s2]
     (in the sense that [s2] can be obtained by composing [s1] with another substitution). *)
-val decompose : VarSet.t -> RowVarSet.t -> Subst.t -> Subst.t -> Subst.t list
+val decompose : MixVarSet.t -> Subst.t -> Subst.t -> Subst.t list
