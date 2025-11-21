@@ -27,12 +27,18 @@ module NISet = Set.Make(NodeId)
 module VDHash = Hashtbl.Make(VD)
 module TagMap = Map.Make(Tag)
 
+(** Field operation  *)
+type 'd fop =
+  | FVarop of fvarop * 'd fop list
+  | FBinop of fbinop * 'd fop * 'd fop
+  | FUnop of funop * 'd fop
+  | FTy of 'd * bool
+  | FRowVar of RowVar.t
+
 type builtin =
   | Empty | Any | AnyTuple | AnyEnum | AnyTag | AnyInt
   | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of Tag.t
-type t = { main : descr ; defs : def list }
-and def = NodeId.t * descr
-and descr = { op : op ; ty : Ty.t }
+type descr = { op : op ; ty : Ty.t }
 and op =
   | Extension of extension_node
   | Alias of string
@@ -42,21 +48,17 @@ and op =
   | Enum of Enum.t
   | Tag of Tag.t * descr
   | Interval of Z.t option * Z.t option
-  | Record of (Label.t * fop) list * fop
+  | Record of (Label.t * descr fop) list * descr fop
   | Varop of varop * descr list
   | Binop of binop * descr * descr
   | Unop of unop * descr
-and fop =
-  | FVarop of fvarop * fop list
-  | FBinop of fbinop * fop * fop
-  | FUnop of funop * fop
-  | FTy of descr * bool
-  | FRowVar of RowVar.t
 and extension_node = E : {
     value : 'a;
     map : (descr  -> descr) -> 'a -> 'a;
     print : int -> assoc -> Format.formatter -> 'a -> unit
   } -> extension_node
+type def = NodeId.t * descr
+type 'm t = { main : 'm ; defs : def list }
 
 (* Extensions *)
 type aliases = (Ty.t * string) list
@@ -71,6 +73,17 @@ and ctx = {
 }
 
 
+let map_fop fty fop =
+  let rec aux fop =
+    match fop with
+      | FVarop (v, fops) -> FVarop (v, List.map aux fops)
+      | FBinop (b, fop1, fop2) -> FBinop (b, aux fop1, aux fop2)
+      | FUnop (u, fop) -> FUnop (u, aux fop)
+      | FTy (d, b) -> FTy (fty d, b)
+      | FRowVar v -> FRowVar v
+    in
+  aux fop
+
 let map_descr f d = (* Assumes f preserves semantic equivalence *)
   let rec aux d =
     let op = match d.op with
@@ -83,26 +96,17 @@ let map_descr f d = (* Assumes f preserves semantic equivalence *)
       | Tag (tag, d) -> Tag (tag, aux d)
       | Interval (lb, ub) -> Interval (lb, ub)
       | Record (bindings, fop) ->
-        Record (List.map (fun (l,fop) -> l, aux_fop fop) bindings, aux_fop fop)
+        Record (List.map (fun (l,fop) -> l, map_fop aux fop) bindings, map_fop aux fop)
       | Varop (v, ds) -> Varop (v, List.map aux ds)
       | Binop (b, d1, d2) -> Binop (b, aux d1, aux d2)
       | Unop (u, d) -> Unop (u, aux d)
     in { d with op = f { d with op } }
-  and aux_fop fop =
-    let fop = match fop with
-      | FVarop (v, fops) -> FVarop (v, List.map aux_fop fops)
-      | FBinop (b, fop1, fop2) -> FBinop (b, aux_fop fop1, aux_fop fop2)
-      | FUnop (u, fop) -> FUnop (u, aux_fop fop)
-      | FTy (d, b) -> FTy (aux d, b)
-      | FRowVar v -> FRowVar v
-    in
-    fop
   in
   aux d
 
-let map_t f t =
-  let main = map_descr f t.main in
-  let defs = t.defs |> List.map (fun (id,d) -> (id,map_descr f d)) in
+let map_t map_m f t =
+  let main = map_m (map_descr f) t.main in
+  let defs = t.defs |> List.map (fun (id,d) -> id,map_descr f d) in
   { main ; defs }
 
 let nodes_in_descr d =
@@ -114,24 +118,29 @@ let nodes_in_descr d =
   map_descr f d |> ignore ;
   !res
 
+let nodes_in_t map_m t =
+  let res = ref NISet.empty in
+  let _ = map_m (fun d -> res := NISet.union (!res) (nodes_in_descr d) ; d) t.main in
+  t.defs |> List.map (fun (_,d) -> nodes_in_descr d) |> List.fold_left NISet.union !res
+
 let size_of_descr d =
   let res = ref 0 in
   let f d = res := !res + 1 ; d.op in
   map_descr f d |> ignore ;
   !res
 
-let size_t t =
-  List.fold_left (fun n (_,d) ->
-      n + 3 + size_of_descr d
-    ) (size_of_descr t.main) t.defs
+let size_t map_m t =
+  let res = ref 0 in
+  let _ = map_m (fun d -> res := !res + (size_of_descr d) ; d) t.main in
+  t.defs |> List.map (fun (_,d) -> size_of_descr d + 3) |> List.fold_left (+) !res
 
-let subst n d t =
+let subst map_m n d t =
   let aux d' =
     match d'.op with
     | Node n' when NodeId.equal n n' -> d.op
     | _ -> d'.op
   in
-  map_t aux t
+  map_t map_m aux t
 
 let neg d =
   match d.op with
@@ -233,11 +242,10 @@ let node ctx ty =
     VDHash.add ctx.nodes def nid  ;
     { op = Node nid ; ty }
 
-let build_t (params:params) ty =
+let build_ctx params =
   let aliases = params.aliases |> List.map (fun (ty, s) -> (ty, Alias s)) in
   let extensions = params.extensions |> TagMap.of_list in
-  let ctx = { nodes=VDHash.create 16 ; aliases ; extensions } in
-  ctx, { main = node ctx ty ; defs = [] }
+  { nodes=VDHash.create 16 ; aliases ; extensions }
 
 (* Step 2 : Resolve missing definitions (and recognize Ext type aliases) *)
 
@@ -300,9 +308,9 @@ let resolve_tuples ctx a =
     ) |> union in
   if pos then d else neg d
 
-let resolve_field ctx f =
+let resolve_field nf f =
   let aux_oty oty =
-    FTy (node ctx (Ty.O.get oty), Ty.O.is_optional oty)
+    FTy (nf (Ty.O.get oty), Ty.O.is_optional oty)
   in
   let aux_var v = FRowVar v in
   let aux_ps ps = ps |> List.map aux_var in
@@ -323,8 +331,8 @@ let resolve_records ctx a =
   let open Records.Atom in
   let resolve_rec r =
     let bindings = r.bindings |> LabelMap.bindings
-      |> List.map (fun (l,f) -> (l, resolve_field ctx f)) in
-    record bindings (resolve_field ctx r.tail)
+      |> List.map (fun (l,f) -> (l, resolve_field (node ctx) f)) in
+    record bindings (resolve_field (node ctx) r.tail)
   in
   Records.dnf a |> resolve_dnf resolve_rec
 
@@ -415,21 +423,21 @@ let resolve_def ctx def =
     def |> VD.dnf |> List.map resolve_dnf |> union
   | Some d -> d
 
-let rec resolve_missing_defs ctx t =
+let rec resolve_missing_defs ctx defs =
   let used_defs = ctx.nodes |> VDHash.to_seq |> List.of_seq in
   let to_define = used_defs |> List.find_opt (fun (_,nid) ->
-      t.defs |> List.exists (fun (nid',_) -> NodeId.equal nid nid') |> not
+      defs |> List.exists (fun (nid',_) -> NodeId.equal nid nid') |> not
     ) in
   match to_define with
-  | None -> t
+  | None -> defs
   | Some (def,nid) ->
     let descr = resolve_def ctx def in
-    resolve_missing_defs ctx { t with defs = (nid,descr)::t.defs }
+    resolve_missing_defs ctx ((nid,descr)::defs)
 
 (* Step 3 : Inline nodes when relevant, remove unused nodes *)
 
-let used_nodes t =
-  let res = nodes_in_descr t.main in
+let used_nodes map_m t =
+  let res = nodes_in_t map_m { main=t.main ; defs=[] } in
   let rec aux nodes =
     let add_nodes nodes (n, d) =
       if NISet.mem n nodes
@@ -441,20 +449,20 @@ let used_nodes t =
   in
   aux res
 
-let remove_unused_nodes t =
-  let used = used_nodes t in
+let remove_unused_nodes map_m t =
+  let used = used_nodes map_m t in
   let defs = t.defs |> List.filter (fun (n,_) -> NISet.mem n used) in
   { t with defs }
 
-let inline' metric t =
-  let t = remove_unused_nodes t in
+let inline' map_m metric t =
+  let t = remove_unused_nodes map_m t in
   let rec aux t =
     let size = metric t in
     let rec try_inline defs =
       match defs with
       | [] -> None
       | (n,d)::defs ->
-        let t' = subst n d t |> remove_unused_nodes in
+        let t' = subst map_m n d t |> remove_unused_nodes map_m in
         if metric t' < size
         then Some t'
         else try_inline defs
@@ -465,25 +473,25 @@ let inline' metric t =
   in
   aux t
 
-let inline_mid t = inline' size_t t
-let inline_max t =
+let inline_mid map_m t = inline' map_m (size_t map_m) t
+let inline_max map_m t =
   let nb_defs t = List.length t.defs in
-  inline' nb_defs t
+  inline' map_m nb_defs t
 
 (* Step 4 : Syntactic simplifications *)
 
-let simplify t =
+let simplify map_m t =
   let f d =
     match d.op with
     | Varop (Cap, [ d ; { op = Unop (Neg, dn) ; _ } ]) -> Binop (Diff, d, dn)
     | op -> op
   in
-  map_t f t
+  map_t map_m f t
 
 (* Step 5 : Rename nodes *)
 
 module StrSet = Set.Make(String)
-let names t =
+let names map_m t =
   let res = ref StrSet.empty in
   let f d = match d.op with
     | Alias str -> res := StrSet.add str !res ; Alias str
@@ -493,10 +501,9 @@ let names t =
     | Enum e -> res := StrSet.add (Enum.name e) !res ; Enum e
     | op -> op
   in
-  map_t f t |> ignore ;
-  !res
-let rename_nodes t =
-  let names = names t in
+  let _ = map_t map_m f t in !res
+let rename_nodes map_m t =
+  let names = names map_m t in
   let c = ref 0 in
   let rec next_name () =
     c := !c + 1 ;
@@ -631,26 +638,56 @@ let builder ~to_t ~map ~print =
 let print_extension_node_ctx prec assoc fmt (E e) =
   e.print prec assoc fmt e.value
 
+let get' ?(inline=false) customs tys =
+  let map_m f main = List.map f main in
+  let ctx = build_ctx customs in
+  let main = List.map (node ctx) tys in
+  let defs = resolve_missing_defs ctx [] in
+  let t = { main ; defs } in
+  let t = if inline then inline_max map_m t else inline_mid map_m t in
+  let t = simplify map_m t in
+  rename_nodes map_m t; t
+
 let get ?(inline=false) customs ty =
-  let (ctx, t) = build_t customs ty in
-  let t = resolve_missing_defs ctx t in
-  let t = if inline then inline_max t else inline_mid t in
-  let t = simplify t in
-  rename_nodes t;
-  t
+  match get' ~inline customs [ty] with
+  | { main=[d] ; defs } -> { main=d ; defs }
+  | _ -> assert false
+
+let get_field' ?(inline=false) customs ftys =
+  let map_m f main = List.map (map_fop f) main in
+  let ctx = build_ctx customs in
+  let main = List.map (resolve_field (node ctx)) ftys in
+  let defs = resolve_missing_defs ctx [] in
+  let t = { main ; defs } in
+  let t = if inline then inline_max map_m t else inline_mid map_m t in
+  let t = simplify map_m t in
+  rename_nodes map_m t; t
+
+let get_field ?(inline=false) customs fty =
+  match get_field' ~inline customs [fty] with
+  | { main=[d] ; defs } -> { main=d ; defs }
+  | _ -> assert false
 
 let print = print_t
 let print_descr_atomic = print_descr max_prec NoAssoc
-let print_descr, print_descr_ctx = print_descr', print_descr
+let print_descr, print_descr_ctx, print_field_ctx = print_descr', print_descr, print_fop
 
 let print_ty customs fmt ty =
   let ast = get customs ty in
   Format.fprintf fmt "%a" print ast
 
 let print_row customs fmt r =
-  let ty = r |> Descr.mk_record |> Ty.mk_descr in
-  (* TODO: not correct if the row has an empty binding *)
-  print_ty customs fmt ty
+  let open Records.Atom in
+  let bindings = r.bindings |> LabelMap.bindings in
+  let tail = r.tail in
+  let tail, fields, defs =
+    match get_field' customs (tail::List.map snd bindings) with
+    | { main=tl::bindings ; defs } -> tl, bindings, defs
+    | _ -> assert false
+  in
+  let bindings = List.combine (List.map fst bindings) fields in
+  let ast = { main={ ty=Ty.any ; op=Record (bindings, tail) } ; defs } in
+  print fmt ast
 
 let print_subst customs fmt s =
   let print_ty = print_ty customs in
@@ -679,4 +716,4 @@ let cap_descr = cap'
 let cup_descr = cup'
 let neg_descr = neg
 let map_descr = map_descr
-let map = map_t
+let map = map_t Fun.id
