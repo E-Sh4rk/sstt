@@ -322,6 +322,7 @@ module type Polymorphic = sig
   type leaf
   type var
   type t
+  module VarSet : Set.S with type elt=var
 
   (**@inline*)
   include TyBase with type t := t
@@ -329,14 +330,17 @@ module type Polymorphic = sig
   (** {1 Constructors } *)
 
   val mk_var : var -> t
-  (** [mk_var v] builds a full descriptor from a given type variable. *)
+  (** [mk_var v] builds a full descriptor from a given variable. *)
 
   val mk_descr : leaf -> t
   (** [mk_descr d] creates a full descriptor from the monomorphic descriptor [d]. *)
 
   val get_descr : t -> leaf
   (** [get_descr t] extracts a monomorphic descriptor from [t],
-      which describes [t] by ignoring its top-level type variables. *)
+      which describes [t] by ignoring its top-level variables. *)
+
+  val get_vars : t -> VarSet.t
+  (** [get_vars t] extracts the top-level variables in [t]. *)
 
   (** {1 Set-theoretic } *)
 
@@ -367,7 +371,6 @@ module type Polymorphic' = sig
 
   include Polymorphic
   module VarMap : Map.S with type key=var
-  module VarSet : Set.S with type elt=var
   include SetTheoreticOps with type t := t
 
   val simplify : t -> t
@@ -388,6 +391,7 @@ module type FTy = sig
   (**@inline*)
   include Polymorphic with type t := t and type node := node
     and type leaf := OTy.t and type var := RowVar.t
+    and module VarSet := RowVarSet
 
 end
 
@@ -983,6 +987,7 @@ module type VDescr = sig
   (**@inline*)
   include Polymorphic with type t := t and type node := node
     and type leaf := Descr.t and type var := Var.t
+    and module VarSet := VarSet
 
   val substitute : (t VarMap.t * Descr.Records.Atom.t RowVarMap.t) -> t -> t
 
@@ -1129,7 +1134,7 @@ module type Ty = sig
 
   val row_vars_toplevel : t -> RowVarSet.t
   (** [row_vars_toplevel t] returns the top-level row variables of [t], that is, occurrences
-      of variables that are not below a constructor.
+      of row variables that are in a record at top-level.
   *)
 
   val nodes : t -> t list
