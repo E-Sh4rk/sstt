@@ -37,6 +37,7 @@ module Make(N:Node)(V:Comparable)(L:Leaf with type node = N.t) = struct
   let diff = Bdd.diff
 
   let direct_vars t = Bdd.atoms t |> VarSet.of_list
+  let get_vars = direct_vars
 
   let is_empty t =
     Bdd.leaves t |> List.for_all L.is_empty

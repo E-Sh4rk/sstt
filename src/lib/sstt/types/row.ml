@@ -6,12 +6,12 @@ type t = Records.Atom.t
 let all_fields f = { Records.Atom.bindings=LabelMap.empty ; tail=f }
 let id_for v = all_fields (Ty.F.mk_var v)
 
-let pack_f f = Descr.mk_record (all_fields f) |> Ty.mk_descr
+let pack f = Descr.mk_record (all_fields f) |> Ty.mk_descr
 let equiv t1 t2 =
   let open Records.Atom in
   let dom = LabelSet.union (dom t1) (dom t2) |> LabelSet.elements in
   let t1, t2 = to_tuple_with_tail dom t1, to_tuple_with_tail dom t2 in
-  List.for_all2 (fun f1 f2 -> Ty.equiv (pack_f f1) (pack_f f2)) t1 t2
+  List.for_all2 (fun f1 f2 -> Ty.equiv (pack f1) (pack f2)) t1 t2
 
 let equiv_constraints t1 t2 =
   let open Records.Atom in
