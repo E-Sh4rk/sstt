@@ -473,46 +473,46 @@ end
 
 (* =============== Tallying with row variables =============== *)
 
-  let labels_of_ty t =
-    let labels = ref LabelSet.empty in
-    let _ = Ty.nodes t |> List.iter (fun n ->
-        Ty.def n |> VDescr.map (fun d ->
-          let _ = d |> Descr.get_records |> Records.map (fun r ->
-              labels := LabelSet.union !labels (Records.Atom.dom r) ; r
-          ) in d
-        ) |> ignore
-      ) in !labels
-  let labels_of_constr (t1, t2) =
-    LabelSet.union (labels_of_ty t1) (labels_of_ty t2)
-  let labels_of_cs cs = cs
-    |> List.map labels_of_constr
-    |> List.fold_left LabelSet.union LabelSet.empty
-  let rvs_of_constr (t1, t2) =
-    RowVarSet.union (Ty.row_vars t1) (Ty.row_vars t2)
-  let rvs_of_cs cs = cs
-    |> List.map rvs_of_constr
-    |> List.fold_left RowVarSet.union RowVarSet.empty
-  module RVH = Hashtbl.Make(RowVar)
-  let tally_with_rows delta delta' cs =
-    let module Tallying = Make(struct let delta = delta let delta'=delta' end) in
-    (* Compute the set of labels, and substitute row variables accordingly *)
-    let labels = labels_of_cs cs |> LabelSet.elements in
-    let rvs = RowVarSet.diff (rvs_of_cs cs) delta' in
-    let original_rv = RVH.create 10 in
-    let s, rs = rvs |> RowVarSet.elements |> List.map (fun rv ->
-      let bindings = labels |> List.map (fun lbl ->
-          let rv' = RowVar.mk (RowVar.name rv) in
-          RVH.add original_rv rv' rv ;
-          lbl, rv'
-        ) in
-      (rv, { Records.Atom.bindings=LabelMap.of_list
-              (List.map (fun (lbl, rv') -> lbl, Ty.F.mk_var rv') bindings)
-           ; tail=Ty.F.mk_var rv }),
-      (List.map (fun (_, rv') -> rv', Row.id_for rv) bindings)
-    ) |> List.split in
-    let s, rs = Subst.of_list_row s, List.concat rs |> Subst.of_list_row in
-    cs |> List.map (fun (t1,t2) -> Subst.apply s t1, Subst.apply s t2) |> Tallying.tally |> List.map
-      (fun sol -> Subst.compose sol s |> Subst.compose rs |> Subst.restrict_row rvs)
+let labels_of_ty t =
+  let labels = ref LabelSet.empty in
+  let _ = Ty.nodes t |> List.iter (fun n ->
+      Ty.def n |> VDescr.map (fun d ->
+        let _ = d |> Descr.get_records |> Records.map (fun r ->
+            labels := LabelSet.union !labels (Records.Atom.dom r) ; r
+        ) in d
+      ) |> ignore
+    ) in !labels
+let labels_of_constr (t1, t2) =
+  LabelSet.union (labels_of_ty t1) (labels_of_ty t2)
+let labels_of_cs cs = cs
+  |> List.map labels_of_constr
+  |> List.fold_left LabelSet.union LabelSet.empty
+let rvs_of_constr (t1, t2) =
+  RowVarSet.union (Ty.row_vars t1) (Ty.row_vars t2)
+let rvs_of_cs cs = cs
+  |> List.map rvs_of_constr
+  |> List.fold_left RowVarSet.union RowVarSet.empty
+module RVH = Hashtbl.Make(RowVar)
+let tally_with_rows delta delta' cs =
+  let module Tallying = Make(struct let delta = delta let delta'=delta' end) in
+  (* Compute the set of labels, and substitute row variables with "field variables" accordingly *)
+  let labels = labels_of_cs cs |> LabelSet.elements in
+  let rvs = RowVarSet.diff (rvs_of_cs cs) delta' in
+  let original_rv = RVH.create 10 in
+  let s, rs = rvs |> RowVarSet.elements |> List.map (fun rv ->
+    let bindings = labels |> List.map (fun lbl ->
+        let rv' = RowVar.mk (RowVar.name rv) in
+        RVH.add original_rv rv' rv ;
+        lbl, rv'
+      ) in
+    (rv, { Records.Atom.bindings=LabelMap.of_list
+            (List.map (fun (lbl, rv') -> lbl, Ty.F.mk_var rv') bindings)
+          ; tail=Ty.F.mk_var rv }),
+    (List.map (fun (_, rv') -> rv', Row.id_for rv) bindings)
+  ) |> List.split in
+  let s, rs = Subst.of_list_row s, List.concat rs |> Subst.of_list_row in
+  cs |> List.map (fun (t1,t2) -> Subst.apply s t1, Subst.apply s t2) |> Tallying.tally |> List.map
+    (fun sol -> Subst.compose sol s |> Subst.compose rs |> Subst.restrict_row rvs)
 
 (* =============== Exported functions =============== *)
 
