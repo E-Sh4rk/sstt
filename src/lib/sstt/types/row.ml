@@ -5,6 +5,13 @@ open Core
 type t = Records.Atom.t
 let all_fields f = { Records.Atom.bindings=LabelMap.empty ; tail=f }
 let id_for v = all_fields (Ty.F.mk_var v)
+let mk bindings tail = { Records.Atom.bindings=LabelMap.of_list bindings ; tail }
+
+let to_record_atom = Fun.id
+let tail r = r.Records.Atom.tail
+let bindings r = r.Records.Atom.bindings |> LabelMap.bindings
+let dom = Records.Atom.dom
+let find = Records.Atom.find
 
 let pack f = Descr.mk_record (all_fields f) |> Ty.mk_descr
 let equiv t1 t2 =
@@ -37,7 +44,6 @@ let substitute (s,rs) r =
   let r = map_nodes (fun ty -> Ty.substitute (s,rs) ty) r in
   substitute rs r
 
-let dom = Records.Atom.dom
 let vars t =
   let vs = ref VarSet.empty in
   let _ = Records.Atom.map_nodes (fun n -> vs := VarSet.union !vs (Ty.vars n) ; n) t in

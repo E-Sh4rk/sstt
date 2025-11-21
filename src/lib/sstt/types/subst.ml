@@ -1,6 +1,6 @@
 open Core
 
-type t = Ty.subst
+type t = Ty.t VarMap.t * Row.t RowVarMap.t
 let identity = VarMap.empty, RowVarMap.empty
 
 let not_id v ty = Ty.equiv ty (Ty.mk_var v) |> not
@@ -12,6 +12,7 @@ let of_list' lst1 lst2 =
   lst2 |> RowVarMap.of_list |> norm_row
 let of_list lst = of_list' lst []
 let of_list_row lst = of_list' [] lst
+let to_core_subst (s,rs) = s, RowVarMap.map Row.to_record_atom rs
 
 let combine (s1,rs1) (s2,rs2) =
   let union _ = raise (Invalid_argument "Domains are not disjoint") in
@@ -81,13 +82,14 @@ let find_row (_,rs) v =
   | Some r -> r
 
 let compose t2 t1 =
+  let s2 = to_core_subst t2 in
   let dom1, rdom1 = domain t1, domain_row t1 in
   let bindings1 = bindings t1
-    |> List.map (fun (v,t) -> (v, Ty.substitute t2 t)) in
+    |> List.map (fun (v,t) -> (v, Ty.substitute s2 t)) in
   let bindings2 = bindings t2
     |> List.filter (fun (v, _) -> VarSet.mem v dom1 |> not) in
   let rbindings1 = bindings_row t1
-    |> List.map (fun (v,r) -> (v, Row.substitute t2 r)) in
+    |> List.map (fun (v,r) -> (v, Row.substitute s2 r)) in
   let rbindings2 = bindings_row t2
     |> List.filter (fun (v, _) -> RowVarSet.mem v rdom1 |> not) in
   of_list' (bindings1@bindings2) (rbindings1@rbindings2)
@@ -97,5 +99,5 @@ let equiv (s1,rs1) (s2,rs2) =
   RowVarMap.equal Row.equiv rs1 rs2
 let is_identity (s,rs) = VarMap.is_empty s && RowVarMap.is_empty rs
 
-let apply s ty = Ty.substitute s ty
-let apply_to_row s r = Row.substitute s r
+let apply s ty = Ty.substitute (to_core_subst s) ty
+let apply_to_row s r = Row.substitute (to_core_subst s) r

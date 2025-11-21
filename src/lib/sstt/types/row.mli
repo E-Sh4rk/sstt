@@ -1,13 +1,19 @@
 open Core
 
-type t = Records.Atom.t
+type t
 val id_for : RowVar.t -> t
 val all_fields : Ty.F.t -> t
+val mk : (Label.t * Ty.F.t) list -> Ty.F.t -> t
+
+val to_record_atom : t -> Records.Atom.t
+val tail : t -> Ty.F.t
+val bindings : t -> (Label.t * Ty.F.t) list
+val dom : t -> LabelSet.t
+val find : Label.t -> t -> Ty.F.t
 
 val equiv : t -> t -> bool
 val equiv_constraints : t -> t -> (Ty.t * Ty.t) list
 val substitute : Ty.subst -> t -> t
-val dom : t -> LabelSet.t
 val vars : t -> VarSet.t
 val row_vars : t -> RowVarSet.t
 

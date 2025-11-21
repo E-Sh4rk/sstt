@@ -29,6 +29,8 @@ val of_list_row : (RowVar.t * Row.t) list -> t
 
 val of_list' : (Var.t * Ty.t) list -> (RowVar.t * Row.t) list -> t
 
+val to_core_subst : t -> Ty.subst
+
 val refresh : ?names:(Var.t -> string) -> VarSet.t -> t * t
 (** [refresh ~names vs] returns a substitution mapping each variable
     in [vs] to a fresh one, together with its inverse substitution.

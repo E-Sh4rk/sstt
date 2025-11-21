@@ -677,9 +677,7 @@ let print_ty customs fmt ty =
   Format.fprintf fmt "%a" print ast
 
 let print_row customs fmt r =
-  let open Records.Atom in
-  let bindings = r.bindings |> LabelMap.bindings in
-  let tail = r.tail in
+  let bindings, tail = Row.bindings r, Row.tail r in
   let tail, fields, defs =
     match get_field' customs (tail::List.map snd bindings) with
     | { main=tl::bindings ; defs } -> tl, bindings, defs
