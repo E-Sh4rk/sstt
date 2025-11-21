@@ -1,11 +1,6 @@
 open Core
 
-(* TODO: keep rows simplified by removing redundant bindings? *)
-
 type t = Records.Atom.t
-let all_fields f = { Records.Atom.bindings=LabelMap.empty ; tail=f }
-let id_for v = all_fields (Ty.F.mk_var v)
-let mk bindings tail = { Records.Atom.bindings=LabelMap.of_list bindings ; tail }
 
 let to_record_atom = Fun.id
 let tail r = r.Records.Atom.tail
@@ -13,7 +8,18 @@ let bindings r = r.Records.Atom.bindings |> LabelMap.bindings
 let dom = Records.Atom.dom
 let find = Records.Atom.find
 
+let all_fields f = { Records.Atom.bindings=LabelMap.empty ; tail=f }
+let id_for v = all_fields (Ty.F.mk_var v)
+
 let pack f = Descr.mk_record (all_fields f) |> Ty.mk_descr
+let norm r =
+  let open Records.Atom in
+  let tl = r.tail |> pack in
+  let bindings = r.bindings |> LabelMap.filter (fun _ f -> Ty.equiv (pack f) tl |> not) in
+  { r with bindings }
+
+let mk bindings tail = { Records.Atom.bindings=LabelMap.of_list bindings ; tail } |> norm
+
 let equiv t1 t2 =
   let open Records.Atom in
   let dom = LabelSet.union (dom t1) (dom t2) |> LabelSet.elements in
@@ -42,7 +48,7 @@ let equiv_constraints t1 t2 =
 let substitute (s,rs) r =
   let open Records.Atom in
   let r = map_nodes (fun ty -> Ty.substitute (s,rs) ty) r in
-  substitute rs r
+  substitute rs r |> norm
 
 let vars t =
   let vs = ref VarSet.empty in
