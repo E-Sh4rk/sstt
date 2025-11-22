@@ -1,6 +1,8 @@
 open Core
 
 type t
+val any : t
+val empty : t
 val id_for : RowVar.t -> t
 val all_fields : Ty.F.t -> t
 val mk : (Label.t * Ty.F.t) list -> Ty.F.t -> t
