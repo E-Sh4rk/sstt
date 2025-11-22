@@ -10,6 +10,7 @@ let find = Records.Atom.find
 
 let all_fields f = { Records.Atom.bindings=LabelMap.empty ; tail=f }
 let id_for v = all_fields (Ty.F.mk_var v)
+let any, empty = all_fields Ty.F.any, all_fields Ty.F.empty
 
 let pack f = Descr.mk_record (all_fields f) |> Ty.mk_descr
 let norm r =
