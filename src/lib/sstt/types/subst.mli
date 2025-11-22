@@ -94,6 +94,14 @@ val remove1 : Var.t -> t -> t
 val remove2 : RowVar.t -> t -> t
 (** Remove a row variable from the domain of the substitution. *)
 
+val remove_many1 : VarSet.t -> t -> t
+(** Remove a set of type variable from the domain of the substitution. *)
+
+val remove_many2 : RowVarSet.t -> t -> t
+(** Remove a set of row variable from the domain of the substitution. *)
+
+val remove_many : MixVarSet.t -> t -> t
+
 val restrict1 : VarSet.t -> t -> t
 (** Restrict the domain of a substitution. Keep all the row variable bindings. *)
 
