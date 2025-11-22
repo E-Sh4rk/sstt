@@ -59,6 +59,11 @@ let restrict2 vs t = filter2 (fun v _ -> RowVarSet.mem v vs) t
 let restrict vs t =
   filter1 (fun v _ -> MixVarSet.mem1 v vs) t
   |> filter2(fun v _ -> MixVarSet.mem2 v vs)
+let remove_many1 vs t = filter1 (fun v _ -> VarSet.mem v vs |> not) t
+let remove_many2 vs t = filter2 (fun v _ -> RowVarSet.mem v vs |> not) t
+let remove_many vs t =
+  filter1 (fun v _ -> MixVarSet.mem1 v vs |> not) t
+  |> filter2(fun v _ -> MixVarSet.mem2 v vs |> not)
 
 let domain1 t = bindings1 t |> List.map fst |> VarSet.of_list
 let domain2 t = bindings2 t |> List.map fst |> RowVarSet.of_list
