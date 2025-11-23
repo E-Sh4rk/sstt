@@ -19,6 +19,7 @@ val substitute : Ty.subst -> t -> t
 val vars : t -> VarSet.t
 val row_vars : t -> RowVarSet.t
 val all_vars : t -> MixVarSet.t
+val row_vars_toplevel : t -> RowVarSet.t
 
 val compare : t -> t -> int
 val equal : t -> t -> bool

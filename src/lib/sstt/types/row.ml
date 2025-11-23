@@ -60,6 +60,7 @@ let row_vars t =
   let _ = Records.Atom.map_nodes (fun n -> vs := RowVarSet.union !vs (Ty.row_vars n) ; n) t in
   !vs
 let all_vars t = MixVarSet.of_set (vars t) (row_vars t)
+let row_vars_toplevel t = Records.Atom.vars_toplevel t
 
 let compare = Records.Atom.compare
 let equal = Records.Atom.equal
