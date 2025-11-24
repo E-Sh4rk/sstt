@@ -1,0 +1,354 @@
+[
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [ [ "{  ;; `a } -> { l1 : empty? ;; `a }", "'a -> 'b" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [ [ "{ l1 : empty? ;; `a }", "empty" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [ "`a", "`b" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{  ;; `a } -> { l2 : empty? ;; `a }", "{ l1 : empty? ;; `b } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [ "`a" ],
+    "constr": [ [ "{ l2 : empty? ; l1 : empty? ;; `a }", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "empty", "empty" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [ "`a", "`b" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{  ;; `a } -> { l3 : empty? ;; `a }",
+        "{ l2 : empty? ; l1 : empty? ;; `b } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [ "`a" ],
+    "constr": [
+      [ "{ l3 : empty? ; l2 : empty? ; l1 : empty? ;; `a }", "empty" ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "empty", "empty" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [
+      [
+        "'a & {  ;; `a } -> { l3 : empty? ; l2 : empty? ; l1 : empty? ;; `a }",
+        "'b"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'a", "any" ], [ "1", "any" ] ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [
+      [ "({  ;; `a }, 'b) -> { l1 : 'b ;; `a }", "('a, 1) -> 'c" ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [ [ "{ l1 : 1 ;; `a }", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [ [ "{ l1 : 1 ;; `a }", "any" ], [ "2", "any" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [ "`a", "`b" ],
+    "rmono": [],
+    "constr": [
+      [
+        "({  ;; `a }, 'a) -> { l2 : 'a ;; `a }",
+        "({ l1 : 1 ;; `b }, 2) -> 'b"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [ "`a" ],
+    "constr": [ [ "{ l2 : 2 ; l1 : 1 ;; `a }", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "empty", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [ [ "{ l2 : 2 ; l1 : 1 ;; `a }", "any" ], [ "3", "any" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [ "`a", "`b" ],
+    "rmono": [],
+    "constr": [
+      [
+        "({  ;; `a }, 'a) -> { l3 : 'a ;; `a }",
+        "({ l2 : 2 ; l1 : 1 ;; `b }, 3) -> 'b"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [ "`a" ],
+    "constr": [ [ "{ l3 : 3 ; l2 : 2 ; l1 : 1 ;; `a }", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "empty", "empty" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [
+      [ "'a & {  ;; `a } -> { l3 : 3 ; l2 : 2 ; l1 : 1 ;; `a }", "'b" ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "{  ;; 'a }", "any" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a" ],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [
+      [ "{  ;; `a } -> { l1 : empty? ;; `a }", "{  ;; 'a } -> 'b" ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a" ],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{  ;; `a } -> { l2 : empty? ;; `a }", "{ l1 : empty? ;; 'a } -> 'b"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a" ],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{  ;; `a } -> { l3 : empty? ;; `a }",
+        "{ l2 : empty? ; l1 : empty? ;; 'a } -> 'b"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "{  ;; 'a } -> { l3 : empty? ; l2 : empty? ; l1 : empty? ;; 'a }",
+        "'b"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "{  ;; 'a }", "any" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "{  ;; 'a }", "any" ], [ "1", "any" ] ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [ "'a" ],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [
+      [ "({  ;; `a }, 'b) -> { l1 : 'b ;; `a }", "({  ;; 'a }, 1) -> 'c" ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "{ l1 : 1 ;; 'a }", "any" ], [ "2", "any" ] ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [ "'a" ],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [
+      [
+        "({  ;; `a }, 'b) -> { l2 : 'b ;; `a }",
+        "({ l1 : 1 ;; 'a }, 2) -> 'c"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "{ l2 : 2 ; l1 : 1 ;; 'a }", "any" ], [ "3", "any" ] ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [ "'a" ],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [
+      [
+        "({  ;; `a }, 'b) -> { l3 : 'b ;; `a }",
+        "({ l2 : 2 ; l1 : 1 ;; 'a }, 3) -> 'c"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "{  ;; 'a } -> { l3 : 3 ; l2 : 2 ; l1 : 1 ;; 'a }", "'b" ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "33", "any" ], [ "44", "any" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{  ;; `a } -> { l3 : 3 ; l2 : 2 ; l1 : 1 ;; `a }",
+        "{ l3 : 33 ; l4 : 44 } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{  ;; `a } -> { l3 : empty? ; l2 : empty? ; l1 : empty? ;; `a }",
+        "{ l3 : 3 ; l2 : 2 ; l1 : 1 ; l4 : 44 } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "{ l3 : 33 ; l4 : 44 }", "any" ],
+      [ "{ l3 : 3 ; l2 : 2 ; l1 : 1 ; l4 : 44 }", "any" ],
+      [ "{ l4 : 44 }", "any" ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "{ l3 : 33 ; l4 : 44 }, { l3 : 3 ; l2 : 2 ; l1 : 1 ; l4 : 44 }, { l4 : 44 }",
+        "'a"
+      ]
+    ]
+  }
+]
