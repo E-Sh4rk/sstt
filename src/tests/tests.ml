@@ -107,22 +107,22 @@ let%expect_test "tests" =
              'Y: 'Y & bool
            ]
     tally7: [
-              'X: 'X & 'x ;
-              'Y: 'Y & 'y
+              'X: empty
             ]
            [
-             'X: empty
+             'X: 'X & 'x ;
+             'Y: 'Y & 'y
            ]
            [
              'Y: empty
            ]
     tally8: [
-              'X: 'X & 'x ;
-              'Y: 'Y & 'y ;
-              'Z: 'Z & 'z
+              'X: empty
             ]
            [
-             'X: empty
+             'X: 'X & 'x ;
+             'Y: 'Y & 'y ;
+             'Z: 'Z & 'z
            ]
            [
              'Y: empty
@@ -134,12 +134,12 @@ let%expect_test "tests" =
               'Y: empty
             ]
     tally10: [
-               'Y: 'Y & 'y ;
-               'A: 'A | 'a ;
-               'B: 'B & 'b
+               'Y: empty
              ]
             [
-              'Y: empty
+              'Y: 'Y & 'y ;
+              'A: 'A | 'a ;
+              'B: 'B & 'b
             ]
     tally11: [
                'X: 'X | 'b | 'a ;
@@ -149,11 +149,11 @@ let%expect_test "tests" =
                'X: empty
              ]
             [
-              'X: ~'B | 'A & 'X ;
-              'A: ~'B | 'A
+              'X: any
             ]
             [
-              'X: any
+              'X: ~'B | 'A & 'X ;
+              'A: ~'B | 'A
             ]
     tally13: [
                'X: empty
