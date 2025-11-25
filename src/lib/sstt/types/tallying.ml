@@ -52,6 +52,7 @@ module Make(VS:VarSettings) = struct
          not (Ty.leq s t)
       then raise_notrace Unsat
     let any = []
+    let is_any t = (t = [])
     let singleton ((s, _, t) as e) = assert_sat s t; [e]
     let merge (s, v, t) (s', _, t') =
       let ss = Ty.cup s s' in
@@ -116,6 +117,7 @@ module Make(VS:VarSettings) = struct
     let empty : t = []
     let is_empty = function [] -> true | _ -> false
     let any : t = [CS.any]
+    let is_any = function [t] when CS.is_any t -> true | _ -> false
     let singleton e = [e]
     let single e = try singleton (CS.singleton e) with CS.Unsat -> empty
     let rec insert_aux c l =
@@ -135,12 +137,15 @@ module Make(VS:VarSettings) = struct
       (cartesian_product t1 t2)
       |> List.fold_left (fun acc (cs1,cs2) -> try add (CS.cap cs1 cs2) acc with CS.Unsat -> acc) empty
 
+    let cup_lazy t1 t2 =
+      if is_any t1 then any
+      else cup t1 (t2 ())
     let cap_lazy t1 t2 =
       if is_empty t1 then empty
       else cap t1 (t2 ())
 
-    let disj t = List.fold_left cup empty t
-    let map_conj f t = List.fold_left (fun acc e -> cap (f e) acc) any t
+    let map_disj f t = List.fold_left (fun acc e -> cup_lazy acc (fun () -> f e))  empty t
+    let map_conj f t = List.fold_left (fun acc e -> cap_lazy acc (fun () -> f e)) any t
     let to_list l = l
   end
 
@@ -184,8 +189,8 @@ module Make(VS:VarSettings) = struct
     *)
     let ps = mapn (fun () -> List.init n (fun _ -> any)) conj ps in
     let rec psi acc ss ts () =
-      List.map norm ss |> CSS.disj
-      |> CSS.cup (
+      let cstr = ss |> CSS.map_disj norm in
+      CSS.cup_lazy cstr (fun () ->
         match ts with
           [] -> CSS.empty
         | tt :: ts ->
@@ -202,12 +207,9 @@ module Make(VS:VarSettings) = struct
       | None ->
         VDHash.add memo vd CSS.any;
         let res =
-          if VarSet.subset (Ty.vars t) VS.delta then
-            (* Optimisation: performing tallying on an expression with
-               no polymorphic type variable should be as fast as subtyping. *)
-            begin if Ty.is_empty t then CSS.any else CSS.empty end
-          else
-            vd |> VDescr.dnf |> CSS.map_conj norm_summand
+          if Ty.is_empty t then CSS.any
+          else if VarSet.subset (Ty.vars t) VS.delta then CSS.empty
+          else vd |> VDescr.dnf |> CSS.map_conj norm_summand
         in
         VDHash.remove memo vd ; res
     and norm_summand summand =
@@ -255,17 +257,15 @@ module Make(VS:VarSettings) = struct
       r |> Records.dnf |> CSS.map_conj norm_record
     and norm_arrow (ps, ns) =
       let rec psi t1 t2 ps () =
-        if Ty.is_empty t1 || Ty.is_empty t2 then CSS.any else
-          let cstr_1 = norm_ty t1 in
-          let cstr_2 = norm_ty t2 in
-          let cstr_rec = match ps with
-              [] -> CSS.empty
-            | (s1, s2) :: ps ->
-              CSS.cap_lazy
-                (psi (Ty.diff t1 s1) t2 ps ())
-                (psi t1 (Ty.cap t2 s2) ps)
-          in
-          CSS.cup cstr_1 (CSS.cup cstr_2 cstr_rec)
+        let cstr = CSS.cup_lazy (norm_ty t1) (fun () -> norm_ty t2) in
+        let cstr_rec () = match ps with
+            [] -> CSS.empty
+          | (s1, s2) :: ps ->
+            CSS.cap_lazy
+              (psi (Ty.diff t1 s1) t2 ps ())
+              (psi t1 (Ty.cap t2 s2) ps)
+        in
+        CSS.cup_lazy cstr cstr_rec
       in
       let norm_single_neg_arrow ps (t1, t2) =
         let cstr_domain = Ty.diff t1 (List.map fst ps |> Ty.disj) |> norm_ty in
@@ -275,11 +275,12 @@ module Make(VS:VarSettings) = struct
             if List.is_empty ps then CSS.any else psi t1 (Ty.neg t2) ps () in
           CSS.cap_lazy cstr_domain cstr_struct
       in
-      List.map (norm_single_neg_arrow ps) ns |> CSS.disj
+      CSS.map_disj (norm_single_neg_arrow ps) ns
     and norm_tuple n line = norm_tuple_gen ~any:Ty.any ~conj:Ty.conj
         ~diff:Ty.diff ~norm:norm_ty n line
     and norm_tag tag line =
-      TagComp.line_emptiness_checks norm_ty tag line |> CSS.disj
+      let tys = TagComp.line_emptiness_checks Fun.id tag line in
+      CSS.map_disj norm_ty tys
     and norm_record (ps, ns) =
       let line, n = Records.dnf_line_to_tuple (ps, ns) in
       norm_tuple_gen ~any:Ty.O.any ~conj:Ty.O.conj
@@ -303,7 +304,7 @@ module Make(VS:VarSettings) = struct
           let css = norm ty in
           let css' () = cs |> CS.cap prev |> CSS.singleton in
           let css = CSS.cap_lazy css css' in
-          let res = css |> CSS.to_list |> List.map (aux CS.any) |> CSS.disj in
+          let res = css |> CSS.to_list |> CSS.map_disj (aux CS.any) in
           VDHash.remove memo_ty (Ty.def ty); res
     in
     aux CS.any cs
@@ -331,7 +332,7 @@ module Make(VS:VarSettings) = struct
     let ncss = cs
       |> CSS.map_conj (fun (s,t) -> norm (Ty.diff s t)) in
     let mcss = ncss
-      |> CSS.to_list |> List.map propagate |> CSS.disj in
+      |> CSS.to_list |> CSS.map_disj propagate in
     mcss |> CSS.to_list |> List.map solve
 end
 
