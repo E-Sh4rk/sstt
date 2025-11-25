@@ -208,6 +208,10 @@ let%expect_test "tests" =
     perf3: [
              'X: (15..34) | 'X
            ]
+    perf4: true
+    perf5: [
+             'X: 'x25 & 'X
+           ]
     |}]
 
 open Extensions

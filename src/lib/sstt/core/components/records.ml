@@ -183,7 +183,8 @@ module Make(N:Node) = struct
     match ts with
     | [] -> false
     | tt::ts ->
-      fold_distribute_comb (fun acc ss -> acc && psi acc ss ts) ON.diff acc ss tt
+      if List.exists2 ON.disjoint ss tt then psi acc ss ts
+      else fold_distribute_comb (fun acc ss -> acc && psi acc ss ts) ON.diff acc ss tt
   let is_clause_empty (ps,ns,b) =
     if b then
       let (ps, ns), n = dnf_line_to_tuple (ps, ns) in

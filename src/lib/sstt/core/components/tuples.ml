@@ -55,7 +55,8 @@ module MakeC(N:Node) = struct
     match ts with
     | [] -> false
     | tt::ts ->
-      fold_distribute_comb (fun acc ss -> acc && psi acc ss ts) N.diff acc ss tt
+      if List.exists2 N.disjoint ss tt then psi acc ss ts
+      else fold_distribute_comb (fun acc ss -> acc && psi acc ss ts) N.diff acc ss tt
   let is_clause_empty n (ps,ns,b) =
     not b || psi true (conj n ps) ns
   let is_empty (n,t) = Bdd.for_all_lines (is_clause_empty n) t

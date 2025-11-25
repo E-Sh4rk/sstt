@@ -182,7 +182,7 @@ module Make(VS:VarSettings) = struct
   end
 
   module VDHash = Hashtbl.Make(VDescr)
-  let norm_tuple_gen ~any ~conj ~diff ~norm n (ps, ns) =
+  let norm_tuple_gen ~any ~conj ~diff ~disjoint ~norm n (ps, ns) =
     (* Same algorithm as for subtyping tuples.
        We define it outside norm below so that its type can be
        generalized and we can apply it to different ~any/~conj/...
@@ -194,7 +194,8 @@ module Make(VS:VarSettings) = struct
         match ts with
           [] -> CSS.empty
         | tt :: ts ->
-          fold_distribute_comb (fun acc ss ->
+          if List.exists2 disjoint ss tt then psi acc ss ts ()
+          else fold_distribute_comb (fun acc ss ->
               CSS.cap_lazy acc (psi acc ss ts)) diff acc ss tt
       )
     in psi CSS.any ps ns ()
@@ -261,7 +262,8 @@ module Make(VS:VarSettings) = struct
         let cstr_rec () = match ps with
             [] -> CSS.empty
           | (s1, s2) :: ps ->
-            CSS.cap_lazy
+            if Ty.disjoint t1 s1 || Ty.leq t2 s2 then psi t1 t2 ps ()
+            else CSS.cap_lazy
               (psi (Ty.diff t1 s1) t2 ps ())
               (psi t1 (Ty.cap t2 s2) ps)
         in
@@ -277,14 +279,18 @@ module Make(VS:VarSettings) = struct
       in
       CSS.map_disj (norm_single_neg_arrow ps) ns
     and norm_tuple n line = norm_tuple_gen ~any:Ty.any ~conj:Ty.conj
-        ~diff:Ty.diff ~norm:norm_ty n line
+        ~diff:Ty.diff ~disjoint:Ty.disjoint ~norm:norm_ty n line
     and norm_tag tag line =
       let tys = TagComp.line_emptiness_checks Fun.id tag line in
       CSS.map_disj norm_ty tys
     and norm_record (ps, ns) =
       let line, n = Records.dnf_line_to_tuple (ps, ns) in
+      let disjoint s1 s2 =
+        let t = Ty.O.cap s1 s2 in
+        Ty.O.is_required t && Ty.O.get t |> Ty.is_empty
+      in
       norm_tuple_gen ~any:Ty.O.any ~conj:Ty.O.conj
-        ~diff:Ty.O.diff ~norm:norm_oty n line
+        ~diff:Ty.O.diff ~disjoint ~norm:norm_oty n line
     and norm_oty (n,o) =
       if o then CSS.empty else norm_ty n
     in

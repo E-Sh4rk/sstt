@@ -34,7 +34,9 @@ module Make(N:Node) = struct
     N.is_empty t1 || N.is_empty t2 ||
     match ps with
     | [] -> false
-    | (s1,s2)::ps ->  psi (N.diff t1 s1) t2 ps && psi t1 (N.cap t2 s2) ps
+    | (s1,s2)::ps ->
+      if N.disjoint t1 s1 || N.leq t2 s2 then psi t1 t2 ps
+      else psi (N.diff t1 s1) t2 ps && psi t1 (N.cap t2 s2) ps
 
   let is_clause_empty' ps (t1,t2) =
     N.leq t1 (List.map fst ps |> N.disj) &&
