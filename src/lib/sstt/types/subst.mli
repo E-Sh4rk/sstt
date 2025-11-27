@@ -130,6 +130,9 @@ val compose : t -> t -> t
 (** [compose s2 s1] returns a substitution [s] such that applying [s]
     has the same effect as applying [s1] and then [s2]. *)
 
+val compose_restr : t -> t -> t
+(** [compose_restr s2 s1] is the same as [restrict (domain s1) (compose s2 s1)]. *)
+
 val combine : t -> t -> t
 (** Combines two substitutions whose domains are disjoint. *)
 

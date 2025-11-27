@@ -466,7 +466,7 @@ module Make(VS:VarSettings) = struct
     mcss |> CSS.to_list |> List.map solve
 end
 
-(* =============== Tallying with row variables =============== *)
+(* =============== Fields decorrelation =============== *)
 
 let labels_of_ty t =
   let labels = ref LabelSet.empty in
@@ -477,22 +477,18 @@ let labels_of_ty t =
         ) in d
       ) |> ignore
     ) in !labels
-let labels_of_constr (t1, t2) =
-  LabelSet.union (labels_of_ty t1) (labels_of_ty t2)
-let labels_of_cs cs = cs
-  |> List.map labels_of_constr
+let labels_of_tys tys = tys
+  |> List.map labels_of_ty
   |> List.fold_left LabelSet.union LabelSet.empty
-let rvs_of_constr (t1, t2) =
-  RowVarSet.union (Ty.row_vars t1) (Ty.row_vars t2)
-let rvs_of_cs cs = cs
-  |> List.map rvs_of_constr
+let rvs_of_tys tys = tys
+  |> List.map Ty.row_vars
   |> List.fold_left RowVarSet.union RowVarSet.empty
 module RVH = Hashtbl.Make(RowVar)
-let tally_with_rows delta cs =
-  let module Tallying = Make(struct let delta = delta end) in
+type fields_ctx = Subst.t * Subst.t
+let get_fields_ctx delta tys =
   (* Compute the set of labels, and substitute row variables with "field variables" accordingly *)
-  let labels = labels_of_cs cs |> LabelSet.elements in
-  let rvs = RowVarSet.diff (rvs_of_cs cs) (MixVarSet.proj2 delta) in
+  let labels = labels_of_tys tys |> LabelSet.elements in
+  let rvs = RowVarSet.diff (rvs_of_tys tys) delta in
   let original_rv = RVH.create 10 in
   let s, rs = rvs |> RowVarSet.elements |> List.map (fun rv ->
     let bindings = labels |> List.map (fun lbl ->
@@ -503,13 +499,27 @@ let tally_with_rows delta cs =
     (rv, Row.mk (List.map (fun (lbl, rv') -> lbl, Ty.F.mk_var rv') bindings) (Ty.F.mk_var rv)),
     (List.map (fun (_, rv') -> rv', Row.id_for rv) bindings)
   ) |> List.split in
-  let s, rs = Subst.of_list2 s, List.concat rs |> Subst.of_list2 in
-  cs |> List.map (fun (t1,t2) -> Subst.apply s t1, Subst.apply s t2) |> Tallying.tally |> List.map
-    (fun sol -> Subst.compose sol s |> Subst.compose rs |> Subst.restrict2 rvs)
+  Subst.of_list2 s, List.concat rs |> Subst.of_list2
+let decorrelate_fields (s,_) ty = Subst.apply s ty
+let recombine_fields (_,rs) ty = Subst.apply rs ty
+let recombine_fields' (s,rs) sol =
+  Subst.compose sol s |> Subst.compose_restr rs |> Subst.remove_many2 (Subst.intro2 s)
+let fvars_associated_with (s,_) rv = Subst.find2 s rv |> Row.row_vars
+let rvar_associated_with (_,rs) rv =
+  match Subst.find2 rs rv |> Row.bindings with
+  | [lbl,f] -> Some (Ty.F.get_vars f |> RowVarSet.elements |> List.hd, lbl)
+  | _ -> None
 
 (* =============== Exported functions =============== *)
 
-let tally = tally_with_rows
+let tally_decorrelated delta cs =
+  let module Tallying = Make(struct let delta = delta end) in
+  Tallying.tally cs
+
+let tally delta cs =
+  let frc = cs |> List.concat_map (fun (t1,t2) -> [t1;t2]) |> get_fields_ctx (MixVarSet.proj2 delta) in
+  cs |> List.map (fun (t1,t2) -> decorrelate_fields frc t1, decorrelate_fields frc t2)
+  |> tally_decorrelated delta |> List.map (recombine_fields' frc)
 
 let decompose delta s1 s2 =
   let union_many = List.fold_left MixVarSet.union MixVarSet.empty in

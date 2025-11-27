@@ -17,6 +17,15 @@ type constr = Ty.t * Ty.t
     the type variables already present in [constrs] are reused. *)
 val tally : MixVarSet.t -> constr list -> Subst.t list
 
+type fields_ctx
+val get_fields_ctx : RowVarSet.t -> Ty.t list -> fields_ctx
+val decorrelate_fields : fields_ctx -> Ty.t -> Ty.t
+val recombine_fields : fields_ctx -> Ty.t -> Ty.t
+val recombine_fields' : fields_ctx -> Subst.t -> Subst.t
+val fvars_associated_with : fields_ctx -> RowVar.t -> RowVarSet.t
+val rvar_associated_with : fields_ctx -> RowVar.t -> (RowVar.t * Label.t) option
+val tally_decorrelated : MixVarSet.t -> constr list -> Subst.t list
+
 (** [decompose mono s1 s2] returns a set of substitutions [s] whose domain
     is disjoint with [mono] and such that the composition of [s] and [s1] yields [s2].
     In particular, a non-empty result means that [s1] is more general than [s2]

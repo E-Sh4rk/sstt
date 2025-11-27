@@ -103,6 +103,10 @@ let compose t2 t1 =
     |> List.filter (fun (v, _) -> RowVarSet.mem v rdom1 |> not) in
   of_list (b1@b2) (rb1@rb2)
 
+let compose_restr t2 t1 =
+  let s2 = to_core_subst t2 in
+  t1 |> map1 (Ty.substitute s2) |> map2 (Row.substitute s2)
+
 let equiv s1 s2 = MixVarMap.equal Ty.equiv Row.equiv s1 s2
 let is_identity s = MixVarMap.is_empty s
 
