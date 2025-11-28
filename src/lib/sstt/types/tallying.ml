@@ -466,7 +466,7 @@ module Make(VS:VarSettings) = struct
     mcss |> CSS.to_list |> List.map solve
 end
 
-(* =============== Fields decorrelation =============== *)
+(* =============== Operations on row and field variables =============== *)
 
 let labels_of_ty t =
   let labels = ref LabelSet.empty in
@@ -484,8 +484,8 @@ let rvs_of_tys tys = tys
   |> List.map Ty.row_vars
   |> List.fold_left RowVarSet.union RowVarSet.empty
 module RVH = Hashtbl.Make(RowVar)
-type fields_ctx = Subst.t * Subst.t
-let get_fields_ctx delta tys =
+type field_ctx = Subst.t * Subst.t
+let get_field_ctx delta tys =
   (* Compute the set of labels, and substitute row variables with "field variables" accordingly *)
   let labels = labels_of_tys tys |> LabelSet.elements in
   let rvs = RowVarSet.diff (rvs_of_tys tys) delta in
@@ -503,7 +503,7 @@ let get_fields_ctx delta tys =
 let decorrelate_fields (s,_) ty = Subst.apply s ty
 let recombine_fields (_,rs) ty = Subst.apply rs ty
 let recombine_fields' (s,rs) sol =
-  Subst.compose sol s |> Subst.compose_restr rs |> Subst.remove_many2 (Subst.intro2 s)
+  Subst.compose sol s |> Subst.remove_many2 (Subst.intro2 s) |> Subst.compose_restr rs
 let fvars_associated_with (s,_) rv = Subst.find2 s rv |> Row.row_vars
 let rvar_associated_with (_,rs) rv =
   match Subst.find2 rs rv |> Row.bindings with
@@ -512,14 +512,14 @@ let rvar_associated_with (_,rs) rv =
 
 (* =============== Exported functions =============== *)
 
-let tally_decorrelated delta cs =
+let tally_fields delta cs =
   let module Tallying = Make(struct let delta = delta end) in
   Tallying.tally cs
 
 let tally delta cs =
-  let frc = cs |> List.concat_map (fun (t1,t2) -> [t1;t2]) |> get_fields_ctx (MixVarSet.proj2 delta) in
+  let frc = cs |> List.concat_map (fun (t1,t2) -> [t1;t2]) |> get_field_ctx (MixVarSet.proj2 delta) in
   cs |> List.map (fun (t1,t2) -> decorrelate_fields frc t1, decorrelate_fields frc t2)
-  |> tally_decorrelated delta |> List.map (recombine_fields' frc)
+  |> tally_fields delta |> List.map (recombine_fields' frc)
 
 let decompose delta s1 s2 =
   let union_many = List.fold_left MixVarSet.union MixVarSet.empty in
