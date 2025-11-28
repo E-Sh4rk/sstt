@@ -55,6 +55,7 @@ let%expect_test "tests" =
     record14: { a : 73 ; b : 42 ;; `s }
     record15: empty
     record16: { l : 42 ;; int | { l : 42 ;; x1 } } where x1 = int | { l : 42 ;; x1 }
+    record17: false
     arrow1: false
     arrow2: true
     arrow3: true

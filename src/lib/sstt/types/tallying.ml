@@ -272,12 +272,11 @@ module Make(VS:VarSettings) = struct
   module VDHash = Hashtbl.Make(VDescr)
   module FTyHash = Hashtbl.Make(Ty.F)
   
-  let norm_tuple_gen ~any ~conj ~diff ~disjoint ~norm n (ps, ns) =
+  let norm_tuple_gen ~diff ~disjoint ~norm ps ns =
     (* Same algorithm as for subtyping tuples.
        We define it outside norm below so that its type can be
        generalized and we can apply it to different ~any/~conj/...
     *)
-    let ps = mapn (fun () -> List.init n (fun _ -> any)) conj ps in
     let rec psi acc ss ts () =
       let cstr = ss |> CSS.map_disj norm in
       CSS.cup_lazy cstr (fun () ->
@@ -368,19 +367,30 @@ module Make(VS:VarSettings) = struct
           CSS.cap_lazy cstr_domain cstr_struct
       in
       CSS.map_disj (norm_single_neg_arrow ps) ns
-    and norm_tuple n line = norm_tuple_gen ~any:Ty.any ~conj:Ty.conj
-        ~diff:Ty.diff ~disjoint:Ty.disjoint ~norm:norm_ty n line
+    and norm_tuple n (ps,ns) =
+      let ps = mapn (fun () -> List.init n (fun _ -> Ty.any)) Ty.conj ps in
+      norm_tuple_gen ~diff:Ty.diff ~disjoint:Ty.disjoint ~norm:norm_ty ps ns
     and norm_tag tag line =
       let tys = TagComp.line_emptiness_checks tag line in
       CSS.map_disj norm_ty tys
     and norm_record (ps, ns) =
-      let line, n = Records.dnf_line_to_tuple (ps, ns) in
+      let (tl,p), ns = Records.dnf_line_to_types (ps, ns) in
+      CSS.cup_lazy (norm_field tl)
+        (fun () -> norm_record_tests (tl,p) [] ns)
+    and norm_record_tests (tl,p) ns ns' =
+      match ns' with
+      | [] -> norm_record_bindings p ns
+      | (tl',bs')::ns' ->
+        CSS.cup_lazy (norm_record_tests (tl,p) ns ns') (fun () ->
+          CSS.cap_lazy (Ty.F.cap tl (Ty.F.neg tl') |> norm_field)
+            (fun () -> norm_record_tests (tl,p) (bs'::ns) ns')
+        )
+    and norm_record_bindings p ns =
       let disjoint s1 s2 =
         let o = Ty.F.cap s1 s2 |> Ty.F.get_descr in
         Ty.O.is_required o && Ty.O.get o |> Ty.is_empty
       in
-      norm_tuple_gen ~any:Ty.F.any ~conj:Ty.F.conj
-        ~diff:Ty.F.diff ~disjoint ~norm:norm_field n line
+      norm_tuple_gen ~diff:Ty.F.diff ~disjoint ~norm:norm_field p ns
     and norm_field (f:Ty.F.t) =
       f |> Ty.F.dnf |> CSS.map_conj norm_field_summand
     and norm_field_summand summand =

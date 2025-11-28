@@ -582,11 +582,6 @@ module type RecordAtom = sig
   (** [to_tuple lst r] returns the list of fields associated with each
       label of [lst] in [r]. Each type is computed using {!find}. *)
 
-  val to_tuple_with_tail : Label.t list -> t -> field list
-  (** [to_tuple_with_tail lst r] returns the list [d :: to_tuple lst r] where
-      [d] is the tail of [r].
-  *)
-
   include Comparable with type t := t
   val map_nodes : (node -> node) -> t -> t
   (** [map_nodes f r] applies [f] to all nodes in [r.bindings]. *)
@@ -647,12 +642,11 @@ module type Records = sig
                               and type node := node
                               and type atom := Atom.t
 
-  val dnf_line_to_tuple : (Atom.t list * Atom.t list) -> (FTy.t list list * FTy.t list list) * int
-  (** [dnf_line_to_tuple (ps, ns)] converts a line of a [Record] DNF to
-      a line of tuples. Each record is projected to a tuple that has as many components
-      as the number of distinct labels in [ps] and [ns]. The function also returns the size of the tuples
-      in the result (which is the number of labels plus one).
-  *)
+
+  val dnf_line_to_types : (Atom.t list * Atom.t list) -> (FTy.t * FTy.t list) * (FTy.t * FTy.t list) list
+  (** [dnf_line_to_types (ps, ns)] converts a line of a [Record] DNF to a tuple ([p'], [ns']),
+  where [p'] is a pair composed of the tail and field types of the positive side,
+  and [ns] is a list pair composed of the tail and field types of the negative side. *)
 
   (** @inline
 

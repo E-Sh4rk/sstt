@@ -47,6 +47,7 @@ type unit = () ;;
 "record14" { b:'b ; a : 73 ;; `r } [ `r : { a:int ;; `s } ; 'b : 42 ] ;;
 "record15" { l:42 ;; X } where X = { l:42 ;; X } ;;
 "record16" { l:42 ;; X|int } where X = { l:42 ;; X|int } ;;
+"record17" { ;; 41|42 } <= { ;; 41 } | { ;; 42 } ;;
 
 "arrow1" bool -> bool <= false -> false ;;
 "arrow2" bool -> true <= bool -> bool ;;

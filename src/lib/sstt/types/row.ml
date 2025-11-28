@@ -24,7 +24,7 @@ let mk bindings tail = { Records.Atom.bindings=LabelMap.of_list bindings ; tail 
 let equiv t1 t2 =
   let open Records.Atom in
   let dom = LabelSet.union (dom t1) (dom t2) |> LabelSet.elements in
-  let t1, t2 = to_tuple_with_tail dom t1, to_tuple_with_tail dom t2 in
+  let t1, t2 = t1.tail::(to_tuple dom t1), t2.tail::(to_tuple dom t2) in
   List.for_all2 (fun f1 f2 -> Ty.equiv (pack f1) (pack f2)) t1 t2
 
 let equiv_constraints t1 t2 =

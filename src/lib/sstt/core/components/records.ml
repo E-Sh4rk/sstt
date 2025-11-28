@@ -28,8 +28,6 @@ module Atom
     | Some f -> f
     | None -> t.tail
   let to_tuple dom t = dom |> List.map (fun l -> find l t)
-  let to_tuple_with_tail dom t =
-    (t.tail)::(to_tuple dom t)
 
   let substitute s t =
     let tail = FTy.substitute (RowVarMap.map (fun r -> r.tail) s) t.tail in
@@ -152,15 +150,15 @@ module Make(N:Node) = struct
   let disj n ps =
     let init = fun () -> List.init n (fun _ -> FTy.empty) in
     mapn init FTy.disj ps
-  let dnf_line_to_tuple (ps, ns) =
+  let dnf_line_to_types (ps, ns) =
     let dom = List.fold_left
         (fun acc a -> LabelSet.union acc (Atom.dom a))
         LabelSet.empty (ps@ns) |> LabelSet.to_list
     in
-    let ps, ns =
-      ps |> List.map (Atom.to_tuple_with_tail dom),
-      ns |> List.map (Atom.to_tuple_with_tail dom) in
-    (ps, ns), List.length dom + 1
+    let p = ps |> List.map (Atom.to_tuple dom) |> conj (List.length dom) in
+    let tl = ps |> List.map (fun r -> r.Atom.tail) |> FTy.conj in
+    let tests = ns |> List.map (fun r -> r.Atom.tail, Atom.to_tuple dom r) in
+    (tl, p), tests
 
   let rec psi acc ss ts =
     List.exists FTy.is_empty ss ||
@@ -171,8 +169,11 @@ module Make(N:Node) = struct
       else fold_distribute_comb (fun acc ss -> acc && psi acc ss ts) FTy.diff acc ss tt
   let is_clause_empty (ps,ns,b) =
     if b then
-      let (ps, ns), n = dnf_line_to_tuple (ps, ns) in
-      psi true (conj n ps) ns
+      let (tl,p), ns = dnf_line_to_types (ps, ns) in
+      FTy.is_empty tl ||
+      let ns = ns |> List.filter_map
+        (fun (tl',n) -> if FTy.leq tl tl' then Some n else None) in
+      psi true p ns
     else true
   let is_empty t = t |> Bdd.for_all_lines is_clause_empty
 
