@@ -33,7 +33,7 @@ let define name vs =
     THT.add abs_tags abs (name, EInv n) ; abs
   else
     let abs = Tag.mk' ("_"^name)
-      (Tag.Monotonic { preserves_cap=false ; preserves_cup=false }) in
+      (Tag.Monotonic { preserves_cap=false ; preserves_cup=false ; preserves_extremum=false }) in
     THT.add abs_tags abs (name, ECov vs) ; abs
 
 let labels = Hashtbl.create 10

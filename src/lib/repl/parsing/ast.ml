@@ -32,7 +32,7 @@ type expr =
   | CApp of expr * expr
   | CCmp of expr * op * expr
 
-type tag_prop = PNone | PMono | PAnd | POr | PId
+type tag_prop = PNone | PMono | PAnd | POr | PId | PAndEx | POrEx
 type def =
   | DAtom of string
   | DTag of string * tag_prop
@@ -126,7 +126,7 @@ let tag_id env str =
       if String.starts_with ~prefix:"__" str
       then Tag.mk' str Tag.NoProperty
       else if String.starts_with ~prefix:"_" str
-      then Tag.mk' str (Tag.Monotonic { preserves_cup=false ; preserves_cap=false })
+      then Tag.mk' str (Tag.Monotonic { preserves_cup=false ; preserves_cap=false ; preserves_extremum=false })
       else Tag.mk str
     in
     let tagenv = StrMap.add str t env.tagenv in

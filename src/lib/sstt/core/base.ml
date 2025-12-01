@@ -17,7 +17,7 @@ module Tag : sig
   include Id.NamedIdentifier
   type prop =
   | NoProperty
-  | Monotonic of { preserves_cup:bool ; preserves_cap:bool }
+  | Monotonic of { preserves_cup:bool ; preserves_cap:bool ; preserves_extremum:bool }
 
   val mk' : string -> prop -> t
   val properties : t -> prop
@@ -25,10 +25,10 @@ end = struct
   module I = Id.NamedIdentifier()
   type prop =
   | NoProperty
-  | Monotonic of { preserves_cup:bool ; preserves_cap:bool }
+  | Monotonic of { preserves_cup:bool ; preserves_cap:bool ; preserves_extremum:bool }
 
   type t = I.t * prop
-  let default_prop = Monotonic { preserves_cap=true ; preserves_cup=true }
+  let default_prop = Monotonic { preserves_cap=true ; preserves_cup=true ; preserves_extremum=true }
   let mk name =  (I.mk name, default_prop)
   let mk' name prop =  (I.mk name, prop)
   let name (i,_) = I.name i

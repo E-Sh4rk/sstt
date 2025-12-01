@@ -93,11 +93,13 @@ let treat_def env def =
   | DTag (str, props) ->
     let props =
       match props with
-      | PNone -> Tag.NoProperty
-      | PMono -> Tag.Monotonic { preserves_cap=false ; preserves_cup=false }
-      | PAnd  -> Tag.Monotonic { preserves_cap=true ; preserves_cup=false }
-      | POr   -> Tag.Monotonic { preserves_cap=false ; preserves_cup=true }
-      | PId   -> Tag.Monotonic { preserves_cap=true  ; preserves_cup=true  }  
+      | PNone  -> Tag.NoProperty
+      | PMono  -> Tag.Monotonic { preserves_cap=false ; preserves_cup=false ; preserves_extremum=false }
+      | PAnd   -> Tag.Monotonic { preserves_cap=true ; preserves_cup=false ; preserves_extremum=false }
+      | PAndEx -> Tag.Monotonic { preserves_cap=true ; preserves_cup=false ; preserves_extremum=true }
+      | POr    -> Tag.Monotonic { preserves_cap=false ; preserves_cup=true ; preserves_extremum=false }
+      | POrEx  -> Tag.Monotonic { preserves_cap=false ; preserves_cup=true ; preserves_extremum=true }
+      | PId    -> Tag.Monotonic { preserves_cap=true  ; preserves_cup=true ; preserves_extremum=false  }  
     in
     let tagenv = StrMap.add str (Tag.mk' str props) env.tagenv in
     { env with tagenv }

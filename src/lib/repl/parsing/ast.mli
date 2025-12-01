@@ -31,7 +31,7 @@ type expr =
   | CApp of expr * expr
   | CCmp of expr * op * expr
 
-type tag_prop = PNone | PMono | PAnd | POr | PId
+type tag_prop = PNone | PMono | PAnd | POr | PId | PAndEx | POrEx
 type def =
   | DAtom of string
   | DTag of string * tag_prop

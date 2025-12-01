@@ -203,6 +203,8 @@ let%expect_test "tests" =
              [
                'X2: 'Y2 | 'Y1 | 'X2
              ]
+    exttags6: tagandex(42)
+    exttags7: ~tagorex()
     perf1: true
     perf2: (15..34)
     perf3: [

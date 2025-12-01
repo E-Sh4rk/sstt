@@ -281,7 +281,7 @@ module Make(VS:VarSettings) = struct
     and norm_tuple n line = norm_tuple_gen ~any:Ty.any ~conj:Ty.conj
         ~diff:Ty.diff ~disjoint:Ty.disjoint ~norm:norm_ty n line
     and norm_tag tag line =
-      let tys = TagComp.line_emptiness_checks Fun.id tag line in
+      let tys = TagComp.line_emptiness_checks tag line in
       CSS.map_disj norm_ty tys
     and norm_record (ps, ns) =
       let line, n = Records.dnf_line_to_tuple (ps, ns) in

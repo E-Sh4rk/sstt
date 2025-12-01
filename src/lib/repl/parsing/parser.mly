@@ -61,7 +61,8 @@ def:
 | id=TAGID p=prop RPAREN { DTag (id, p) }
 
 %inline prop:
-| EQUAL { PId } | LEQ { PMono } | TAND { PAnd } | TOR { POr } | { PNone }
+| EQUAL { PId } | LEQ { PMono } | TAND { PAnd } | TAND TAND { PAndEx }
+| TOR { POr } | TOR TOR { POrEx } | { PNone }
 
 expr:
 | e=expr_nocmp { e }

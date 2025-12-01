@@ -43,28 +43,36 @@ module MakeC(N:Node) = struct
   let neg (tag, t) = tag, Bdd.neg t
   let diff (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.diff t1 t2
 
-  let line_emptiness_checks f tag (ps,ns) =
-    let equiv, merge_ps, merge_ns =
+  let line_emptiness_checks tag (ps,ns) =
+    let equiv, merge_ps, merge_ns, extremum =
       match Tag.properties tag with
-      | NoProperty -> true, false, false
-      | Monotonic { preserves_cap ; preserves_cup } -> false, preserves_cap, preserves_cup
+      | NoProperty -> true, false, false, false
+      | Monotonic { preserves_cap ; preserves_cup ; preserves_extremum } ->
+        false, preserves_cap, preserves_cup, preserves_extremum && (not preserves_cap || not preserves_cup)
     in
     let ps, ns = List.map snd ps, List.map snd ns in
-    let ps = if merge_ps then [N.conj ps] else ps in
-    let ns = if merge_ns then [N.disj ns] else ns in
-    cartesian_product ps ns |> List.map (fun (p, n) ->
+    let ps, p =
+      if merge_ps then begin
+        let p = N.conj ps in
+        [p], if extremum then [p] else []
+      end else ps, []
+    in
+    let ns, n =
+      if merge_ns then
+        let n = N.disj ns in
+        [n], if extremum then [N.neg n] else []
+      else ns, []
+    in
+    p@n@(cartesian_product ps ns |> List.map (fun (p, n) ->
         let leq_test = N.diff p n in
         if equiv then
           let geq_test = N.diff n p in
-          f (N.cup leq_test geq_test)
+          N.cup leq_test geq_test
         else
-          f leq_test
-      )
+          leq_test
+      ))
   let is_clause_empty tag (ps,ns) =
-    try
-      let aux ty = if N.is_empty ty then raise Exit in
-      line_emptiness_checks aux tag (ps,ns) |> ignore ; false
-    with Exit -> true
+    line_emptiness_checks tag (ps,ns) |> List.exists N.is_empty
   let is_clause_empty tag (ps,ns,b) =
     not b || is_clause_empty tag (ps,ns)
   let is_empty (tag,bdd) = bdd |> Bdd.for_all_lines (is_clause_empty tag)

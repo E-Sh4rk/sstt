@@ -44,7 +44,7 @@ A command in the REPL ends with `;;`. It can be either:
 - A type alias definition `type id = t ;;`, or
 - An atom definition `define id ;;`, or
 - A tag definition `define id(p) ;;` where `p` is either ` ` (no property), `<=` (monotonic),
-`&` (cap-preserving), `|` (cup-preserving), `=` (identity), or
+`&` (cap-preserving), `&&` (cap-empty-preserving), `|` (cup-preserving), `||` (cup-any-preserving), `=` (identity), or
 - A type computation
 
 ## Examples
