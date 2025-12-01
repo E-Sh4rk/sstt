@@ -109,6 +109,7 @@ let regroup_neg_line ~diff ~leq p ns =
 let regroup_tuples n (ps,ns) =
   let p = regroup_pos_line ~any:Ty.any ~conj:Ty.conj n ps in
   regroup_neg_line ~diff:Ty.diff ~leq:Ty.leq p ns
+
 let regroup_records (ps,ns) =
   let open Records.Atom in
   let opened, labels = ref true, ref LabelSet.empty in
