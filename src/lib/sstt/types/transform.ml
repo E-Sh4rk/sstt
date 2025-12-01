@@ -44,24 +44,24 @@ let regroup_arrows conjuncts =
 let regroup_arrows (ps,ns) =
   (regroup_arrows ps, ns)
 
-let regroup_records conjuncts =
-  let dom =
+let regroup_records = function 
+    [] -> []
+  | a :: others ->
     let open Records.Atom in
-    conjuncts |> List.map dom |>
-    List.fold_left LabelMap.Set.union LabelMap.Set.empty in
-  let tuples = conjuncts |> List.map (Records.Atom.to_tuple dom) in
-  try
-    let tuple = mapn (fun () -> raise Exit) Ty.O.conj tuples in
-    let bindings = List.combine (Records.Atom.LabelMap.Set.to_list dom) tuple |> Records.Atom.LabelMap.of_list in
-    let opened = List.for_all (fun a -> a.Records.Atom.opened) conjuncts in
-    [{ Records.Atom.bindings ; opened }]
-  with Exit -> []
+    let cap_records a1 a2 =
+      let bindings = LabelMap.merge (fun _ ot1 ot2 ->
+          Some (Ty.O.cap (default a1 ot1) (default a2 ot2))
+        ) a1.bindings a2.bindings 
+      in { bindings; opened = a1.opened && a2.opened }
+    in
+    [ List.fold_left cap_records a others ]
+
 let regroup_records (ps,ns) =
   let open Records.Atom in
   (* Convert negative atoms to positive ones when possible *)
   let ps',ns = ns |> List.partition_map (fun r ->
-      match LabelMap.to_list r.bindings with
-      | [lbl,oty] when r.opened ->
+      match LabelMap.is_singleton_opt r.bindings with
+      | Some (lbl, oty) when r.opened ->
         Either.Left ({ r with bindings=LabelMap.singleton lbl (Ty.O.neg oty) })
       | _ -> Either.Right r
     ) in
@@ -71,10 +71,11 @@ let merge_record_lines (ps1,ns1) (ps2,ns2) =
   let open Records.Atom in
   match ps1, ps2, ns1, ns2 with
   | [p1], [p2], [], [] when p1.opened=p2.opened ->
-    begin match LabelMap.to_list p1.bindings, LabelMap.to_list p2.bindings with
-      | [lbl1,oty1], [lbl2,oty2] when Label.equal lbl1 lbl2 ->
-        Some ([{ p1 with bindings=LabelMap.singleton lbl1 (Ty.O.cup oty1 oty2) }],[])
-      | _, _ -> None
+    begin match LabelMap.is_singleton_opt p1.bindings, 
+                LabelMap.is_singleton_opt p2.bindings with
+    | Some (lbl1, oty1), Some (lbl2, oty2) when Label.equal lbl1 lbl2 ->
+      Some ([{ p1 with bindings=LabelMap.singleton lbl1 (Ty.O.cup oty1 oty2) }],[])
+    | _, _ -> None
     end
   | _, _, _, _ -> None
 
