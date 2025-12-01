@@ -44,18 +44,19 @@ module OTy(N:Node) = struct
 
   let hash (n, b) = Hash.(mix (bool b) (N.hash n))
 end
+module MakeLabelMap(N : Node) = Hash.MapList(Label)(OTy(N))
 
 module Atom(N:Node) = struct
   module OTy = OTy(N)
-
+  module LabelMap = MakeLabelMap(N)
   type node = N.t
   type nonrec oty = node * bool
-  type t = { bindings : oty LabelMap.t ; opened : bool }
+  type t = { bindings : LabelMap.t ; opened : bool }
 
   let hash t = (* This hashing is not incremental and could hurt performances
                   if we make heavy use of records (t.bindings is traversed by
                   the polymorphic Hash function) *)
-    Hash.(mix (bool t.opened) (Hashtbl.hash t.bindings))
+    Hash.(mix (bool t.opened) (LabelMap.hash t.bindings))
   let map_nodes f t =
     { t with bindings = LabelMap.map (OTy.map_nodes f) t.bindings }
 
@@ -82,20 +83,24 @@ module Atom(N:Node) = struct
     if bindings == t.bindings then t else { t with bindings }
   let equal t1 t2 =
     t1.opened = t2.opened &&
-    LabelMap.equal OTy.equal t1.bindings t2.bindings
+    LabelMap.equal t1.bindings t2.bindings
   let compare t1 t2 =
     compare t1.opened t2.opened |> ccmp
-      (LabelMap.compare OTy.compare) t1.bindings t2.bindings
+      LabelMap.compare t1.bindings t2.bindings
 end
 
 module Atom'(N:Node) = struct
   module OTy = OTy(N)
+  module LabelMap = MakeLabelMap(N)
+
 
   type node = N.t
   type nonrec oty = node * bool
-  type t = { bindings : oty LabelMap.t ; opened : bool ; required : LabelSet.t option }
+  type t = { bindings : LabelMap.t ; opened : bool ; required : LabelSet.t option }
+  let hash_opt_set = function None -> Hash.const2
+                            | Some s -> Hash.(mix const1 (LabelSet.hash s))
   let hash t = (* Same remark as OTY.hash *)
-    Hash.(mix3 (bool t.opened) (Hashtbl.hash t.bindings) (Hashtbl.hash t.required))
+    Hash.(mix3 (bool t.opened) (LabelMap.hash t.bindings) (Hashtbl.hash t.required))
 
   let dom t = LabelMap.bindings t.bindings |> List.map fst |> LabelSet.of_list
   let find lbl t =
@@ -135,11 +140,11 @@ module Atom'(N:Node) = struct
   let equal t1 t2 =
     t1.opened = t2.opened &&
     Option.equal LabelSet.equal t1.required t2.required &&
-    LabelMap.equal OTy.equal t1.bindings t2.bindings
+    LabelMap.equal t1.bindings t2.bindings
   let compare t1 t2 =
     compare t1.opened t2.opened |> ccmp
       (Option.compare LabelSet.compare) t1.required t2.required |> ccmp
-      (LabelMap.compare OTy.compare) t1.bindings t2.bindings
+      LabelMap.compare t1.bindings t2.bindings
 end
 
 module Make(N:Node) = struct
@@ -201,7 +206,7 @@ module Make(N:Node) = struct
 
     let atom_is_valid _ = true
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
-    let any' = { Atom'.bindings=LabelMap.empty ; opened=true ; required=None }
+    let any' = { Atom'.bindings=Atom'.LabelMap.empty ; opened=true ; required=None }
 
     let to_atom a' =
       let open Atom' in

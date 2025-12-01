@@ -78,3 +78,132 @@ end = struct
     | [] -> true
     | (e, _) :: ll -> (f e) && for_all f ll
 end
+
+module SetList ( X : Comparable ) : 
+sig 
+  type elt = X.t
+  type t
+  val compare : t -> t -> int
+  val equal : t -> t -> bool
+  val hash : t -> int
+  val empty : t
+  val elements : t -> elt list
+  val filter : (elt -> bool) -> t -> t
+  val mem : elt -> t -> bool
+  val of_list : elt list -> t
+  val to_list : t -> elt list
+  val union : t -> t -> t
+
+end
+= 
+struct
+  type elt = X.t
+  include List(X)
+
+  let elements = to_list
+
+  let empty = []
+  let rec mem x l =
+    match l with
+      [] -> false
+    | (y, _) :: ll -> 
+      let c = X.compare y x in
+      if c < 0 then mem x ll
+      else c = 0
+
+  let of_list l = of_list (Stdlib.List.sort X.compare l)
+  let rec union l1 l2 =
+    match l1, l2 with
+      ([], l) | (l, []) -> l
+    | (x1, _) :: ll1, (x2, _) :: ll2 ->
+      let c = X.compare x1 x2 in
+      if c < 0 then x1 $:: union ll1 l2
+      else if c = 0 then x1 $:: union ll1 ll2
+      else x2 $:: union l1 ll2
+end
+module type Map = sig 
+  type key
+  type value 
+  type t 
+
+  val add : key -> value -> t -> t
+  val bindings : t -> (key * value) list
+  val compare : t -> t -> int
+  val empty : t
+  val equal : t -> t -> bool
+
+  val hash : t -> int
+  val exists : (key -> value -> bool) -> t -> bool
+  val filter : (key -> value -> bool) -> t -> t
+
+  val find_opt : key -> t -> value option
+
+  val map : (value -> value) -> t -> t
+  val of_list : (key * value) list -> t
+  val singleton : key -> value -> t
+  val to_list : t -> (key * value) list
+
+end
+
+module MapList (K : Comparable) (V : Comparable) : Map with type key = K.t and type value = V.t
+= 
+struct
+  type key = K.t
+  type value = V.t
+  module KV = struct type t = K.t * V.t 
+    let compare (k1, v1) (k2, v2) =
+      let c = K.compare k1 k2 in 
+      if c <> 0 then c else V.compare v1 v2
+
+    let equal (k1, v1) (k2, v2) =
+      K.equal k1 k2 && V.equal v1 v2
+
+    let hash (k, v) = 
+      mix3 const3 (K.hash k) (V.hash v)
+  end
+
+  module SL = List(KV)
+
+  type t = SL.t
+
+  let[@inline always] hash = function
+      [] -> const0    | (_, h) :: _ -> h
+  let[@inline always] ($::) x l = (x, mix (hash l) (KV.hash x))::l
+  let rec add k v l =
+    match l with
+      [] -> (k, v) $:: l
+    | (((x, _) as b), _) :: ll ->
+      let c = K.compare k x in 
+      if c < 0 then (k, v) $:: l
+      else if c = 0 then (x, v)$:: ll
+      else  b $::(add k v ll)
+
+  let bindings l = Stdlib.List.map fst l
+  let compare = SL.compare
+  let empty = []
+  let equal = SL.equal
+  let exists f l = Stdlib.List.exists (fun ((k, v),_) -> f k v) l 
+  let rec filter f = function 
+    | [] -> []
+    | ((k, v) as b, _) :: ll -> if f k v then b $:: (filter f ll) else filter f ll
+
+  let rec map f = function 
+    | [] -> []
+    | ((k, v), _) :: ll ->  (k, f v) $:: (map f ll)
+
+  let rec find_opt k l =
+    match l with
+      [] -> None
+    | ((k', v), _) :: ll ->
+      let c = K.compare k k' in
+      if c < 0 then None
+      else if c = 0 then Some v
+      else find_opt k ll 
+
+
+  let of_list l = Stdlib.List.fold_left (fun acc (k, v) -> add k v acc) empty l 
+
+  let singleton k v = add k v []
+
+  let to_list = bindings
+end
