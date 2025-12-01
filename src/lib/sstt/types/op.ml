@@ -85,8 +85,8 @@ module Records = struct
   let approx t =
     let open Records.Atom in
     let union_a a1 a2 =
-      let dom = LabelSet.union (dom a1) (dom a2) in
-      let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
+      let dom = LabelMap.Set.union (dom a1) (dom a2) in
+      let bindings = dom |> LabelMap.Set.to_list |> List.map (fun lbl ->
           (lbl, Ty.O.cup (find lbl a1) (find lbl a2))
         ) |> LabelMap.of_list in
       { bindings ; opened = a1.opened || a2.opened }
@@ -100,8 +100,8 @@ module Records = struct
 
   let merge a1 a2 =
     let open Records.Atom in
-    let dom = LabelSet.union (dom a1) (dom a2) in
-    let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
+    let dom = LabelMap.Set.union (dom a1) (dom a2) in
+    let bindings = dom |> LabelMap.Set.to_list |> List.map (fun lbl ->
         let oty1, oty2 = find lbl a1, find lbl a2 in
         let oty = if snd oty2 then Ty.O.cup oty1 (fst oty2, false) else oty2 in
         (lbl, oty)

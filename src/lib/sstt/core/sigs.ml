@@ -433,7 +433,7 @@ module type RecordAtom = sig
            }
   (** A single record type.  *)
 
-  val dom : t -> LabelSet.t
+  val dom : t -> LabelMap.Set.t
   (** [dom t] returns the set of explicit labels in [t].
       Note that this does not mean that labels in [dom t] are present in
       the record values captured by [t]: even if a binding is present
@@ -443,11 +443,11 @@ module type RecordAtom = sig
   (** [find l t] returns the type associated with the label [l] in [t],
       even if [t] does not have an explicit binding for [l]. *)
 
-  val to_tuple : Label.t list -> t -> oty list
+  val to_tuple : LabelMap.Set.t -> t -> oty list
   (** [to_tuple lst r] returns the list of {!oty} associated with each
       label of [lst] in [r]. Each type is computed using {!find}. *)
 
-  val to_tuple_with_default : Label.t list -> t -> oty list
+  val to_tuple_with_default : LabelMap.Set.t -> t -> oty list
   (** [to_tuple_with_default lst r] returns the list [d :: to_tuple lst r] where
       - [d] is {!Sstt.Ty.O.any} if [r] is an open record
       - [d] is {!Sstt.Ty.O.absent} if [r] is a closed record
@@ -464,14 +464,14 @@ module type RecordAtom' = sig
   type oty = node * bool
   module LabelMap : Hash.Map with type key = Label.t and type value = oty
 
-  type t = { bindings : LabelMap.t ; opened : bool ; required : LabelSet.t option }
+  type t = { bindings : LabelMap.t ; opened : bool ; required : LabelMap.Set.t option }
   (** A compact representation for record types.
       The [bindings] and [opened] field have the same meaning as in {!Records.Atom.t}.
       When the field [required] is equal to [Some labels],
       it means that [t] requires at least one field not in [labels] to be present. *)
 
 
-  val dom : t -> LabelSet.t
+  val dom : t -> LabelMap.Set.t
   (** [dom t] returns the set of explicit labels in [t].
       Note that this does not mean that labels in [dom t] are present in
       the record values captured by [t]: even if a binding is present

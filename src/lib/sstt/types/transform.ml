@@ -46,13 +46,13 @@ let regroup_arrows (ps,ns) =
 
 let regroup_records conjuncts =
   let dom =
-    conjuncts |> List.map Records.Atom.dom |>
-    List.fold_left LabelSet.union LabelSet.empty |>
-    LabelSet.to_list in
+    let open Records.Atom in
+    conjuncts |> List.map dom |>
+    List.fold_left LabelMap.Set.union LabelMap.Set.empty in
   let tuples = conjuncts |> List.map (Records.Atom.to_tuple dom) in
   try
     let tuple = mapn (fun () -> raise Exit) Ty.O.conj tuples in
-    let bindings = List.combine dom tuple |> Records.Atom.LabelMap.of_list in
+    let bindings = List.combine (Records.Atom.LabelMap.Set.to_list dom) tuple |> Records.Atom.LabelMap.of_list in
     let opened = List.for_all (fun a -> a.Records.Atom.opened) conjuncts in
     [{ Records.Atom.bindings ; opened }]
   with Exit -> []
