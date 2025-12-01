@@ -4,7 +4,7 @@ module Label = Id.NamedIdentifier()
 (** Labels used for field names in records. *)
 
 (** @canonical Sstt.LabelSet *)
-module LabelSet = Set.Make(Label)
+module LabelSet = Hash.SetList(Label)
 (** Sets of labels. *)
 
 (** @canonical Sstt.LabelMap *)

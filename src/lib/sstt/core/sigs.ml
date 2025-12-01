@@ -418,6 +418,7 @@ end
 
 (* Records *)
 
+
 module type RecordAtom = sig
   type node
   (** An alias for the type {!Sstt.Ty.t}. *)
@@ -425,7 +426,9 @@ module type RecordAtom = sig
   type oty = node * bool
   (** An optional type (see {!Sstt.Ty.O}). *)
 
-  type t = { bindings : oty LabelMap.t;(** mapping from labels to optional types *)
+  module LabelMap : Hash.Map with type key = Label.t and type value = oty
+
+  type t = { bindings : LabelMap.t;(** mapping from labels to optional types *)
              opened : bool (** if [true], denotes an open record *)
            }
   (** A single record type.  *)
@@ -459,8 +462,9 @@ end
 module type RecordAtom' = sig
   type node
   type oty = node * bool
+  module LabelMap : Hash.Map with type key = Label.t and type value = oty
 
-  type t = { bindings : oty LabelMap.t ; opened : bool ; required : LabelSet.t option }
+  type t = { bindings : LabelMap.t ; opened : bool ; required : LabelSet.t option }
   (** A compact representation for record types.
       The [bindings] and [opened] field have the same meaning as in {!Records.Atom.t}.
       When the field [required] is equal to [Some labels],
@@ -493,7 +497,7 @@ module type Records = sig
   *)
 
   type node
-
+ 
   (** @inline*)
   include ComponentBase with type t := t
                          and type node := node
@@ -531,7 +535,7 @@ module type Records = sig
       any record which has both labels associated to their original type but which {i also has an
       extra label} that is neither {m x} nor {m y}.
   *)
-  include OptComponent with module type Atom' := (RecordAtom' with type node := node)
+  include OptComponent with module type Atom' := (RecordAtom' with type node := node and module LabelMap := Atom.LabelMap)
 
   (** @inline*)
   include OptComponentOps with type t := t
