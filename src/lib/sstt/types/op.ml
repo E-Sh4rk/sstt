@@ -20,10 +20,10 @@ module Arrows = struct
           if Ty.leq s t then [List.map snd current_set |> Ty.disj]
           else if Ty.leq s (t::(List.map fst ps) |> Ty.disj) |> not then []
           else begin match ps with
-          | [] -> []
-          | p::ps ->
-            (certain_outputs (p::current_set) (List.filter (not_redundant p) ps))@
-            (certain_outputs current_set ps)
+            | [] -> []
+            | p::ps ->
+              (certain_outputs (p::current_set) (List.filter (not_redundant p) ps))@
+              (certain_outputs current_set ps)
           end
         in
         ps |> List.filter not_disjoint |> certain_outputs [] |> Ty.conj
@@ -39,10 +39,10 @@ module Arrows = struct
           if Ty.disjoint out t then [List.map fst current_set |> Ty.conj]
           else if Ty.disjoint out (t::(List.map snd ps) |> Ty.conj) |> not then []
           else begin match ps with
-          | [] -> []
-          | p::ps ->
-            (impossible_inputs (p::current_set) (List.filter (not_redundant p) ps))@
-            (impossible_inputs current_set ps)
+            | [] -> []
+            | p::ps ->
+              (impossible_inputs (p::current_set) (List.filter (not_redundant p) ps))@
+              (impossible_inputs current_set ps)
           end
         in
         ps |> List.filter not_useless |> impossible_inputs [] |> Ty.disj |> Ty.neg
@@ -85,10 +85,13 @@ module Records = struct
   let approx t =
     let open Records.Atom in
     let union_a a1 a2 =
-      let dom = LabelMap.Set.union (dom a1) (dom a2) in
-      let bindings = dom |> LabelMap.Set.to_list |> List.map (fun lbl ->
-          (lbl, Ty.O.cup (find lbl a1) (find lbl a2))
-        ) |> LabelMap.of_list in
+      let bindings = 
+        LabelMap.merge (fun _ ot1 ot2 -> 
+            match ot1, ot2 with
+              None, None -> None
+            | _ -> 
+              Some (Ty.O.cup (default a1 ot1) (default a2 ot2))
+          ) a1.bindings a2.bindings in
       { bindings ; opened = a1.opened || a2.opened }
     in
     match as_union t with
@@ -100,12 +103,14 @@ module Records = struct
 
   let merge a1 a2 =
     let open Records.Atom in
-    let dom = LabelMap.Set.union (dom a1) (dom a2) in
-    let bindings = dom |> LabelMap.Set.to_list |> List.map (fun lbl ->
-        let oty1, oty2 = find lbl a1, find lbl a2 in
-        let oty = if snd oty2 then Ty.O.cup oty1 (fst oty2, false) else oty2 in
-        (lbl, oty)
-      ) |> LabelMap.of_list in
+    let bindings = LabelMap.merge (fun _ ot1 ot2 -> 
+        match ot1, ot2 with
+          None, None -> None
+        | _ ->
+          let (ty2, b2) as oty2 = default a2 ot2 in
+          let oty = if b2 then Ty.O.cup (default a1 ot1) (ty2, false) else oty2 in
+          Some oty
+      ) a1.bindings a2.bindings in
     { bindings ; opened = a1.opened || a2.opened } |> Records.mk
 
   let remove a lbl =

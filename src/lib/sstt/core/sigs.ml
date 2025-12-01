@@ -443,6 +443,10 @@ module type RecordAtom = sig
   (** [find l t] returns the type associated with the label [l] in [t],
       even if [t] does not have an explicit binding for [l]. *)
 
+  val default : t -> oty option -> oty
+  (** [default t ot oty] returns [t'] if [ot] is [Some t'], otherwise returns
+      the default type for a missing label in [t]. *)
+
   val to_tuple : LabelMap.Set.t -> t -> oty list
   (** [to_tuple lst r] returns the list of {!oty} associated with each
       label of [lst] in [r]. Each type is computed using {!find}. *)
@@ -481,6 +485,10 @@ module type RecordAtom' = sig
   (** [find l t] returns the type associated with the label [l] in [t],
       even if [t] does not have an explicit binding for [l]. *)
 
+  val default : t -> oty option -> oty
+  (** [default t ot oty] returns [t'] if [ot] is [Some t'], otherwise returns
+      the default type for a missing label in [t]. *)
+
   include Comparable with type t := t
 end
 
@@ -497,7 +505,7 @@ module type Records = sig
   *)
 
   type node
- 
+
   (** @inline*)
   include ComponentBase with type t := t
                          and type node := node
