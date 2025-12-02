@@ -86,7 +86,7 @@ include (struct
       }
     let hash t = Hash.int t.id
     let compare t1 t2 = Int.compare t1.id t2.id
-    let equal t1 t2 = Int.equal t1.id t2.id
+    let equal t1 t2 = t1.id = t2.id
     let empty = mk ()
     let any = mk ()
     
