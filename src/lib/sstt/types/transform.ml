@@ -46,8 +46,7 @@ let regroup_arrows (ps,ns) =
 
 let regroup_pos_line ~any ~conj n conjuncts =
   mapn (fun () -> List.init n (fun _ -> any)) conj conjuncts
-let regroup_neg_line ~diff ~is_empty p ns =
-  let leq t1 t2 = diff t1 t2 |> is_empty in
+let regroup_neg_line ~diff ~leq p ns =
   let merge (p,ns) n =
     try
       let are_smaller tys1 tys2 = List.for_all2 leq tys1 tys2 in
@@ -67,7 +66,7 @@ let regroup_neg_line ~diff ~is_empty p ns =
 
 let regroup_tuples n (ps,ns) =
   let p = regroup_pos_line ~any:Ty.any ~conj:Ty.conj n ps in
-  regroup_neg_line ~diff:Ty.diff ~is_empty:Ty.is_empty p ns
+  regroup_neg_line ~diff:Ty.diff ~leq:Ty.leq p ns
 let regroup_records (ps,ns) =
   let open Records.Atom in
   let opened, labels = ref true, ref LabelSet.empty in
@@ -76,11 +75,12 @@ let regroup_records (ps,ns) =
     opened := !opened && r.opened) ;
   ns |> List.iter (fun r -> labels := LabelSet.union !labels (dom r)) ;
   let labels, opened = LabelSet.elements !labels, !opened in
-  let ns1, ns2 = List.partition (fun r -> r.opened = opened) ns in
+  let is_empty tyo = Ty.O.is_required tyo && Ty.O.get tyo |> Ty.is_empty in
+  let leq tyo1 tyo2 = Ty.O.diff tyo1 tyo2 |> is_empty in
+  let ns1, ns2 = List.partition (fun r -> not opened || r.opened) ns in
   let ps, ns1 = List.map (to_tuple labels) ps, List.map (to_tuple labels) ns1 in
   let p = regroup_pos_line ~any:Ty.O.any ~conj:Ty.O.conj (List.length labels) ps in
-  let is_empty (ty,b) = not b && Ty.is_empty ty in
-  let ps, ns1 = regroup_neg_line ~diff:Ty.O.diff ~is_empty p ns1 in
+  let ps, ns1 = regroup_neg_line ~diff:Ty.O.diff ~leq p ns1 in
   let of_tuple tys =
     let bindings = List.combine labels tys |> LabelMap.of_list in
     { bindings ; opened }
