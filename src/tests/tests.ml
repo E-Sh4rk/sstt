@@ -21,7 +21,7 @@ let%expect_test "tests" =
     empty2: true
     atom1: false
     atom2: true
-    tags1: tag(false, true) | tag(true, false)
+    tags1: tag((true, false) | (false, true))
     tags2: tag1(true, false) | tag2(false, true)
     tags3: true
     tags4: 42
@@ -39,12 +39,15 @@ let%expect_test "tests" =
     tuples4: false
     tuples5: false
     tuples6: false
+    tuples7: int, false
     record1: true
     record2: false
     record3: true
     record4: false
     record5: true
     record5: true
+    record6: { l1 : false ; l2 : int ..}
+    record7: { l1 : bool ; l2 : int ..} \ { l1 : true ; l2 : int }
     arrow1: false
     arrow2: true
     arrow3: true
@@ -66,23 +69,23 @@ let%expect_test "tests" =
     var3: empty
     var4: any
     var5: 'x
-    print1: (int -> bool -> true) | (any -> any)
-    print2: (false, false) | (true, true)
+    print1: (any -> any) | (int -> bool -> true)
+    print2: (true, true) | (false, false)
     print3: { l1 : true ; l2 : true ..} | { l1 : false ; l2 : true }
     print4: nil | int | (any, x1) where x1 = nil | (any, x1)
     print5: (int -> int) -> bool -> bool
     print6: 'b & ('a, 'b) | 'a
     print7: ~true
     print8: ~(any -> bool)
-    print9: ~(any -> bool) | ~(true -> false)
-    print10: ~((false, true) | (true, false))
+    print9: ~(true -> false) | ~(any -> bool)
+    print10: ~((true, false) | (false, true))
     print11: bool
     print13: 'y
     print14: nil, (bool, x1) where x1 = nil | (bool, x1)
     print15: tuple \ tuple2
     print16: ~(40..44)
     print17: ~tag(42)
-    print18: ('c -> 'd) & ('a -> 'b) & ~('g -> 'h) & ~('e -> 'f)
+    print18: ('a -> 'b) & ('c -> 'd) & ~('e -> 'f) & ~('g -> 'h)
     print19: tag \ sometag(unit)
     print20: ~(bool | int | unit)
     tally1:
@@ -249,9 +252,9 @@ let%expect_test "tests_ext" =
     [%expect {|
       list_42_43: [ 42 43 any* ]
       int_list: [ int* ]
-      list_not_only_a: [ any* (~'a) any* ]
-      list_union: [ 42 any* | 43 42 any* ]
-      list_regexp: [ ('a | 'b \ 'a)* ]
+      list_not_only_a: [ any any* (~'a) any* | (~'a) any* ]
+      list_union: [ 43 42 any* | 42 any* ]
+      list_regexp: [ ('b | 'a \ 'b)* ]
       list_with_vars: 42::('a & [ int* ])
       char_any: char
       char_union: ('\000'-'1') | ('e'-'\255')
@@ -261,7 +264,7 @@ let%expect_test "tests_ext" =
       not_map_ib: ~({{ int => bool }})
       map_not_ib: {{ int ~> bool }}
       map_ib_not_ib: empty
-      map_ib_ii: {{ int => int ; int => bool }}
+      map_ib_ii: {{ int => empty }}
       list_invalid: lst(int, lst(int, int))
       bool_invalid: bool(42)
       float_invalid: flt(42)

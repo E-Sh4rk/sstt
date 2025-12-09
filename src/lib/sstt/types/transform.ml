@@ -44,74 +44,70 @@ let regroup_arrows conjuncts =
 let regroup_arrows (ps,ns) =
   (regroup_arrows ps, ns)
 
-let regroup_records conjuncts =
-  let dom =
-    conjuncts |> List.map Records.Atom.dom |>
-    List.fold_left LabelSet.union LabelSet.empty |>
-    LabelSet.to_list in
-  let tuples = conjuncts |> List.map (Records.Atom.to_tuple dom) in
-  try
-    let tuple = mapn (fun () -> raise Exit) Ty.O.conj tuples in
-    let bindings = List.combine dom tuple |> LabelMap.of_list in
-    let opened = List.for_all (fun a -> a.Records.Atom.opened) conjuncts in
-    [{ Records.Atom.bindings ; opened }]
-  with Exit -> []
+let regroup_pos_line ~any ~conj n conjuncts =
+  mapn (fun () -> List.init n (fun _ -> any)) conj conjuncts
+let regroup_neg_line ~diff ~is_empty p ns =
+  let leq t1 t2 = diff t1 t2 |> is_empty in
+  let merge (p,ns) n =
+    try
+      let are_smaller tys1 tys2 = List.for_all2 leq tys1 tys2 in
+      let rec aux tys1 tys2 =
+        match tys1, tys2 with
+        | [], [] -> []
+        | ty1::tys1, ty2::tys2 when leq ty1 ty2 -> ty1::(aux tys1 tys2)
+        | ty1::tys1, ty2::tys2 when are_smaller tys1 tys2 -> (diff ty1 ty2)::tys1
+        | _::_, _::_ -> raise Exit
+        | _, _ -> assert false
+      in
+      (aux p n, ns)
+    with Exit -> (p, n::ns)
+  in
+  let p, ns = List.fold_left merge (p,[]) ns in
+  [p], List.rev ns
+
+let regroup_tuples n (ps,ns) =
+  let p = regroup_pos_line ~any:Ty.any ~conj:Ty.conj n ps in
+  regroup_neg_line ~diff:Ty.diff ~is_empty:Ty.is_empty p ns
 let regroup_records (ps,ns) =
   let open Records.Atom in
-  (* Convert negative atoms to positive ones when possible *)
-  let ps',ns = ns |> List.partition_map (fun r ->
-      match LabelMap.to_list r.bindings with
-      | [lbl,oty] when r.opened ->
-        Either.Left ({ r with bindings=LabelMap.singleton lbl (Ty.O.neg oty) })
-      | _ -> Either.Right r
-    ) in
-  (* Regroup positive conjuncts *)
-  (regroup_records (ps'@ps), ns)
-let merge_record_lines (ps1,ns1) (ps2,ns2) =
-  let open Records.Atom in
-  match ps1, ps2, ns1, ns2 with
-  | [p1], [p2], [], [] when p1.opened=p2.opened ->
-    begin match LabelMap.to_list p1.bindings, LabelMap.to_list p2.bindings with
-      | [lbl1,oty1], [lbl2,oty2] when Label.equal lbl1 lbl2 ->
-        Some ([{ p1 with bindings=LabelMap.singleton lbl1 (Ty.O.cup oty1 oty2) }],[])
-      | _, _ -> None
-    end
-  | _, _, _, _ -> None
-
-let regroup_tuples conjuncts =
-  try [mapn (fun () -> raise Exit) Ty.conj conjuncts]
-  with Exit -> []
-let regroup_tuples (ps,ns) =
-  (* Convert negative atoms to positive ones when possible *)
-  let ps',ns = ns |> List.partition_map (fun lst ->
-      match lst with
-      | [ty] -> Either.Left [Ty.neg ty]
-      | _ -> Either.Right lst
-    ) in
-  (* Regroup positive conjuncts *)
-  (regroup_tuples (ps'@ps), ns)
-let merge_tuple_lines (ps1,ns1) (ps2,ns2) =
-  match ps1, ps2, ns1, ns2 with
-  | [[p1]], [[p2]], [], [] ->
-    Some ([[Ty.cup p1 p2]], [])
-  | _, _, _, _ -> None
+  let opened, labels = ref true, ref LabelSet.empty in
+  ps |> List.iter (fun r ->
+    labels := LabelSet.union !labels (dom r) ;
+    opened := !opened && r.opened) ;
+  ns |> List.iter (fun r -> labels := LabelSet.union !labels (dom r)) ;
+  let labels, opened = LabelSet.elements !labels, !opened in
+  let ns1, ns2 = List.partition (fun r -> r.opened = opened) ns in
+  let ps, ns1 = List.map (to_tuple labels) ps, List.map (to_tuple labels) ns1 in
+  let p = regroup_pos_line ~any:Ty.O.any ~conj:Ty.O.conj (List.length labels) ps in
+  let is_empty (ty,b) = not b && Ty.is_empty ty in
+  let ps, ns1 = regroup_neg_line ~diff:Ty.O.diff ~is_empty p ns1 in
+  let of_tuple tys =
+    let bindings = List.combine labels tys |> LabelMap.of_list in
+    { bindings ; opened }
+  in
+  let ps, ns1 = List.map of_tuple ps, List.map of_tuple ns1 in
+  ps, ns1@ns2
 
 let simpl_arrows a =
   Arrows.dnf a |> List.map regroup_arrows |> Arrows.of_dnf
 let simpl_records r =
-  Records.dnf r |> List.map regroup_records
-  |> merge_when_possible merge_record_lines |> Records.of_dnf
+  Records.dnf r |> List.map regroup_records |> Records.of_dnf
 let simpl_tuples p =
   let n = TupleComp.len p in
-  TupleComp.dnf p |> List.map regroup_tuples
-  |> merge_when_possible merge_tuple_lines |> TupleComp.of_dnf n
-let simpl_tuples t = Tuples.map simpl_tuples t
-let simpl_tags t = Tags.map (fun c ->
-    if Op.TagComp.is_identity c then
-      Op.TagComp.as_atom c |> TagComp.mk
-    else
-      c
-  ) t
+  TupleComp.dnf p |> List.map (regroup_tuples n) |> TupleComp.of_dnf n
+let simpl_tuples t =
+  let b, comps = Tuples.destruct t in
+  let comps = List.map simpl_tuples comps in
+  Tuples.construct (b, comps)
+let simpl_tags c =
+  if Op.TagComp.is_identity c then
+    Op.TagComp.as_atom c |> TagComp.mk
+  else
+    c
+let simpl_tags t =
+    let b, comps = Tags.destruct t in
+    let comps = List.map simpl_tags comps in
+    Tags.construct (b,comps)
 
 let simpl_descr d =
   let open Descr in

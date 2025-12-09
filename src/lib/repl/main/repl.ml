@@ -67,6 +67,12 @@ let rec compute_expr env e =
     in
     RBool (cartesian_product tys1 tys2 |> List.map aux), env
 
+let simplify_res e =
+  match e with
+  | RBool bs -> RBool bs
+  | RSubst ss -> RSubst ss
+  | RTy tys -> RTy (List.map Transform.simplify tys)
+
 let params pparams env =
   let aliases =
     StrMap.bindings env.tenv |> List.map (fun (str, ty) -> (ty, str))
@@ -108,6 +114,7 @@ let treat_elt ?(pparams=Printer.empty_params) env elt =
   match elt with
   | DefineAlias (ids, e) ->
     let r, env = compute_expr env e in
+    let r = simplify_res r in
     begin match r with
     | RTy tys when List.length tys = List.length ids ->
       let tenv = List.fold_left (fun tenv (str,ty) -> StrMap.add str ty tenv)
@@ -118,6 +125,7 @@ let treat_elt ?(pparams=Printer.empty_params) env elt =
   | Define defs -> List.fold_left treat_def env defs
   | Expr (str, e) ->
     let r, env = compute_expr env e in
+    let r = simplify_res r in
     begin match str with
     | None -> print Msg "@[<v 0>%a@]" (print_res pparams env) r
     | Some str -> print Msg "%s:@[<v 0> %a@]" str (print_res pparams env) r

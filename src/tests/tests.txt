@@ -29,6 +29,7 @@ type unit = () ;;
 "tuples4" (int,bool,int) <= (int,true,int)|(int,true,int) ;;
 "tuples5" (bool,bool,int) <= (true,true,int)|(false,false,int) ;;
 "tuples6" (int,bool,bool,int) <= (int,true,true,int)|(int,false,false,int) ;;
+"tuples7" (int,bool) \ (int,true) ;;
 
 "record1" { } <= { ..} ;;
 "record2" { ..} <= { } ;;
@@ -36,6 +37,8 @@ type unit = () ;;
 "record4" { l1 : any ..} & { l1 : any ; l2 : any ..} <= empty ;;
 "record5" { l1 : bool ; l2 : true } <= { l1 : true ; l2 : true ..} | { l1 : false ; l2 : true } ;;
 "record5" { l1 : true ; l2 : true ..} | { l1 : false ; l2 : true } <= { l1 : bool ; l2 : true ..} ;;
+"record6" { l1 : bool ; l2 : int ..} \ { l1 : true ; l2 : int ..} ;;
+"record7" { l1 : bool ; l2 : int ..} \ { l1 : true ; l2 : int } ;;
 
 "arrow1" bool -> bool <= false -> false ;;
 "arrow2" bool -> true <= bool -> bool ;;
