@@ -32,6 +32,48 @@ let transform f t =
 
 (* Type simplification *)
 
+let filter_dnf ~normalize to_ty dnf =
+  let decorate_atom a = to_ty a |> normalize, a in
+  let decorate_line' (ps,ns) =
+    let pty, nty = List.map fst ps, List.map fst ns in
+    let ty = Ty.cap (Ty.conj pty) (Ty.disj nty |> Ty.neg) in
+    ty, (ps,ns)
+  in
+  let decorate_line (ps,ns) =
+    let ps = List.map decorate_atom ps in
+    let ns = List.map decorate_atom ns in
+    decorate_line' (ps,ns)
+  in
+  let undecorate_line (_, (ps,ns)) =
+    List.map snd ps, List.map snd ns
+  in
+  let dnf = List.map decorate_line dnf in
+  let ty = List.map fst dnf |> Ty.disj in
+  (* Remove useless clauses *)
+  let dnf = dnf |> map_among_others (fun (_, (cp, cn)) c_others ->
+      let ty_others = List.map fst c_others |> Ty.disj in
+      let ty_p, ty_n = List.map fst cp |> Ty.conj, List.map fst cn |> Ty.disj |> Ty.neg in
+      let cp = cp |> filter_among_others (fun _ cp_others ->
+          Ty.leq (Ty.cup (Ty.cap (List.map fst cp_others |> Ty.conj) ty_n) ty_others) ty |> not
+        ) in
+      let cn = cn |> filter_among_others (fun _ cn_others ->
+          Ty.leq (Ty.cup (Ty.cap ty_p (List.map fst cn_others |> Ty.disj |> Ty.neg)) ty_others) ty |> not
+        ) in
+      decorate_line' (cp, cn)
+    )
+  in
+  (* Remove useless summands (must be done AFTER clauses simplification) *)
+  let dnf = dnf |> filter_among_others (fun (ty_c,_) c_others ->
+      let ty_others = List.map fst c_others |> Ty.disj in
+      Ty.leq ty_c ty_others |> not
+    ) in
+  List.map undecorate_line dnf
+
+let filter_dnf ~normalize to_ty dnf =
+  match normalize with
+  | None -> dnf
+  | Some normalize -> filter_dnf ~normalize to_ty dnf
+
 let regroup_arrows conjuncts =
   let merge_conjuncts (l,r) (l',r') =
     if Ty.equiv l l'
@@ -88,40 +130,46 @@ let regroup_records (ps,ns) =
   let ps, ns1 = List.map of_tuple ps, List.map of_tuple ns1 in
   ps, ns1@ns2
 
-let simpl_arrows a =
-  Arrows.dnf a |> List.map regroup_arrows |> Arrows.of_dnf
-let simpl_records r =
-  Records.dnf r |> List.map regroup_records |> Records.of_dnf
-let simpl_tuples p =
+let simpl_arrows ~normalize a =
+  let to_ty a = Descr.mk_arrow a |> Ty.mk_descr in
+  Arrows.dnf a |> List.map regroup_arrows |> filter_dnf ~normalize to_ty |> Arrows.of_dnf
+let simpl_records ~normalize r =
+  let to_ty a = Descr.mk_record a |> Ty.mk_descr in
+  Records.dnf r |> List.map regroup_records |> filter_dnf ~normalize to_ty |> Records.of_dnf
+let simpl_tuples ~normalize p =
   let n = TupleComp.len p in
-  TupleComp.dnf p |> List.map (regroup_tuples n) |> TupleComp.of_dnf n
-let simpl_tuples t =
+  let to_ty a = Descr.mk_tuple a |> Ty.mk_descr in
+  TupleComp.dnf p |> List.map (regroup_tuples n) |> filter_dnf ~normalize to_ty |> TupleComp.of_dnf n
+let simpl_tuples ~normalize t =
   let b, comps = Tuples.destruct t in
-  let comps = List.map simpl_tuples comps in
+  let comps = List.map (simpl_tuples ~normalize) comps in
   Tuples.construct (b, comps)
-let simpl_tags c =
+let simpl_tags ~normalize c =
+  let tag = TagComp.tag c in
+  let to_ty a = Descr.mk_tag a |> Ty.mk_descr in
   if Op.TagComp.is_identity c then
     Op.TagComp.as_atom c |> TagComp.mk
   else
-    c
-let simpl_tags t =
+    TagComp.dnf c |> filter_dnf ~normalize to_ty |> TagComp.of_dnf tag
+
+let simpl_tags ~normalize t =
     let b, comps = Tags.destruct t in
-    let comps = List.map simpl_tags comps in
+    let comps = List.map (simpl_tags ~normalize) comps in
     Tags.construct (b,comps)
 
-let simpl_descr d =
+let simpl_descr ~normalize d =
   let open Descr in
   let b, comps = destruct d in
   let comps = comps |> List.map (function
       | Intervals i -> Intervals i
       | Enums e -> Enums e
-      | Tags t -> Tags (simpl_tags t)
-      | Arrows a -> Arrows (simpl_arrows a)
-      | Tuples t -> Tuples (simpl_tuples t)
-      | Records r -> Records (simpl_records r)
+      | Tags t -> Tags (simpl_tags ~normalize t)
+      | Arrows a -> Arrows (simpl_arrows ~normalize a)
+      | Tuples t -> Tuples (simpl_tuples ~normalize t)
+      | Records r -> Records (simpl_records ~normalize r)
     ) in
     construct (b, comps)
 
-let simpl_vdescr = VDescr.map simpl_descr
+let simpl_vdescr ~normalize = VDescr.map (simpl_descr ~normalize)
 
-let simplify = transform simpl_vdescr
+let simplify ?normalize = transform (simpl_vdescr ~normalize)

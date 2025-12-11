@@ -19,7 +19,9 @@ val transform : (VDescr.t -> VDescr.t) -> Ty.t -> Ty.t
     not terminate.
 *)
 
-val simplify : Ty.t -> Ty.t
-(** [simplify ty] returns a type equivalent to [ty] but where
-    atoms of all components have been merged together when possible.    
+val simplify : ?normalize:(Ty.t -> Ty.t) -> Ty.t -> Ty.t
+(** [simplify ?normalize ty] returns a type equivalent to [ty] but where
+    atoms of all components have been merged together when possible.
+    If [?normalize] is provided, atoms of DNFs that become redundant
+    when [normalize] is applied to the type are filtered out.
 *)

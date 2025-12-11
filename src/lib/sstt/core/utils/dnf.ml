@@ -47,7 +47,7 @@ module Make(C:Comp) : Dnf with type atom := C.atom and type leaf := C.leaf = str
     in
     (* Remove useless summands (must be done AFTER clauses simplification) *)
     dnf |> filter_among_others (fun c c_others ->
-        C.leq (c::c_others) c_others |> not
+        C.leq [c] c_others |> not
       )
   
   let import, export = normalize, normalize
