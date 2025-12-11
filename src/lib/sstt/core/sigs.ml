@@ -743,18 +743,28 @@ module type Descr = sig
     | Tuples of Tuples.t
     | Tags of Tags.t
 
-  val components : t -> component list
-  (** Break down a type into its list of components. *)
+  val components : t -> component list * bool
+  (** Break down a type into its list of components and a Boolean [b].
+      The Boolean [b] indicates whether other components are [any]
+      (if [b] is [true]) or [empty] (if [b] is [false]). *)
 
   val set_component : t -> component -> t
   (** [set_component t c] returns the type {m t ~\setminus~}{%html: <span style='font-size:large'>𝟙</span>%}{_{m c}}{m ~\cup~ c}, where
       {%html: <span style='font-size:large'>𝟙</span>%}{_{m c}} is the top of component {m c}. *)
 
-  val of_components : component list -> t
+  val of_components : component list * bool -> t
   (** [of_components [c1; ...; cn]] returns {m \bigcup_{i=1\ldots n} c_i} *)
 
   val of_component : component -> t
-  (** [of_component c] is equivalent to [of_components [c]]. *)
+  (** [of_component c] is equivalent to [of_components [(c,false)]]. *)
+
+  val construct : bool * component list -> t
+
+  (** [destruct t] returns a pair [(b,cs)] such that:
+      if [b] is true, then [t] contains exactly the components [cs],
+      and if [b] is false, then the negation of [t] contains exactly
+      the components [cs]. *)
+  val destruct : t -> bool * component list
 
   val get_intervals : t -> Intervals.t
   (** Returns the {!Sstt.Intervals} component of a descriptor. *)
@@ -773,6 +783,9 @@ module type Descr = sig
 
   val get_tags : t -> Tags.t
   (** Returns the {!Sstt.Tags} component of a descriptor. *)
+
+  val get_others : t -> bool
+  (** Returns the [others] component of a descriptor. *)
 
 
   (** {2 Building descriptors from components} *)
@@ -818,6 +831,9 @@ module type Descr = sig
 
   val mk_tags : Tags.t -> t
   (** Creates a type descriptor from a {!Sstt.Tags} component family, mixing several tuple arities. *)
+
+  val mk_others : bool -> t
+  (** Creates a type descriptor from a [others] component. *)
 
   (** {1 Misc. operations } *)
 

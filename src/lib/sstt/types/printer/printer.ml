@@ -352,13 +352,12 @@ let resolve_descr ctx d =
   let ty = VD.mk_descr d |> Ty.of_def in
   match resolve_alias ctx Ty.any ty with
   | None ->
-    let ds = D.components d |> List.map (resolve_comp ctx) in
-    let combine ds =
-      ds |> List.map (fun (d,any_d) -> cap' any_d d) |> union
-    in
-    let pd = ds |> combine in
-    let nd = ds |> List.map (fun (d, any_d) -> (neg d, any_d)) |> combine |> neg in
-    if size_of_descr nd < size_of_descr pd then nd else pd
+    let (pos, components) = Descr.destruct d in
+    let d = components |> List.map (fun p ->
+      let elt, any = resolve_comp ctx p in
+      cap' any elt
+    ) |> union in
+    if pos then d else neg d
   | Some d -> d
 
 let resolve_def ctx def =

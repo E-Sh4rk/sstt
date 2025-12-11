@@ -219,8 +219,10 @@ module Make(VS:VarSettings) = struct
         let (_,_,d) = summand in
         norm_descr d
       | Some cs -> CSS.single cs
-    and norm_descr d  =
-      Descr.components d |> CSS.map_conj norm_comp
+    and norm_descr d =
+      let (cs, others) = d |> Descr.components in
+      if others then CSS.empty
+      else cs |> CSS.map_conj norm_comp
     and norm_comp c =
       let open Descr in
       match c with

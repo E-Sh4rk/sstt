@@ -111,14 +111,16 @@ let simpl_tags t =
 
 let simpl_descr d =
   let open Descr in
-  d |> components |> List.map (function
+  let b, comps = destruct d in
+  let comps = comps |> List.map (function
       | Intervals i -> Intervals i
       | Enums e -> Enums e
       | Tags t -> Tags (simpl_tags t)
       | Arrows a -> Arrows (simpl_arrows a)
       | Tuples t -> Tuples (simpl_tuples t)
       | Records r -> Records (simpl_records r)
-    ) |>  Descr.of_components
+    ) in
+    construct (b, comps)
 
 let simpl_vdescr = VDescr.map simpl_descr
 

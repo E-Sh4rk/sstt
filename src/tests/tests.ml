@@ -78,7 +78,7 @@ let%expect_test "tests" =
     print6: 'b & ('a, 'b) | 'a
     print7: ~true
     print8: ~(any -> bool)
-    print9: ~(true -> false) | ~(any -> bool)
+    print9: ~((any -> bool) & (true -> false))
     print10: ~((true, false) | (false, true))
     print11: bool
     print13: 'y
