@@ -2,15 +2,6 @@
 (** @canonical Sstt.Label *)
 module Label = Id.NamedIdentifier()
 (** Labels used for field names in records. *)
-(*
-(** @canonical Sstt.LabelSet *)
-module LabelSet = Hash.SetList(Label)
-(** Sets of labels. *)
-
-(** @canonical Sstt.LabelMap *)
-module LabelMap = Map.Make(Label)
-(** Maps indexed by labels. *)
-*)
 
 (** @canonical Sstt.Tag *)
 module Tag : sig

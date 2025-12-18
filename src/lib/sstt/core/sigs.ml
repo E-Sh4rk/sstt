@@ -449,7 +449,7 @@ module type RecordAtom = sig
 
   val to_tuple : LabelMap.Set.t -> t -> oty list
   (** [to_tuple lst r] returns the list of {!oty} associated with each
-      label of [lst] in [r]. Each type is computed using {!find}. *)
+      label of [lst] in [r]. *)
 
   val to_tuple_with_default : LabelMap.Set.t -> t -> oty list
   (** [to_tuple_with_default lst r] returns the list [d :: to_tuple lst r] where
