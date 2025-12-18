@@ -559,10 +559,10 @@ let builder ~to_t ~map ~print =
 let print_extension_node_ctx prec assoc fmt (E e) =
   e.print prec assoc fmt e.value
 
-let get ?(inline=false) customs ty =
+let get ?(factorize=false) customs ty =
   let (ctx, t) = build_t customs ty in
   let t = resolve_missing_defs ctx t in
-  let t = if inline then inline_max t else inline_mid t in
+  let t = if factorize then inline_mid t else inline_max t in
   let t = simplify t in
   rename_nodes t;
   t

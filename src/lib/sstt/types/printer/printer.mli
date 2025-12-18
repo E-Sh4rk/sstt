@@ -78,10 +78,11 @@ val empty_params : params
 
 val merge_params : params list -> params
 
-(** [get ~inline params ty] transforms the type [ty] into an algebraic form,
-    recognizing type aliases and extensions in [params]. If [~inline] is [true]
-    (default: [false]), nodes will be inlined as much as possible. *)
-val get : ?inline:bool -> params -> Ty.t -> t
+(** [get ~factorize params ty] transforms the type [ty] into an algebraic form,
+    recognizing type aliases and extensions in [params]. If [~factorize] is [true]
+    (default: [false]), some nodes may be factorized by introducing intermediate definitions
+    when it makes the result more concise. *)
+val get : ?factorize:bool -> params -> Ty.t -> t
 
 (** [print fmt t] prints the algebraic form [t] using formatter [fmt]. *)
 val print : Format.formatter -> t -> unit
