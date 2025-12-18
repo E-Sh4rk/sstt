@@ -41,6 +41,7 @@ module List(X : Comparable) : sig
   val to_list : t -> X.t list
   val filter : (X.t -> bool) -> t -> t
   val for_all : (X.t -> bool) -> t -> bool
+  val length : t -> int
 end = struct
 
   type t = (X.t * int) list
@@ -77,6 +78,8 @@ end = struct
   let rec for_all f = function
     | [] -> true
     | (e, _) :: ll -> (f e) && for_all f ll
+
+  let length = List.length
 end
 
 
@@ -121,6 +124,7 @@ module type Map = sig
   val constant : Set.t -> value -> t
   val fold : ('a -> key -> value -> 'a) -> 'a -> t -> 'a
   val is_singleton_opt : t -> (key * value) option
+  val combine : Set.t -> value list -> t
 end
 include (
 struct
@@ -169,7 +173,7 @@ struct
     type value = V.t
 
     module Set = SetList(K)
-    module VL = SetList(V)
+    module VL = List(V)
     type t = Set.t * VL.t 
 
 
@@ -312,7 +316,7 @@ struct
       loop s lk lv
 
     let constant dom def =
-      (dom, Stdlib.List.fold_left (fun acc _ -> VL.add def acc) VL.empty dom)
+      (dom, Stdlib.List.fold_left (fun acc _ -> VL.(def $:: acc)) [] dom)
 
     let fold f acc (lk, lv) =
       Stdlib.List.fold_left2 (fun acc (k, _) (v, _) -> f acc k v) acc lk lv
@@ -321,6 +325,10 @@ struct
       match lk with 
         (k, _) :: [] -> let (v, _), _ = uncons lv in Some (k, v)
       | _ -> None
+
+    let combine dom values = 
+      assert (Set.cardinal dom = Stdlib.List.length values);
+      dom,VL.of_list values
   end
 end : sig 
   module SetList (X : Comparable) : Set with type elt = X.t
