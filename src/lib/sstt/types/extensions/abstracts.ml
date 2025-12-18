@@ -53,11 +53,11 @@ let encode_params encoding ps =
         let neg = label_of_position true i, Ty.O.optional (Ty.neg p) in
         match v with
         | Cov -> [pos] | Cav -> [neg] | Inv -> [pos;neg]
-      ) |> List.concat |> Records.Atom.LabelMap.of_list
+      ) |> List.concat |> LabelMap.of_list
     | EInv _ ->
       ps |> List.mapi (fun i p ->
         label_of_position false i, Ty.O.optional p
-      ) |> Records.Atom.LabelMap.of_list
+      ) |> LabelMap.of_list
   in
   { Records.Atom.bindings ; Records.Atom.opened=false }
   |> Descr.mk_record |> Ty.mk_descr

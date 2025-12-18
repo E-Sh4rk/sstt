@@ -162,7 +162,7 @@ let build_ty env t =
             let ty, env = aux env ty in
             (l,(ty,b))::res,env
           ) ([], env) bindings in
-      let bindings = Records.Atom.LabelMap.of_list bindings in
+      let bindings = LabelMap.of_list bindings in
       Descr.mk_record { bindings ; opened } |> Ty.mk_descr, env
     | TVarop (v, tys) ->
       let (tys,env) =

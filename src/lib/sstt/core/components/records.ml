@@ -53,25 +53,23 @@ module Atom(N:Node) = struct
   type nonrec oty = node * bool
   type t = { bindings : LabelMap.t ; opened : bool }
 
-  let hash t = (* This hashing is not incremental and could hurt performances
-                  if we make heavy use of records (t.bindings is traversed by
-                  the polymorphic Hash function) *)
+  let hash t =
     Hash.(mix (bool t.opened) (LabelMap.hash t.bindings))
   let map_nodes f t =
     { t with bindings = LabelMap.map (OTy.map_nodes f) t.bindings }
 
   let direct_nodes t =
     t.bindings |> LabelMap.values |> List.map fst
-  let dom t = LabelMap.dom t.bindings 
+  let dom t = LabelMap.dom t.bindings
   let def_t = function true -> OTy.any | false -> OTy.absent
 
   let default t ot =
-    match ot with 
+    match ot with
       Some on -> on
     | None -> def_t t.opened
 
   let find lbl t = default t (LabelMap.find_opt lbl t.bindings)
-  let to_tuple dom t = 
+  let to_tuple dom t =
     LabelMap.values_for_domain dom (def_t t.opened) t.bindings
   let to_tuple_with_default dom t =
     (def_t t.opened)::(to_tuple dom t)
@@ -99,16 +97,14 @@ module Atom'(N:Node) = struct
   type node = N.t
   type nonrec oty = node * bool
   type t = { bindings : LabelMap.t ; opened : bool ; required : LabelMap.Set.t option }
-  let hash_opt_set = function None -> Hash.const2
-                            | Some s -> Hash.(mix const1 (LabelMap.Set.hash s))
-  let hash t = (* Same remark as OTY.hash *)
+  let hash t =
     Hash.(mix3 (bool t.opened) (LabelMap.hash t.bindings) (Hashtbl.hash t.required))
 
   let dom t = LabelMap.dom t.bindings
 
   let def_t = function true -> OTy.any | false -> OTy.absent
   let default t ot =
-    match ot with 
+    match ot with
       Some on -> on
     | None -> def_t t.opened
 
@@ -231,8 +227,8 @@ module Make(N:Node) = struct
         [ { bindings=a.Atom.bindings ; opened=a.Atom.opened ; required=None } ]
       else
         let not_binding acc l on =
-          { bindings=LabelMap.singleton l (ON.neg on) ; 
-            opened=true ; 
+          { bindings=LabelMap.singleton l (ON.neg on) ;
+            opened=true ;
             required=None } :: acc
         in
         let res = LabelMap.fold not_binding [] a.Atom.bindings in
