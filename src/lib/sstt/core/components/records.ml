@@ -44,35 +44,36 @@ module OTy(N:Node) = struct
 
   let hash (n, b) = Hash.(mix (bool b) (N.hash n))
 end
+module MakeLabelMap(N : Node) = Hash.MapList(Label)(OTy(N))
 
 module Atom(N:Node) = struct
   module OTy = OTy(N)
-
+  module LabelMap = MakeLabelMap(N)
   type node = N.t
   type nonrec oty = node * bool
-  type t = { bindings : oty LabelMap.t ; opened : bool }
+  type t = { bindings : LabelMap.t ; opened : bool }
 
-  let hash t = (* This hashing is not incremental and could hurt performances
-                  if we make heavy use of records (t.bindings is traversed by
-                  the polymorphic Hash function) *)
-    Hash.(mix (bool t.opened) (Hashtbl.hash t.bindings))
+  let hash t =
+    Hash.(mix (bool t.opened) (LabelMap.hash t.bindings))
   let map_nodes f t =
     { t with bindings = LabelMap.map (OTy.map_nodes f) t.bindings }
 
   let direct_nodes t =
-    t.bindings |> LabelMap.bindings |> List.map (fun (_,(n,_)) -> n)
-  let dom t = LabelMap.bindings t.bindings |> List.map fst |> LabelSet.of_list
-  let find lbl t =
-    match LabelMap.find_opt lbl t.bindings, t.opened with
-    | Some on, _ -> on
-    | None, true -> OTy.any
-    | None, false -> OTy.absent
-  let to_tuple dom t = dom |> List.map (fun l -> find l t)
+    t.bindings |> LabelMap.values |> List.map fst
+  let dom t = LabelMap.dom t.bindings
+  let def_t = function true -> OTy.any | false -> OTy.absent
+
+  let default t ot =
+    match ot with
+      Some on -> on
+    | None -> def_t t.opened
+
+  let find lbl t = default t (LabelMap.find_opt lbl t.bindings)
+  let to_tuple dom t =
+    LabelMap.values_for_domain dom (def_t t.opened) t.bindings
   let to_tuple_with_default dom t =
-    if t.opened then
-      OTy.any::(to_tuple dom t)
-    else
-      OTy.absent::(to_tuple dom t)
+    (def_t t.opened)::(to_tuple dom t)
+
   let simplify t =
     let is_default =
       if t.opened then OTy.is_any
@@ -82,64 +83,68 @@ module Atom(N:Node) = struct
     if bindings == t.bindings then t else { t with bindings }
   let equal t1 t2 =
     t1.opened = t2.opened &&
-    LabelMap.equal OTy.equal t1.bindings t2.bindings
+    LabelMap.equal t1.bindings t2.bindings
   let compare t1 t2 =
     compare t1.opened t2.opened |> ccmp
-      (LabelMap.compare OTy.compare) t1.bindings t2.bindings
+      LabelMap.compare t1.bindings t2.bindings
 end
 
 module Atom'(N:Node) = struct
   module OTy = OTy(N)
+  module LabelMap = MakeLabelMap(N)
+
 
   type node = N.t
   type nonrec oty = node * bool
-  type t = { bindings : oty LabelMap.t ; opened : bool ; required : LabelSet.t option }
-  let hash t = (* Same remark as OTY.hash *)
-    Hash.(mix3 (bool t.opened) (Hashtbl.hash t.bindings) (Hashtbl.hash t.required))
+  type t = { bindings : LabelMap.t ; opened : bool ; required : LabelMap.Set.t option }
+  let hash t =
+    Hash.(mix3 (bool t.opened) (LabelMap.hash t.bindings) (Hashtbl.hash t.required))
 
-  let dom t = LabelMap.bindings t.bindings |> List.map fst |> LabelSet.of_list
-  let find lbl t =
-    match LabelMap.find_opt lbl t.bindings with
-    | Some on -> on
-    | None when t.opened -> OTy.any
-    | None -> OTy.absent
+  let dom t = LabelMap.dom t.bindings
+
+  let def_t = function true -> OTy.any | false -> OTy.absent
+  let default t ot =
+    match ot with
+      Some on -> on
+    | None -> def_t t.opened
+
+  let find lbl t = default t (LabelMap.find_opt lbl t.bindings)
   let simplify t =
     let is_default =
       if t.opened then OTy.is_any
       else OTy.is_absent
     in
     let bindings = LabelMap.filter (fun _ on -> not (is_default on)) t.bindings in
-
     let required =
       match t.required with
       | None -> None
       | Some lbls ->
-        if bindings |> LabelMap.exists (fun l on -> LabelSet.mem l lbls |> not && OTy.is_required on)
+        if bindings |> LabelMap.exists (fun l on -> LabelMap.Set.mem l lbls |> not && OTy.is_required on)
         then None
-        else Some (lbls |> LabelSet.filter (fun l -> find l t |> OTy.is_absent |> not))
+        else Some (lbls |> LabelMap.Set.filter (fun l -> find l t |> OTy.is_absent |> not))
     in
     if bindings == t.bindings && required == t.required then t else
       { t with bindings ; required }
   let is_empty t =
-    let is_empty_binding (_,on) = OTy.is_empty on in
+    let is_empty_binding _ on = OTy.is_empty on in
     let required_ok =
       match t.required with
       | None -> true
       | Some _ when t.opened -> true
       | Some req ->
         t.bindings |> LabelMap.exists
-          (fun l o -> LabelSet.mem l req |> not && OTy.is_absent o |> not)
+          (fun l o -> LabelMap.Set.mem l req |> not && OTy.is_absent o |> not)
     in
     not required_ok ||
-    LabelMap.bindings t.bindings |> List.exists is_empty_binding
+    LabelMap.exists is_empty_binding t.bindings
   let equal t1 t2 =
     t1.opened = t2.opened &&
-    Option.equal LabelSet.equal t1.required t2.required &&
-    LabelMap.equal OTy.equal t1.bindings t2.bindings
+    Option.equal LabelMap.Set.equal t1.required t2.required &&
+    LabelMap.equal t1.bindings t2.bindings
   let compare t1 t2 =
     compare t1.opened t2.opened |> ccmp
-      (Option.compare LabelSet.compare) t1.required t2.required |> ccmp
-      (LabelMap.compare OTy.compare) t1.bindings t2.bindings
+      (Option.compare LabelMap.Set.compare) t1.required t2.required |> ccmp
+      LabelMap.compare t1.bindings t2.bindings
 end
 
 module Make(N:Node) = struct
@@ -169,14 +174,16 @@ module Make(N:Node) = struct
     let init = fun () -> List.init n (fun _ -> ON.empty) in
     mapn init ON.disj ps
   let dnf_line_to_tuple (ps, ns) =
-    let dom = List.fold_left
-        (fun acc a -> LabelSet.union acc (Atom.dom a))
-        LabelSet.empty (ps@ns) |> LabelSet.to_list
+    let open Atom in
+    let line_dom line acc =
+      List.fold_left
+        (fun acc a -> LabelMap.Set.union acc (dom a))
+        acc line
     in
-    let ps, ns =
-      ps |> List.map (Atom.to_tuple_with_default dom),
-      ns |> List.map (Atom.to_tuple_with_default dom) in
-    (ps, ns), List.length dom + 1
+    let dom = line_dom ns (line_dom ps LabelMap.Set.empty) in
+    let ps = ps |> List.map (Atom.to_tuple_with_default dom) in
+    let ns = ns |> List.map (Atom.to_tuple_with_default dom) in
+    (ps, ns), LabelMap.Set.cardinal dom + 1
 
   let rec psi acc ss ts =
     List.exists ON.is_empty ss ||
@@ -201,7 +208,7 @@ module Make(N:Node) = struct
 
     let atom_is_valid _ = true
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
-    let any' = { Atom'.bindings=LabelMap.empty ; opened=true ; required=None }
+    let any' = { Atom'.bindings=Atom'.LabelMap.empty ; opened=true ; required=None }
 
     let to_atom a' =
       let open Atom' in
@@ -209,23 +216,22 @@ module Make(N:Node) = struct
         match a'.required with
         | None -> []
         | Some lbls ->
-          let bindings =
-            lbls |> LabelSet.elements |> List.map (fun l -> (l,ON.any))
-            |> LabelMap.of_list
-          in
+          let bindings = LabelMap.constant lbls ON.any in
           [{Atom.bindings=bindings ; Atom.opened=false}]
       in
       let ps = [{Atom.bindings=a'.bindings ; Atom.opened=a'.opened}] in
       ps, ns
-    let to_atom' (a,b) =
+    let to_atom' (a, b) =
       let open Atom' in
-      let not_binding (l,on) =
-        { bindings=LabelMap.singleton l (ON.neg on) ; opened=true ; required=None }
-      in
       if b then
         [ { bindings=a.Atom.bindings ; opened=a.Atom.opened ; required=None } ]
       else
-        let res = a.Atom.bindings |> LabelMap.bindings |> List.map not_binding in
+        let not_binding acc l on =
+          { bindings=LabelMap.singleton l (ON.neg on) ;
+            opened=true ;
+            required=None } :: acc
+        in
+        let res = LabelMap.fold not_binding [] a.Atom.bindings in
         if a.Atom.opened then res
         else { bindings=a.Atom.bindings ; opened=true ; required=Some (Atom.dom a) }::res
     let to_atom' (a,b) =
@@ -233,16 +239,16 @@ module Make(N:Node) = struct
       |> List.map Atom'.simplify
     let combine s1 s2 =
       let open Atom' in
-      let dom = LabelSet.union (dom s1) (dom s2) in
-      let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
-          (lbl, ON.cap (find lbl s1) (find lbl s2))
-        ) |> LabelMap.of_list in
+      let bindings = LabelMap.merge (fun _ ot1 ot2 ->
+          Some (ON.cap (default s1 ot1) (default s2 ot2))
+        ) s1.bindings s2.bindings
+      in
       let opened = s1.opened && s2.opened in
       let required =
         match s1.required, s2.required with
         | None, None -> None
         | Some r, None | None, Some r -> Some r
-        | Some r1, Some r2 -> Some (LabelSet.union r1 r2)
+        | Some r1, Some r2 -> Some (LabelMap.Set.union r1 r2)
       in
       let res = { bindings ; opened ; required } in
       if is_empty res then None else Some (simplify res)

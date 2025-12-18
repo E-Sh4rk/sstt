@@ -418,6 +418,7 @@ end
 
 (* Records *)
 
+
 module type RecordAtom = sig
   type node
   (** An alias for the type {!Sstt.Ty.t}. *)
@@ -425,12 +426,14 @@ module type RecordAtom = sig
   type oty = node * bool
   (** An optional type (see {!Sstt.Ty.O}). *)
 
-  type t = { bindings : oty LabelMap.t;(** mapping from labels to optional types *)
+  module LabelMap : Hash.Map with type key = Label.t and type value = oty
+
+  type t = { bindings : LabelMap.t;(** mapping from labels to optional types *)
              opened : bool (** if [true], denotes an open record *)
            }
   (** A single record type.  *)
 
-  val dom : t -> LabelSet.t
+  val dom : t -> LabelMap.Set.t
   (** [dom t] returns the set of explicit labels in [t].
       Note that this does not mean that labels in [dom t] are present in
       the record values captured by [t]: even if a binding is present
@@ -440,11 +443,15 @@ module type RecordAtom = sig
   (** [find l t] returns the type associated with the label [l] in [t],
       even if [t] does not have an explicit binding for [l]. *)
 
-  val to_tuple : Label.t list -> t -> oty list
-  (** [to_tuple lst r] returns the list of {!oty} associated with each
-      label of [lst] in [r]. Each type is computed using {!find}. *)
+  val default : t -> oty option -> oty
+  (** [default t ot oty] returns [t'] if [ot] is [Some t'], otherwise returns
+      the default type for a missing label in [t]. *)
 
-  val to_tuple_with_default : Label.t list -> t -> oty list
+  val to_tuple : LabelMap.Set.t -> t -> oty list
+  (** [to_tuple lst r] returns the list of {!oty} associated with each
+      label of [lst] in [r]. *)
+
+  val to_tuple_with_default : LabelMap.Set.t -> t -> oty list
   (** [to_tuple_with_default lst r] returns the list [d :: to_tuple lst r] where
       - [d] is {!Sstt.Ty.O.any} if [r] is an open record
       - [d] is {!Sstt.Ty.O.absent} if [r] is a closed record
@@ -459,15 +466,16 @@ end
 module type RecordAtom' = sig
   type node
   type oty = node * bool
+  module LabelMap : Hash.Map with type key = Label.t and type value = oty
 
-  type t = { bindings : oty LabelMap.t ; opened : bool ; required : LabelSet.t option }
+  type t = { bindings : LabelMap.t ; opened : bool ; required : LabelMap.Set.t option }
   (** A compact representation for record types.
       The [bindings] and [opened] field have the same meaning as in {!Records.Atom.t}.
       When the field [required] is equal to [Some labels],
       it means that [t] requires at least one field not in [labels] to be present. *)
 
 
-  val dom : t -> LabelSet.t
+  val dom : t -> LabelMap.Set.t
   (** [dom t] returns the set of explicit labels in [t].
       Note that this does not mean that labels in [dom t] are present in
       the record values captured by [t]: even if a binding is present
@@ -476,6 +484,10 @@ module type RecordAtom' = sig
   val find : Label.t -> t -> oty
   (** [find l t] returns the type associated with the label [l] in [t],
       even if [t] does not have an explicit binding for [l]. *)
+
+  val default : t -> oty option -> oty
+  (** [default t ot oty] returns [t'] if [ot] is [Some t'], otherwise returns
+      the default type for a missing label in [t]. *)
 
   include Comparable with type t := t
 end
@@ -531,7 +543,7 @@ module type Records = sig
       any record which has both labels associated to their original type but which {i also has an
       extra label} that is neither {m x} nor {m y}.
   *)
-  include OptComponent with module type Atom' := (RecordAtom' with type node := node)
+  include OptComponent with module type Atom' := (RecordAtom' with type node := node and module LabelMap := Atom.LabelMap)
 
   (** @inline*)
   include OptComponentOps with type t := t

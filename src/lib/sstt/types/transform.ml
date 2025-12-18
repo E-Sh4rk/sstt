@@ -109,6 +109,7 @@ let regroup_neg_line ~diff ~leq p ns =
 let regroup_tuples n (ps,ns) =
   let p = regroup_pos_line ~any:Ty.any ~conj:Ty.conj n ps in
   regroup_neg_line ~diff:Ty.diff ~leq:Ty.leq p ns
+
 let regroup_records (ps,ns) =
   let open Records.Atom in
   let opened, labels = ref true, ref LabelSet.empty in
@@ -116,15 +117,15 @@ let regroup_records (ps,ns) =
     labels := LabelSet.union !labels (dom r) ;
     opened := !opened && r.opened) ;
   ns |> List.iter (fun r -> labels := LabelSet.union !labels (dom r)) ;
-  let labels, opened = LabelSet.elements !labels, !opened in
+  let labels, opened = !labels, !opened in
   let is_empty tyo = Ty.O.is_required tyo && Ty.O.get tyo |> Ty.is_empty in
   let leq tyo1 tyo2 = Ty.O.diff tyo1 tyo2 |> is_empty in
   let ns1, ns2 = List.partition (fun r -> not opened || r.opened) ns in
   let ps, ns1 = List.map (to_tuple labels) ps, List.map (to_tuple labels) ns1 in
-  let p = regroup_pos_line ~any:Ty.O.any ~conj:Ty.O.conj (List.length labels) ps in
+  let p = regroup_pos_line ~any:Ty.O.any ~conj:Ty.O.conj (LabelSet.cardinal labels) ps in
   let ps, ns1 = regroup_neg_line ~diff:Ty.O.diff ~leq p ns1 in
   let of_tuple tys =
-    let bindings = List.combine labels tys |> LabelMap.of_list in
+    let bindings = LabelMap.combine labels tys in
     { bindings ; opened }
   in
   let ps, ns1 = List.map of_tuple ps, List.map of_tuple ns1 in

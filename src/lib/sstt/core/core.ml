@@ -133,3 +133,10 @@ module type NamedIdentifier = Id.NamedIdentifier
 
 (** @inline *) 
 include Base
+
+(** @canonical Sstt.LabelSet *)
+module LabelSet = Records.Atom.LabelMap.Set
+
+(** @canonical Sstt.LabelMap *)
+module LabelMap = Records.Atom.LabelMap
+

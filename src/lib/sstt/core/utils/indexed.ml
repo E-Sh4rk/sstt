@@ -35,7 +35,7 @@ module Make(C : IdxComp) = struct
 
   let of_comp_list l =
     l
-    |> List.sort_uniq (fun a b -> C.(Index.compare (index b) (index a)))
+    |> List.sort_uniq (fun a b -> C.(Index.compare (index a) (index b)))
     |> HList.of_list
 
   let of_components (ts, others) =
