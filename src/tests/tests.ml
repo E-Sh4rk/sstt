@@ -262,7 +262,7 @@ let%expect_test "tests_ext" =
       char_singl: '*'
       map_any: {{  }}
       map_ib: {{ int => bool }}
-      not_map_ib: ~({{ int => bool }})
+      not_map_ib: ~{{ int => bool }}
       map_not_ib: {{ int ~> bool }}
       map_ib_not_ib: empty
       map_ib_ii: {{ int => empty }}

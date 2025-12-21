@@ -68,19 +68,17 @@ let merge t {dom ; codom} =
 
 open Prec
 
-
 let print prec assoc fmt t =
   let print_field fmt (pos, f) =
     let arr = if pos then "=>" else "~>" in
     Format.fprintf fmt "%a %s %a" Printer.print_descr f.dom arr Printer.print_descr f.codom
   in
-  let print_line fmt (ps, ns) =
+  let print_line _prec _assoc fmt (ps, ns) =
     let ps, ns = List.map (fun d -> true, d) ps, List.map (fun d -> false, d) ns in
     Format.fprintf fmt "{{ %a }}"
       (print_seq print_field " ; ") (ps@ns)
   in
-  let sym,_,_ as opinfo = varop_info Cup in
-  fprintf prec assoc opinfo fmt "%a" (print_seq print_line sym) t
+  print_cup print_line prec assoc fmt t
 
 let printer_builder = Printer.builder ~to_t ~map ~print
 let printer_params = Printer.{ aliases = []; extensions = [(tag, printer_builder)]}

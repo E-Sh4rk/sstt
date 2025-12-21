@@ -1,5 +1,4 @@
 open Core
-open Sstt_utils
 
 module Node = Id.NamedIdentifier()
 module NSet = Set.Make(Node)
@@ -81,12 +80,9 @@ let print prec assoc fmt t =
     else
       fprintf prec assoc opinfo fmt "%s%s%a"
         (Node.name n) sym
-        (print_t prec' NoAssoc) t
-  and print_t prec assoc fmt t =
-    let sym,prec',_ as opinfo = varop_info Cup in
-    fprintf prec assoc opinfo fmt "%a" (print_seq (print_line prec' NoAssoc) sym) t
+        (print_cup print_line prec' NoAssoc) t
   in
-  print_t prec assoc fmt t
+  print_cup print_line prec assoc fmt t
 
 let printer_builder h =
   Printer.builder ~to_t:(to_t h) ~map ~print

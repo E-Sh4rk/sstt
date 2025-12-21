@@ -1,5 +1,4 @@
 open Core
-open Sstt_utils
 
 let tag = Tag.mk "flt"
 
@@ -85,17 +84,12 @@ let comp_names =
     Nan, "nan"
   ]
 let print prec assoc fmt t =
-  let pp_k fmt k = Format.fprintf fmt "%s" (List.assoc k comp_names) in
+  let pp_k _prec _assoc fmt k = Format.fprintf fmt "%s" (List.assoc k comp_names) in
   let comp = components t in
   let pos, t = if List.length comp >= 4 then false, neg_t t else true, t in
   let comp = components t in
   let aux prec assoc fmt comp =
-    match comp with
-    | [] -> assert false
-    | [elt] -> Format.fprintf fmt "%a" pp_k elt
-    | comp ->
-      let sym,_,_ as opinfo = varop_info Cup in
-      fprintf prec assoc opinfo fmt "%a" (print_seq pp_k sym) comp
+    print_cup pp_k prec assoc fmt comp
   in
   if pos then
     aux prec assoc fmt comp

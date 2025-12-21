@@ -1,5 +1,4 @@
 open Core
-open Sstt_utils
 
 let tag = Tag.mk "chr"
 
@@ -38,20 +37,13 @@ let any_t = [(Char.chr 0, Char.chr 255)]
 open Prec
 let map _f v = v
 let print prec assoc fmt ints =
-  let pp_chars fmt (chr1, chr2) =
+  let pp_chars _prec _assoc fmt (chr1, chr2) =
     if Char.equal chr1 chr2
     then Format.fprintf fmt "%C" chr1
     else Format.fprintf fmt "(%C-%C)" chr1 chr2
   in
-  if ints = any_t then
-    Format.fprintf fmt "char"
-  else
-    match ints with
-    | [] -> assert false
-    | [i] -> Format.fprintf fmt "%a" pp_chars i
-    | ints ->
-      let sym,_,_ as opinfo = varop_info Cup in
-      fprintf prec assoc opinfo fmt "%a" (print_seq pp_chars sym) ints
+  if ints = any_t then Format.fprintf fmt "char"
+  else print_cup pp_chars prec assoc fmt ints
 
 let printer_builder = Printer.builder ~to_t ~map ~print
 let printer_params = Printer.{aliases =[]; extensions = [(tag, printer_builder)]}

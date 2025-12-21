@@ -229,19 +229,19 @@ open Prec
 let print_r fmt =
   Format.fprintf fmt "[ %a ]" (print_r (-1))
 
+let cons_opinfo = "::", 1, Right
 let print prec assoc fmt t =
   match t with
   | Regexp r -> print_r fmt r
   | Basic union ->
-    let print_line fmt l =
+    let print_line prec assoc fmt l =
       match l with
       | Nil -> Format.fprintf fmt "[]"
       | Cons (elt,tl) ->
-        Format.fprintf fmt "%a::%a"
+        fprintf prec assoc cons_opinfo fmt "%a::%a"
           Printer.print_descr_atomic elt Printer.print_descr_atomic tl
     in
-    let sym,_,_ as opinfo = varop_info Cup in
-    fprintf prec assoc opinfo fmt "%a" (print_seq print_line sym) union
+    print_cup print_line prec assoc fmt union
 
 let printer_builder = Printer.builder ~to_t ~map ~print
 
