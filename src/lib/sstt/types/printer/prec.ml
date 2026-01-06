@@ -84,15 +84,15 @@ let print_lit f prec assoc fmt (pos,a) =
 let print_line ~any f prec assoc fmt (ps,ns) =
   let ps, ns = List.map (fun d -> true, d) ps, List.map (fun d -> false, d) ns in
   let sym,prec',_ as opinfo = varop_info Cap in
-  let fprintf =
+  let fprintf, prec =
     if ns <> [] || List.length ps > 1
-    then fprintf prec assoc opinfo
-    else Format.fprintf
+    then fprintf prec assoc opinfo, prec'
+    else Format.fprintf, prec
   in
   fprintf fmt "%s%s%a"
     (if ps = [] then any else "")
     (if ps = [] && ns <> [] then sym else "")
-    (print_seq (print_lit f prec' NoAssoc) sym) (ps@ns)
+    (print_seq (print_lit f prec NoAssoc) sym) (ps@ns)
 
 let print_non_empty_dnf ~any f prec assoc fmt dnf =
   print_cup (print_line ~any f) prec assoc fmt dnf
