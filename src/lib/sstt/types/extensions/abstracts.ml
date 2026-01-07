@@ -1,5 +1,4 @@
 open Core
-open Sstt_utils
 
 type variance = Cov | Cav | Inv
 type 't params = 't list
@@ -14,7 +13,7 @@ let abs_tags = THT.create 10
 let is_abstract tag = THT.mem abs_tags tag
 let check_abstract tag =
   if is_abstract tag |> not then
-    invalid_arg 
+    invalid_arg
       (Format.asprintf "Undefined abstract type '%a'" Tag.pp tag)
 let encoding tag =
   check_abstract tag ; THT.find abs_tags tag |> snd

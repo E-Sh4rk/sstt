@@ -78,7 +78,7 @@ let print prec assoc fmt t =
     then
       Format.fprintf fmt "%s" (Node.name n)
     else
-      fprintf prec assoc opinfo fmt "%s%s%a"
+      fprintf prec assoc opinfo fmt "%s%(%)%a"
         (Node.name n) sym
         (print_cup print_line prec' NoAssoc) t
   in

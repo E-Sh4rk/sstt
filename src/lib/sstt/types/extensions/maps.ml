@@ -1,5 +1,4 @@
 open Core
-open Sstt_utils
 
 type 't field = { dom: 't ; codom: 't }
 type 't t = ('t field list * 't field list) list
