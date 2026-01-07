@@ -517,7 +517,7 @@ let rec print_descr prec assoc fmt d =
           print_descr' d
       in
       fprintf fmt "{@ %a@ %s}"
-        (pp_print_list ~pp_sep:(fun fmt () -> fprintf fmt " ;@ ") print_binding)
+        (Prec.print_seq print_binding " ;@ ")
         bindings
         (if opened then ".." else "")
     | Varop (v,ds) ->
