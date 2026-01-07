@@ -45,7 +45,7 @@ let print prec assoc fmt (pos, strs) =
     Format.fprintf fmt "string"
   else
     let sym,prec',_ as opinfo = binop_info Diff in
-    fprintf prec assoc opinfo fmt "string%s%a" sym (aux prec' Right) strs
+    fprintf prec assoc opinfo fmt "string%(%)%a" sym (aux prec' Right) strs
 
 
 let printer_builder = Printer.builder ~to_t ~map ~print

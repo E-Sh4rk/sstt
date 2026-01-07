@@ -83,12 +83,12 @@ let print_res pparams env fmt res =
   match res with
   | RBool bs ->
     let print_bool fmt b = Format.fprintf fmt "%b" b in
-    Format.fprintf fmt "%a" (print_seq_space print_bool) bs
+    Format.fprintf fmt "@[%a@]" (print_seq_space print_bool) bs
   | RTy tys ->
-    Format.fprintf fmt "%a"
+    Format.fprintf fmt "@[%a@]"
       (print_seq_cut (Printer.print_ty (params pparams env))) tys
   | RSubst ss ->
-    Format.fprintf fmt "%a"
+    Format.fprintf fmt "@[<v>%a@]"
       (print_seq_cut (Printer.print_subst (params pparams env))) ss
 
 let treat_def env def =
@@ -105,7 +105,7 @@ let treat_def env def =
       | PAndEx -> Tag.Monotonic { preserves_cap=true ; preserves_cup=false ; preserves_extremum=true }
       | POr    -> Tag.Monotonic { preserves_cap=false ; preserves_cup=true ; preserves_extremum=false }
       | POrEx  -> Tag.Monotonic { preserves_cap=false ; preserves_cup=true ; preserves_extremum=true }
-      | PId    -> Tag.Monotonic { preserves_cap=true  ; preserves_cup=true ; preserves_extremum=false  }  
+      | PId    -> Tag.Monotonic { preserves_cap=true  ; preserves_cup=true ; preserves_extremum=false  }
     in
     let tagenv = StrMap.add str (Tag.mk' str props) env.tagenv in
     { env with tagenv }
@@ -120,14 +120,14 @@ let treat_elt ?(pparams=Printer.empty_params) env elt =
       let tenv = List.fold_left (fun tenv (str,ty) -> StrMap.add str ty tenv)
         env.tenv (List.combine ids tys) in
       { env with tenv }
-    | _ -> failwith "Definitions must be types." 
+    | _ -> failwith "Definitions must be types."
     end
   | Define defs -> List.fold_left treat_def env defs
   | Expr (str, e) ->
     let r, env = compute_expr env e in
     let r = simplify_res r in
     begin match str with
-    | None -> print Msg "@[<v 0>%a@]" (print_res pparams env) r
-    | Some str -> print Msg "%s:@[<v 0> %a@]" str (print_res pparams env) r
+    | None -> print Msg "@[<h 0>%a@]" (print_res pparams env) r
+    | Some str -> print Msg "@[%s:@[<h 0> %a@]@]" str (print_res pparams env) r
     end ;
     env

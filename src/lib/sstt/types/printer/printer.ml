@@ -1,5 +1,4 @@
 open Core
-open Sstt_utils
 open Prec
 
 
@@ -318,18 +317,18 @@ let resolve_tags ctx a =
 let resolve_comp ctx c =
   let ty = D.of_component c |> Ty.mk_descr in
   let any, any_op = match c with
-  | D.Enums _ ->
-    Enums.any |> D.mk_enums |> Ty.mk_descr, Builtin AnyEnum
-  | D.Arrows _ ->
-    Arrows.any |> D.mk_arrows |> Ty.mk_descr, Builtin AnyArrow
-  | D.Intervals _ ->
-    Intervals.any |> D.mk_intervals |> Ty.mk_descr, Builtin AnyInt
-  | D.Tags _ ->
-    Tags.any |> D.mk_tags |> Ty.mk_descr, Builtin AnyTag
-  | D.Tuples _ ->
-    Tuples.any |> D.mk_tuples |> Ty.mk_descr, Builtin AnyTuple
-  | D.Records _ ->
-    Records.any |> D.mk_records |> Ty.mk_descr, Builtin AnyRecord
+    | D.Enums _ ->
+      Enums.any |> D.mk_enums |> Ty.mk_descr, Builtin AnyEnum
+    | D.Arrows _ ->
+      Arrows.any |> D.mk_arrows |> Ty.mk_descr, Builtin AnyArrow
+    | D.Intervals _ ->
+      Intervals.any |> D.mk_intervals |> Ty.mk_descr, Builtin AnyInt
+    | D.Tags _ ->
+      Tags.any |> D.mk_tags |> Ty.mk_descr, Builtin AnyTag
+    | D.Tuples _ ->
+      Tuples.any |> D.mk_tuples |> Ty.mk_descr, Builtin AnyTuple
+    | D.Records _ ->
+      Records.any |> D.mk_records |> Ty.mk_descr, Builtin AnyRecord
   in
   let any_d = { op = any_op ; ty = any } in
   let alias = resolve_alias ctx any ty in
@@ -339,12 +338,12 @@ let resolve_comp ctx c =
     | Some d -> d
   in
   let d = match c with
-  | D.Enums c -> alias_or resolve_enums c
-  | D.Arrows c -> alias_or resolve_arrows c
-  | D.Intervals c -> alias_or resolve_intervals c
-  | D.Tags c -> alias_or resolve_tags c
-  | D.Tuples c -> alias_or resolve_tuples c
-  | D.Records c -> alias_or resolve_records c
+    | D.Enums c -> alias_or resolve_enums c
+    | D.Arrows c -> alias_or resolve_arrows c
+    | D.Intervals c -> alias_or resolve_intervals c
+    | D.Tags c -> alias_or resolve_tags c
+    | D.Tuples c -> alias_or resolve_tuples c
+    | D.Records c -> alias_or resolve_records c
   in
   d, any_d
 
@@ -354,9 +353,9 @@ let resolve_descr ctx d =
   | None ->
     let (pos, components) = Descr.destruct d in
     let d = components |> List.map (fun p ->
-      let elt, any = resolve_comp ctx p in
-      cap' any elt
-    ) |> union in
+        let elt, any = resolve_comp ctx p in
+        cap' any elt
+      ) |> union in
     if pos then d else neg d
   | Some d -> d
 
@@ -498,55 +497,56 @@ let print_interval fmt (lb,ub) =
 
 let rec print_descr prec assoc fmt d =
   let rec aux prec assoc fmt d =
+    let open Format in
     match d.op with
     | Extension (E e) -> e.print prec assoc fmt e.value
-    | Alias str -> Format.fprintf fmt "%s" str
-    | Node n -> Format.fprintf fmt "%a" NodeId.pp n
+    | Alias str -> fprintf fmt "%s" str
+    | Node n -> fprintf fmt "%a" NodeId.pp n
     | Builtin b -> print_builtin fmt b
-    | Var v -> Format.fprintf fmt "%a" Var.pp v
-    | Enum a -> Format.fprintf fmt "%a" Enum.pp a
+    | Var v -> fprintf fmt "%a" Var.pp v
+    | Enum a -> fprintf fmt "%a" Enum.pp a
     | Tag (t,d) ->
-      Format.fprintf fmt "%a(%a)"
+      fprintf fmt "%a(%a)"
         Tag.pp t print_descr' d
-    | Interval (lb,ub) -> Format.fprintf fmt "%a" print_interval (lb,ub)
+    | Interval (lb,ub) -> fprintf fmt "%a" print_interval (lb,ub)
     | Record (bindings,opened) ->
       let print_binding fmt (l,d,b) =
-        Format.fprintf fmt "%a %s %a"
+        fprintf fmt "%a %s@ %a"
           Label.pp l
           (if b then ":?" else ":")
           print_descr' d
       in
-      Format.fprintf fmt "{ %a %s}"
-        (print_seq print_binding " ; ")
+      fprintf fmt "{@ %a@ %s}"
+        (pp_print_list ~pp_sep:(fun fmt () -> fprintf fmt " ;@ ") print_binding)
         bindings
         (if opened then ".." else "")
     | Varop (v,ds) ->
       let sym,prec',_ as opinfo = varop_info v in
       Prec.fprintf prec assoc opinfo fmt "%a"
-        (print_seq (aux prec' NoAssoc) sym)
+        (Prec.print_seq (aux prec' NoAssoc) sym)
         ds
     | Binop (b,d1,d2) ->
       let sym,prec',_ as opinfo = binop_info b in
-      Prec.fprintf prec assoc opinfo fmt "%a%s%a"
+      Prec.fprintf prec assoc opinfo fmt "%a%(%)%a"
         (aux prec' Left) d1 sym
         (aux prec' Right) d2
     | Unop (u,d) ->
       let sym,prec',_ as opinfo = unop_info u in
-      Prec.fprintf prec assoc opinfo fmt "%s%a" sym (aux prec' NoAssoc) d
+      Prec.fprintf prec assoc opinfo fmt "%(%)%a" sym (aux prec' NoAssoc) d
   in
   aux prec assoc fmt d
 
 and print_descr' fmt d = print_descr min_prec NoAssoc fmt d
 
 and print_def fmt (n,d) =
-  Format.fprintf fmt "%a = %a" NodeId.pp n print_descr' d
+  Format.fprintf fmt "%a =@ %a" NodeId.pp n print_descr' d
 
 and print_t fmt t =
   Format.fprintf fmt "%a" print_descr' t.main ;
   match t.defs with
   | [] -> ()
   | defs ->
-    Format.fprintf fmt " where %a" (print_seq print_def " and ") defs
+    Format.fprintf fmt "@ where@ %a" (print_seq print_def "@ and@ ") defs
 
 (* MAIN *)
 let builder ~to_t ~map ~print =
@@ -578,7 +578,7 @@ let print_ty customs fmt ty =
 let print_subst customs fmt s =
   let print_ty = print_ty customs in
   let pp_binding fmt (v,ty) =
-    Format.fprintf fmt "@,%a: %a" Var.pp v print_ty ty
+    Format.fprintf fmt "@,@[<hov>%a: %a@]" Var.pp v print_ty ty
   in
   Format.fprintf fmt "@[<v 0>[@[<v 1>%a@]@,]@]"
     (print_seq pp_binding " ;") (Subst.bindings s)

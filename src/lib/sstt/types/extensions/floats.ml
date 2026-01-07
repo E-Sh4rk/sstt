@@ -97,7 +97,7 @@ let print prec assoc fmt t =
     Format.fprintf fmt "float"
   else
     let sym,prec',_ as opinfo = binop_info Diff in
-    fprintf prec assoc opinfo fmt "float%s%a" sym (aux prec' Right) comp
+    fprintf prec assoc opinfo fmt "float%(%)%a" sym (aux prec' Right) comp
 
 let printer_builder = Printer.builder ~to_t ~map ~print
 

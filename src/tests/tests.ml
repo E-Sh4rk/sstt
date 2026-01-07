@@ -106,45 +106,45 @@ let%expect_test "tests" =
     tally6: [
               'Z: empty
             ]
-           [
-             'X: 'Z | 'X ;
-             'Y: 'Y & bool
-           ]
+            [
+              'X: 'Z | 'X ;
+              'Y: 'Y & bool
+            ]
     tally7: [
               'X: empty
             ]
-           [
-             'X: 'X & 'x ;
-             'Y: 'Y & 'y
-           ]
-           [
-             'Y: empty
-           ]
+            [
+              'X: 'X & 'x ;
+              'Y: 'Y & 'y
+            ]
+            [
+              'Y: empty
+            ]
     tally8: [
               'X: empty
             ]
-           [
-             'X: 'X & 'x ;
-             'Y: 'Y & 'y ;
-             'Z: 'Z & 'z
-           ]
-           [
-             'Y: empty
-           ]
-           [
-             'Z: empty
-           ]
+            [
+              'X: 'X & 'x ;
+              'Y: 'Y & 'y ;
+              'Z: 'Z & 'z
+            ]
+            [
+              'Y: empty
+            ]
+            [
+              'Z: empty
+            ]
     tally9: [
               'Y: empty
             ]
     tally10: [
                'Y: empty
              ]
-            [
-              'Y: 'Y & 'y ;
-              'A: 'A | 'a ;
-              'B: 'B & 'b
-            ]
+             [
+               'Y: 'Y & 'y ;
+               'A: 'A | 'a ;
+               'B: 'B & 'b
+             ]
     tally11: [
                'X: 'X | 'b | 'a ;
                'Y: 'Y & 'b & 'a
@@ -152,13 +152,13 @@ let%expect_test "tests" =
     tally12: [
                'X: empty
              ]
-            [
-              'X: any
-            ]
-            [
-              'X: ~'B | 'A & 'X ;
-              'A: ~'B | 'A
-            ]
+             [
+               'X: any
+             ]
+             [
+               'X: ~'B | 'A & 'X ;
+               'A: ~'B | 'A
+             ]
     tally13: [
                'X: empty
              ]
@@ -172,14 +172,14 @@ let%expect_test "tests" =
     tally16: [
                'A: empty
              ]
-            [
-              'X: 'A | 'X ;
-              'B: any
-            ]
-            [
-              'X: 'A | 'X ;
-              'Y: 'B & 'Y
-            ]
+             [
+               'X: 'A | 'X ;
+               'B: any
+             ]
+             [
+               'X: 'A | 'X ;
+               'Y: 'B & 'Y
+             ]
     app1: int
     app2: any
     app3: (-5..5)
@@ -195,18 +195,18 @@ let%expect_test "tests" =
     exttags3: [
                 'X1: 'Y2 & 'Y1 & 'X1
               ]
-             [
-               'X2: 'Y2 & 'Y1 & 'X2
-             ]
+              [
+                'X2: 'Y2 & 'Y1 & 'X2
+              ]
     exttags4: [
                 'X1: 'Y2 \ 'X2 | 'Y1 \ 'X2 | 'X1
               ]
     exttags5: [
                 'X1: 'Y2 | 'Y1 | 'X1
               ]
-             [
-               'X2: 'Y2 | 'Y1 | 'X2
-             ]
+              [
+                'X2: 'Y2 | 'Y1 | 'X2
+              ]
     exttags6: tagandex(42)
     exttags7: ~tagorex()
     perf1: true
@@ -275,4 +275,3 @@ let%expect_test "tests_ext" =
       abs_any: abs
       abs_invalid: __abs(42)
       |}]
-  

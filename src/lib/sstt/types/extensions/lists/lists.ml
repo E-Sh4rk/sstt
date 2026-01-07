@@ -1,6 +1,4 @@
 open Core
-open Sstt_utils
-
 
 let tag = Tag.mk "lst"
 
@@ -208,10 +206,10 @@ let rec print_r prec fmt regexp =
     | Symbol d -> Format.fprintf fmt "%a" Printer.print_descr_atomic d
     | Concat lst ->
       paren prec_concat ;
-      Format.fprintf fmt "%a" (print_seq (print_r prec_concat) " ") lst
+      Format.fprintf fmt "%a" (Prec.print_seq (print_r prec_concat) "@ ") lst
     | Union lst ->
       paren prec_union ;
-      Format.fprintf fmt "%a" (print_seq (print_r prec_union) " | ") lst
+      Format.fprintf fmt "%a" (Prec.print_seq (print_r prec_union) "@ |@ ") lst
     | Star r ->
       paren prec_star ;
       Format.fprintf fmt "%a*" (print_r prec_star) r
@@ -227,9 +225,9 @@ let rec print_r prec fmt regexp =
 open Prec
 
 let print_r fmt =
-  Format.fprintf fmt "[ %a ]" (print_r (-1))
+  Format.fprintf fmt "[@ %a@ ]" (print_r (-1))
 
-let cons_opinfo = "::", 1, Right
+let cons_opinfo = format_of_string "::@,", 1, Right
 let print prec assoc fmt t =
   match t with
   | Regexp r -> print_r fmt r
