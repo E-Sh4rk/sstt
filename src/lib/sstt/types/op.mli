@@ -95,12 +95,24 @@ module TagComp : sig
   type t = TagComp.t
   type atom = TagComp.Atom.t
 
-(** [is_identity t] returns [true] if and only if the component [t]
+  (** [is_identity t] returns [true] if and only if the component [t]
     is a tag component whose underlying interpretation is isomorphic
     to the identity, that is, if it is monotonic and {m \cap}-{m \cup}-preserving. *)
   val is_identity : t -> bool
 
+  (** [preserves_cap t] returns [true] if and only if the component [t]
+    is a tag component whose underlying interpretation preserves intersections. *)
+  val preserves_cap : t -> bool
+
+  (** [preserves_cup t] returns [true] if and only if the component [t]
+    is a tag component whose underlying interpretation preserves unions. *)
+  val preserves_cup : t -> bool
+
   (** [as_atom t] expresses [t] as an atom.
       Raises: [Invalid_argument] if the tag component does not satisfy [is_identity]. *)
   val as_atom : t -> atom
+
+  (** [as_union t] expresses [t] as a union of atoms.
+      Raises: [Invalid_argument] if the tag component does not satisfy [preserves_cap]. *)
+  val as_union : t -> atom list
 end

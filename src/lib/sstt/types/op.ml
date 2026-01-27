@@ -130,6 +130,29 @@ module TagComp = struct
     | Tag.NoProperty -> false
     | Tag.Monotonic m -> m.preserves_cap && m.preserves_cup
 
+  let preserves_cap t =
+    let p = TagComp.tag t |> Tag.properties in
+    match p with
+    | Tag.NoProperty -> false
+    | Tag.Monotonic m -> m.preserves_cap
+
+  let preserves_cup t =
+    let p = TagComp.tag t |> Tag.properties in
+    match p with
+    | Tag.NoProperty -> false
+    | Tag.Monotonic m -> m.preserves_cup
+
+  let as_union t =
+    if preserves_cap t |> not then
+      invalid_arg "Tag component must satisfy preserves_cap." ;
+    let tag = TagComp.tag t in
+    let ty_of_clause (ps,ns) =
+      let p = ps |> List.map snd |> Ty.conj in
+      let n = ns |> List.map snd |> List.map Ty.neg |> Ty.conj in
+      tag, Ty.cap p n
+    in
+    TagComp.dnf t |> List.map ty_of_clause
+
   let as_atom t =
     if is_identity t |> not then
       invalid_arg "Tag component must satisfy is_identity." ;

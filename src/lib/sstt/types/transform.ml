@@ -150,6 +150,9 @@ let simpl_tags ~normalize c =
   let to_ty a = Descr.mk_tag a |> Ty.mk_descr in
   if Op.TagComp.is_identity c then
     Op.TagComp.as_atom c |> TagComp.mk
+  else if Op.TagComp.preserves_cap c then
+    Op.TagComp.as_union c |> List.map (fun a -> [a],[])
+    |> filter_dnf ~normalize to_ty |> TagComp.of_dnf tag
   else
     TagComp.dnf c |> filter_dnf ~normalize to_ty |> TagComp.of_dnf tag
 
