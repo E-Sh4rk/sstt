@@ -76,7 +76,7 @@ module Records = struct
   let as_union t =
     let open Records.Atom in
     Records.dnf' t |> List.map (fun t ->
-        { bindings=t.Records.Atom'.bindings ; opened=t.opened }
+        { bindings=t.Records.Atom'.bindings ; tail=t.tail }
       )
 
   let of_union lst =
@@ -90,16 +90,22 @@ module Records = struct
             match ot1, ot2 with
               None, None -> None
             | _ -> 
-              Some (Ty.O.cup (default a1 ot1) (default a2 ot2))
+              Some (Ty.F.cup (default a1 ot1) (default a2 ot2))
           ) a1.bindings a2.bindings in
-      { bindings ; opened = a1.opened || a2.opened }
+      let tail =
+        match a1.tail, a2.tail with
+        | Open, _ | _, Open -> Records.Tail.Open
+        | Closed, Closed -> Closed
+        | RowVar v, _ | _, RowVar v -> RowVar v
+      in
+      { bindings ; tail }
     in
     match as_union t with
     | [] -> raise EmptyAtom
     | hd::tl -> List.fold_left union_a hd tl
 
   let proj label t =
-    as_union t |> List.map (Records.Atom.find label) |> Ty.O.disj
+    as_union t |> List.map (Records.Atom.find label) |> Ty.F.disj
 
   let merge a1 a2 =
     let open Records.Atom in
@@ -107,15 +113,17 @@ module Records = struct
         match ot1, ot2 with
           None, None -> None
         | _ ->
-          let (ty2, b2) as oty2 = default a2 ot2 in
-          let oty = if b2 then Ty.O.cup (default a1 ot1) (ty2, false) else oty2 in
+          let ty2, b2 = Ty.F.destruct (default a2 ot2) in
+          let oty = if b2 then Ty.F.cup (default a1 ot1) (Ty.F.required ty2) else (default a2 ot2) in
           Some oty
       ) a1.bindings a2.bindings in
-    { bindings ; opened = a1.opened || a2.opened } |> Records.mk
+    let tail = Records.Tail.Open (* TODO approximate better based on a1 and a2 *)
+    in
+    { bindings ; tail } |> Records.mk
 
   let remove a lbl =
     let open Records.Atom in
-    let bindings = a.bindings |> LabelMap.add lbl (Ty.O.absent) in
+    let bindings = a.bindings |> LabelMap.add lbl (Ty.F.absent) in
     { a with bindings } |> Records.mk
 
 end

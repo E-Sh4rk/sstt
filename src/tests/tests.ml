@@ -49,6 +49,17 @@ let%expect_test "tests" =
     record6: { l1 : false ; l2 : int ..}
     record7: { l1 : bool ; l2 : int ..} \ { l1 : true ; l2 : int }
     record8: { l1 : false ; l2 : int }
+    record9: true
+    record10: true
+    record11: true
+    record12: true
+    record13: true
+    record14: true
+    record15: true
+    record15f: false
+    record16: true
+    record17: true
+    record18: true
     arrow1: false
     arrow2: true
     arrow3: true
