@@ -28,39 +28,42 @@ val tally : MixVarSet.t -> constr list -> Subst.t list
     (in the sense that [s2] can be obtained by composing [s1] with another substitution). *)
 val decompose : MixVarSet.t -> Subst.t -> Subst.t -> Subst.t list
 
-(** {1 Operations on row and field variables}*)
+(** {1 Operations on row variables}*)
 
-(** A row variable is considered to be a field variable if it only appears in fields of the same label,
-    or only appears in a tail position that is never compared to any other field.
-    Although field variables are represented using row variables,
-    they should only be substituted by rows of the form [ { ;; fty } ] (i.e. rows with no bindings).
-    The concept of field variable is used during constraint solving in order to decorrelate the
-    row variables appearing under different fields. *)
+(** A field variable is a pair ([rv], [lbl]) that denotes a row variable
+    [rv] appearing in a field labeled [lbl]. *)
 
 type field_ctx
-(** An environment that captures the correspondance between row variables and field variables. *)
+(** An environment that defines a correspondance between some field variables and
+    fresh row variables. *)
+
+val get_field_ctx' : LabelSet.t -> RowVarSet.t -> field_ctx
+(** Generates a [field_ctx] for a set of row variables and labels. *)
 
 val get_field_ctx : RowVarSet.t -> Ty.t list -> field_ctx
-(** Generates a [field_ctx] for a set of types. *)
+(** [field_ctx mono tys] generates a [field_ctx] for the labels and row variables
+    appearing in [tys], excluding the row variables in [mono]. *)
 
 val fvars_associated_with : field_ctx -> RowVar.t -> RowVarSet.t
-(** Returns the set of field variables associated with a row variable in a field context. *)
+(** Returns the set of fresh row variables associated with a row variable in a field context. *)
+
+val fvar_associated_with : field_ctx -> (RowVar.t * Label.t) -> RowVar.t
+(** Returns the fresh row variable associated with a field variable in a field context. *)
 
 val rvar_associated_with : field_ctx -> RowVar.t -> (RowVar.t * Label.t) option
-(** Returns the row variable associated with a field variable in a field context, together with the
-    label of the corresponding field. *)
+(** Returns the field variable associated with a fresh row variable in a field context. *)
 
 val decorrelate_fields : field_ctx -> Ty.t -> Ty.t
-(** Turn row variables of a type into field variables according to a field context. *)
+(** Refresh row variables of a type according to a field context. *)
 
 val recombine_fields : field_ctx -> Ty.t -> Ty.t
-(** Recombine field variables of a type into their initial row variable according to a field context. *)
+(** Recombine row variables of a type according to a field context. *)
 
 val recombine_fields' : field_ctx -> Subst.t -> Subst.t
-(** Transform a substitution manipulating field variables into the corresponding substitution manipulating
-    row variables, according to a field context. *)
+(** Recombine row variables of a substitution according to a field context. *)
 
 val tally_fields : MixVarSet.t -> constr list -> Subst.t list
-(** Run the tallying algorithm on constraints that are already decorrelated. All row variables
-    should be field variables, and the solutions returned will only substitute them
-    by rows of the form [ { ;; fty } ]. *)
+(** Run a limited version of the tallying algorithm that only looks for
+    substitutions involving constant rows (i.e. rows of the form [ { ;; fty } ]).
+    Calling [tally_fields] on a tallying instance where fields have been decorrelated
+    and recombining fields in the solutions is equivalent to calling [tally]. *)

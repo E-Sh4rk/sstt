@@ -497,10 +497,9 @@ let rvs_of_tys tys = tys
   |> List.fold_left RowVarSet.union RowVarSet.empty
 module RVH = Hashtbl.Make(RowVar)
 type field_ctx = Subst.t * Subst.t
-let get_field_ctx delta tys =
-  (* Compute the set of labels, and substitute row variables with "field variables" accordingly *)
-  let labels = labels_of_tys tys |> LabelSet.elements in
-  let rvs = RowVarSet.diff (rvs_of_tys tys) delta in
+let get_field_ctx' labels rvs =
+  (* Substitute row variables with "field variables" *)
+  let labels = LabelSet.elements labels in
   let original_rv = RVH.create 10 in
   let s, rs = rvs |> RowVarSet.elements |> List.map (fun rv ->
     let bindings = labels |> List.map (fun lbl ->
@@ -512,11 +511,16 @@ let get_field_ctx delta tys =
     (List.map (fun (_, rv') -> rv', Row.id_for rv) bindings)
   ) |> List.split in
   Subst.of_list2 s, List.concat rs |> Subst.of_list2
+let get_field_ctx delta tys =
+  let rvs = RowVarSet.diff (rvs_of_tys tys) delta in
+  get_field_ctx' (labels_of_tys tys) rvs
 let decorrelate_fields (s,_) ty = Subst.apply s ty
 let recombine_fields (_,rs) ty = Subst.apply rs ty
 let recombine_fields' (s,rs) sol =
   Subst.compose sol s |> Subst.remove_many2 (Subst.intro2 s) |> Subst.compose_restr rs
-let fvars_associated_with (s,_) rv = Subst.find2 s rv |> Row.row_vars
+let fvars_associated_with (s,_) rv = Subst.find2 s rv |> Row.row_vars_toplevel
+let fvar_associated_with (s,_) (rv,lbl) =
+  Subst.find2 s rv |> Row.find lbl |> Ty.F.get_vars |> RowVarSet.elements |> List.hd
 let rvar_associated_with (_,rs) rv =
   match Subst.find2 rs rv |> Row.bindings with
   | [lbl,f] -> Some (Ty.F.get_vars f |> RowVarSet.elements |> List.hd, lbl)
