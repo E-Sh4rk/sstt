@@ -640,6 +640,7 @@ module type Records = sig
 
   type node
   
+  (** @canonical Sstt.Ty.F *)
   module FTy : FTy with type node := node
 
   (** @inline*)
