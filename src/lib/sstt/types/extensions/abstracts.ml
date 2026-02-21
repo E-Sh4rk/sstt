@@ -44,6 +44,7 @@ let label_of_position neg i =
     Hashtbl.add labels (neg,i) lbl ; lbl
 
 let encode_params encoding ps =
+  let open Op.Records in
   let bindings =
     match encoding with
     | ECov vs ->
@@ -52,14 +53,14 @@ let encode_params encoding ps =
         let neg = label_of_position true i, Ty.O.optional (Ty.neg p) in
         match v with
         | Cov -> [pos] | Cav -> [neg] | Inv -> [pos;neg]
-      ) |> List.concat |> LabelMap.of_list
+      ) |> List.concat |> Atom.LabelMap.of_list
     | EInv _ ->
       ps |> List.mapi (fun i p ->
         label_of_position false i, Ty.O.optional p
-      ) |> LabelMap.of_list
+      ) |> Atom.LabelMap.of_list
   in
-  { Records.Atom.bindings ; Records.Atom.opened=false }
-  |> Descr.mk_record |> Ty.mk_descr
+  { Atom.bindings ; Atom.tail=Ty.O.absent }
+  |> of_atom |> Descr.mk_records |> Ty.mk_descr
 
 let mk tag ps =
   let encoding = encoding tag in
@@ -72,7 +73,7 @@ let mk_any tag =
   TagComp.any tag |> Descr.mk_tagcomp |> Ty.mk_descr
 
 let extract_dnf tag dnf =
-  let open Records.Atom in
+  let open Op.Records.Atom in
   let vs = parameters tag in
   let extract_param record i v =
     match v with
@@ -108,11 +109,11 @@ let destruct tag ty =
   ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
   |> TagComp.dnf |> extract_dnf tag
 
-let to_t node ctx comp =
+let to_t ctx comp =
   try
     let tag, dnf = TagComp.tag comp, TagComp.dnf comp in
     let params = extract_dnf tag dnf in
-    let map_node l = List.map (node ctx) l in
+    let map_node l = List.map ctx.Printer.build l in
     List.map (fun (p1, p2) ->
         List.map map_node p1, List.map map_node p2
       ) params |> Option.some
