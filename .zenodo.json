@@ -14,11 +14,6 @@
       "orcid": "0000-0002-1729-870X"
     }
   ],
-  "grants": [
-    {
-      "id": "ERC CZ LL2325"
-    }
-  ],
   "license": "MIT",
   "keywords": [
     "OCaml",
