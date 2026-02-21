@@ -4,7 +4,7 @@
   "description": "SSTT (Simple Set-Theoretic Types) is an OCaml library for manipulating set-theoretic types, supporting semantic subtyping, DNF extraction, substitution, tallying, and other related operations.",
   "creators": [
     {
-      "name": "Laurent Mickaël",
+      "name": "Mickaël Laurent",
       "affiliation": "Charles University",
       "orcid": "0000-0003-1590-2392"
     },
