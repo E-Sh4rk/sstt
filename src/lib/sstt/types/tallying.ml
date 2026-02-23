@@ -270,15 +270,25 @@ module Make(VS:VarSettings) = struct
 
   module FToplevel = Toplevel(FP)
   module VDHash = Hashtbl.Make(VDescr)
-  module TyF' = struct
-    (* To ensure termination, caching of field types
-       should be done by comparing the descr of the underlying nodes. *)
+  module FDescr = struct
+    (* Intuitively, this module represents a field descriptor in which
+       direct nodes have been inlined. It is used for caching:
+       to ensure termination, caching of field types should be done
+       by comparing the descriptor of the underlying nodes and not only their id. *)
 
-    type t = Ty.F.t
-    let equal = Ty.F.equal' (fun n1 n2 -> VDescr.equal (Ty.def n1) (Ty.def n2))
-    let hash = Ty.F.hash' (fun n -> VDescr.hash (Ty.def n))
+    module TyHash = Hashtbl.Make(Ty)
+    type t = Ty.F.t * VDescr.t TyHash.t
+    let of_field f =
+      let h = TyHash.create 3 in
+      let cache n = TyHash.replace h n (Ty.def n) ; n in
+      Ty.F.map_nodes cache f |> ignore ;
+      f, h
+    let equal (f1,h1) (f2,h2) = Ty.F.equal'
+      (fun n1 n2 -> VDescr.equal (TyHash.find h1 n1) (TyHash.find h2 n2))
+      f1 f2
+    let hash (f,h) = f |> Ty.F.hash' (fun n -> VDescr.hash (TyHash.find h n))
   end
-  module FTyHash = Hashtbl.Make(TyF')
+  module FDHash = Hashtbl.Make(FDescr)
   
   let norm_tuple_gen ~diff ~disjoint ~norm ps ns =
     (* Same algorithm as for subtyping tuples.
@@ -416,7 +426,7 @@ module Make(VS:VarSettings) = struct
 
   let propagate cs =
     let memo_ty = VDHash.create 8 in
-    let memo_f = FTyHash.create 8 in
+    let memo_f = FDHash.create 8 in
     let rec aux (prev,prev') ((cs,cs') : CS'.t) =
       let retry_with css =
         let css' () = CS'.cap (prev,prev') (cs,cs') |> CSS.singleton in
@@ -427,20 +437,22 @@ module Make(VS:VarSettings) = struct
       | VCS.[], FCS.[] -> (prev,prev') |> CSS.singleton
       | ((t',_, t) as constr) :: tl, cs' ->
         let ty = Ty.diff t' t in
-        if VDHash.mem memo_ty (Ty.def ty) then
+        let def = Ty.def ty in
+        if VDHash.mem memo_ty def then
           aux (VCS.add constr prev, prev') (tl,cs')
         else
-          let () = VDHash.add memo_ty (Ty.def ty) () in
+          let () = VDHash.add memo_ty def () in
           let res = norm ty |> retry_with in
-          VDHash.remove memo_ty (Ty.def ty); res
+          VDHash.remove memo_ty def ; res
       | VCS.[], ((f',_, f) as constr) :: tl ->
         let f = Ty.F.diff f' f in
-        if FTyHash.mem memo_f f then
+        let def = FDescr.of_field f in
+        if FDHash.mem memo_f def then
           aux (prev, FCS.add constr prev') (cs,tl)
         else
-          let () = FTyHash.add memo_f f () in
+          let () = FDHash.add memo_f def () in
           let res = norm_field f |> retry_with in
-          FTyHash.remove memo_f f; res
+          FDHash.remove memo_f def ; res
     in
     aux CS'.any cs
 
