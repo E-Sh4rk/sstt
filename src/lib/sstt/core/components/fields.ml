@@ -38,16 +38,23 @@ module OTy(N:Node) = struct
   let disjoint (n1,b1) (n2,b2) = not (b1 && b2) && N.disjoint n1 n2
 
   let equal (n1,b1) (n2,b2) = b1 = b2 && N.equal n1 n2
-  let compare (n1,b1) (n2,b2) = compare b1 b2 |> ccmp N.compare n1 n2
+  let equal' f (n1,b1) (n2,b2) = b1 = b2 && f n1 n2
+  let compare (n1,b1) (n2,b2) = Bool.compare b1 b2 |> ccmp N.compare n1 n2
+  let compare' f (n1,b1) (n2,b2) = Bool.compare b1 b2 |> ccmp f n1 n2
 
   let map_nodes f (n,b) = (f n, b)
   let direct_nodes (n,_) = [n]
   let simplify t = t
 
   let hash (n, b) = Hash.(mix (bool b) (N.hash n))
+  let hash' f (n, b) = Hash.(mix (bool b) (f n))
 end
 
 module Make(N:Node) = struct
   module OTy = OTy(N)
   include Polymorphic.Make(N)(RowVar)(OTy)
+
+  let equal' f = Bdd.equal' RowVar.equal (OTy.equal' f)
+  let compare' f = Bdd.compare' RowVar.compare (OTy.compare' f)
+  let hash' f = Bdd.hash' RowVar.hash (OTy.hash' f)
 end

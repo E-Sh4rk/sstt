@@ -15,6 +15,14 @@ module type Comparable = sig
   *)
 end
 
+module type Comparable' = sig
+  type t
+  type node
+  val compare' : (node -> node -> int) -> t -> t -> int
+  val equal' : (node -> node -> bool) -> t -> t -> bool
+  val hash' : (node -> int) -> t -> int
+end
+
 module type TyBase = sig
   type t
 
@@ -289,6 +297,7 @@ module type OTy = sig
 
     include TyBase with type node := node and type t := t (** @inline *)
 
+    include Comparable' with type node := node and type t := t (** @inline *)
 
     val absent : t
     (** [absent] is the singleton type containing the undefined value, {m \bot}. *)
@@ -393,19 +402,7 @@ module type FTy = sig
     and type leaf := OTy.t and type var := RowVar.t
     and module VarSet := RowVarSet
 
-end
-
-module type FTy' = sig
-
-  type node
-  type t
-
-  module OTy : OTy with type node := node
-
-  (**@inline*)
-  include Polymorphic' with type t := t and type node := node
-    and type leaf := OTy.t and type var := RowVar.t
-    and module VarMap := RowVarMap and module VarSet := RowVarSet
+  include Comparable' with type node := node and type t := t (** @inline *)
 
 end
 

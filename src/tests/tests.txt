@@ -122,6 +122,7 @@ type unit = () ;;
 "tally_row6" [ { a: any ;; `R } -> { a: empty? ;; `R } <= { a:42 ; b:73 } -> 'X ] ;;
 "tally_row7" [ { ;; `R } -> { a: empty? ;; `R } <= { a:42 ; b:73 } -> 'X ] ;;
 "tally_row8" [ ({ ;; `R }, 'A) -> { a: 'A ;; `R } <= ( { a:42 ; b:73 }, 73 ) -> 'X ] ;;
+"tally_row9" [ { na_rm : 0 ; p : { na_rm : 0 } -> int } <=  { p : { p : empty? ;; `A } -> int ;; `A } ] ;;
 
 "app1" int -> bool -> int 42 bool ;;
 "app2" int -> bool -> int bool 42 ;;

@@ -270,7 +270,15 @@ module Make(VS:VarSettings) = struct
 
   module FToplevel = Toplevel(FP)
   module VDHash = Hashtbl.Make(VDescr)
-  module FTyHash = Hashtbl.Make(Ty.F)
+  module TyF' = struct
+    (* To ensure termination, caching of field types
+       should be done by comparing the descr of the underlying nodes. *)
+
+    type t = Ty.F.t
+    let equal = Ty.F.equal' (fun n1 n2 -> VDescr.equal (Ty.def n1) (Ty.def n2))
+    let hash = Ty.F.hash' (fun n -> VDescr.hash (Ty.def n))
+  end
+  module FTyHash = Hashtbl.Make(TyF')
   
   let norm_tuple_gen ~diff ~disjoint ~norm ps ns =
     (* Same algorithm as for subtyping tuples.

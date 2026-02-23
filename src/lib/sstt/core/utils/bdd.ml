@@ -48,6 +48,14 @@ module Make(N:Atom)(L:Leaf) = struct
   let hleaf l = Leaf (l, Hash.mix Hash.const2 (L.hash l))
   let hnode a p n = Node (a, p, n, 
                           Hash.mix3 (N.hash a) (hash p) (hash n) )
+
+  (* Version less optimized but parametric *)
+  let rec hash' hn hl t =
+    match t with
+    | Leaf (l, _) -> hl l
+    | Node (a, p, n, _)->
+      Hash.mix3 (hn a) (hash' hn hl p) (hash' hn hl n)
+
   let empty = hleaf L.empty
   let any = hleaf L.any
 
@@ -62,11 +70,20 @@ module Make(N:Atom)(L:Leaf) = struct
     | Node (a1, p1, n1, h1), Node (a2, p2, n2, h2) ->
       Int.equal h1 h2 &&
       N.equal a1 a2 && equal p1 p2 && equal n1 n2
+  
+  (* Version less optimized but parametric *)
+  let rec equal' fn fl t1 t2 =
+    t1 == t2 ||
+    match t1, t2 with
+    | Leaf (l1, _) , Leaf (l2, _) -> fl l1 l2
+    | Node _, Leaf _ | Leaf _, Node _ -> false
+    | Node (a1, p1, n1, _), Node (a2, p2, n2, _) ->
+      fn a1 a2 && equal' fn fl p1 p2 && equal' fn fl n1 n2
 
   let rec compare t1 t2 =
     if t1 == t2 then 0 else
       match t1, t2 with
-      | Leaf (l1, h1), Leaf (l2, h2)  -> Int.compare h1 h2 |> ccmp L.compare l1 l2
+      | Leaf (l1, h1), Leaf (l2, h2) -> Int.compare h1 h2 |> ccmp L.compare l1 l2
       | Leaf _, Node _ -> 1
       | Node _, Leaf _ -> -1
       | Node (a1, p1, n1, h1), Node (a2, p2, n2, h2) ->
@@ -74,6 +91,18 @@ module Make(N:Atom)(L:Leaf) = struct
           let c = N.compare a1 a2 in if c <> 0 then c else
             let c = compare p1 p2 in if c <> 0 then c else
               compare n1 n2
+
+  (* Version less optimized but parametric *)
+  let rec compare' fn fl t1 t2 =
+    if t1 == t2 then 0 else
+      match t1, t2 with
+      | Leaf (l1, _), Leaf (l2, _) -> fl l1 l2
+      | Leaf _, Node _ -> 1
+      | Node _, Leaf _ -> -1
+      | Node (a1, p1, n1, _), Node (a2, p2, n2, _) ->
+        let c = fn a1 a2 in if c <> 0 then c else
+          let c = compare' fn fl p1 p2 in if c <> 0 then c else
+            compare' fn fl n1 n2
 
   (* Smart constructor *)
   let node a p n =

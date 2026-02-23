@@ -217,6 +217,9 @@ let%expect_test "tests" =
                   'A: 73 | 'A ;
                   `R: { a : 42 | `R ; b : 73 | `R ;; empty? | `R }
                 ]
+    tally_row9: [
+                  `A: { na_rm : 0 ; p : `A }
+                ]
     app1: int
     app2: any
     app3: (-5..5)
