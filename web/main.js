@@ -23,7 +23,10 @@ jQuery(function($, undefined) {
     let term = $('#terminal').terminal(function(command) {
         if (command !== '') {
             var result = sstt.send(command);
-            if (result != null) {
+            if (result === null) {
+                this.set_prompt('');
+            } else {
+                this.set_prompt('> ');
                 this.echo(result);
             }
         }
