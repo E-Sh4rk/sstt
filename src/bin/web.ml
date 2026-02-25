@@ -25,8 +25,10 @@ let send line =
     with_basic_output fmt treat str ;
     Format.fprintf fmt "@?" ;
     Js.string (Buffer.contents out) |> Js.some
-  end else
+  end else begin
+    Buffer.add_string buf "\n" ;
     Js.null
+  end
 
 let _ =
   Js.export "sstt"
