@@ -2,6 +2,6 @@
 (library
  (name sstt_repl)
  (public_name sstt-repl)
- (libraries sstt sstt_utils str zarith))
+ (libraries sstt sstt_utils str zarith cduce))
 
 (include_subdirs unqualified)

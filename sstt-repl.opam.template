@@ -1,0 +1,4 @@
+pin-depends: [
+  [ "cduce-types.dev" "git+https://gitlab.math.univ-paris-diderot.fr/cduce/cduce" ]
+  [ "cduce.dev" "git+https://gitlab.math.univ-paris-diderot.fr/cduce/cduce" ]
+]

@@ -48,6 +48,17 @@ opam pin sstt-repl https://github.com/E-Sh4rk/sstt.git#main
 opam pin sstt-bin https://github.com/E-Sh4rk/sstt.git#main
 ```
 
+## Running the benchmarks
+
+The directoy `benchmarks` contains the benchmark files that are processed when running `make benchmark`.
+
+To configure the benchmarks, some parameters must be directly edited in the code:
+- To perform benchmarks using CDuce as a back-end, set `use_cduce_backend` to `true` in `src/bin/benchmark.ml`.
+- To configure hash-consing, BDD simplifications, and subtyping/tallying optimizations, set the corresponding parameters in `src/lib/sstt/core/utils/config.ml`.
+
+Benchmark files can be generated from the type-checker [MLsem](https://github.com/E-Sh4rk/MLsem),
+by running `make record`. This will generate JSON files in the `tests` directory (one for each test file).
+
 ## License
 
 This software is distributed under the MIT license.

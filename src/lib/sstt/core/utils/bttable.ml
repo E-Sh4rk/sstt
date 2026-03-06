@@ -1,4 +1,9 @@
-module Make(V : Hashtbl.HashedType)(R : sig type t val equal : t -> t-> bool end): sig
+exception InvalidAccess
+(** Raised if a entry is used more than once. *)
+
+module type BT = sig
+  type key
+  type res
 
   (** 
      Hash table specialized for computations over co-inductive structures.
@@ -44,22 +49,19 @@ module Make(V : Hashtbl.HashedType)(R : sig type t val equal : t -> t-> bool end
   type t
   (** The type of the table.*)
 
-  exception InvalidAccess
-  (** Raised if a entry is used more than once. *)
-
   val create : unit -> t
   (** Creates an empty table *)
 
   val clear : t -> unit
   (** Clears the table. *)
 
-  val find : default:R.t -> t -> V.t -> R.t option
+  val find : default:res -> t -> key -> res option
   (** Retrieves the result associated with a value.
       If the value is not in the table, the supplied [default] result
       is added and a entry is returned.
   *)
 
-  val update : t -> V.t -> R.t -> unit
+  val update : t -> key -> res -> unit
   (** Updates the value associated with the value that created the entry.
         If the supplied value is not equal to the original one, all values in
         the table whose result dependend on the original result are removed from
@@ -67,11 +69,14 @@ module Make(V : Hashtbl.HashedType)(R : sig type t val equal : t -> t-> bool end
 
       @raise InvalidAccess if the value is not already in the table.
   *)
+end
 
-end = struct
+module Make(V : Hashtbl.HashedType)(R : sig type t val equal : t -> t-> bool end):
+  BT with type key=V.t and type res=R.t = struct
+  type key=V.t
+  type res=R.t
   module H = Hashtbl.Make(V)
 
-  exception InvalidAccess
   type stack = 
       Cons of { key : V.t; mutable marked : bool ; next : stack }
     | Nil
@@ -122,4 +127,37 @@ end = struct
       t.stack <- s.next;
       cp.active <- false
     | _ -> raise InvalidAccess
+end
+
+module Make' (V : Map.OrderedType) (R : sig type t val equal : t -> t-> bool end) :
+  BT with type key=V.t and type res=R.t = struct
+  type key=V.t
+  type res=R.t
+
+  module M = Map.Make(V)
+  type t = R.t M.t list ref
+
+  let create () = ref [M.empty]
+  let clear t = t := [M.empty]
+
+  let find ~default t key =
+    let d = List.hd !t in
+    let res,t' =
+      match M.find_opt key d with
+      | None -> None, (M.add key default d)::!t
+      | Some r -> Some r, !t
+    in
+    t := t' ; res
+
+  let update t key r =
+    match !t with
+    | [] | [_] -> assert false
+    | d::prev_d::t' ->
+      let old_r = M.find key d in
+      if Config.subtyping_cache = BasicCache then
+        t := prev_d::t'
+      else if not (R.equal r old_r) then
+        t := (M.add key r prev_d)::t'
+      else
+        t := d::t'
 end

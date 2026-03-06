@@ -120,7 +120,11 @@ include (struct
                          and type row = VDescr.Descr.Records.Atom.t = struct
     (* The PreNode module that contain the entry points of all functions on types. *)
     module NH = Hashtbl.Make(PreNode)
-    module Table = Bttable.Make(VDescr)(Bool)
+    module Table = (val
+        if Config.subtyping_cache = HashCache
+        then (module Bttable.Make(VDescr)(Bool) : Bttable.BT with type key = VDescr.t and type res = Bool.t)
+        else (module Bttable.Make'(VDescr)(Bool) : Bttable.BT with type key = VDescr.t and type res = Bool.t)
+      )
     type _ Effect.t += GetCache: (Table.t) t
 
     type vdescr = VDescr.t
@@ -193,8 +197,10 @@ include (struct
       | None ->
         let s = t |> def |> VDescr.neg
           |> cons ~simplified:t.simplified in
-        t.neg <- Some s;
-        s.neg <- Some t;
+        if not Config.benchmark_size then begin
+          t.neg <- Some s;
+          s.neg <- Some t;
+        end;
         s
     let neg = fneg ~empty ~any ~neg
 

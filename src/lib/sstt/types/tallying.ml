@@ -98,7 +98,7 @@ module Make(VS:VarSettings) = struct
       let d = List.fold_left (fun acc (lb,v,ub) -> B.weaken v (lb,ub) acc) d ctx in
       B.always_non_empty d
     let assert_sat ctx c =
-      if unsat ctx c
+      if Config.tallying_opti && unsat ctx c
       then raise_notrace Unsat
 
     let trivial v = (B.empty, v, B.any)
@@ -250,6 +250,7 @@ module Make(VS:VarSettings) = struct
           else if n < 0 then C.subsumes ctx1 (C.var c2 |> C.trivial) c2 && aux ctx1 l1 ll2
           else C.subsumes ctx1 c1 c2 && aux (c1::ctx1) ll1 ll2
       in
+      Config.tallying_opti &&
       aux [] (List.rev l1) (List.rev l2)
 
     let compare = List.compare C.compare

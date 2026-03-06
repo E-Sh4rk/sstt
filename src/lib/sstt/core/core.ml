@@ -1,5 +1,4 @@
 open Sigs
-
 (**
    {1 Types and their components}
 
@@ -24,7 +23,6 @@ open Sigs
 *)
 
 (** {2 Types and descriptors }*)
-
 module Ty : Ty = struct
   module N = Node.Node
 
@@ -35,7 +33,20 @@ module Ty : Ty = struct
   module VDescr = Node.VDescr
   module F = VDescr.Descr.Records.FTy
   module O = F.OTy
-  let simpl t = N.with_own_cache N.simplify t ; t
+  let max_size = ref 0
+
+  let () = 
+  if Config.benchmark_size then
+  at_exit (fun () -> Format.printf "FINAL MAX SIZE: %d\n%!" !max_size)
+  let size t = Marshal.(total_size (to_bytes t [Closures]) 0)
+
+  let simpl t =
+    if Config.bdd_simpl then N.with_own_cache N.simplify t;
+    let s = size t in
+    if s > !max_size then begin
+      max_size := s;
+    end;
+    t
   let s f t = f t |> simpl
   let s' f t = simpl t |> f
 
@@ -143,3 +154,4 @@ module LabelSet = Records.Atom.LabelMap.Set
 (** @canonical Sstt.LabelMap *)
 module LabelMap = Records.Atom.LabelMap
 
+module Config = Config
