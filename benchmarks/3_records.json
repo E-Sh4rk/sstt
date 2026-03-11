@@ -2,9 +2,11 @@
   {
     "vars": [ "'a", "'b" ],
     "mono": [],
-    "rvars": [ "`a" ],
+    "rvars": [ "`a", "`b" ],
     "rmono": [],
-    "constr": [ [ "{  ;; `a } -> { l1 : empty? ;; `a }", "'a -> 'b" ] ]
+    "constr": [
+      [ "{ l1 : `b ;; `a } -> { l1 : empty? ;; `a }", "'a -> 'b" ]
+    ]
   },
   {
     "vars": [],
@@ -16,11 +18,12 @@
   {
     "vars": [ "'a" ],
     "mono": [],
-    "rvars": [ "`a", "`b" ],
+    "rvars": [ "`a", "`b", "`c", "`d", "`e" ],
     "rmono": [],
     "constr": [
       [
-        "{  ;; `a } -> { l2 : empty? ;; `a }", "{ l1 : empty? ;; `b } -> 'a"
+        "{ l1 : `d ; l2 : `e ;; `b } -> { l1 : `d ; l2 : empty? ;; `b }",
+        "{ l1 : empty? ; l2 : `c ;; `a } -> 'a"
       ]
     ]
   },
@@ -29,7 +32,7 @@
     "mono": [],
     "rvars": [ "`a" ],
     "rmono": [ "`a" ],
-    "constr": [ [ "{ l2 : empty? ; l1 : empty? ;; `a }", "empty" ] ]
+    "constr": [ [ "{ l1 : empty? ; l2 : empty? ;; `a }", "empty" ] ]
   },
   {
     "vars": [],
@@ -41,12 +44,12 @@
   {
     "vars": [ "'a" ],
     "mono": [],
-    "rvars": [ "`a", "`b" ],
+    "rvars": [ "`a", "`b", "`c", "`d", "`e", "`f" ],
     "rmono": [],
     "constr": [
       [
-        "{  ;; `a } -> { l3 : empty? ;; `a }",
-        "{ l2 : empty? ; l1 : empty? ;; `b } -> 'a"
+        "{ l1 : `d ; l2 : `e ; l3 : `f ;; `b } -> { l1 : `d ; l2 : `e ; l3 : empty? ;; `b }",
+        "{ l1 : empty? ; l2 : empty? ; l3 : `c ;; `a } -> 'a"
       ]
     ]
   },
@@ -56,7 +59,7 @@
     "rvars": [ "`a" ],
     "rmono": [ "`a" ],
     "constr": [
-      [ "{ l3 : empty? ; l2 : empty? ; l1 : empty? ;; `a }", "empty" ]
+      [ "{ l1 : empty? ; l2 : empty? ; l3 : empty? ;; `a }", "empty" ]
     ]
   },
   {
@@ -69,11 +72,11 @@
   {
     "vars": [ "'a", "'b" ],
     "mono": [],
-    "rvars": [ "`a" ],
+    "rvars": [ "`a", "`b", "`c", "`d" ],
     "rmono": [],
     "constr": [
       [
-        "'a & {  ;; `a } -> { l3 : empty? ; l2 : empty? ; l1 : empty? ;; `a }",
+        "'a & { l1 : `b ; l2 : `c ; l3 : `d ;; `a } -> { l1 : empty? ; l2 : empty? ; l3 : empty? ;; `a }",
         "'b"
       ]
     ]
@@ -88,10 +91,10 @@
   {
     "vars": [ "'a", "'b", "'c" ],
     "mono": [],
-    "rvars": [ "`a" ],
+    "rvars": [ "`a", "`b" ],
     "rmono": [],
     "constr": [
-      [ "({  ;; `a }, 'b) -> { l1 : 'b ;; `a }", "('a, 1) -> 'c" ]
+      [ "({ l1 : `b ;; `a }, 'c) -> { l1 : 'c ;; `a }", "('a, 1) -> 'b" ]
     ]
   },
   {
@@ -111,12 +114,12 @@
   {
     "vars": [ "'a", "'b" ],
     "mono": [],
-    "rvars": [ "`a", "`b" ],
+    "rvars": [ "`a", "`b", "`c", "`d", "`e" ],
     "rmono": [],
     "constr": [
       [
-        "({  ;; `a }, 'a) -> { l2 : 'a ;; `a }",
-        "({ l1 : 1 ;; `b }, 2) -> 'b"
+        "({ l1 : `d ; l2 : `e ;; `b }, 'b) -> { l1 : `d ; l2 : 'b ;; `b }",
+        "({ l1 : 1 ; l2 : `c ;; `a }, 2) -> 'a"
       ]
     ]
   },
@@ -125,7 +128,7 @@
     "mono": [],
     "rvars": [ "`a" ],
     "rmono": [ "`a" ],
-    "constr": [ [ "{ l2 : 2 ; l1 : 1 ;; `a }", "empty" ] ]
+    "constr": [ [ "{ l1 : 1 ; l2 : 2 ;; `a }", "empty" ] ]
   },
   {
     "vars": [],
@@ -139,17 +142,17 @@
     "mono": [],
     "rvars": [ "`a" ],
     "rmono": [],
-    "constr": [ [ "{ l2 : 2 ; l1 : 1 ;; `a }", "any" ], [ "3", "any" ] ]
+    "constr": [ [ "{ l1 : 1 ; l2 : 2 ;; `a }", "any" ], [ "3", "any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
     "mono": [],
-    "rvars": [ "`a", "`b" ],
+    "rvars": [ "`a", "`b", "`c", "`d", "`e", "`f" ],
     "rmono": [],
     "constr": [
       [
-        "({  ;; `a }, 'a) -> { l3 : 'a ;; `a }",
-        "({ l2 : 2 ; l1 : 1 ;; `b }, 3) -> 'b"
+        "({ l1 : `d ; l2 : `e ; l3 : `f ;; `b }, 'b) -> { l1 : `d ; l2 : `e ; l3 : 'b ;; `b }",
+        "({ l1 : 1 ; l2 : 2 ; l3 : `c ;; `a }, 3) -> 'a"
       ]
     ]
   },
@@ -158,7 +161,7 @@
     "mono": [],
     "rvars": [ "`a" ],
     "rmono": [ "`a" ],
-    "constr": [ [ "{ l3 : 3 ; l2 : 2 ; l1 : 1 ;; `a }", "empty" ] ]
+    "constr": [ [ "{ l1 : 1 ; l2 : 2 ; l3 : 3 ;; `a }", "empty" ] ]
   },
   {
     "vars": [],
@@ -170,131 +173,152 @@
   {
     "vars": [ "'a", "'b" ],
     "mono": [],
-    "rvars": [ "`a" ],
-    "rmono": [],
-    "constr": [
-      [ "'a & {  ;; `a } -> { l3 : 3 ; l2 : 2 ; l1 : 1 ;; `a }", "'b" ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "{  ;; 'a }", "any" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "rvars": [ "`a" ],
-    "rmono": [],
-    "constr": [
-      [ "{  ;; `a } -> { l1 : empty? ;; `a }", "{  ;; 'a } -> 'b" ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "rvars": [ "`a" ],
+    "rvars": [ "`a", "`b", "`c", "`d" ],
     "rmono": [],
     "constr": [
       [
-        "{  ;; `a } -> { l2 : empty? ;; `a }", "{ l1 : empty? ;; 'a } -> 'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "rvars": [ "`a" ],
-    "rmono": [],
-    "constr": [
-      [
-        "{  ;; `a } -> { l3 : empty? ;; `a }",
-        "{ l2 : empty? ; l1 : empty? ;; 'a } -> 'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "{  ;; 'a } -> { l3 : empty? ; l2 : empty? ; l1 : empty? ;; 'a }",
+        "'a & { l1 : `b ; l2 : `c ; l3 : `d ;; `a } -> { l1 : 1 ; l2 : 2 ; l3 : 3 ;; `a }",
         "'b"
       ]
     ]
   },
   {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "{  ;; 'a }", "any" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "{  ;; 'a }", "any" ], [ "1", "any" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a" ],
+    "vars": [],
+    "mono": [],
     "rvars": [ "`a" ],
-    "rmono": [],
+    "rmono": [ "`a" ],
+    "constr": [ [ "{  ;; `a }", "empty" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c" ],
+    "rmono": [ "`a" ],
     "constr": [
-      [ "({  ;; `a }, 'b) -> { l1 : 'b ;; `a }", "({  ;; 'a }, 1) -> 'c" ]
+      [ "{ l1 : `c ;; `b } -> { l1 : empty? ;; `b }", "{  ;; `a } -> 'a" ]
     ]
   },
   {
     "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "{ l1 : 1 ;; 'a }", "any" ], [ "2", "any" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a" ],
-    "rvars": [ "`a" ],
-    "rmono": [],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c", "`d" ],
+    "rmono": [ "`a" ],
     "constr": [
       [
-        "({  ;; `a }, 'b) -> { l2 : 'b ;; `a }",
-        "({ l1 : 1 ;; 'a }, 2) -> 'c"
+        "{ l1 : `c ; l2 : `d ;; `b } -> { l1 : `c ; l2 : empty? ;; `b }",
+        "{ l1 : empty? ;; `a } -> 'a"
       ]
     ]
   },
   {
     "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "{ l2 : 2 ; l1 : 1 ;; 'a }", "any" ], [ "3", "any" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a" ],
-    "rvars": [ "`a" ],
-    "rmono": [],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c", "`d", "`e" ],
+    "rmono": [ "`a" ],
     "constr": [
       [
-        "({  ;; `a }, 'b) -> { l3 : 'b ;; `a }",
-        "({ l2 : 2 ; l1 : 1 ;; 'a }, 3) -> 'c"
+        "{ l1 : `c ; l2 : `d ; l3 : `e ;; `b } -> { l1 : `c ; l2 : `d ; l3 : empty? ;; `b }",
+        "{ l1 : empty? ; l2 : empty? ;; `a } -> 'a"
       ]
     ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "empty", "empty" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [ "`a" ],
+    "constr": [
+      [
+        "{  ;; `a } -> { l1 : empty? ; l2 : empty? ; l3 : empty? ;; `a }",
+        "'a"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [ "`a" ],
+    "constr": [ [ "{  ;; `a }", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [ "`a" ],
+    "constr": [ [ "{  ;; `a }", "any" ], [ "1", "any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
-    "mono": [ "'a" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c" ],
+    "rmono": [ "`a" ],
+    "constr": [
+      [
+        "({ l1 : `c ;; `b }, 'b) -> { l1 : 'b ;; `b }",
+        "({  ;; `a }, 1) -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [ "`a" ],
+    "constr": [ [ "{ l1 : 1 ;; `a }", "any" ], [ "2", "any" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c", "`d" ],
+    "rmono": [ "`a" ],
+    "constr": [
+      [
+        "({ l1 : `c ; l2 : `d ;; `b }, 'b) -> { l1 : `c ; l2 : 'b ;; `b }",
+        "({ l1 : 1 ;; `a }, 2) -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [ "`a" ],
+    "constr": [ [ "{ l1 : 1 ; l2 : 2 ;; `a }", "any" ], [ "3", "any" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c", "`d", "`e" ],
+    "rmono": [ "`a" ],
+    "constr": [
+      [
+        "({ l1 : `c ; l2 : `d ; l3 : `e ;; `b }, 'b) -> { l1 : `c ; l2 : `d ; l3 : 'b ;; `b }",
+        "({ l1 : 1 ; l2 : 2 ;; `a }, 3) -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
     "rvars": [],
     "rmono": [],
+    "constr": [ [ "empty", "empty" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [ "`a" ],
     "constr": [
-      [ "{  ;; 'a } -> { l3 : 3 ; l2 : 2 ; l1 : 1 ;; 'a }", "'b" ]
+      [ "{  ;; `a } -> { l1 : 1 ; l2 : 2 ; l3 : 3 ;; `a }", "'a" ]
     ]
   },
   {
@@ -307,11 +331,11 @@
   {
     "vars": [ "'a" ],
     "mono": [],
-    "rvars": [ "`a" ],
+    "rvars": [ "`a", "`b" ],
     "rmono": [],
     "constr": [
       [
-        "{  ;; `a } -> { l3 : 3 ; l2 : 2 ; l1 : 1 ;; `a }",
+        "{ l1 : any? ; l2 : any? ; l3 : any? ; l4 : `b ;; `a } -> { l1 : 1 ; l2 : 2 ; l3 : 3 ; l4 : `b ;; `a }",
         "{ l3 : 33 ; l4 : 44 } -> 'a"
       ]
     ]
@@ -319,12 +343,12 @@
   {
     "vars": [ "'a" ],
     "mono": [],
-    "rvars": [ "`a" ],
+    "rvars": [ "`a", "`b" ],
     "rmono": [],
     "constr": [
       [
-        "{  ;; `a } -> { l3 : empty? ; l2 : empty? ; l1 : empty? ;; `a }",
-        "{ l3 : 3 ; l2 : 2 ; l1 : 1 ; l4 : 44 } -> 'a"
+        "{ l1 : any? ; l2 : any? ; l3 : any? ; l4 : `b ;; `a } -> { l1 : empty? ; l2 : empty? ; l3 : empty? ; l4 : `b ;; `a }",
+        "{ l1 : 1 ; l2 : 2 ; l3 : 3 ; l4 : 44 } -> 'a"
       ]
     ]
   },
@@ -335,7 +359,7 @@
     "rmono": [],
     "constr": [
       [ "{ l3 : 33 ; l4 : 44 }", "any" ],
-      [ "{ l3 : 3 ; l2 : 2 ; l1 : 1 ; l4 : 44 }", "any" ],
+      [ "{ l1 : 1 ; l2 : 2 ; l3 : 3 ; l4 : 44 }", "any" ],
       [ "{ l4 : 44 }", "any" ]
     ]
   },
@@ -346,9 +370,882 @@
     "rmono": [],
     "constr": [
       [
-        "{ l3 : 33 ; l4 : 44 }, { l3 : 3 ; l2 : 2 ; l1 : 1 ; l4 : 44 }, { l4 : 44 }",
+        "{ l3 : 33 ; l4 : 44 }, { l1 : 1 ; l2 : 2 ; l3 : 3 ; l4 : 44 }, { l4 : 44 }",
         "'a"
       ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "42", "any" ],
+      [ "73", "any" ],
+      [ "bool(false)", "any" ],
+      [ "bool(true)", "any" ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "{ l1 : any? ;; 'b? } -> 'b",
+        "{ l1 : 42 ; l2 : 73 ; l3 : bool(false) ; l4 : bool(true) } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "{ l1 : any? ; l2 : any? ;; 'b? } -> 'b",
+        "{ l1 : 42 ; l2 : 73 ; l3 : bool(false) ; l4 : bool(true) } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "{ l1 : any? ; l2 : any? ; l3 : any? ;; 'b? } -> 'b",
+        "{ l1 : 42 ; l2 : 73 ; l3 : bool(false) ; l4 : bool(true) } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "73 | bool(false) | bool(true)", "any" ],
+      [ "bool(false) | bool(true)", "any" ],
+      [ "bool(true)", "any" ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "73 | bool(false) | bool(true), bool(false) | bool(true), bool(true)",
+        "'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'a & record & ~{ l1 : any ..}", "{ l1 : 'b ..}" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "'a & { l1 : any ..} & ~{ l2 : any ..}", "{ l1 : 'b ..}" ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'a & { l1 : 'b ..} & ~{ l2 : any ..}", "{ l2 : 'c ..}" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'a \\ record", "{ l1 : 'b ..}" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'a & { l1 : any ..} & { l2 : any ..}", "{ l1 : 'b ..}" ] ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'a & { l2 : any ..} & { l1 : 'b ..}", "{ l2 : 'c ..}" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'a", "any" ], [ "'b", "any" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'a, 'b", "empty" ] ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'a, 'b", "any, 'c" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'a", "empty" ] ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'a, 'b", "'c, any" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'a", "empty" ] ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{ l1 : `b ; l2 : `c ;; `a } -> { l1 : empty? ; l2 : `c ;; `a }",
+        "'a & { l2 : 'c ..} & { l1 : 'b ..} -> 'd"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [ "`a", "`b" ],
+    "rmono": [],
+    "constr": [ [ "{ l1 : empty? ; l2 : `b ;; `a }", "empty" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c", "`d", "`e" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{ l1 : `d ; l2 : `e ;; `b } -> { l1 : `d ; l2 : empty? ;; `b }",
+        "{ l1 : empty? ; l2 : `c ;; `a } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [ "`a" ],
+    "constr": [ [ "{ l1 : empty? ; l2 : empty? ;; `a }", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "empty", "empty" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [
+      [ "{  ;; 'b? } -> 'b", "{ l1 : empty? ; l2 : empty? ;; `a } -> 'a" ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'a", "empty" ] ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [],
+    "rvars": [ "`a" ],
+    "rmono": [],
+    "constr": [
+      [ "'a", "any" ],
+      [ "'b", "any" ],
+      [ "{ l1 : empty? ; l2 : empty? ;; `a & 'c? }", "any" ],
+      [ "'c", "any" ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "empty", "empty" ] ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c" ],
+    "rmono": [],
+    "constr": [
+      [
+        "'a & { l2 : 'd ..} & { l1 : 'c ..} & { l1 : `b ; l2 : `c ;; `a & 'e? } -> ('c, 'd, { l1 : empty? ; l2 : empty? ;; `a & 'e? }, 'e)",
+        "'b"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "1", "any" ],
+      [ "2", "any" ],
+      [ "3", "any" ],
+      [ "4", "any" ],
+      [ "5", "any" ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c", "`d" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{ l1 : 'b ; l2 : 'c ; l3 : `b & 'd? ; l4 : `c & 'd? ; l5 : `d & 'd? ;; `a & 'd? } -> ('b, 'c, { l1 : empty? ; l2 : empty? ; l3 : `b & 'd? ; l4 : `c & 'd? ; l5 : `d & 'd? ;; `a & 'd? }, 'd)",
+        "{ l1 : 1 ; l2 : 2 ; l3 : 3 ; l4 : 4 ; l5 : 5 } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "1, 2, { l3 : 3 ; l4 : 4 ; l5 : 5 }, (3..5)", "'a" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "42", "any" ], [ "33", "any" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(true)", "any" ], [ "bool(false)", "any" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c", "`d", "`e", "`f" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{ l1 : `c ; l2 : `d ;; `a } -> { l1 : `e ; l2 : `f ;; `b } -> { l1 : `e | `c ; l2 : `f | `d ;; `b | `a }",
+        "{ l1 : 42 ; l2 : 33 } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c", "`d" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{ l1 : `b ; l2 : `c ; l4 : `d ;; `a } -> { l1 : 42 | `b ; l2 : 33 | `c ; l4 : empty? | `d ;; empty? | `a }",
+        "{ l2 : bool(true) ; l4 : bool(false) } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "{ l1 : 42? ; l2 : 33 | bool(true) ; l4 : bool(false)? }", "'a" ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "42", "any" ], [ "33", "any" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(true)", "any" ], [ "bool(false)", "any" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [
+      "`a", "`b", "`c", "`d", "`e", "`f", "`g", "`h", "`i", "`j", "`k", "`l"
+    ],
+    "rmono": [],
+    "constr": [
+      [
+        "{ l1 : `i & any | `e & empty? ; l2 : `j & any | `f & empty? ;; `c & any | `a & empty? } -> { l1 : `k & any | `g & empty? ; l2 : `l & any | `h & empty? ;; `d & any | `b & empty? } -> { l1 : `k | `i | `g & `e ; l2 : `l | `j | `h & `f ;; `d | `c | `b & `a }",
+        "{ l1 : 42 ; l2 : 33 } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c", "`d", "`e", "`f", "`g", "`h" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{ l1 : `f & any | `c & empty? ; l2 : `g & any | `d & empty? ; l4 : `h & any | `e & empty? ;; `b & any | `a & empty? } -> { l1 : 42 | `f ; l2 : 33 | `g ; l4 : `e & empty? | `h ;; `a & empty? | `b }",
+        "{ l2 : bool(true) ; l4 : bool(false) } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "{ l1 : 42 ; l2 : 33 | bool(true) ; l4 : bool(false) }", "'a" ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c", "`d" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{  ;; `c & any | `a & empty? } -> {  ;; `d & any | `b & empty? } -> {  ;; `d | `c | `b & `a }",
+        "'a -> 'b"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c", "`d" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{  ;; `d & any | `b & empty? } -> {  ;; `d | `c | `b & `a }",
+        "empty"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "42", "any" ], [ "73", "any" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [
+      "`a", "`b", "`c", "`d", "`e", "`f", "`g", "`h", "`i", "`j", "`k", "`l"
+    ],
+    "rmono": [],
+    "constr": [
+      [
+        "{ y : `k & any | `g & empty? ; z : `l & any | `h & empty? ;; `d & any | `b & empty? } -> { y : `k | `i | `g & `e ; z : `l | `j | `h & `f ;; `d | `c | `b & `a }",
+        "{ y : 42 ; z : 73 } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c", "`d", "`e", "`f" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{ y : 42 | `d ; z : 73 | `e ; x : `c & empty? | `f ;; `a & empty? | `b }",
+        "{ x : 'a ..}"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c", "`d", "`e" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{ y : 42 | `c ; z : 73 | `d ; x : `e & 'a ;; `a & empty? | `b }",
+        "{ y : 'b ..}"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c", "`d", "`e" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{ y : 42 | `c & (42 | 'b) ; z : 73 | `d ; x : `e & 'a ;; `a & empty? | `b }",
+        "{ z : 'c ..}"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'a", "any" ], [ "42 | 'b", "any" ], [ "73 | 'c", "any" ] ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c", "`d", "`e", "`f", "`g" ],
+    "rmono": [],
+    "constr": [
+      [
+        "'a & { y : `e & (42 | 'd) | `c & empty? ; z : `f & (73 | 'e) | `d & empty? ; x : `g & 'c ;; `b & any | `a & empty? } -> ('c, 42 | 'd, 73 | 'e)",
+        "'b"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "10", "any" ],
+      [ "lst(tuple0)", "x1 where x1 = lst(tuple0 | (any, x1))" ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "9", "any" ],
+      [ "lst(10, lst(tuple0))", "x1 where x1 = lst(tuple0 | (any, x1))" ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "8", "any" ],
+      [
+        "lst(9, lst(10, lst(tuple0)))",
+        "x1 where x1 = lst(tuple0 | (any, x1))"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "7", "any" ],
+      [
+        "lst(8, lst(9, lst(10, lst(tuple0))))",
+        "x1 where x1 = lst(tuple0 | (any, x1))"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "6", "any" ],
+      [
+        "lst(7, lst(8, lst(9, lst(10, lst(tuple0)))))",
+        "x1 where x1 = lst(tuple0 | (any, x1))"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "5", "any" ],
+      [
+        "lst(6, lst(7, lst(8, lst(9, lst(10, lst(tuple0))))))",
+        "x1 where x1 = lst(tuple0 | (any, x1))"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "4", "any" ],
+      [
+        "lst(5, lst(6, lst(7, lst(8, lst(9, lst(10, lst(tuple0)))))))",
+        "x1 where x1 = lst(tuple0 | (any, x1))"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "3", "any" ],
+      [
+        "lst(4, lst(5, lst(6, lst(7, lst(8, lst(9, lst(10, lst(tuple0))))))))",
+        "x1 where x1 = lst(tuple0 | (any, x1))"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "2", "any" ],
+      [
+        "lst(3, lst(4, lst(5, lst(6, lst(7, lst(8, lst(9, lst(10, lst(tuple0)))))))))",
+        "x1 where x1 = lst(tuple0 | (any, x1))"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "1", "any" ],
+      [
+        "lst(2, lst(3, lst(4, lst(5, lst(6, lst(7, lst(8, lst(9, lst(10, lst(tuple0))))))))))",
+        "x1 where x1 = lst(tuple0 | (any, x1))"
+      ]
+    ]
+  },
+  { "vars": [], "mono": [], "rvars": [], "rmono": [], "constr": [] },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "Na", "any" ],
+      [ "lst(tuple0)", "x1 where x1 = lst(tuple0 | (any, x1))" ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "1", "any" ],
+      [ "lst(Na, lst(tuple0))", "x1 where x1 = lst(tuple0 | (any, x1))" ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "lst(1, lst(Na, lst(tuple0)))", "any" ],
+      [ "lst(tuple0)", "x1 where x1 = lst(tuple0 | (any, x1))" ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "lst(1, lst(2, lst(3, lst(4, lst(5, lst(6, lst(7, lst(8, lst(9, lst(10, lst(tuple0)))))))))))",
+        "any"
+      ],
+      [
+        "lst(lst(1, lst(Na, lst(tuple0))), lst(tuple0))",
+        "x1 where x1 = lst(tuple0 | (any, x1))"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "lst(lst(1, lst(2, lst(3, lst(4, lst(5, lst(6, lst(7, lst(8, lst(9, lst(10, lst(tuple0))))))))))), lst(lst(1, lst(Na, lst(tuple0))), lst(tuple0)))",
+        "any"
+      ],
+      [
+        "{ p1 : x1 ; na_rm : bool(true) } | { p1 : x2 ; na_rm : bool(false)? } -> x2 where x1 = lst(tuple0 | (Na | int, x1)) and x2 = lst(tuple0 | (int, x2))",
+        "any"
+      ],
+      [ "bool(true)", "any" ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [],
+    "rvars": [ "`a", "`b" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{ p1 : x2 ; na_rm : `b ; p2 : { p1 : 'b ; na_rm : `b ; p2 : empty? ;; `a } -> 'c ;; `a } -> x1 where x1 = lst(tuple0 | ('c, x1)) and x2 = lst(tuple0 | ('b, x2))",
+        "{ p1 : lst(lst(1, lst(2, lst(3, lst(4, lst(5, lst(6, lst(7, lst(8, lst(9, lst(10, lst(tuple0))))))))))), lst(lst(1, lst(Na, lst(tuple0))), lst(tuple0))) ; na_rm : bool(true) ; p2 : { p1 : x1 ; na_rm : bool(true) } | { p1 : x2 ; na_rm : bool(false)? } -> x2 } -> 'a where x1 = lst(tuple0 | (Na | int, x1)) and x2 = lst(tuple0 | (int, x2))"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "x2 where x1 = lst(tuple0 | (int, x1)) and x2 = lst(tuple0 | (x1, x2))",
+        "'a"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "1", "any" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [ "`a", "`b" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{ a : `b ; b : any? ;; `a } -> 'b -> { a : `b ; b : 'b ;; `a }",
+        "{ a : 1 } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'b -> { a : 1 ; b : 'b }", "2 -> 'a" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "3", "any" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [
+      "`a", "`b", "`c", "`d", "`e", "`f", "`g", "`h", "`i", "`j", "`k", "`l"
+    ],
+    "rmono": [],
+    "constr": [
+      [
+        "{ a : `i & any | `e & empty? ; b : `j & any | `f & empty? ;; `c & any | `a & empty? } -> { a : `k & any | `g & empty? ; b : `l & any | `h & empty? ;; `d & any | `b & empty? } -> { a : `k | `i | `g & `e ; b : `l | `j | `h & `f ;; `d | `c | `b & `a }",
+        "{ a : 1 ; b : 2 } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c", "`d", "`e", "`f", "`g", "`h" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{ a : `f & any | `c & empty? ; b : `g & any | `d & empty? ; c : `h & any | `e & empty? ;; `b & any | `a & empty? } -> { a : 1 | `f ; b : 2 | `g ; c : `e & empty? | `h ;; `a & empty? | `b }",
+        "{ c : 3 } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "{  ;; 'b? } -> int -> 'b", "{ a : 1 ; b : 2 ; c : 3 } -> 'a" ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "int -> (1..3)", "2 -> 'a" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [ "`a", "`b", "`c", "`d" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{ a : `b ; b : `c ; c : `d ;; `a } -> int -> 'b -> { a : 'b | `b ; b : 'b | `c ; c : 'b | `d ;; 'b | `a }",
+        "{ a : 1 ; b : 2 ; c : 3 } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "int -> 'b -> { a : 1 | 'b ; b : 2 | 'b ; c : 3 | 'b ;; 'b? }",
+        "1 -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "'b -> { a : 1 | 'b ; b : 2 | 'b ; c : 3 | 'b ;; 'b? }",
+        "(1..3) -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "{ a : (1..3) ; b : (1..3) ; c : (1..3) ;; (1..3)? }", "'a" ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "'b & { c1 : bool(true) ;; bool(false) } -> 'b",
+        "{ c1 : bool(true) ;; bool(false) } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "{ c1 : bool(true) ;; bool(false) }", "'a" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "'b & { c1 : bool(true) ;; bool(false) } -> 'b",
+        "{ c1 : bool(true) ;; bool(true | false) } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [ "`a", "`b" ],
+    "rmono": [],
+    "constr": [
+      [
+        "{ c1 : `b & bool(true | false) ; c2 : bool(true | false) ;; `a & bool(true | false) } -> { c1 : `b & bool(true | false) ; c2 : bool(true) ;; `a & bool(true | false) }",
+        "{ c1 : bool(true) ;; bool(true | false) } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "'b & { c1 : bool(true) ; c2 : bool(true) ;; bool(true | false) } -> 'b",
+        "{ c1 : bool(true) ; c2 : bool(true) ;; bool(true | false) } -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "{ c1 : bool(true) ; c2 : bool(true) ;; bool(true | false) }", "'a" ]
     ]
   }
 ]

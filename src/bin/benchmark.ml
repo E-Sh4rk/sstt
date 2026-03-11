@@ -90,6 +90,7 @@ let () =
                 let bench = parse_file fn in
                 let time1 = Unix.gettimeofday () in
                 let n = List.length bench in
+                let nsols = ref 0 in
                 print Msg "Num of instances: %i" n ;
                 let avg t1 t2 = (t2 -. t1) *. 1000000.0 /. (float_of_int n) in
                 let all t1 t2 = (t2 -. t1) (* *. 1000.0 *) in
@@ -99,12 +100,14 @@ let () =
                 print Msg "Building (average): %.02fs (%.00fus)" (all time1 time2) (avg time1 time2) ;
                 bench |> List.iter (fun b ->
                     let delta, cs = MixVarSet.of_list b.mono b.rmono, b.cs in
-                    let _ =  Tallying.tally delta cs in
+                    let sols =  Tallying.tally delta cs in
+                    nsols := !nsols + (List.length sols) ;
                     ()
                 ) ;
                 let time3 = Unix.gettimeofday () in
                 print Msg "Tallying (average): %.02fs (%.00fus)" (all time2 time3) (avg time2 time3) ;
-                print Msg "Total (average): %.02fs (%.00fus)" (all time1 time3) (avg time1 time3)
+                print Msg "Total (average): %.02fs (%.00fus)" (all time1 time3) (avg time1 time3) ;
+                print Msg "Total solutions: %i" (!nsols)
             )
         in
         with_rich_output Format.std_formatter run ()
