@@ -33,13 +33,17 @@ module Make(VS:VarSettings) = struct
     val cup : t -> t -> t
     val neg : t -> t
     val leq : t -> t -> bool
+    val is_empty : t -> bool
+    val is_any : t -> bool
     val compare : t -> t -> int
+    val pp : Format.formatter -> t -> unit
   end
   module type V = sig
     type t
     module Set : Set.S with type elt=t
     val compare : t -> t -> int
     val delta : Set.t
+    val pp : Format.formatter -> t -> unit
   end
 
   module C(V:V)(B:B) = struct
@@ -48,7 +52,7 @@ module Make(VS:VarSettings) = struct
     module B = B
 
     (* C1 subsumes C2 if it has the same variable
-       and gives better bounds (larger lower bound and smaller upper bound)
+       and gives more restrictive bounds (larger lower bound and smaller upper bound)
     *)
     let subsumes (t1, v1, t1') (t2, v2, t2') =
       V.compare v1 v2 = 0 &&
@@ -61,6 +65,12 @@ module Make(VS:VarSettings) = struct
 
     let unsat (s, _, t) =
       B.is_mono s && B.is_mono t && not (B.leq s t)
+
+    let trivial (s, _, t) =
+      B.is_empty s && B.is_any t
+
+    let pp fmt (s,v,t) =
+      Format.fprintf fmt "@[<h 0>%a <= %a <= %a@]" B.pp s V.pp v B.pp t
   end
 
   exception Unsat
@@ -75,7 +85,9 @@ module Make(VS:VarSettings) = struct
       then raise_notrace Unsat
     let any = []
     let is_any t = (t = [])
-    let singleton e = assert_sat e; [e]
+    let singleton e =
+      assert_sat e ;
+      if C.trivial e then [] else [e]
     let merge (s, v, t) (s', _, t') =
       let ss = B.cup s s' in
       let tt = B.cap t t' in
@@ -83,7 +95,8 @@ module Make(VS:VarSettings) = struct
       assert_sat merged ; merged
 
     let rec add ((_, v, _) as c) l =
-      match l with
+      if C.trivial c then l
+      else match l with
         [] -> [ c ]
       | ((_, v', _) as c') :: ll ->
         let n = V.compare v v' in
@@ -106,6 +119,8 @@ module Make(VS:VarSettings) = struct
        c1 in t1 such that c1 subsumes c2
     *)
     let rec subsumes l1 l2 =
+      (* TODO: some redundant solutions may be generated because constraints
+         are compared independently: bounds of other constraints are not propagated *)
       match l1, l2 with
       | _, [] -> true
       | [], _ -> false
@@ -127,15 +142,22 @@ module Make(VS:VarSettings) = struct
     let rec to_list_map f = function
         [] -> List.[]
       | e :: ll -> (f e)::to_list_map f ll
+
+    let pp fmt t =
+      Format.fprintf fmt "[%a]"
+        (Sstt_utils.print_seq C.pp " ; ")
+        (to_list_map Fun.id t)
   end
   module TyB = struct
     include Ty
     let is_mono t = MixVarSet.subset (Ty.all_vars t) VS.delta
+    let pp = Printer.print_ty'
   end
   module TV = struct
     type t = Var.t
     let compare = Var.compare
     let delta = MixVarSet.proj1 VS.delta
+    let pp = Var.pp
     module Set = VarSet
   end
   module VCS = CS(TV)(TyB)
@@ -144,11 +166,16 @@ module Make(VS:VarSettings) = struct
     let pack f = Row.all_fields f |> Row.to_record_atom |> Descr.mk_record |> Ty.mk_descr
     let is_mono f = MixVarSet.subset (pack f |> Ty.all_vars) VS.delta
     let leq f1 f2 = Ty.leq (pack f1) (pack f2)
+    let pany, pempty = pack Ty.F.any, pack Ty.F.empty
+    let is_any f = Ty.leq pany (pack f)
+    let is_empty f = Ty.leq (pack f) pempty
+    let pp fmt f = Printer.print_row' fmt (Row.all_fields f)
   end
   module RV = struct
     type t = RowVar.t
     let compare = RowVar.compare
     let delta = MixVarSet.proj2 VS.delta
+    let pp = RowVar.pp
     module Set = RowVarSet
   end
   module FCS = CS(RV)(FTyB)
@@ -171,6 +198,10 @@ module Make(VS:VarSettings) = struct
 
     let compare (vt1, ft1) (vt2, ft2) =
       VCS.compare vt1 vt2 |> ccmp FCS.compare ft1 ft2
+
+    let pp fmt (vt, ft) =
+      Format.fprintf fmt "%a+%a" VCS.pp vt FCS.pp ft
+    [@@ocaml.warning "-32"]
   end
 
   module CSS = struct
@@ -211,7 +242,7 @@ module Make(VS:VarSettings) = struct
       if is_empty t1 then empty
       else cap t1 (t2 ())
 
-    let map_disj f t = List.fold_left (fun acc e -> cup_lazy acc (fun () -> f e))  empty t
+    let map_disj f t = List.fold_left (fun acc e -> cup_lazy acc (fun () -> f e)) empty t
     let map_conj f t = List.fold_left (fun acc e -> cap_lazy acc (fun () -> f e)) any t
     let to_list (l:t) = l
   end
