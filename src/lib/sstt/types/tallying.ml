@@ -52,8 +52,6 @@ module Make(VS:VarSettings) = struct
   exception Unsat
   module C(V:V)(B:B with type var := V.t) = struct
     type t = B.t * V.t * B.t (* s ≤ α ≤ t *)
-    module V = V
-    module B = B
 
     (* C1 subsumes C2 if it has the same variable
        and gives more restrictive bounds (larger lower bound and smaller upper bound)
@@ -79,21 +77,26 @@ module Make(VS:VarSettings) = struct
     let trivial v = (B.empty, v, B.any)
     let singleton e = assert_sat e ; e
 
+    (* let propagate (lb, vb, ub) (t, v, t') =
+      let t = B.upper_bound vb (lb,ub) t in
+      let t' = B.lower_bound vb (lb,ub) t' in
+      singleton (t, v, t') *)
+
     let merge (s, v, t) (s', _, t') =
       let ss = B.cup s s' in
       let tt = B.cap t t' in
       let merged = ss, v, tt in
-      assert_sat merged ; merged
+      singleton merged
 
     let pp fmt (s,v,t) =
       Format.fprintf fmt "@[<h 0>%a <= %a <= %a@]" B.pp s V.pp v B.pp t
   end
 
   module CS(V:V)(B:B with type var := V.t) = struct
-    module V = V
-    module B = B
     module C = C(V)(B)
-    type t = [] | (::) of C.t * t
+    (* type t = [] | (::) of C.t * t *)
+    type 'a list = 'a List.t = [] | (::) of 'a * 'a list
+    type t = C.t list (* TODO: make private or abstract *)
 
     let any = []
     let is_any t = (t = [])
@@ -106,28 +109,18 @@ module Make(VS:VarSettings) = struct
         let n = V.compare v v' in
         if n < 0 then c::l
         else if n = 0 then (C.merge c c')::ll
-        else c' :: add c ll
+        else ((*C.propagate c*) c') :: add c ll
 
-    let rec cap l1 l2 =
-      match l1, l2 with
-      | [],  _ -> l2
-      | _, []  -> l1
-      | ((_,v1, _) as c1)::ll1, ((_, v2, _) as c2)::ll2 ->
-        let n = V.compare v1 v2 in
-        if n < 0 then c1 :: cap ll1 l2
-        else if n > 0 then c2 :: cap l1 ll2
-        else (C.merge c1 c2)::cap ll1 ll2
+    let cap l1 l2 =
+      if List.length l2 <= List.length l1
+      then List.fold_left (fun acc c -> add c acc) l1 l2
+      else List.fold_left (fun acc c -> add c acc) l2 l1
 
     (* A constraint set l1 subsumes a constraint set l2 if
        forall constraint c2 in m2, there exists
        c1 in t1 such that c1 subsumes c2
     *)
     let subsumes l1 l2 =
-      let rec rev acc l =
-        match l with
-        | [] -> acc
-        | e::l -> rev (e::acc) l
-      in
       let rec aux ctx1 l1 l2 =
         match l1, l2 with
         | _, [] -> true
@@ -138,7 +131,7 @@ module Make(VS:VarSettings) = struct
           else if n < 0 then C.subsumes ctx1 (C.trivial v2) c2 && aux ctx1 l1 ll2
           else C.subsumes ctx1 c1 c2 && aux (List.cons c1 ctx1) ll1 ll2
       in
-      aux [] (rev [] l1) (rev [] l2)
+      aux [] (List.rev l1) (List.rev l2)
 
     let rec compare l1 l2 =
       match l1, l2 with
@@ -150,7 +143,7 @@ module Make(VS:VarSettings) = struct
         if c <> 0 then c else compare ll1 ll2
 
     let rec to_list_map f = function
-        [] -> List.[]
+      | [] -> List.[]
       | e :: ll -> (f e)::to_list_map f ll
 
     let pp fmt t =
