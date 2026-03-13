@@ -332,6 +332,7 @@ module type Polymorphic = sig
   type var
   type t
   module VarSet : Set.S with type elt=var
+  module VarMap : Map.S with type key=var
 
   (**@inline*)
   include TyBase with type t := t
@@ -372,6 +373,14 @@ module type Polymorphic = sig
   val map_nodes : (node -> node) -> t -> t
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
 
+  val lower_bound : (t * t) VarMap.t -> t -> t
+  (** [lower_bound b t] returns a lower bound for [t] obtained by substituting
+    (top-level) type variables in [t] according to the bounds in [b]. *)
+
+  val upper_bound : (t * t) VarMap.t -> t -> t
+  (** [upper_bound b t] returns an upper bound for [t] obtained by substituting
+    (top-level) type variables in [t] according to the bounds in [b]. *)
+
 end
 
 (* Expose some additional internal methods,
@@ -379,7 +388,6 @@ end
 module type Polymorphic' = sig
 
   include Polymorphic
-  module VarMap : Map.S with type key=var
   include SetTheoreticOps with type t := t
 
   val simplify : t -> t
@@ -401,6 +409,7 @@ module type FTy = sig
   include Polymorphic with type t := t and type node := node
     and type leaf := OTy.t and type var := RowVar.t
     and module VarSet := RowVarSet
+    and module VarMap := RowVarMap
 
   include Comparable' with type node := node and type t := t (** @inline *)
 
@@ -1006,10 +1015,7 @@ module type VDescr = sig
   (**@inline*)
   include Polymorphic with type t := t and type node := node
     and type leaf := Descr.t and type var := Var.t
-    and module VarSet := VarSet
-
-  val substitute : (t, Descr.Records.Atom.t) MixVarMap.t -> t -> t
-
+    and module VarSet := VarSet and module VarMap := VarMap
 end
 
 module type VDescr' = sig
@@ -1019,7 +1025,7 @@ module type VDescr' = sig
   module Descr : Descr with type node := node
   include Polymorphic' with type t := t and type node := node
     and type leaf := Descr.t and type var := Var.t
-    and module VarMap := VarMap and module VarSet := VarSet
+    and module VarSet := VarSet and module VarMap := VarMap
 
   val substitute : (t, Descr.Records.Atom.t) MixVarMap.t -> t -> t
   val direct_row_vars : t -> RowVarSet.t

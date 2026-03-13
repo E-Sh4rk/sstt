@@ -59,6 +59,32 @@ module Make(N:Node)(V:Comparable)(L:Leaf with type node = N.t) = struct
     in
     Bdd.substitute f t
 
+  let lower_bound s t =
+    let fp v =
+      match VarMap.find_opt v s with
+      | None -> Bdd.singleton v
+      | Some (lb, _) -> Bdd.cap (Bdd.singleton v) lb
+    in
+    let fn v =
+      match VarMap.find_opt v s with
+      | None -> Bdd.singleton v
+      | Some (_, ub) -> Bdd.cup (Bdd.singleton v) ub
+    in
+    Bdd.substitute' fp fn t
+
+let upper_bound s t =
+    let fp v =
+      match VarMap.find_opt v s with
+      | None -> Bdd.singleton v
+      | Some (_, ub) -> Bdd.cup (Bdd.singleton v) ub
+    in
+    let fn v =
+      match VarMap.find_opt v s with
+      | None -> Bdd.singleton v
+      | Some (lb, _) -> Bdd.cap (Bdd.singleton v) lb
+    in
+    Bdd.substitute' fp fn t
+
   let leq t1 t2 = diff t1 t2 |> is_empty
   let equiv t1 t2 = leq t1 t2 && leq t2 t1
   let disjoint t1 t2 = cap t1 t2 |> is_empty

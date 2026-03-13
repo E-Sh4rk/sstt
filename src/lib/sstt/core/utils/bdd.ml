@@ -156,6 +156,18 @@ module Make(N:Atom)(L:Leaf) = struct
       let p,n = cap p t, diff n t in
       cup p n
 
+  (** [substitute' fp fn t] substitutes each positive occurrence of am atom [a] in [t]
+  by [fp a], and each negative occurrence by [fn a]. In particular, if [fp a]
+  is an upper bound for [a], and [fn a] is a lower bound for [a], the result will be
+  an upper bound for [t]. *)
+  let rec substitute' fp fn t =
+    match t with
+    | Leaf _ -> t
+    | Node (a,p,n, _) ->
+      let p,n = substitute' fp fn p, substitute' fp fn n in
+      let p,n = cap p (fp a), diff n (fn a) in
+      cup p n
+
   let node' a p n =
     let pc = compare_to_atom a p < 0 in
     let nc = compare_to_atom a n < 0 in
