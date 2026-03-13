@@ -29,13 +29,14 @@ module Make(VS:VarSettings) = struct
   module type B = sig
     type t
     type var
-    val is_mono : t -> bool
     val empty : t
     val any : t
     val cap : t -> t -> t
     val cup : t -> t -> t
+    val diff : t -> t -> t
     val neg : t -> t
     val leq : t -> t -> bool
+    val always_non_empty : t -> bool
     val lower_bound : var -> t * t -> t -> t
     val upper_bound : var -> t * t -> t -> t
     val compare : t -> t -> int
@@ -68,19 +69,16 @@ module Make(VS:VarSettings) = struct
         B.compare t1 t2 |> ccmp
         B.compare t1' t2'
 
-    let unsat (s, _, t) =
-      B.is_mono s && B.is_mono t && not (B.leq s t)
-    let assert_sat c =
-      if unsat c
+    let unsat ctx (s, _, t) =
+      let d = B.diff s t in
+      let d = List.fold_left (fun acc (lb,v,ub) -> B.upper_bound v (lb,ub) acc) d ctx in
+      B.always_non_empty d
+    let assert_sat ctx c =
+      if unsat ctx c
       then raise_notrace Unsat
 
     let trivial v = (B.empty, v, B.any)
-    let singleton e = assert_sat e ; e
-
-    (* let propagate (lb, vb, ub) (t, v, t') =
-      let t = B.upper_bound vb (lb,ub) t in
-      let t' = B.lower_bound vb (lb,ub) t' in
-      singleton (t, v, t') *)
+    let singleton e = assert_sat [] e ; e
 
     let merge (s, v, t) (s', _, t') =
       let ss = B.cup s s' in
@@ -109,7 +107,10 @@ module Make(VS:VarSettings) = struct
         let n = V.compare v v' in
         if n < 0 then c::l
         else if n = 0 then (C.merge c c')::ll
-        else ((*C.propagate c*) c') :: add c ll
+        else
+          let ll = add c ll in
+          C.assert_sat ll c' ;
+          c' :: ll
 
     let cap l1 l2 =
       if List.length l2 <= List.length l1
@@ -153,7 +154,14 @@ module Make(VS:VarSettings) = struct
   end
   module TyB = struct
     include Ty
-    let is_mono t = MixVarSet.subset (Ty.all_vars t) VS.delta
+    let always_non_empty t =
+      let t = def t in
+      let to_eliminate = VarSet.diff (VDescr.get_vars t) (MixVarSet.proj1 VS.delta) in
+      let s = to_eliminate |> VarSet.to_list
+      |> List.map (fun v -> v, (VDescr.any, VDescr.empty)) |> VarMap.of_list in
+      let t = t |> VDescr.lower_bound s |> Ty.of_def in
+      MixVarSet.subset (Ty.all_vars t) VS.delta &&
+      not (is_empty t)
     let lower_bound v (lb, ub) t =
       Ty.def t |> VDescr.lower_bound (VarMap.singleton v (Ty.def lb, Ty.def ub)) |> Ty.of_def
     let upper_bound v (lb, ub) t =
@@ -171,7 +179,13 @@ module Make(VS:VarSettings) = struct
   module FTyB = struct
     include Ty.F
     let pack f = Row.all_fields f |> Row.to_record_atom |> Descr.mk_record |> Ty.mk_descr
-    let is_mono f = MixVarSet.subset (pack f |> Ty.all_vars) VS.delta
+    let always_non_empty f =
+      let to_eliminate = RowVarSet.diff (Ty.F.get_vars f) (MixVarSet.proj2 VS.delta) in
+      let s = to_eliminate |> RowVarSet.to_list
+      |> List.map (fun v -> v, (Ty.F.any, Ty.F.empty)) |> RowVarMap.of_list in
+      let fp = Ty.F.lower_bound s f |> pack in
+      MixVarSet.subset (fp |> Ty.all_vars) VS.delta &&
+      not (Ty.is_empty fp)
     let lower_bound v (lb, ub) t = Ty.F.lower_bound (RowVarMap.singleton v (lb, ub)) t
     let upper_bound v (lb, ub) t = Ty.F.upper_bound (RowVarMap.singleton v (lb, ub)) t
     let leq f1 f2 = Ty.leq (pack f1) (pack f2)
@@ -348,7 +362,7 @@ module Make(VS:VarSettings) = struct
     let memo_f = FDHash.create 17 in
     let rec norm_ty t =
       if Ty.is_empty t then CSS.any
-      else if TyB.is_mono t then CSS.empty
+      else if MixVarSet.subset (Ty.all_vars t) VS.delta then CSS.empty
       else norm_vdescr (Ty.def t)
     and norm_vdescr vd =
       match VDHash.find_opt memo_ty vd with
