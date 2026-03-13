@@ -50,6 +50,7 @@ module Make(VS:VarSettings) = struct
     val pp : Format.formatter -> t -> unit
   end
 
+  exception Unsat
   module C(V:V)(B:B with type var := V.t) = struct
     type t = B.t * V.t * B.t (* s ≤ α ≤ t *)
     module V = V
@@ -72,32 +73,32 @@ module Make(VS:VarSettings) = struct
 
     let unsat (s, _, t) =
       B.is_mono s && B.is_mono t && not (B.leq s t)
+    let assert_sat c =
+      if unsat c
+      then raise_notrace Unsat
 
     let trivial v = (B.empty, v, B.any)
+    let singleton e = assert_sat e ; e
+
+    let merge (s, v, t) (s', _, t') =
+      let ss = B.cup s s' in
+      let tt = B.cap t t' in
+      let merged = ss, v, tt in
+      assert_sat merged ; merged
 
     let pp fmt (s,v,t) =
       Format.fprintf fmt "@[<h 0>%a <= %a <= %a@]" B.pp s V.pp v B.pp t
   end
 
-  exception Unsat
   module CS(V:V)(B:B with type var := V.t) = struct
     module V = V
     module B = B
     module C = C(V)(B)
     type t = [] | (::) of C.t * t
 
-    let assert_sat c =
-      if C.unsat c
-      then raise_notrace Unsat
     let any = []
     let is_any t = (t = [])
-    let singleton e =
-      assert_sat e ; [e]
-    let merge (s, v, t) (s', _, t') =
-      let ss = B.cup s s' in
-      let tt = B.cap t t' in
-      let merged = ss, v, tt in
-      assert_sat merged ; merged
+    let singleton e = [C.singleton e]
 
     let rec add ((_, v, _) as c) l =
       match l with
@@ -105,7 +106,7 @@ module Make(VS:VarSettings) = struct
       | ((_, v', _) as c') :: ll ->
         let n = V.compare v v' in
         if n < 0 then c::l
-        else if n = 0 then (merge c c')::ll
+        else if n = 0 then (C.merge c c')::ll
         else c' :: add c ll
 
     let rec cap l1 l2 =
@@ -116,7 +117,7 @@ module Make(VS:VarSettings) = struct
         let n = V.compare v1 v2 in
         if n < 0 then c1 :: cap ll1 l2
         else if n > 0 then c2 :: cap l1 ll2
-        else (merge c1 c2)::cap ll1 ll2
+        else (C.merge c1 c2)::cap ll1 ll2
 
     (* A constraint set l1 subsumes a constraint set l2 if
        forall constraint c2 in m2, there exists
