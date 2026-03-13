@@ -26,6 +26,9 @@ module type VarSettings = sig
 end
 
 module Make(VS:VarSettings) = struct
+
+  (* Constraints *)
+
   module type B = sig
     type t
     type var
@@ -42,6 +45,7 @@ module Make(VS:VarSettings) = struct
     val compare : t -> t -> int
     val pp : Format.formatter -> t -> unit
   end
+
   module type V = sig
     type t
     module Set : Set.S with type elt=t
@@ -51,8 +55,28 @@ module Make(VS:VarSettings) = struct
   end
 
   exception Unsat
-  module C(V:V)(B:B with type var := V.t) = struct
+  module type C = sig
+    module V : V
+    module B : B with type var := V.t
+    type t
+    val trivial : V.t -> t
+    val mk : B.t * V.t * B.t -> t
+    val destruct : t -> B.t * V.t * B.t
+    val var : t -> V.t
+    val merge : t -> t -> t
+    val subsumes : t list -> t -> t -> bool
+    val compare : t -> t -> int
+    val assert_sat : t list -> t -> unit
+    val pp : Format.formatter -> t -> unit
+  end
+
+  module C(V:V)(B:B with type var := V.t) : C with module V=V and module B=B = struct
+    module V = V
+    module B = B
     type t = B.t * V.t * B.t (* s ≤ α ≤ t *)
+
+    let destruct t = t
+    let var (_,v,_) = v
 
     (* C1 subsumes C2 if it has the same variable
        and gives more restrictive bounds (larger lower bound and smaller upper bound)
@@ -64,7 +88,7 @@ module Make(VS:VarSettings) = struct
       let t2' = List.fold_left (fun acc (lb,v,ub) -> B.upper_bound v (lb,ub) acc) t2' ctx1 in
       B.leq t1' t2'
 
-    let compare (t1,v1,t1') (t2,v2,t2')=
+    let compare (t1,v1,t1') (t2,v2,t2') =
       V.compare v1 v2 |> ccmp
         B.compare t1 t2 |> ccmp
         B.compare t1' t2'
@@ -78,33 +102,112 @@ module Make(VS:VarSettings) = struct
       then raise_notrace Unsat
 
     let trivial v = (B.empty, v, B.any)
-    let singleton e = assert_sat [] e ; e
+    let mk e = assert_sat [] e ; e
 
     let merge (s, v, t) (s', _, t') =
       let ss = B.cup s s' in
       let tt = B.cap t t' in
       let merged = ss, v, tt in
-      singleton merged
+      mk merged
 
     let pp fmt (s,v,t) =
       Format.fprintf fmt "@[<h 0>%a <= %a <= %a@]" B.pp s V.pp v B.pp t
   end
 
-  module CS(V:V)(B:B with type var := V.t) = struct
-    module C = C(V)(B)
-    (* type t = [] | (::) of C.t * t *)
-    type 'a list = 'a List.t = [] | (::) of 'a * 'a list
-    type t = C.t list (* TODO: make private or abstract *)
+  (* Type constraints *)
+
+  module TyB = struct
+    include Ty
+    let always_non_empty t =
+      let t = def t in
+      let to_eliminate = VarSet.diff (VDescr.get_vars t) (MixVarSet.proj1 VS.delta) in
+      let s = to_eliminate |> VarSet.to_list
+      |> List.map (fun v -> v, (VDescr.any, VDescr.empty)) |> VarMap.of_list in
+      let t = t |> VDescr.lower_bound s |> Ty.of_def in
+      MixVarSet.subset (Ty.all_vars t) VS.delta &&
+      not (is_empty t)
+    let lower_bound v (lb, ub) t =
+      Ty.def t |> VDescr.lower_bound (VarMap.singleton v (Ty.def lb, Ty.def ub)) |> Ty.of_def
+    let upper_bound v (lb, ub) t =
+      Ty.def t |> VDescr.upper_bound (VarMap.singleton v (Ty.def lb, Ty.def ub)) |> Ty.of_def
+    let pp = Printer.print_ty'
+  end
+
+  module TV = struct
+    type t = Var.t
+    let compare = Var.compare
+    let delta = MixVarSet.proj1 VS.delta
+    let pp = Var.pp
+    module Set = VarSet
+  end
+
+  module VC = C(TV)(TyB)
+
+  (* Field constraints *)
+
+  module FTyB = struct
+    include Ty.F
+    let pack f = Row.all_fields f |> Row.to_record_atom |> Descr.mk_record |> Ty.mk_descr
+    let always_non_empty f =
+      let to_eliminate = RowVarSet.diff (Ty.F.get_vars f) (MixVarSet.proj2 VS.delta) in
+      let s = to_eliminate |> RowVarSet.to_list
+      |> List.map (fun v -> v, (Ty.F.any, Ty.F.empty)) |> RowVarMap.of_list in
+      let fp = Ty.F.lower_bound s f |> pack in
+      MixVarSet.subset (fp |> Ty.all_vars) VS.delta &&
+      not (Ty.is_empty fp)
+    let lower_bound v (lb, ub) t = Ty.F.lower_bound (RowVarMap.singleton v (lb, ub)) t
+    let upper_bound v (lb, ub) t = Ty.F.upper_bound (RowVarMap.singleton v (lb, ub)) t
+    let leq f1 f2 = Ty.leq (pack f1) (pack f2)
+    let pp fmt f = Printer.print_row' fmt (Row.all_fields f)
+  end
+
+  module RV = struct
+    type t = RowVar.t
+    let compare = RowVar.compare
+    let delta = MixVarSet.proj2 VS.delta
+    let pp = RowVar.pp
+    module Set = RowVarSet
+  end
+
+  module FC = C(RV)(FTyB)
+
+  (* Constraint sets *)
+
+  module type CS = sig
+    module C : C
+    type t
+    type descr = Nil | Cons of C.t * t
+    val any : t
+    val is_any : t -> bool
+    val singleton : C.t -> t
+    val add : C.t -> t -> t
+    val cap : t -> t -> t
+    val destruct : t -> descr
+    val subsumes : t -> t -> bool
+    val compare : t -> t -> int
+    val to_list_map : (C.t -> 'a) -> t -> 'a list
+    val pp : Format.formatter -> t -> unit
+  end
+
+  module CS(C:C) : CS with module C=C = struct
+    module C = C
+    module V = C.V
+    type t = C.t list
+    type descr = Nil | Cons of C.t * t
 
     let any = []
     let is_any t = (t = [])
-    let singleton e = [C.singleton e]
+    let singleton e = [e]
+    let destruct t =
+      match t with
+      | [] -> Nil
+      | c::t -> Cons (c, t)
 
-    let rec add ((_, v, _) as c) l =
+    let rec add c l =
       match l with
         [] -> [ c ]
-      | ((_, v', _) as c') :: ll ->
-        let n = V.compare v v' in
+      | c' :: ll ->
+        let n = V.compare (C.var c) (C.var c') in
         if n < 0 then c::l
         else if n = 0 then (C.merge c c')::ll
         else
@@ -126,79 +229,28 @@ module Make(VS:VarSettings) = struct
         match l1, l2 with
         | _, [] -> true
         | [], _ -> false
-        | ((_,v1, _) as c1)::ll1, ((_, v2, _) as c2)::ll2 ->
-          let n = V.compare v1 v2 in
-          if n > 0 then aux (List.cons c1 ctx1) ll1 l2
-          else if n < 0 then C.subsumes ctx1 (C.trivial v2) c2 && aux ctx1 l1 ll2
-          else C.subsumes ctx1 c1 c2 && aux (List.cons c1 ctx1) ll1 ll2
+        | c1::ll1, c2::ll2 ->
+          let n = V.compare (C.var c1) (C.var c2) in
+          if n > 0 then aux (c1::ctx1) ll1 l2
+          else if n < 0 then C.subsumes ctx1 (C.var c2 |> C.trivial) c2 && aux ctx1 l1 ll2
+          else C.subsumes ctx1 c1 c2 && aux (c1::ctx1) ll1 ll2
       in
       aux [] (List.rev l1) (List.rev l2)
 
-    let rec compare l1 l2 =
-      match l1, l2 with
-        [], [] -> 0
-      | [], _ -> -1
-      | _, [] -> 1
-      | c1 :: ll1, c2 :: ll2 ->
-        let c = C.compare c1 c2 in
-        if c <> 0 then c else compare ll1 ll2
+    let compare = List.compare C.compare
 
     let rec to_list_map f = function
-      | [] -> List.[]
+      | [] -> []
       | e :: ll -> (f e)::to_list_map f ll
 
     let pp fmt t =
-      Format.fprintf fmt "[%a]"
-        (Sstt_utils.print_seq C.pp " ; ")
-        (to_list_map Fun.id t)
+      Format.fprintf fmt "[%a]" (Sstt_utils.print_seq C.pp " ; ") t
   end
-  module TyB = struct
-    include Ty
-    let always_non_empty t =
-      let t = def t in
-      let to_eliminate = VarSet.diff (VDescr.get_vars t) (MixVarSet.proj1 VS.delta) in
-      let s = to_eliminate |> VarSet.to_list
-      |> List.map (fun v -> v, (VDescr.any, VDescr.empty)) |> VarMap.of_list in
-      let t = t |> VDescr.lower_bound s |> Ty.of_def in
-      MixVarSet.subset (Ty.all_vars t) VS.delta &&
-      not (is_empty t)
-    let lower_bound v (lb, ub) t =
-      Ty.def t |> VDescr.lower_bound (VarMap.singleton v (Ty.def lb, Ty.def ub)) |> Ty.of_def
-    let upper_bound v (lb, ub) t =
-      Ty.def t |> VDescr.upper_bound (VarMap.singleton v (Ty.def lb, Ty.def ub)) |> Ty.of_def
-    let pp = Printer.print_ty'
-  end
-  module TV = struct
-    type t = Var.t
-    let compare = Var.compare
-    let delta = MixVarSet.proj1 VS.delta
-    let pp = Var.pp
-    module Set = VarSet
-  end
-  module VCS = CS(TV)(TyB)
-  module FTyB = struct
-    include Ty.F
-    let pack f = Row.all_fields f |> Row.to_record_atom |> Descr.mk_record |> Ty.mk_descr
-    let always_non_empty f =
-      let to_eliminate = RowVarSet.diff (Ty.F.get_vars f) (MixVarSet.proj2 VS.delta) in
-      let s = to_eliminate |> RowVarSet.to_list
-      |> List.map (fun v -> v, (Ty.F.any, Ty.F.empty)) |> RowVarMap.of_list in
-      let fp = Ty.F.lower_bound s f |> pack in
-      MixVarSet.subset (fp |> Ty.all_vars) VS.delta &&
-      not (Ty.is_empty fp)
-    let lower_bound v (lb, ub) t = Ty.F.lower_bound (RowVarMap.singleton v (lb, ub)) t
-    let upper_bound v (lb, ub) t = Ty.F.upper_bound (RowVarMap.singleton v (lb, ub)) t
-    let leq f1 f2 = Ty.leq (pack f1) (pack f2)
-    let pp fmt f = Printer.print_row' fmt (Row.all_fields f)
-  end
-  module RV = struct
-    type t = RowVar.t
-    let compare = RowVar.compare
-    let delta = MixVarSet.proj2 VS.delta
-    let pp = RowVar.pp
-    module Set = RowVarSet
-  end
-  module FCS = CS(RV)(FTyB)
+
+  module VCS = CS(VC)
+  module FCS = CS(FC)
+
+  (* Mixed constraint sets *)
 
   module CS' = struct
     type t = VCS.t * FCS.t
@@ -207,9 +259,6 @@ module Make(VS:VarSettings) = struct
     let is_any (vt,ft) = VCS.is_any vt && FCS.is_any ft
     let singleton e = (VCS.singleton e, FCS.any)
     let singleton' e = (VCS.any, FCS.singleton e)
-
-    (* let add (vt,ft) e = (VCS.add vt e, ft)
-    let add' (vt,ft) e = (vt, FCS.add ft e) *)
 
     let cap (vt1, ft1) (vt2, ft2) = (VCS.cap vt1 vt2, FCS.cap ft1 ft2)
 
@@ -223,6 +272,8 @@ module Make(VS:VarSettings) = struct
       Format.fprintf fmt "%a+%a" VCS.pp vt FCS.pp ft
     [@@ocaml.warning "-32"]
   end
+
+  (* Sets of constraint sets *)
 
   module CSS = struct
     (* Constraint sets are ordered list of non subsumable elements.
@@ -267,6 +318,8 @@ module Make(VS:VarSettings) = struct
     let to_list (l:t) = l
   end
 
+  (* Toplevel modules *)
+
   module type P = sig
     module V : V
     type descr
@@ -276,6 +329,7 @@ module Make(VS:VarSettings) = struct
     val any : t
     val neg : t -> t
   end
+
   module Toplevel(P:P) = struct
 
     let pos_var v e = (P.empty, v, P.neg (P.of_line e))
@@ -305,6 +359,7 @@ module Make(VS:VarSettings) = struct
         else
           Some (neg_var vn (pvs, rem_neg, d))
   end
+
   module VP = struct
     include Ty
     module V = TV
@@ -312,14 +367,17 @@ module Make(VS:VarSettings) = struct
     let of_line line = VDescr.of_dnf [line] |> Ty.of_def
   end
   module VToplevel = Toplevel(VP)
+
   module FP = struct
     include Ty.F
     module V = RV
     type descr = Ty.O.t
     let of_line line = Ty.F.of_dnf [line]
   end
-
   module FToplevel = Toplevel(FP)
+
+  (* Caching modules *)
+
   module VDHash = Hashtbl.Make(VDescr)
   module FDescr = struct
     (* Intuitively, this module represents a field descriptor in which
@@ -340,6 +398,8 @@ module Make(VS:VarSettings) = struct
     let hash (f,h) = f |> Ty.F.hash' (fun n -> VDescr.hash (TyHash.find h n))
   end
   module FDHash = Hashtbl.Make(FDescr)
+
+  (* Core tallying algorithm *)
   
   let norm_tuple_gen ~diff ~disjoint ~norm ps ns =
     (* Same algorithm as for subtyping tuples.
@@ -357,6 +417,7 @@ module Make(VS:VarSettings) = struct
               CSS.cap_lazy acc (psi acc ss ts)) diff acc ss tt
       )
     in psi CSS.any ps ns ()
+
   let norm, norm_field =
     let memo_ty = VDHash.create 17 in
     let memo_f = FDHash.create 17 in
@@ -376,7 +437,7 @@ module Make(VS:VarSettings) = struct
       | None ->
         let (_,_,d) = summand in
         norm_descr d
-      | Some cs -> CSS.single cs
+      | Some cs -> CSS.single (VC.mk cs)
     and norm_descr d =
       let (cs, others) = d |> Descr.components in
       if others then CSS.empty
@@ -475,7 +536,7 @@ module Make(VS:VarSettings) = struct
       | None ->
         let (_,_,oty) = summand in
         norm_oty oty
-      | Some cs -> CSS.single' cs
+      | Some cs -> CSS.single' (FC.mk cs)
     and norm_oty (n,o) =
       if o then CSS.empty else norm_ty n
     in
@@ -490,9 +551,10 @@ module Make(VS:VarSettings) = struct
         let css = CSS.cap_lazy css css' in
         css |> CSS.to_list |> CSS.map_disj (aux CS'.any)
       in
-      match cs,cs' with
-      | VCS.[], FCS.[] -> (prev,prev') |> CSS.singleton
-      | ((t',_, t) as constr) :: tl, cs' ->
+      match VCS.destruct cs, FCS.destruct cs' with
+      | Nil, Nil -> (prev,prev') |> CSS.singleton
+      | Cons (constr, tl), _ ->
+        let (t', _, t) = VC.destruct constr in
         let ty = Ty.diff t' t in
         let def = Ty.def ty in
         if VDHash.mem memo_ty def then
@@ -501,7 +563,8 @@ module Make(VS:VarSettings) = struct
           let () = VDHash.add memo_ty def () in
           let res = norm ty |> retry_with in
           VDHash.remove memo_ty def ; res
-      | VCS.[], ((f',_, f) as constr) :: tl ->
+      | Nil, Cons (constr, tl) ->
+        let (f', _, f) = FC.destruct constr in
         let f = Ty.F.diff f' f in
         let def = FDescr.of_field f in
         if FDHash.mem memo_f def then
@@ -515,12 +578,14 @@ module Make(VS:VarSettings) = struct
 
   let solve (cs, cs' : VCS.t * FCS.t) =
     let renaming = ref Subst.identity in
-    let to_eq (ty1, v, ty2) =
+    let to_eq c =
+      let (ty1, v, ty2) = VC.destruct c in
       let v' = Var.mk (Var.name v) in
       renaming := Subst.add1 v' (Ty.mk_var v) !renaming ;
       (v, Ty.cap (Ty.cup ty1 (Ty.mk_var v')) ty2)
     in
-    let to_eq' (f1, v, f2) =
+    let to_eq' c =
+      let (f1, v, f2) = FC.destruct c in
       let v' = RowVar.mk (RowVar.name v) in
       renaming := Subst.add2 v' (Row.id_for v) !renaming ;
       (v, Ty.F.cap (Ty.F.cup f1 (Ty.F.mk_var v')) f2)
