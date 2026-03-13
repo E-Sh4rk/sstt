@@ -119,17 +119,23 @@ module Make(VS:VarSettings) = struct
   module TyB = struct
     include Ty
     let always_non_empty t =
-      let t = def t in
-      let to_eliminate = VarSet.diff (VDescr.get_vars t) (MixVarSet.proj1 VS.delta) in
-      let s = to_eliminate |> VarSet.to_list
-      |> List.map (fun v -> v, (VDescr.any, VDescr.empty)) |> VarMap.of_list in
-      let t = t |> VDescr.strengthen s |> Ty.of_def in
+      let t =
+        match VarSet.diff (Ty.vars_toplevel t) (MixVarSet.proj1 VS.delta) |> VarSet.to_list with
+        | [] -> t
+        | lst ->
+          let s = lst |> List.map (fun v -> v, (VDescr.any, VDescr.empty)) |> VarMap.of_list in
+          Ty.def t |> VDescr.strengthen s |> Ty.of_def
+      in
       MixVarSet.subset (Ty.all_vars t) VS.delta &&
       not (is_empty t)
     let strengthen v (lb, ub) t =
-      Ty.def t |> VDescr.strengthen (VarMap.singleton v (Ty.def lb, Ty.def ub)) |> Ty.of_def
+      if Ty.vars_toplevel t |> VarSet.mem v then
+        Ty.def t |> VDescr.strengthen (VarMap.singleton v (Ty.def lb, Ty.def ub)) |> Ty.of_def
+      else t
     let weaken v (lb, ub) t =
-      Ty.def t |> VDescr.weaken (VarMap.singleton v (Ty.def lb, Ty.def ub)) |> Ty.of_def
+      if Ty.vars_toplevel t |> VarSet.mem v then
+        Ty.def t |> VDescr.weaken (VarMap.singleton v (Ty.def lb, Ty.def ub)) |> Ty.of_def
+      else t
     let pp = Printer.print_ty'
   end
 
@@ -149,14 +155,23 @@ module Make(VS:VarSettings) = struct
     include Ty.F
     let pack f = Row.all_fields f |> Row.to_record_atom |> Descr.mk_record |> Ty.mk_descr
     let always_non_empty f =
-      let to_eliminate = RowVarSet.diff (Ty.F.get_vars f) (MixVarSet.proj2 VS.delta) in
-      let s = to_eliminate |> RowVarSet.to_list
-      |> List.map (fun v -> v, (Ty.F.any, Ty.F.empty)) |> RowVarMap.of_list in
-      let fp = Ty.F.strengthen s f |> pack in
+      let fp =
+        match RowVarSet.diff (Ty.F.get_vars f) (MixVarSet.proj2 VS.delta) |> RowVarSet.to_list with
+        | [] -> f |> pack
+        | lst ->
+          let s = lst |> List.map (fun v -> v, (Ty.F.any, Ty.F.empty)) |> RowVarMap.of_list in
+          Ty.F.strengthen s f |> pack
+      in
       MixVarSet.subset (fp |> Ty.all_vars) VS.delta &&
       not (Ty.is_empty fp)
-    let strengthen v (lb, ub) t = Ty.F.strengthen (RowVarMap.singleton v (lb, ub)) t
-    let weaken v (lb, ub) t = Ty.F.weaken (RowVarMap.singleton v (lb, ub)) t
+    let strengthen v (lb, ub) t =
+      if Ty.F.get_vars t |> RowVarSet.mem v then
+        Ty.F.strengthen (RowVarMap.singleton v (lb, ub)) t
+      else t
+    let weaken v (lb, ub) t =
+      if Ty.F.get_vars t |> RowVarSet.mem v then
+        Ty.F.weaken (RowVarMap.singleton v (lb, ub)) t
+      else t
     let leq f1 f2 = Ty.leq (pack f1) (pack f2)
     let pp fmt f = Printer.print_row' fmt (Row.all_fields f)
   end
