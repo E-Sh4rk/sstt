@@ -185,11 +185,11 @@ let%expect_test "tests" =
              ]
              [
                'X: 'A | 'X ;
-               'B: any
-             ]
-             [
-               'X: 'A | 'X ;
                'Y: 'B & 'Y
+             ]
+    tally17: [
+               'X: int | 'X ;
+               'Y: int | 'Y
              ]
     tally_row1: [
                   `R: {  ;; `S & `R }

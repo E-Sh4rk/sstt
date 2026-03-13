@@ -113,6 +113,7 @@ type unit = () ;;
 "tally14" [ { l : 'X } <= { l : 'Y ..} ] ;;
 "tally15" [ 'X, 'Y = int, bool ];;
 "tally16" [ 'X -> 'Y <= 'A -> 'B ] ;;
+"tally17" [ 'X & int -> 'X & int | 'Y <= int -> 'Y ] ;;
 
 "tally_row1" [ { ;; `R } <= { ;; `S } ] ;;
 "tally_row2" [ { ;; `R } <= { ;; `s } ] ;;

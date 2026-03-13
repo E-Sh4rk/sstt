@@ -24,17 +24,21 @@ type constr = Ty.t * Ty.t
 module type VarSettings = sig
   val delta : MixVarSet.t
 end
-  
+
+(* TODO: should we put vdescr and not nodes in type constraints? *)
 module Make(VS:VarSettings) = struct
   module type B = sig
     type t
+    type var
     val is_mono : t -> bool
+    val empty : t
+    val any : t
     val cap : t -> t -> t
     val cup : t -> t -> t
     val neg : t -> t
     val leq : t -> t -> bool
-    val is_empty : t -> bool
-    val is_any : t -> bool
+    val lower_bound : var -> t * t -> t -> t
+    val upper_bound : var -> t * t -> t -> t
     val compare : t -> t -> int
     val pp : Format.formatter -> t -> unit
   end
@@ -46,7 +50,7 @@ module Make(VS:VarSettings) = struct
     val pp : Format.formatter -> t -> unit
   end
 
-  module C(V:V)(B:B) = struct
+  module C(V:V)(B:B with type var := V.t) = struct
     type t = B.t * V.t * B.t (* s ≤ α ≤ t *)
     module V = V
     module B = B
@@ -54,9 +58,12 @@ module Make(VS:VarSettings) = struct
     (* C1 subsumes C2 if it has the same variable
        and gives more restrictive bounds (larger lower bound and smaller upper bound)
     *)
-    let subsumes (t1, v1, t1') (t2, v2, t2') =
+    let subsumes ctx1 (t1, v1, t1') (t2, v2, t2') =
       V.compare v1 v2 = 0 &&
-      B.leq t2 t1 && B.leq t1' t2'
+      let t2 = List.fold_left (fun acc (lb,v,ub) -> B.lower_bound v (lb,ub) acc) t2 ctx1 in
+      B.leq t2 t1 &&
+      let t2' = List.fold_left (fun acc (lb,v,ub) -> B.upper_bound v (lb,ub) acc) t2' ctx1 in
+      B.leq t1' t2'
 
     let compare (t1,v1,t1') (t2,v2,t2')=
       V.compare v1 v2 |> ccmp
@@ -66,15 +73,14 @@ module Make(VS:VarSettings) = struct
     let unsat (s, _, t) =
       B.is_mono s && B.is_mono t && not (B.leq s t)
 
-    let trivial (s, _, t) =
-      B.is_empty s && B.is_any t
+    let trivial v = (B.empty, v, B.any)
 
     let pp fmt (s,v,t) =
       Format.fprintf fmt "@[<h 0>%a <= %a <= %a@]" B.pp s V.pp v B.pp t
   end
 
   exception Unsat
-  module CS(V:V)(B:B) = struct
+  module CS(V:V)(B:B with type var := V.t) = struct
     module V = V
     module B = B
     module C = C(V)(B)
@@ -86,8 +92,7 @@ module Make(VS:VarSettings) = struct
     let any = []
     let is_any t = (t = [])
     let singleton e =
-      assert_sat e ;
-      if C.trivial e then [] else [e]
+      assert_sat e ; [e]
     let merge (s, v, t) (s', _, t') =
       let ss = B.cup s s' in
       let tt = B.cap t t' in
@@ -95,8 +100,7 @@ module Make(VS:VarSettings) = struct
       assert_sat merged ; merged
 
     let rec add ((_, v, _) as c) l =
-      if C.trivial c then l
-      else match l with
+      match l with
         [] -> [ c ]
       | ((_, v', _) as c') :: ll ->
         let n = V.compare v v' in
@@ -118,17 +122,23 @@ module Make(VS:VarSettings) = struct
        forall constraint c2 in m2, there exists
        c1 in t1 such that c1 subsumes c2
     *)
-    let rec subsumes l1 l2 =
-      (* TODO: some redundant solutions may be generated because constraints
-         are compared independently: bounds of other constraints are not propagated *)
-      match l1, l2 with
-      | _, [] -> true
-      | [], _ -> false
-      | ((_,v1, _) as c1)::ll1, ((_, v2, _) as c2)::ll2 ->
-        let n = V.compare v1 v2 in
-        if n < 0 then subsumes ll1 l2
-        else if n > 0 then false
-        else C.subsumes c1 c2 && subsumes ll1 ll2
+    let subsumes l1 l2 =
+      let rec rev acc l =
+        match l with
+        | [] -> acc
+        | e::l -> rev (e::acc) l
+      in
+      let rec aux ctx1 l1 l2 =
+        match l1, l2 with
+        | _, [] -> true
+        | [], _ -> false
+        | ((_,v1, _) as c1)::ll1, ((_, v2, _) as c2)::ll2 ->
+          let n = V.compare v1 v2 in
+          if n > 0 then aux (List.cons c1 ctx1) ll1 l2
+          else if n < 0 then C.subsumes ctx1 (C.trivial v2) c2 && aux ctx1 l1 ll2
+          else C.subsumes ctx1 c1 c2 && aux (List.cons c1 ctx1) ll1 ll2
+      in
+      aux [] (rev [] l1) (rev [] l2)
 
     let rec compare l1 l2 =
       match l1, l2 with
@@ -151,6 +161,10 @@ module Make(VS:VarSettings) = struct
   module TyB = struct
     include Ty
     let is_mono t = MixVarSet.subset (Ty.all_vars t) VS.delta
+    let lower_bound v (lb, ub) t =
+      Ty.def t |> VDescr.lower_bound (VarMap.singleton v (Ty.def lb, Ty.def ub)) |> Ty.of_def
+    let upper_bound v (lb, ub) t =
+      Ty.def t |> VDescr.upper_bound (VarMap.singleton v (Ty.def lb, Ty.def ub)) |> Ty.of_def
     let pp = Printer.print_ty'
   end
   module TV = struct
@@ -165,10 +179,9 @@ module Make(VS:VarSettings) = struct
     include Ty.F
     let pack f = Row.all_fields f |> Row.to_record_atom |> Descr.mk_record |> Ty.mk_descr
     let is_mono f = MixVarSet.subset (pack f |> Ty.all_vars) VS.delta
+    let lower_bound v (lb, ub) t = Ty.F.lower_bound (RowVarMap.singleton v (lb, ub)) t
+    let upper_bound v (lb, ub) t = Ty.F.upper_bound (RowVarMap.singleton v (lb, ub)) t
     let leq f1 f2 = Ty.leq (pack f1) (pack f2)
-    let pany, pempty = pack Ty.F.any, pack Ty.F.empty
-    let is_any f = Ty.leq pany (pack f)
-    let is_empty f = Ty.leq (pack f) pempty
     let pp fmt f = Printer.print_row' fmt (Row.all_fields f)
   end
   module RV = struct
