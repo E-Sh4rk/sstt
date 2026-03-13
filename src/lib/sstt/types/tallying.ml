@@ -25,7 +25,6 @@ module type VarSettings = sig
   val delta : MixVarSet.t
 end
 
-(* TODO: should we put vdescr and not nodes in type constraints? *)
 module Make(VS:VarSettings) = struct
   module type B = sig
     type t
@@ -352,19 +351,19 @@ module Make(VS:VarSettings) = struct
       )
     in psi CSS.any ps ns ()
   let norm, norm_field =
-    let memo = VDHash.create 16 in
+    let memo_ty = VDHash.create 17 in
+    let memo_f = FDHash.create 17 in
     let rec norm_ty t =
-      let vd = Ty.def t in
-      match VDHash.find_opt memo vd  with
+      if Ty.is_empty t then CSS.any
+      else if TyB.is_mono t then CSS.empty
+      else norm_vdescr (Ty.def t)
+    and norm_vdescr vd =
+      match VDHash.find_opt memo_ty vd with
       | Some cstr -> cstr
       | None ->
-        VDHash.add memo vd CSS.any;
-        let res =
-          if Ty.is_empty t then CSS.any
-          else if TyB.is_mono t then CSS.empty
-          else vd |> VDescr.dnf |> CSS.map_conj norm_summand
-        in
-        VDHash.remove memo vd ; res
+        VDHash.add memo_ty vd CSS.any;
+        let res = vd |> VDescr.dnf |> CSS.map_conj norm_summand in
+        VDHash.remove memo_ty vd ; res
     and norm_summand summand =
       match VToplevel.extract_smallest summand with
       | None ->
@@ -457,7 +456,13 @@ module Make(VS:VarSettings) = struct
       in
       norm_tuple_gen ~diff:Ty.F.diff ~disjoint ~norm:norm_field p ns
     and norm_field (f:Ty.F.t) =
-      f |> Ty.F.dnf |> CSS.map_conj norm_field_summand
+      let fd = FDescr.of_field f in
+      match FDHash.find_opt memo_f fd with
+      | Some cstr -> cstr
+      | None ->
+        FDHash.add memo_f fd CSS.any;
+        let res = f |> Ty.F.dnf |> CSS.map_conj norm_field_summand in
+        FDHash.remove memo_f fd ; res
     and norm_field_summand summand =
       match FToplevel.extract_smallest summand with
       | None ->
@@ -470,8 +475,8 @@ module Make(VS:VarSettings) = struct
     norm_ty, norm_field
 
   let propagate cs =
-    let memo_ty = VDHash.create 8 in
-    let memo_f = FDHash.create 8 in
+    let memo_ty = VDHash.create 17 in
+    let memo_f = FDHash.create 17 in
     let rec aux (prev,prev') ((cs,cs') : CS'.t) =
       let retry_with css =
         let css' () = CS'.cap (prev,prev') (cs,cs') |> CSS.singleton in
