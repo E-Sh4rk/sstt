@@ -373,13 +373,19 @@ module type Polymorphic = sig
   val map_nodes : (node -> node) -> t -> t
   (** [map_nodes f t] replaces every node [n] in [t] by the node [f n]. *)
 
-  val lower_bound : (t * t) VarMap.t -> t -> t
-  (** [lower_bound b t] returns a lower bound for [t] obtained by substituting
-    (top-level) type variables in [t] according to the bounds in [b]. *)
+  val strengthen : (t * t) VarMap.t -> t -> t
+  (** [strengthen b t] strengthens [t] by substituting its (top-level)
+  type variables according to the bounds in [b].
+  For instance, if the variable [v] is associated to [(int, int|bool)],
+  its positive occurrences will be substituted by [v & (int|bool)]
+  and its negative occurrences by [v | int]. *)
 
-  val upper_bound : (t * t) VarMap.t -> t -> t
-  (** [upper_bound b t] returns an upper bound for [t] obtained by substituting
-    (top-level) type variables in [t] according to the bounds in [b]. *)
+  val weaken : (t * t) VarMap.t -> t -> t
+  (** [weaken b t] weakens [t] by substituting its (top-level)
+  type variables according to the bounds in [b].
+  For instance, if the variable [v] is associated to [(int, int|bool)],
+  its positive occurrences will be substituted by [v | int]
+  and its negative occurrences by [v & (int|bool)]. *)
 
 end
 

@@ -59,7 +59,7 @@ module Make(N:Node)(V:Comparable)(L:Leaf with type node = N.t) = struct
     in
     Bdd.substitute f t
 
-  let lower_bound s t =
+  let strengthen s t =
     let fp v =
       match VarMap.find_opt v s with
       | None -> Bdd.singleton v
@@ -72,7 +72,7 @@ module Make(N:Node)(V:Comparable)(L:Leaf with type node = N.t) = struct
     in
     Bdd.substitute' fp fn t
 
-let upper_bound s t =
+let weaken s t =
     let fp v =
       match VarMap.find_opt v s with
       | None -> Bdd.singleton v

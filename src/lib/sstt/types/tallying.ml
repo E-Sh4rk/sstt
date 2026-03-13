@@ -40,8 +40,8 @@ module Make(VS:VarSettings) = struct
     val neg : t -> t
     val leq : t -> t -> bool
     val always_non_empty : t -> bool
-    val lower_bound : var -> t * t -> t -> t
-    val upper_bound : var -> t * t -> t -> t
+    val strengthen : var -> t * t -> t -> t
+    val weaken : var -> t * t -> t -> t
     val compare : t -> t -> int
     val pp : Format.formatter -> t -> unit
   end
@@ -83,9 +83,9 @@ module Make(VS:VarSettings) = struct
     *)
     let subsumes ctx1 (t1, v1, t1') (t2, v2, t2') =
       V.compare v1 v2 = 0 &&
-      let t2 = List.fold_left (fun acc (lb,v,ub) -> B.lower_bound v (lb,ub) acc) t2 ctx1 in
+      let t2 = List.fold_left (fun acc (lb,v,ub) -> B.strengthen v (lb,ub) acc) t2 ctx1 in
       B.leq t2 t1 &&
-      let t2' = List.fold_left (fun acc (lb,v,ub) -> B.upper_bound v (lb,ub) acc) t2' ctx1 in
+      let t2' = List.fold_left (fun acc (lb,v,ub) -> B.weaken v (lb,ub) acc) t2' ctx1 in
       B.leq t1' t2'
 
     let compare (t1,v1,t1') (t2,v2,t2') =
@@ -95,7 +95,7 @@ module Make(VS:VarSettings) = struct
 
     let unsat ctx (s, _, t) =
       let d = B.diff s t in
-      let d = List.fold_left (fun acc (lb,v,ub) -> B.upper_bound v (lb,ub) acc) d ctx in
+      let d = List.fold_left (fun acc (lb,v,ub) -> B.weaken v (lb,ub) acc) d ctx in
       B.always_non_empty d
     let assert_sat ctx c =
       if unsat ctx c
@@ -123,13 +123,13 @@ module Make(VS:VarSettings) = struct
       let to_eliminate = VarSet.diff (VDescr.get_vars t) (MixVarSet.proj1 VS.delta) in
       let s = to_eliminate |> VarSet.to_list
       |> List.map (fun v -> v, (VDescr.any, VDescr.empty)) |> VarMap.of_list in
-      let t = t |> VDescr.lower_bound s |> Ty.of_def in
+      let t = t |> VDescr.strengthen s |> Ty.of_def in
       MixVarSet.subset (Ty.all_vars t) VS.delta &&
       not (is_empty t)
-    let lower_bound v (lb, ub) t =
-      Ty.def t |> VDescr.lower_bound (VarMap.singleton v (Ty.def lb, Ty.def ub)) |> Ty.of_def
-    let upper_bound v (lb, ub) t =
-      Ty.def t |> VDescr.upper_bound (VarMap.singleton v (Ty.def lb, Ty.def ub)) |> Ty.of_def
+    let strengthen v (lb, ub) t =
+      Ty.def t |> VDescr.strengthen (VarMap.singleton v (Ty.def lb, Ty.def ub)) |> Ty.of_def
+    let weaken v (lb, ub) t =
+      Ty.def t |> VDescr.weaken (VarMap.singleton v (Ty.def lb, Ty.def ub)) |> Ty.of_def
     let pp = Printer.print_ty'
   end
 
@@ -152,11 +152,11 @@ module Make(VS:VarSettings) = struct
       let to_eliminate = RowVarSet.diff (Ty.F.get_vars f) (MixVarSet.proj2 VS.delta) in
       let s = to_eliminate |> RowVarSet.to_list
       |> List.map (fun v -> v, (Ty.F.any, Ty.F.empty)) |> RowVarMap.of_list in
-      let fp = Ty.F.lower_bound s f |> pack in
+      let fp = Ty.F.strengthen s f |> pack in
       MixVarSet.subset (fp |> Ty.all_vars) VS.delta &&
       not (Ty.is_empty fp)
-    let lower_bound v (lb, ub) t = Ty.F.lower_bound (RowVarMap.singleton v (lb, ub)) t
-    let upper_bound v (lb, ub) t = Ty.F.upper_bound (RowVarMap.singleton v (lb, ub)) t
+    let strengthen v (lb, ub) t = Ty.F.strengthen (RowVarMap.singleton v (lb, ub)) t
+    let weaken v (lb, ub) t = Ty.F.weaken (RowVarMap.singleton v (lb, ub)) t
     let leq f1 f2 = Ty.leq (pack f1) (pack f2)
     let pp fmt f = Printer.print_row' fmt (Row.all_fields f)
   end
