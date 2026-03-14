@@ -137,5 +137,5 @@ module Make(L:Letter) : Regexp with type lt=L.t = struct
     | Concat (r1, r2) -> concat (to_ext r1) (to_ext r2)
     | Union (r1, r2) -> union (to_ext r1) (to_ext r2)
     | Star r -> EStar (to_ext r)
-    | Empty -> failwith "Regexp should not contain Empty"
+    | Empty -> invalid_arg "Regexp should not contain Empty"
 end

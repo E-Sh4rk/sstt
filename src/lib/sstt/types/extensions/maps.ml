@@ -41,10 +41,11 @@ let map f l =
 let to_t ctx comp =
   try
     let (_, pty) = Op.TagComp.as_atom comp in
-    if Ty.leq pty any_p |> not then raise Exit ;
-    let l = extract_dnf pty in
-    Some (map ctx.Printer.build l)
-  with _ -> None
+    if Ty.leq pty any_p |> not then None
+    else
+      let l = extract_dnf pty in
+      Some (map ctx.Printer.build l)
+  with Invalid_argument _ -> None
 let proj ~dom t =
   let arr = proj_tag t |> Ty.get_descr |> Descr.get_arrows in
   Op.Arrows.apply arr dom

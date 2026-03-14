@@ -84,8 +84,10 @@ let extract_dnf tag dnf =
     vs |> List.mapi (extract_param record)
   in
   let extract_params (_, ty) =
-    Ty.get_descr ty |> Descr.get_records
-    |> Op.Records.approx |> extract_params
+    try
+      Ty.get_descr ty |> Descr.get_records
+      |> Op.Records.approx |> extract_params
+    with Op.EmptyAtom -> invalid_arg "Malformed abstract type"
   in
   let res = dnf |> List.map (fun (ps, ns) ->
     (List.map extract_params ps, List.map extract_params ns)
@@ -117,7 +119,7 @@ let to_t ctx comp =
     List.map (fun (p1, p2) ->
         List.map map_node p1, List.map map_node p2
       ) params |> Option.some
-  with _ -> None
+  with Invalid_argument _ -> None
 
 let map f l =
   l |> List.map (fun (p1, p2) ->

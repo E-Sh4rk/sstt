@@ -167,7 +167,7 @@ let to_t ctx comp =
     Some (match to_repr (ctx.Printer.build) ty with
         | R r -> Regexp (r |> to_automaton |> to_regexp)
         | B bs -> Basic bs)
-  with _ -> None
+  with Invalid_argument _ -> None
 
 let rec map_re f = function
   | Epsilon -> Epsilon
