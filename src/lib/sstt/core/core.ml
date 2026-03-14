@@ -41,12 +41,13 @@ module Ty : Ty = struct
   let size t = Marshal.(total_size (to_bytes t [Closures]) 0)
 
   let simpl t =
-    if Config.bdd_simpl then N.with_own_cache N.simplify t;
-    let s = size t in
-    if s > !max_size then begin
-      max_size := s;
-    end;
-    t
+  if Config.bdd_simpl then N.with_own_cache N.simplify t;
+  if Config.benchmark_size then begin
+     let s = size t in
+     if s > !max_size then  max_size := s;
+  end;
+  t
+
   let s f t = f t |> simpl
   let s' f t = simpl t |> f
 

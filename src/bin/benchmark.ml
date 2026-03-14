@@ -2,7 +2,7 @@ open Sstt_repl
 open Output
 open Sstt
 
-let use_cduce_backend = true
+let use_cduce_backend = false
 let default_timeout = 5
 
 (* Parsing of benchmark files *)
