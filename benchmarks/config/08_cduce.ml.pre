@@ -1,0 +1,7 @@
+type subtyping_cache = HashCache | MapCache | BasicCache
+let use_cduce_backend = true
+let hash_consing = false
+let bdd_simpl = true
+let benchmark_size = false
+let tallying_opti = false
+let subtyping_cache = HashCache

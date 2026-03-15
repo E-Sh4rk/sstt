@@ -37,7 +37,7 @@ module Ty : Ty = struct
 
   let () = 
   if Config.benchmark_size then
-  at_exit (fun () -> Format.printf "FINAL MAX SIZE: %d\n%!" !max_size)
+  at_exit (fun () -> Format.printf "Peak space: %d\n%!" !max_size)
   let size t = Marshal.(total_size (to_bytes t [Closures]) 0)
 
   let simpl t =
