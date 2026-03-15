@@ -2,8 +2,7 @@ open Sstt_repl
 open Output
 open Sstt
 
-let use_cduce_backend = false
-let default_timeout = 5
+let default_timeout = 60
 
 (* Parsing of benchmark files *)
 exception InvalidFormat
@@ -159,7 +158,7 @@ let () =
       fns |> List.iter (fun fn ->
           print Info "Processing %s" fn ;
           (* let time0 = Unix.gettimeofday () in *)
-          let backend = if use_cduce_backend then (module CDuceBackend : Backend) else (module SsttBackend) in
+          let backend = if Config.use_cduce_backend then (module CDuceBackend : Backend) else (module SsttBackend) in
           let module B : Backend = (val backend) in
           let bench = parse_file fn in
           let time1 = Unix.gettimeofday () in
