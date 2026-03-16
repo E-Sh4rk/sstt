@@ -84,6 +84,13 @@ type env = { tenv : type_env ; vtenv : var_type_env }
 let empty_env = { tenv=empty_tenv ; vtenv=empty_vtenv }
 
 module StrSet = Set.Make(String)
+let t_str = Ast.TTag ("str", None)
+let t_unit = Ast.(TVarop (TTuple, []))
+let t_int = Ast.TInterval(None, None)
+let t_arrow a b = Ast.(TBinop(TArrow, a,b))
+let t_pair a b = Ast.(TVarop(TTuple, [a; b]))
+let t_opt = function None -> Ast.(TBuiltin TAny)
+                   | Some t -> t
 let transform (env:env) ty =
   let env = ref env in
   let rec aux local ty =
@@ -97,6 +104,15 @@ let transform (env:env) ty =
     | TTag ("flt", ty) -> transform_flt ty
     | TTag ("chr", ty) -> transform_chr ty
     | TTag ("bool", ty) -> transform_bool ty
+    | TTag ("__ref", arg) -> 
+      let arg = t_opt arg in
+      aux_tag local "#ref" (Some (t_pair (t_arrow t_unit arg) (t_arrow arg t_unit)))
+    | TTag ("__dict", arg) -> 
+      let arg = t_opt arg in
+      aux_tag local "#dict" (Some (t_pair (t_arrow t_str arg) (t_arrow (t_pair t_str arg) t_unit)))
+    | TTag ("__array", arg) -> 
+      let arg = t_opt arg in
+      aux_tag local "#dict" (Some (t_pair (t_arrow t_int arg) (t_arrow (t_pair t_int arg) t_unit)))
     | TTag (name, arg) -> aux_tag local name arg
     | TVar (Mono, n) | TVar (Poly, n) -> TVar n
     | TVar _ -> raise (Unsupported ("unsupported row variables"))
@@ -120,25 +136,25 @@ let transform (env:env) ty =
     | TWhere (ty, eqs) ->
       let local = List.fold_left (fun acc (str,_) -> StrSet.add str acc) local eqs in
       TWhere (aux local ty, List.map (fun (str,ty) -> str, [], aux local ty) eqs)
-    and aux_binding local (str,tyo) =
-      match tyo with
-      | Ast.TUnop (TOption, ty) -> str, aux local ty, true
-      | ty -> str, aux local ty, false
-    and aux_tag local str arg =
-      if String.starts_with ~prefix:"_" str then
-        raise (Unsupported "unsupported opaque data types") ;
-      let str = "tag."^str in
-      match arg with
-      | None -> TPair (aux_enum str, TBase TAny)
-      | Some arg -> TPair (aux_enum str, aux local arg)
-    and aux_enum str =
-      begin try
-          let tenv = Additions.define_atom !env.tenv str in
-          env := { !env with tenv }
-        with TypeDefinitionError _ -> ()
-      end ;
-      TCustom ([], String.capitalize_ascii str)
-    in
+  and aux_binding local (str,tyo) =
+    match tyo with
+    | Ast.TUnop (TOption, ty) -> str, aux local ty, true
+    | ty -> str, aux local ty, false
+  and aux_tag local str arg =
+    if String.starts_with ~prefix:"_" str then
+      raise (Unsupported "unsupported opaque data types") ;
+    let str = "tag."^str in
+    match arg with
+    | None -> TPair (aux_enum str, TBase TAny)
+    | Some arg -> TPair (aux_enum str, aux local arg)
+  and aux_enum str =
+    begin try
+        let tenv = Additions.define_atom !env.tenv str in
+        env := { !env with tenv }
+      with TypeDefinitionError _ -> ()
+    end ;
+    TCustom ([], String.capitalize_ascii str)
+  in
   let res = aux StrSet.empty ty in
   !env, res
 
@@ -149,14 +165,14 @@ module Subst = Tvar.Subst
 
 let resolve_vars env names =
   let vs, vtenv = type_exprs_to_typs env.tenv env.vtenv
-    (List.map (fun str -> TVar str) names)
+      (List.map (fun str -> TVar str) names)
   in
   { env with vtenv }, List.map
     (fun t -> match Tvar.check_var t with `Pos v -> v | _ -> assert false) vs
 
 let build_tys env tys =
   let env, tys = List.fold_left (fun (env, res) ty ->
-    let env, ty = transform env ty in env, ty::res) (env,[]) tys in
+      let env, ty = transform env ty in env, ty::res) (env,[]) tys in
   let tys, vtenv = type_exprs_to_typs env.tenv env.vtenv (List.rev tys) in
   { env with vtenv }, tys
 

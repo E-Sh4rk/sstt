@@ -18,13 +18,11 @@ do
     do
 	echo "   Input $(basename $b)"
 	sed -i "$CFG" -e 's/let *benchmark_size *= .*/let benchmark_size = false/'
-	dune exec --display=quiet -- src/bin/benchmark.exe "$b" | grep -v 'space' | cut -f 2 -d ':' >> "$output"
+	dune exec --display=quiet -- src/bin/benchmark.exe "$b" | grep -v 'space\|errors' | cut -f 2 -d ':' >> "$output"
 	sed -i "$CFG" -e 's/let *benchmark_size *= .*/let benchmark_size = true/'
-	dune exec --display=quiet -- src/bin/benchmark.exe "$b" | grep 'space' | cut -f 2 -d ':' >> "$output"
-	echo >> "$output"
-	echo >> "$output"
+	dune exec --display=quiet -- src/bin/benchmark.exe "$b" | grep 'space\|errors' | cut -f 2 -d ':' >> "$output"
     done
     mv "$CFG".backup "$CFG"
 done
-cat benchmarks/00_prelude.log [0-9]*.log | paste -d '&' | sed -e 's/&/ & /g' | tee benchmark.log
+paste -d '&' benchmarks/00_prelude.log [0-9]*.log | sed -e 's/&/ & /g'  -e 's:$:\\\\:g' | tee benchmark.log
 

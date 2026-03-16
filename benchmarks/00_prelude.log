@@ -1,23 +1,21 @@
- \GRAYLINE   
- \GRAYLINE   
- \GRAYLINE A.
- \GRAYLINE   
- \GRAYLINE   
- \GRAYLINE   
-
-
-             
-             
-           B.
-             
-             
-             
-
-
- \GRAYLINE   
- \GRAYLINE   
- \GRAYLINE C.
- \GRAYLINE   
- \GRAYLINE   
- \GRAYLINE   
-
+ \GRAYLINE    & Building  
+ \GRAYLINE    & Solving   
+ \GRAYLINE    & Total     
+ \GRAYLINE A. & Size      
+ \GRAYLINE    & Avg. Size 
+ \GRAYLINE    & Peak Size 
+ \GRAYLINE    & Timeout   
+              & Building  
+              & Solving   
+              & Total     
+           B. & Size      
+              & Avg. Size 
+              & Peak Size 
+              & Timeout   
+ \GRAYLINE    & Building  
+ \GRAYLINE    & Solving   
+ \GRAYLINE    & Total     
+ \GRAYLINE C. & Size      
+ \GRAYLINE    & Avg. Size 
+ \GRAYLINE    & Peak Size 
+ \GRAYLINE    & Timeout   

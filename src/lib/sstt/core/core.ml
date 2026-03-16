@@ -33,18 +33,14 @@ module Ty : Ty = struct
   module VDescr = Node.VDescr
   module F = VDescr.Descr.Records.FTy
   module O = F.OTy
-  let max_size = ref 0
 
-  let () = 
-  if Config.benchmark_size then
-  at_exit (fun () -> Format.printf "Peak space: %d\n%!" !max_size)
   let size t = Marshal.(total_size (to_bytes t [Closures]) 0)
 
   let simpl t =
   if Config.bdd_simpl then N.with_own_cache N.simplify t;
   if Config.benchmark_size then begin
      let s = size t in
-     if s > !max_size then  max_size := s;
+     if s > !Config.max_ty_size then  Config.max_ty_size := s;
   end;
   t
 

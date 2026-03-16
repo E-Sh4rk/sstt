@@ -5,3 +5,4 @@ let bdd_simpl = false
 let benchmark_size = false
 let tallying_opti = true
 let subtyping_cache = BasicCache
+let max_ty_size = ref 0

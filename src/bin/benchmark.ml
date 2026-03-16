@@ -2,7 +2,14 @@ open Sstt_repl
 open Output
 open Sstt
 
-let default_timeout = 10
+let default_timeout = 30
+let raw_output = true
+
+let pp_hr fmt f =
+  let open Format in
+  if f >= 1e6 then fprintf fmt "%.01fM" (f /. 1e6)
+  else if f >= 1e3 then fprintf fmt "%.01fk" (f /. 1e3)
+  else fprintf fmt "%.00f" f
 
 (* Parsing of benchmark files *)
 exception InvalidFormat
@@ -156,7 +163,7 @@ let () =
     let run () =
       let fns = List.rev !input_files in
       fns |> List.iter (fun fn ->
-(*          print Info "Processing %s" fn ;*)
+          if not raw_output then print Info "Processing %s" fn ;
           (* let time0 = Unix.gettimeofday () in *)
           let backend = if Config.use_cduce_backend then (module CDuceBackend : Backend) else (module SsttBackend) in
           let module B : Backend = (val backend) in
@@ -177,12 +184,14 @@ let () =
           let osize = ref 0 in
           let ssize = ref 0 in
           let timeout = ref [] in
-          (*print Msg "Num of instances: %i" n ;*)
-          let avg t1 t2 = (t2 -. t1) *. 1000.0 /. (float_of_int n) in
-          let all t1 t2 = (t2 -. t1) *. 1000.0 in
+          if not raw_output then print Msg "Num of instances: %i" n ;
+          let avg t1 t2 = (t2 -. t1) *. 1000000.0 /. (float_of_int n) in
+          let all t1 t2 = (t2 -. t1) in
           let size_avg c = (float !c) /. (float n) in
           (* print Msg "Parsing (average): %.00f (%.03f)" (all time0 time1) (avg time0 time1) ; *)
-          print Msg "Building (average): %.00f (%.03f)" (all time1 time2) (avg time1 time2) ;
+          if raw_output then
+            print Msg "Building (average): %.03f" (all time1 time2) 
+          else print Msg "Building (average): %.03f (%.00fus)" (all time1 time2) (avg time1 time2) ;
           bench |> List.iteri (fun i (src, b) ->
               let run () =
                 let mono, cs = B.build_delta b.mono b.rmono, b.cs in
@@ -209,24 +218,38 @@ let () =
           let num_timeouts = List.length !timeout in
           let num_errors = List.length !errors in
           let time3 = time3 -. (float (default_timeout * num_timeouts)) in
-          print Msg "Tallying (average): %.00f (%.03f)" (all time2 time3) (avg time2 time3) ;
-          print Msg "Total (average): %.00f (%.03f)" (all time1 time3) (avg time1 time3) ;
-          (*print Msg "Total solutions: %i" (!nsols);*)
-          print Msg "Total timouts: %d" (max num_errors num_timeouts);
-          (*print Msg "Total errors: %d" num_errors;*)
-          (*
-          if num_timeouts <> 0 || num_errors <> 0 then begin
-            print Msg "Failures:";
-            List.iter (fun (i,s) -> print Msg "  %d: %s" i s) !timeout;
-            if false then List.iter (fun (s) -> print Msg "  %s" s) !errors;
-          end;*)
-          if Config.benchmark_size then begin
-            (*print Msg "Input nodes (average): %d (%.00f)" !isize (size_avg isize);
-            print Msg "Output nodes (average): %d (%.00f)" !osize (size_avg osize);
-            print Msg "Subst nodes (average): %d (%.00f)" !ssize (size_avg ssize);*)
-            print Msg "Total space (average): %d (%.00f)" (!ssize + !isize + !osize)
-            (size_avg (ref (!ssize + !isize + !osize)))
-
+          if raw_output then begin 
+            print Msg "Tallying (average): %.03f" (all time2 time3);
+            print Msg "Total (average): %.03f" (all time1 time3);
+            if Config.benchmark_size then begin
+              print Msg "Total space: %a" pp_hr (float (!ssize + !isize + !osize));
+              print Msg "Average space: %a" pp_hr (size_avg (ref (!ssize + !isize + !osize)));
+              if Config.use_cduce_backend then print Msg "Peak space: N/A"
+              else
+                print Msg "Peak space: %a" pp_hr (float (!Config.max_ty_size));
+            end;
+            print Msg "Total errors: %d" (max num_errors num_timeouts);
+          end else begin
+            print Msg "Tallying (average): %.03f (%.03fus)" (all time2 time3) (avg time2 time3) ;
+            print Msg "Total (average): %.03f (%.03fus)" (all time1 time3) (avg time1 time3) ;
+            print Msg "Total solutions: %i" (!nsols); 
+            if Config.benchmark_size then begin
+              print Msg "Input nodes (average): %d (%.00f)" !isize (size_avg isize);
+              print Msg "Output nodes (average): %d (%.00f)" !osize (size_avg osize);
+              print Msg "Subst nodes (average): %d (%.00f)" !ssize (size_avg ssize);
+              print Msg "Total space (average): %d (%.00f)" (!ssize + !isize + !osize)
+                (size_avg (ref (!ssize + !isize + !osize)));
+              if Config.use_cduce_backend then print Msg "Peak space: N/A"
+              else
+                print Msg "Peak space: %a" pp_hr (float (!Config.max_ty_size));
+            end;
+            print Msg "Total timouts: %d" num_timeouts;
+            print Msg "Total errors: %d" num_errors;
+            if num_timeouts <> 0 || num_errors <> 0 then begin
+              print Msg "Failures:";
+              List.iter (fun (i,s) -> print Msg "  %d: %s" i s) !timeout;
+              if true then List.iter (fun (s) -> print Msg "  %s" s) !errors;
+            end;
           end
         )
     in
