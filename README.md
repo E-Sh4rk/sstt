@@ -1,29 +1,24 @@
-# Simple Set-Theoretic Types (SSTT) library
+# Artifact for the paper "Revisiting Row Polymorphism for Set-Theoretic Types"
 
-SSTT is an OCaml library for manipulating set-theoretic types ([documentation](https://e-sh4rk.github.io/sstt/doc/)).  
-**Disclaimer: this library is a work in progress and is subject to breaking change.**
+This artifact is a modified version of the SSTT library implementing polymorphic records.
+The original SSTT library is released under MIT license.
 
-Currently, it supports the following type constructors:
-- Enums
-- Tags
-- Integer intervals
-- Arrows
-- Tuples of any arity
-- Records with row polymorphism
-- Type variables and row variables
+## Running the web prototype
 
-The following operations are implemented:
-- Semantic subtyping
-- DNF extraction and simplification
-- Usual type operators such as projections and application
-- Substitution
-- Tallying (= unification but with subtyping constraints)
-- Pretty printing (or more generally, extraction of an algebraic representation)
+A WebAssembly version can be tested directly in the web browser.
+This version is slower than the native version.
 
-It also provides a REPL ([web version](https://e-sh4rk.github.io/sstt/)) that allows performing common operations (subtyping, tallying, etc.) with a conveninent syntax.
-See [`REPL.md`](REPL.md) for examples and a description of the syntax.
+```
+cd web
+python3 -m http.server 8080
+```
 
-## Installation
+SSTT should then be accessible from your web browser: http://localhost:8080/
+
+You can find examples in `REPL.md` and `src/tests/tests.txt`.
+
+
+## Native version installation
 
 This library uses algebraic effects and requires at least the version `5.3.0` of the OCaml compiler, which can be installed as follows:
 
@@ -32,24 +27,8 @@ opam switch create sstt 5.3.0
 eval $(opam env --switch=sstt)
 ```
 
-### Using OPAM
-
-The easiest way to install this library is through [opam](https://opam.ocaml.org/), the OCaml Package Manager.  
-The SSTT library can be installed as follows:
-
+The native version can then be built as follows:
 ```
-opam pin sstt https://github.com/E-Sh4rk/sstt.git#main
+make deps
+make
 ```
-
-The REPL binary `sstt` can also be installed this way:
-
-```
-opam pin sstt-repl https://github.com/E-Sh4rk/sstt.git#main
-opam pin sstt-bin https://github.com/E-Sh4rk/sstt.git#main
-```
-
-## License
-
-This software is distributed under the MIT license.
-See [`LICENSE`](LICENSE) for more info.  
-*This work is funded by the ERC CZ LL2325 grant and Université Paris-Saclay.*
