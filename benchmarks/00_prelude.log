@@ -1,21 +1,24 @@
  \GRAYLINE    & Building  
  \GRAYLINE    & Solving   
- \GRAYLINE    & Total     
- \GRAYLINE A. & Size      
- \GRAYLINE    & Avg. Size 
+ \GRAYLINE A.   & Total     
+ \GRAYLINE    & \# Sol.
+ \GRAYLINE 872 & Size      
+ \GRAYLINE instances   & Avg. Size 
  \GRAYLINE    & Peak Size 
  \GRAYLINE    & Timeout   
               & Building  
               & Solving   
-              & Total     
-           B. & Size      
-              & Avg. Size 
+          B.  & Total
+	      & \# Sol.
+         5514     & Size      
+         instances & Avg. Size 
               & Peak Size 
               & Timeout   
  \GRAYLINE    & Building  
- \GRAYLINE    & Solving   
- \GRAYLINE    & Total     
- \GRAYLINE C. & Size      
+ \GRAYLINE C.  & Solving   
+ \GRAYLINE    & Total
+ \GRAYLINE 2358  & \# Sol.
+ \GRAYLINE instances & Size      
  \GRAYLINE    & Avg. Size 
  \GRAYLINE    & Peak Size 
  \GRAYLINE    & Timeout   

@@ -2,8 +2,8 @@ open Sstt_repl
 open Output
 open Sstt
 
-let default_timeout = 30
-let raw_output = false
+let default_timeout = 10
+let raw_output = true
 
 let pp_hr fmt f =
   let open Format in
@@ -197,15 +197,15 @@ let () =
                 let mono, cs = B.build_delta b.mono b.rmono, b.cs in
                 let sols = B.tally mono cs in
                 nsols := !nsols + (List.length sols) ;
-                if Config.benchmark_size then begin
-                  size isize cs;
-                  size osize sols;
-                  let res = List.map (fun (s, t) ->
+                let res = List.map (fun (s, t) ->
                       List.fold_left (fun acc sub ->
                           B.(apply_sub sub s, apply_sub sub t)::acc
                         ) [] sols
                     ) cs
-                  in
+                in
+                if Config.benchmark_size then begin
+                  size isize cs;
+                  size osize sols;
                   size ssize res;
                 end
               in
@@ -221,6 +221,7 @@ let () =
           if raw_output then begin 
             print Msg "Tallying (average): %.03f" (all time2 time3);
             print Msg "Total (average): %.03f" (all time1 time3);
+            print Msg "Total solutions: %i" (!nsols); 
             if Config.benchmark_size then begin
               print Msg "Total space: %a" pp_hr (float (!ssize + !isize + !osize));
               print Msg "Average space: %a" pp_hr (size_avg (ref (!ssize + !isize + !osize)));
