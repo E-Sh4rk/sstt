@@ -9,13 +9,11 @@
 (generate_opam_files true)
 
 (authors
- "Mickael Laurent"
- "Kim Nguyen"
+ "Anonymous"
 )
 
 (maintainers
- "Mickael Laurent"
- "Kim Nguyen"
+ "Anonymous"
 )
 
 (homepage "https://github.com/E-Sh4rk/sstt")

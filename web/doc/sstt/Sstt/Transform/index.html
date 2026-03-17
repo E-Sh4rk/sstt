@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Transform (sstt.Sstt.Transform)</title><meta charset="utf-8"/><link rel="stylesheet" href="../../../odoc.support/odoc.css"/><meta name="generator" content="odoc 3.1.0"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><script src="../../../odoc.support/highlight.pack.js"></script><script>hljs.initHighlightingOnLoad();</script><link rel="stylesheet" href="../../../odoc.support/katex.min.css"/><script src="../../../odoc.support/katex.min.js"></script><script>
+//<![CDATA[
+
+          document.addEventListener("DOMContentLoaded", function () {
+            var elements = Array.from(document.getElementsByClassName("odoc-katex-math"));
+            for (var i = 0; i < elements.length; i++) {
+              var el = elements[i];
+              var content = el.textContent;
+              var new_el = document.createElement("span");
+              new_el.setAttribute("class", "odoc-katex-math-rendered");
+              var display = el.classList.contains("display");
+              katex.render(content, new_el, { throwOnError: false, displayMode: display });
+              el.replaceWith(new_el);
+            }
+          });
+        
+//]]>
+</script></head><body class="odoc"><nav class="odoc-nav"><a href="../index.html">Up</a> – <a href="../../../index.html">Index</a> &#x00BB; <a href="../../index.html">sstt</a> &#x00BB; <a href="../index.html">Sstt</a> &#x00BB; Transform</nav><header class="odoc-preamble"><h1>Module <code><span>Sstt.Transform</span></code></h1><p>Type transformation and simplification</p></header><div class="odoc-content"><div class="odoc-spec"><div class="spec value anchored" id="val-transform"><a href="#val-transform" class="anchor"></a><code><span><span class="keyword">val</span> transform : <span><span>(<span><a href="../VDescr/index.html#type-t">VDescr.t</a> <span class="arrow">&#45;&gt;</span></span> <a href="../VDescr/index.html#type-t">VDescr.t</a>)</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="../Ty/index.html#type-t">Ty.t</a> <span class="arrow">&#45;&gt;</span></span> <a href="../Ty/index.html#type-t">Ty.t</a></span></code></div><div class="spec-doc"><p><code>transform f ty</code> returns the type obtained by applying <code>f</code> on the full descriptor of <code>ty</code>, and on the full descriptor of every node in the result recursively. It uses a cache to avoid calling <code>f</code> twice on the same descriptor.</p><p>Note that the function will may not terminate if <code>f</code> creates arbitrarily many new descriptors. For instance, if <code>f</code> is the function that maps singleton intervals to their successors:</p><div><pre class="odoc-katex-math display">
+    \texttt{f : } (n\texttt{..}n)\mapsto (n+1\texttt{..}n+1)
+    </pre></div><p>then when applied to a type <code class="odoc-katex-math">t\equiv\texttt{(0..0)}</code>, <code>transform f t</code> will not terminate.</p></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-simplify"><a href="#val-simplify" class="anchor"></a><code><span><span class="keyword">val</span> simplify : <span><span class="optlabel">?normalize</span>:<span>(<span><a href="../Ty/index.html#type-t">Ty.t</a> <span class="arrow">&#45;&gt;</span></span> <a href="../Ty/index.html#type-t">Ty.t</a>)</span> <span class="arrow">&#45;&gt;</span></span> <span><a href="../Ty/index.html#type-t">Ty.t</a> <span class="arrow">&#45;&gt;</span></span> <a href="../Ty/index.html#type-t">Ty.t</a></span></code></div><div class="spec-doc"><p><code>simplify ?normalize ty</code> returns a type equivalent to <code>ty</code> but where atoms of all components have been merged together when possible. If <code>?normalize</code> is provided, atoms of DNFs that become redundant when <code>normalize</code> is applied to the type are filtered out.</p></div></div></div></body></html>

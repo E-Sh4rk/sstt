@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>index (sstt.index)</title><meta charset="utf-8"/><link rel="stylesheet" href="../odoc.support/odoc.css"/><meta name="generator" content="odoc 3.1.0"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><script src="../odoc.support/highlight.pack.js"></script><script>hljs.initHighlightingOnLoad();</script><link rel="stylesheet" href="../odoc.support/katex.min.css"/><script src="../odoc.support/katex.min.js"></script><script>
+//<![CDATA[
+
+          document.addEventListener("DOMContentLoaded", function () {
+            var elements = Array.from(document.getElementsByClassName("odoc-katex-math"));
+            for (var i = 0; i < elements.length; i++) {
+              var el = elements[i];
+              var content = el.textContent;
+              var new_el = document.createElement("span");
+              new_el.setAttribute("class", "odoc-katex-math-rendered");
+              var display = el.classList.contains("display");
+              katex.render(content, new_el, { throwOnError: false, displayMode: display });
+              el.replaceWith(new_el);
+            }
+          });
+        
+//]]>
+</script></head><body class="odoc"><nav class="odoc-nav"><a href="../index.html">Up</a> – <a href="../index.html">Index</a> &#x00BB; sstt</nav><header class="odoc-preamble"><h1 id="sstt-index"><a href="#sstt-index" class="anchor"></a>sstt index</h1></header><div class="odoc-tocs"><nav class="odoc-toc odoc-local-toc"><ul><li><a href="#the-sstt-library">The sstt library</a></li><li><a href="#examples">Examples</a><ul><li><a href="#building-types">Building types</a></li><li><a href="#high-level-operations">High level operations</a><ul><li><a href="#subtyping-and-tallying">Subtyping and tallying</a></li></ul></li></ul></li></ul></nav></div><div class="odoc-content"><h2 id="the-sstt-library"><a href="#the-sstt-library" class="anchor"></a>The <a href="Sstt/index.html" title="Sstt">sstt</a> library</h2><p>The Simple Set-Theoretic Types library implements set-theoretic types and all related operations (set-theoretic operations, subtyping, type-substitution, tallying). The entry point of this library is the module <a href="Sstt/index.html"><code>Sstt</code></a>.</p><h2 id="examples"><a href="#examples" class="anchor"></a>Examples</h2><h3 id="building-types"><a href="#building-types" class="anchor"></a>Building types</h3><p>To build types, one needs to first build descriptors:</p><pre class="language-ocaml"><code># open Sstt
+# #install_printer Printer.print_ty' ;;
+
+# let int = Descr.mk_intervals Intervals.any |&gt; Ty.mk_descr ;;
+val int : Ty.t = int
+# let true_ = Descr.mk_enum (Enums.Atom.mk &quot;true&quot;) |&gt; Ty.mk_descr ;;
+val true_ : Ty.t = true
+# let false_ = Descr.mk_enum (Enums.Atom.mk &quot;false&quot;) |&gt; Ty.mk_descr ;;
+val false_ : Ty.t = false
+# let bool = Ty.cup true_ false_ ;;
+val bool : Ty.t = true | false
+# let int_x_bool = Descr.mk_tuple [ int; bool ] |&gt; Ty.mk_descr ;;
+val int_x_bool : Ty.t = int, true | false</code></pre><p>Polymorphic types are just types built around variables. For instance, to build the type <code class="odoc-katex-math">\alpha \rightarrow \beta</code>:</p><pre class="language-ocaml"><code>
+# let alpha = Ty.mk_var (Var.mk &quot;'a&quot;) ;;
+val alpha : Ty.t = 'a
+# let beta = Ty.mk_var (Var.mk &quot;'b&quot;) ;;
+val beta : Ty.t = 'b
+
+# let fun_a_b = Descr.mk_arrow (alpha, beta) |&gt; Ty.mk_descr ;;
+val fun_a_b : Ty.t = 'a -&gt; 'b</code></pre><p>Recursive types are built using systems of equations:</p><pre class="language-ocaml"><code># #install_printer Var.pp ;;
+
+# let vx = Var.mk &quot;'x&quot; ;;
+val vx : VarSet.elt = 'x
+# let tx = Ty.mk_var vx ;;
+val tx : Ty.t = 'x
+# let vy = Var.mk &quot;'y&quot; ;;
+val vy : VarSet.elt = 'y
+# let ty = Ty.mk_var vy ;;
+val ty : Ty.t = 'y
+# let nil = Descr.mk_enum (Enums.Atom.mk &quot;nil&quot;) |&gt; Ty.mk_descr ;;
+val nil : Ty.t = nil
+# let int = Descr.mk_intervals Intervals.any |&gt; Ty.mk_descr ;;
+val int : Ty.t = int
+# let int_x_ty = Descr.mk_tuple [ int; ty ] |&gt; Ty.mk_descr ;;
+val int_x_ty : Ty.t = int, 'y
+# let bool_x_tx = Descr.mk_tuple [ bool; tx ] |&gt; Ty.mk_descr ;;
+val bool_x_tx : Ty.t = true | false, 'x
+# let bool_x_tx_nil = Ty.cup nil bool_x_tx ;;
+val bool_x_tx_nil : Ty.t = nil | (true | false, 'x)</code></pre><p>We can now build and solve the system of equations:</p><div><pre class="odoc-katex-math display">
+\begin{array}{ccl}
+    X &amp; = &amp; (\texttt{int}\times Y)\\
+    Y &amp; = &amp; (\texttt{bool}\times X) \cup \texttt{nil}
+\end{array}
+</pre></div><pre class="language-ocaml"><code># let solved = Ty.of_eqs [ (vx, int_x_ty);  (vy, bool_x_tx_nil) ] ;;
+val solved : (VarSet.elt * Ty.t) list =
+  [('x, x1 where x1 = int, nil | (true | false, x1));
+   ('y, x1 where x1 = nil | (true | false, (int, x1)))]
+
+# let int_bool_list = solved |&gt; VarMap.of_list |&gt; VarMap.find vx ;;
+val int_bool_list : Ty.t = x1 where x1 = int, nil | (true | false, x1)</code></pre><p>The type <code>int_bool_list</code> is now the recursive type encoding non empty lists (as nested pairs) of even length with integers at even positions and booleans at odd positions.</p><h3 id="high-level-operations"><a href="#high-level-operations" class="anchor"></a>High level operations</h3><h4 id="subtyping-and-tallying"><a href="#subtyping-and-tallying" class="anchor"></a>Subtyping and tallying</h4><p>The subtyping test is <code>Ty.leq</code>. Continuing or example with lists:</p><pre class="language-ocaml"><code># let mk_list ty =
+    let v = Var.mk &quot;&quot; in (* a fresh variable *)
+    let tv = Ty.mk_var v in
+    let ty_x_v = Descr.mk_tuple [ty; tv] |&gt; Ty.mk_descr in
+    let ty_x_v_nil = Ty.cup nil ty_x_v in
+    [v, ty_x_v_nil ]
+    |&gt; Ty.of_eqs |&gt; List.hd |&gt; snd ;;
+val mk_list : Ty.t -&gt; Ty.t = &lt;fun&gt;
+
+# let any_list = mk_list Ty.any ;;
+val any_list : Ty.t = x1 where x1 = nil | (any, x1)</code></pre><p>We can now test for subtyping:</p><pre class="language-ocaml"><code># Ty.leq int_bool_list any_list ;;
+- : bool = true</code></pre><p>As for tallying, one first needs to build a tallying instance (a set of constraint to be solved together):</p><pre class="language-ocaml"><code># #install_printer Printer.print_subst' ;;
+# let alpha_list = mk_list Ty.(mk_var (Var.mk &quot;'a&quot;)) ;;
+val alpha_list : Ty.t = x1 where x1 = nil | ('a, x1)
+
+# let int_list = mk_list int ;;
+val int_list : Ty.t = x1 where x1 = nil | (int, x1)
+
+# let t42_list = mk_list (Intervals.Atom.mk_singl (Z.of_int 42) |&gt; Descr.mk_interval |&gt; Ty.mk_descr)
+val t42_list : Ty.t = x1 where x1 = nil | (42, x1)
+
+# let constrs = [ (t42_list, alpha_list); (alpha_list, int_list) ] ;;
+val constrs : (Ty.t * Ty.t) list =
+  [(x1 where x1 = nil | (42, x1), x1 where x1 = nil | ('a, x1));
+   (x1 where x1 = nil | ('a, x1), x1 where x1 = nil | (int, x1))]
+
+# Tallying.tally MixVarSet.empty constrs ;;
+- : Subst.t list = [[
+                      'a: 42 | 'a &amp; int
+                    ]]</code></pre><p>Here, we solve the set of problems asking that a list of <code class="odoc-katex-math">\alpha</code> must be larger than a list of (singleton type) <code>42</code> and must be smaller than a list of integers. It yields the unique solution <code class="odoc-katex-math">\alpha\mapsto \texttt{42}\cup\alpha\cap\texttt{int}</code>.</p></div></body></html>
