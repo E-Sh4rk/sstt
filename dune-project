@@ -41,3 +41,9 @@
  (synopsis "Simple Set-Theoretic Types executable")
  (depends sstt-repl yojson)
 )
+
+(package
+ (name sstt-web)
+ (synopsis "Web targets for sstt-repl")
+ (depends sstt-repl js_of_ocaml js_of_ocaml-ppx js_of_ocaml-compiler wasm_of_ocaml-compiler)
+)

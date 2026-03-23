@@ -18,6 +18,7 @@
 
 (library
  (name web)
+ (public_name sstt-web)
  (wrapped false)
  (libraries sstt_repl)
  (preprocess

@@ -39,8 +39,10 @@ jobs:
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
           opam-pin: false
+      # TODO: binaryen-bin dependency
       - name: Install OCaml dependencies
         run: |
+          opam install binaryen-bin
           make deps
           make test-deps
       - name: Run tests
@@ -60,10 +62,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      # TODO: binaryen-bin dependency
       - name: Install Node.js dependencies
         run: |
-          opam install binaryen-bin
           make web-deps
       - name: Build web version
         run: |
