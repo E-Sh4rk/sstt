@@ -16,7 +16,6 @@ module type Dnf = sig
   type atom
   type leaf
   type t = (atom,leaf) dnf
-  val simplify : t -> t
   val import : t -> t
   val export : t -> t
 end
@@ -50,7 +49,8 @@ module Make(C:Comp) : Dnf with type atom := C.atom and type leaf := C.leaf = str
         C.leq [c] c_others |> not
       )
   
-  let import, export = normalize, normalize
+  let import x = normalize x
+  let export x = normalize x |> simplify
 end
 
 module type OptComp = sig
@@ -67,7 +67,6 @@ module type Dnf' = sig
   include Dnf
   type atom'
   type t' = (atom' * leaf) list
-  val simplify' : t' -> t'
   val import' : t' -> t
   val export' : t -> t'
 end
@@ -106,7 +105,7 @@ module Make'(C:OptComp) : Dnf' with type atom:=C.atom and type atom':=C.atom'
       )
 
   let import' cdnf = to_dnf cdnf |> import
-  let export' dnf = export dnf |> to_dnf'
+  let export' dnf = export dnf |> to_dnf' |> simplify'
 end
 
 (* Leaf components *)
@@ -143,7 +142,6 @@ module LMake(C:LComp) = struct
 
   let import dnf = add_leaf dnf |> import
   let export dnf = export dnf |> rm_leaf
-  let simplify dnf = add_leaf dnf |> simplify |> rm_leaf
 end
 
 module LMake'(C:LOptComp) = struct
@@ -163,8 +161,6 @@ module LMake'(C:LOptComp) = struct
 
   let import dnf = add_leaf dnf |> import
   let export dnf = export dnf |> rm_leaf
-  let simplify dnf = add_leaf dnf |> simplify |> rm_leaf
   let import' cdnf = add_leaf' cdnf |> import'
   let export' dnf = export' dnf |> rm_leaf'
-  let simplify' dnf = add_leaf' dnf |> simplify' |> rm_leaf'
 end

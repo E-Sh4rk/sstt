@@ -87,13 +87,13 @@ module MakeC(N:Node) = struct
       let leq t1 t2 = leq tag (Bdd.of_dnf t1) (Bdd.of_dnf t2)
     end in
     let module Dnf = Dnf.LMake(Comp) in
-    Dnf.export, Dnf.import, Dnf.simplify
+    Dnf.export, Dnf.import
 
   let dnf (tag, bdd) =
-    let (export,_,simplify) = dnf_funs tag in
-    N.with_own_cache (fun bdd -> Bdd.dnf bdd |> export |> simplify) bdd
+    let (export,_) = dnf_funs tag in
+    N.with_own_cache (fun bdd -> Bdd.dnf bdd |> export) bdd
   let of_dnf tag dnf =
-    let (_,import,_) = dnf_funs tag in
+    let (_,import) = dnf_funs tag in
     N.with_own_cache (fun dnf -> tag, import dnf |> Bdd.of_dnf) dnf
 
   let direct_nodes (_,t) = Bdd.atoms t |> List.concat_map Atom.direct_nodes

@@ -240,8 +240,8 @@ module Make(N:Node) = struct
       if is_empty res then None else Some (simplify res)
   end
   module Dnf = Dnf.LMake'(Comp)
-  let dnf t = N.with_own_cache (fun t -> Bdd.dnf t |> Dnf.export |> Dnf.simplify) t
-  let dnf' t = N.with_own_cache (fun t -> Bdd.dnf t |> Dnf.export' |> Dnf.simplify') t
+  let dnf t = N.with_own_cache (fun t -> Bdd.dnf t |> Dnf.export) t
+  let dnf' t = N.with_own_cache (fun t -> Bdd.dnf t |> Dnf.export') t
   let of_dnf dnf = N.with_own_cache (fun dnf -> Dnf.import dnf |> Bdd.of_dnf) dnf
   let of_dnf' dnf' = N.with_own_cache (fun dnf' -> Dnf.import' dnf' |> Bdd.of_dnf) dnf'
 

@@ -102,7 +102,7 @@ let weaken s t =
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
   end
   module Dnf = Dnf.Make(Comp)
-  let dnf t = N.with_own_cache (fun t -> Bdd.dnf t |> Dnf.export |> Dnf.simplify) t
+  let dnf t = N.with_own_cache (fun t -> Bdd.dnf t |> Dnf.export) t
   let of_dnf dnf = N.with_own_cache (fun dnf -> Dnf.import dnf |> Bdd.of_dnf) dnf
 
   let simplify t = Bdd.simplify equiv t

@@ -91,19 +91,19 @@ module MakeC(N:Node) = struct
         if Atom.is_empty res then None else Some res
     end in
     let module Dnf = Dnf.LMake'(Comp) in
-    Dnf.export, Dnf.import, Dnf.simplify, Dnf.export', Dnf.import', Dnf.simplify'
+    Dnf.export, Dnf.import, Dnf.export', Dnf.import'
 
   let dnf (n, bdd) =
-    let (export,_,simplify,_,_,_) = dnf_funs n in
-    N.with_own_cache (fun bdd -> Bdd.dnf bdd |> export |> simplify) bdd
+    let (export,_,_,_) = dnf_funs n in
+    N.with_own_cache (fun bdd -> Bdd.dnf bdd |> export) bdd
   let of_dnf n dnf =
-    let (_,import,_,_,_,_) = dnf_funs n in
+    let (_,import,_,_) = dnf_funs n in
     N.with_own_cache (fun dnf -> n, import dnf |> Bdd.of_dnf) dnf
   let dnf' (n, bdd) =
-    let (_,_,_,export',_,simplify') = dnf_funs n in
-    N.with_own_cache (fun bdd -> Bdd.dnf bdd |> export' |> simplify') bdd
+    let (_,_,export',_) = dnf_funs n in
+    N.with_own_cache (fun bdd -> Bdd.dnf bdd |> export') bdd
   let of_dnf' n dnf =
-    let (_,_,_,_,import',_) = dnf_funs n in
+    let (_,_,_,import') = dnf_funs n in
     N.with_own_cache (fun dnf -> n, import' dnf |> Bdd.of_dnf) dnf
 
   let direct_nodes (_,t) = Bdd.atoms t |> List.concat_map Atom.direct_nodes
