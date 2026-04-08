@@ -1,49 +1,95 @@
 open Sstt
 
-let test_Inter = 
-  let simple = 
-    let no_bounds = Intervals.any |> Descr.mk_intervals |> VDescr.mk_descr |> Ty.of_def in
-    let low_bound = Intervals.Atom.mk (Some Z.one) None |> Intervals.mk |> Descr.mk_intervals |> VDescr.mk_descr |> Ty.of_def in
-    let up_bound = Intervals.Atom.mk None (Some (Z.of_int 2)) |> Intervals.mk |> Descr.mk_intervals |> VDescr.mk_descr |> Ty.of_def in
-    let all_bounds = Intervals.Atom.mk_bounded (Z.of_int 7) (Z.of_int 10)|> Intervals.mk |> Descr.mk_intervals |> VDescr.mk_descr |> Ty.of_def in 
-    (*let not_an_inter = Enums.any |> Descr.mk_enums |> VDescr.mk_descr |> Ty.of_def in*)
 
 
-    let w_no_bounds = Witness.make no_bounds in
-    let w_low_bound = Witness.make low_bound in
-    let w_up_bound = Witness.make up_bound in
-    let w_all_bounds = Witness.make all_bounds in
-    (*let w_not_an_inter = Witness.make not_an_inter in *)
-      Format.printf "Witness for %a is %a\n" Printer.print_ty' no_bounds Witness.pp w_no_bounds ; 
-      Format.printf "Witness for %a is %a\n" Printer.print_ty' low_bound Witness.pp w_low_bound ;
-      Format.printf "Witness for %a is %a\n" Printer.print_ty' up_bound Witness.pp w_up_bound ;
-      Format.printf "Witness for %a is %a\n" Printer.print_ty' all_bounds Witness.pp w_all_bounds ;
-      (*Format.printf "Witness for %a is %a\n" Printer.print_ty' not_an_inter Witness.pp w_not_an_inter*)
-  in
-  let disj_union = 
-    let union1 =  [Intervals.Atom.mk (Some Z.one) (Some (Z.of_int 6)); Intervals.Atom.mk (Some (Z.of_int 9)) (Some (Z.of_int 12))] |> Intervals.construct |> Descr.mk_intervals |> VDescr.mk_descr |> Ty.of_def in 
-    let w_union1 = Witness.make union1 in 
-    Format.printf "Witness for %a is %a\n" Printer.print_ty' union1 Witness.pp w_union1 
+(*test for integers*)
+let test_inters to_test =  
+  let t = Descr.mk_intervals to_test|> VDescr.mk_descr |> Ty.of_def in
+  let w = Witness.make t in
+  (t,w) 
 
-  in simple; disj_union
-
-let _test_Enums = 
-  let simple =
-    let enum_any = Enums.any |> Descr.mk_enums |> VDescr.mk_descr |> Ty.of_def in
-    let enum_true_bool = Enums.construct(true, [Enums.Atom.mk "True"; Enums.Atom.mk "False" ]) |> Descr.mk_enums |> VDescr.mk_descr |> Ty.of_def in
-    let enum_false_bool = Enums.construct(false, [Enums.Atom.mk "True"; Enums.Atom.mk "False" ]) |> Descr.mk_enums |> VDescr.mk_descr |> Ty.of_def in
-
-    let w_enum_any = Witness.make enum_any in
+let rec test_list_inter l i= 
+  match l with 
+    to_test :: l -> let t,w = test_inters to_test in if (Witness.is_in w t) then test_list_inter l (i+1) else 
+      Format.printf "Problem for Int line %i : witness %a is not an inhabitant of %a \n" 
+      i
+      Witness.pp w
+      Printer.print_ty' t
     
-    let w_enum_true_bool = Witness.make enum_true_bool in
-    let w_enum_false_bool = Witness.make enum_false_bool in
+    |[] -> ()   
 
 
-    Format.printf "Witness for %a is %a\n" Printer.print_ty' enum_any Witness.pp w_enum_any ;
-    Format.printf "Witness for %a is %a\n" Printer.print_ty' enum_true_bool Witness.pp w_enum_true_bool;
-    Format.printf "Witness for %a is %a\n" Printer.print_ty' enum_false_bool Witness.pp w_enum_false_bool
-  in simple
+let ints = [
+      Intervals.any;
+      Intervals.Atom.mk (Some Z.one) None |> Intervals.mk;
+      Intervals.Atom.mk None (Some (Z.of_int 2)) |> Intervals.mk;
+      Intervals.Atom.mk_bounded (Z.of_int 7) (Z.of_int 10)|> Intervals.mk;
+      [Intervals.Atom.mk_bounded Z.one (Z.of_int 6); Intervals.Atom.mk_bounded (Z.of_int 9)(Z.of_int 12)] |> Intervals.construct
+    ]
 
 
 
-let () = test_Inter
+
+
+(*test for enumerators*)
+let test_enums to_test =
+  let t = Descr.mk_enums to_test|> VDescr.mk_descr |> Ty.of_def in
+  let w = Witness.make t in (t,w)
+
+
+let rec test_list_enums l i= 
+  match l with 
+  to_test :: l -> let t,w = test_enums to_test in if (Witness.is_in w t) then test_list_enums l (i+1) else 
+    let w_capsule = match w with String s -> Enums.Atom.mk  s|> Enums.mk |> Descr.mk_enums |> VDescr.mk_descr |> Ty.of_def |_ -> failwith "not possible" in 
+    Format.printf "Problem for Enum line %i : witness \"%a\" encapsulated as %a is not an inhabitant of %a \n" 
+    i
+    Witness.pp w
+    Printer.print_ty' w_capsule
+    Printer.print_ty' t
+  |[] -> () 
+  
+let enums = [
+  Enums.any;
+  Enums.construct(true, [Enums.Atom.mk "True"; Enums.Atom.mk "False" ]);
+  Enums.construct(false, [Enums.Atom.mk "True"; Enums.Atom.mk "False" ]);
+  Enums.construct(false, [Enums.Atom.mk "a"; Enums.Atom.mk "aa";Enums.Atom.mk "aaa"])
+]
+
+
+let test_arrows to_test = 
+  let t = Descr.mk_arrows to_test |> VDescr.mk_descr |> Ty.of_def in
+  let w = Witness.make t in (t,w)
+
+let rec test_list_arrows l i=
+  match l with 
+  to_test :: l -> let t,w = test_arrows to_test in if (Witness.is_in w t) then test_list_arrows l (i+1) else
+    Format.printf "Problem for Function line %i : witness %a is not an inhabitant of %a \n" 
+      i
+      Witness.pp w
+      Printer.print_ty' t
+      |[] -> ()
+
+let arrows = [
+  Arrows.any
+]
+
+
+
+
+
+
+
+let int_t = Intervals.any |> Descr.mk_intervals |> VDescr.mk_descr |> Ty.of_def
+let bool_t = Enums.construct(true, [Enums.Atom.mk "True"; Enums.Atom.mk "False" ]) |> Descr.mk_enums |> VDescr.mk_descr |> Ty.of_def
+
+let a = Arrows.of_dnf [[(int_t,int_t)],[(bool_t,bool_t)] ] |> Descr.mk_arrows |> VDescr.mk_descr |> Ty.of_def
+let () = Format.printf "%a \n" Printer.print_ty' a
+
+
+
+let () = test_list_inter ints 1; 
+test_list_enums enums 1;
+test_list_arrows arrows 1
+
+
+(*Format.printf "Witness for Enum : %a is \"%a\"\n" Printer.print_ty' t Witness.pp w*)

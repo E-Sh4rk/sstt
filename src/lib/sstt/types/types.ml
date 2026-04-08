@@ -32,3 +32,10 @@ module Extensions = struct
   module Maps = Maps
   module Hierarchy = Hierarchy
 end
+
+(** {1 Witness } 
+
+This modules provides a way to extract a witness from a non-empty type.
+*)
+
+module Witness = Witness
