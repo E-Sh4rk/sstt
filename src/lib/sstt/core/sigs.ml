@@ -487,6 +487,16 @@ module type IntervalAtom = sig
   val mk_singl : Z.t -> t
   (** [mk_singl i] creates an interval containing exactly [i]. *)
 
+  val extract_singl : t -> Z.t option
+  (** [extract_singl t] extracts the singleton represented by [t],
+  or [None] if [t] is not a singleton. *)
+
+  val lb : t -> Z.t option
+  (** [lb t] extracts the lower-bound of [t], or [None] if [t] has no lower-bound. *)
+
+  val ub : t -> Z.t option
+  (** [ub t] extracts the upper-bound of [t], or [None] if [t] has no upper-bound. *)
+
   val get : t -> Z.t option * Z.t option
   (** [get t] returns the boundaries (inclusive) of the interval [t]. *)
 
@@ -524,6 +534,18 @@ module type Intervals = sig
       which may justify working on this negative form
       (for instance when pretty-printing).
   *)
+
+  val extract_singl : t -> Z.t option
+  (** [extract_singl t] extracts the singleton represented by [t],
+  or [None] if [t] is not a singleton. *)
+
+  val lb : t -> Z.t option
+  (** [lb t] extracts the lower-bound of [t], or [None] if [t] has no lower-bound.
+    Raises [Invalid_argument] if [t] is empty. *)
+
+  val ub : t -> Z.t option
+  (** [ub t] extracts the upper-bound of [t], or [None] if [t] has no upper-bound.
+    Raises [Invalid_argument] if [t] is empty. *)
 
 end
 

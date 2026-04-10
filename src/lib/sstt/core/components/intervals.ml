@@ -67,6 +67,11 @@ module Interval = struct
       Number.Num z -> Some z
     | _ -> None
   let get (lb, ub) = (to_option lb, to_option ub)
+  let lb (lb,_) = to_option lb
+  let ub (_,ub) = to_option ub
+
+  let extract_singl (lb,ub) =
+    if Number.equal lb ub then to_option lb else None
 
   let compare (lb1, ub1) (lb2,ub2) =
     Number.compare lb1 lb2 |> ccmp
@@ -94,6 +99,22 @@ let any = Interval.any $:: []
 let mk i = i $:: []
 
 let destruct t = List.map fst t 
+
+let lb t =
+  match t with
+  | [] -> invalid_arg "Empty intervals."
+  | (i,_)::_ -> Interval.lb i
+
+let ub t =
+  match List.rev t with
+  | [] -> invalid_arg "Empty intervals."
+  | (i,_)::_ -> Interval.ub i
+
+let extract_singl t =
+  match t with
+  | [(i,_)] -> Interval.extract_singl i
+  | _ -> None
+
 
 (* In all the function below, comparisons are
    those of the Number module. *)
