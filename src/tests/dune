@@ -5,7 +5,9 @@
  (preprocess (pps ppx_expect))
  (modules (:standard \ test_witness)))
 
-(executable
+(library
  (name test_witness)
- (libraries sstt)
+ (inline_tests)
+ (libraries sstt )
+ (preprocess (pps ppx_expect))
  (modules test_witness))
