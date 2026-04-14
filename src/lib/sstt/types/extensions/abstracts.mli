@@ -14,6 +14,7 @@ val destruct : Tag.t -> Ty.t -> Ty.t t
 
 val to_t : Printer.build_ctx -> TagComp.t -> Printer.descr t option
 val map : ((Printer.descr -> Printer.descr) -> Printer.descr t -> Printer.descr t)
+val print : Tag.t -> int -> Prec.assoc -> Format.formatter -> Printer.descr t -> unit
 
 val printer_builder : Tag.t -> Printer.extension_builder
 val printer_params : Tag.t -> Printer.params

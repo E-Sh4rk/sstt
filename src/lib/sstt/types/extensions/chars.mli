@@ -11,6 +11,7 @@ val any : Ty.t
 type t = interval list
 val to_t : Printer.build_ctx -> TagComp.t -> t option
 val map : ((Printer.descr -> Printer.descr) -> t -> t)
+val print : int -> Prec.assoc -> Format.formatter -> t -> unit
 
 val any_t : t
 
