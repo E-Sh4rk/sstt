@@ -9,12 +9,12 @@ let bool = Ty.cup true_t false_t
 
 
 let ints = [
-    Intervals.any;
-    Intervals.Atom.mk (Some Z.one) None |> Intervals.mk;
-    Intervals.Atom.mk None (Some (Z.of_int 2)) |> Intervals.mk;
-    Intervals.Atom.mk_bounded (Z.of_int 7) (Z.of_int 10)|> Intervals.mk;
-    [Intervals.Atom.mk_bounded Z.one (Z.of_int 6); Intervals.Atom.mk_bounded (Z.of_int 9)(Z.of_int 12)] |> Intervals.construct
-  ]
+  Intervals.any;
+  Intervals.Atom.mk (Some Z.one) None |> Intervals.mk;
+  Intervals.Atom.mk None (Some (Z.of_int 2)) |> Intervals.mk;
+  Intervals.Atom.mk_bounded (Z.of_int 7) (Z.of_int 10)|> Intervals.mk;
+  [Intervals.Atom.mk_bounded Z.one (Z.of_int 6); Intervals.Atom.mk_bounded (Z.of_int 9)(Z.of_int 12)] |> Intervals.construct
+]
 let type_ints = List.map (fun t -> Descr.mk_intervals t |> VDescr.mk_descr |> Ty.of_def) ints
 
 
@@ -54,9 +54,9 @@ let type_tags = List.map (fun t -> Descr.mk_tags t |> VDescr.mk_descr |> Ty.of_d
 
 let tup_to_arrow =
   let rec creation l = match l with
-a :: b :: l -> (a,b) :: creation l 
-|_ -> [] 
-in creation type_tuple
+      a :: b :: l -> (a,b) :: creation l 
+    |_ -> [] 
+  in creation type_tuple
 let arrows = [
   Arrows.any;
   Arrows.mk (int, int);
@@ -66,6 +66,9 @@ let arrows = [
 ]
 let type_arrows = List.map (fun t -> Descr.mk_arrows t |> VDescr.mk_descr |> Ty.of_def) arrows
 
+let records = [
+  Records.any |> Descr.mk_records |> Ty.mk_descr;
+]
 
 let vx1 = Var.mk "'x1"
 let tx1 = Ty.mk_var vx1
@@ -95,24 +98,24 @@ let rec_types = [ bool_tag_list; int_bool_list;t1; t2]
 
 
 let list1 = [Ty.any;
-bool;
-true_t;
-false_t;
-]
+             bool;
+             true_t;
+             false_t;
+            ]
 
 let vx1 = Var.mk "'x1"
 let tx1 = Ty.mk_var vx1
 let part1 = (Descr.mk_tag (Tag.mk "tag", tx1) |> Ty.mk_descr)
 let a =Ty.cup 
-(42|> Z.of_int|> Intervals.Atom.mk_singl |>Descr.mk_interval |> Ty.mk_descr)
-(part1)
+    (42|> Z.of_int|> Intervals.Atom.mk_singl |>Descr.mk_interval |> Ty.mk_descr)
+    (part1)
 let a = Ty.of_eqs [(vx1, a)] |> VarMap.of_list |> VarMap.find vx1
 let list2 = [
   Tags.mk (Tag.mk "tag", bool)|> Descr.mk_tags |> Ty.mk_descr;
   Ty.diff Ty.any bool;
   a;
   Tags.construct(false, [TagComp.mk (Tag.mk "tag1", bool);TagComp.mk (Tag.mk "tag2", int)]) |> Descr.mk_tags |> Ty.mk_descr;
-  ]
+]
 
 let list3 = [
   TupleComp.mk [bool;int] |> Descr.mk_tuplecomp |> Ty.mk_descr;
@@ -129,21 +132,21 @@ let list4 = [
   x;
   x1
 ]
-let all_types = type_ints @ type_enums @ type_tags @ type_tuple @ type_arrows @ list1 @ list2 @list3 @list4
+let all_types = type_ints @ type_enums @ type_tags @ type_tuple @ type_arrows @ list1 @ list2 @list3 @list4 @ records
 
 
 
 let%expect_test _ = 
   List.iter 
-  
-  (fun t -> let w = Witness.mk t in if Witness.is_in w t then 
-  Format.printf "@[%a : %a@]@\n" 
-  Printer.print_ty' t 
-  Witness.pp w 
-  else 
-    Format.printf "FALSE : %a is not a witness of %a\n" Witness.pp w Printer.print_ty' t) 
-  
-  all_types;
+
+    (fun t -> let w = Witness.mk t in if Witness.is_in w t then 
+        Format.printf "@[%a : %a@]@\n" 
+          Printer.print_ty' t 
+          Witness.pp w 
+      else 
+        Format.printf "FALSE : %a is not a witness of %a\n" Witness.pp w Printer.print_ty' t) 
+
+    all_types;
   [%expect {|
     int : 42
     (1..) : 1
@@ -188,4 +191,5 @@ let%expect_test _ =
     True | False, True : ( True, True )
     x1 where x1 = True | False | (x1 -> any) : " True "
     True | (x1 -> any) where x1 = True | False | (x1 -> any) : " True "
+    record : record
     |}]

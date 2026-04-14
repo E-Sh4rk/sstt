@@ -1,12 +1,14 @@
 open Core
 
+
 type t = Int of Z.t
        | Enum of Enums.Atom.t
        | Arrow of Arrows.t
-       | Tuple of t list
        | Tag of (Tag.t * t)
+       | Tuple of t list
+       | Record of Records.Atom.t
        | Other
-       | Wrong
+
 
 module VDHash = Hashtbl.Make(Descr)
 let hash = VDHash.create 16
@@ -15,11 +17,12 @@ let rec to_ty s =
   match s with 
     Int i -> Intervals.Atom.mk_singl i |> Descr.mk_interval |> Ty.mk_descr
   | Enum e -> Descr.mk_enum e|> Ty.mk_descr
-  | Tuple tu -> List.map to_ty tu |> Descr.mk_tuple |> Ty.mk_descr
-  | Tag (ta,ty) -> (ta, to_ty ty) |> Descr.mk_tag |> Ty.mk_descr
   | Arrow a -> Descr.mk_arrows a |> Ty.mk_descr
+  | Tag (ta,ty) -> (ta, to_ty ty) |> Descr.mk_tag |> Ty.mk_descr
+  | Tuple tu -> List.map to_ty tu |> Descr.mk_tuple |> Ty.mk_descr
+  | Record r -> Descr.mk_record r |> Ty.mk_descr
   | Other -> Descr.mk_others true |> Ty.mk_descr
-  | Wrong -> Ty.any
+
 
 
 let pp fmt s = match s with
@@ -28,13 +31,41 @@ let pp fmt s = match s with
   | Tuple t -> Format.fprintf fmt "( %a )" Printer.print_ty' (to_ty (Tuple t ))
   | Tag ta -> Printer.print_ty' fmt (to_ty (Tag ta))
   | Arrow a -> Format.fprintf fmt "fun :< %a -> %a >" Printer.print_ty'  (Op.Arrows.dom a) Printer.print_ty'  (Op.Arrows.apply a (Op.Arrows.dom a))
+  | Record r -> Printer.print_ty' fmt (to_ty (Record r))
   | Other -> Format.pp_print_string fmt "Other"
-  | Wrong -> Format.pp_print_string fmt "NOT IMPLEMENTED YET"
 
 
 
-let rec equal t1 t2 =
-  match (t1,t2) with 
+let compare w1 w2 = 
+  match (w1,w2) with 
+    Int i1,Int i2 -> Z.compare i1 i2
+  | Int _, _ -> -1
+  | _, Int _ -> 1
+  | Enum e1, Enum e2 -> Enums.Atom.compare e1 e2
+  | Enum _, _ -> -1
+  | _, Enum _ -> 1
+  | Arrow a1, Arrow a2 -> Arrows.compare a1 a2
+  |Arrow _, _ -> -1
+  | _ , Arrow _ -> 1
+  | Tag (ta1, t1), Tag (ta2,t2) -> let a = Tag.compare ta1 ta2 in if (a==0) then compare t1 t2 else a
+  | Tag _, _ -> -1
+  | _ , Tag _ -> 1
+  | Tuple tu1, Tuple tu2 -> begin
+      match tu1,tu2 with
+      | a1::l1, a2::l2 -> let res = compare a1 a2 in if (res==0) then compare l1 l2 else res
+      |[], _::_ -> -1
+      |_ -> 1
+    end
+  | Tuple _ , _ -> -1
+  |_, Tuple _ -> 1
+  | Record _ , Record _  -> failwith "Not implemented"
+  | Record _, _ -> -1
+  | _ , Record _  -> 1
+  | _ -> 0
+
+
+let rec equal w1 w2 =
+  match (w1,w2) with 
     Int t1, Int t2 -> Z.equal t1 t2
   | Enum e1, Enum e2 -> Enum.equal e1 e2
   | Tuple t1, Tuple t2 -> begin
@@ -107,8 +138,8 @@ let rec mk_tagcomp_list make t lt_tag =
 
 let rec len_false_tag len l = 
   if List.for_all (fun a -> (a |> TagComp.tag |> Tag.name |> String.length) != len) l 
-    then len 
-    else len_false_tag (len+1) l
+  then len 
+  else len_false_tag (len+1) l
 let mk_tag make t = 
   let t_tag = Ty.get_descr t |> Descr.get_tags |> Tags.destruct in 
   match t_tag with 
@@ -155,6 +186,34 @@ let mk_tuples_mem mk_mem t =
   | (true, lt_tuple) -> mk_tuplecomp_list mk_mem  lt_tuple
   | (false, lt_tuple) -> Some (Tuple(List.init (len_false_tuple 1 lt_tuple) (fun x -> Int(Z.of_int x))))
 
+
+let mk_records_atom' (make : (Ty.t -> t option)) atom =
+  let doms =  Records.Atom'.dom atom in 
+  let bindings = LabelSet.to_list doms |> List.map (fun dom -> (dom,Records.Atom'.find dom atom |> Ty.F.get_descr)) in 
+  let w = List.map (fun (a,b) -> if Ty.F.OTy.is_optional b then (a,None) else (a, Some(make (Ty.F.OTy.get b)))) bindings in 
+  if List.for_all (fun (_,b) -> match b with |Some(None) -> false |_ -> true) w then 
+    let w = List.fold_left (fun map (a,b) -> match b with |Some(Some(wit)) -> LabelMap.add a (Ty.F.mk_descr (to_ty wit,false)) map |_ -> map ) LabelMap.empty w in 
+  if LabelMap.bindings w |> List.is_empty then 
+    Some(Record{bindings = w; tail = Ty.F.any}) else Some(Record{bindings = w; tail = Ty.F.empty})
+  else None
+
+let rec mk_records_list make l = 
+  match l with 
+  |a::l -> begin let w = mk_records_atom' make a in 
+      match w with 
+      |Some _ -> w
+      |None -> mk_records_list make l
+    end
+  |[] -> None
+
+let mk_records_mem make t = 
+  let record_list = Ty.get_descr t |> Descr.get_records |> Records.dnf' in 
+  mk_records_list make record_list
+
+
+
+
+
 let rec mk_mem t = 
   let t_descr = Ty.get_descr t in 
   let w = VDHash.find_opt hash t_descr in
@@ -179,7 +238,7 @@ let rec mk_mem t =
     then let w= mk_tuples_mem mk_mem t in VDHash.replace hash t_descr w; w
     else
     if Descr.get_records t_descr |> Descr.mk_records |> VDescr.mk_descr |>Ty.of_def |> Ty.is_empty |> not
-    then Some(Wrong)
+    then let w = mk_records_mem mk_mem t in VDHash.replace hash t_descr w;w
     else
     if Descr.get_others t_descr then Some(Other)
     else None

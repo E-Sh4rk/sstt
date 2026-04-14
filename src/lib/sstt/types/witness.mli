@@ -1,42 +1,45 @@
 open Core
 
 type t = private
-Int of Z.t
-|Enum of Enums.Atom.t
-|Arrow of Arrows.t 
-|Tuple of t list
-|Tag of (Tag.t * t)
-|Other
-|Wrong
+    Int of Z.t
+  | Enum of Enums.Atom.t
+  | Arrow of Arrows.t 
+  | Tag of (Tag.t * t)
+  | Tuple of t list
+  | Record of Records.Atom.t
+  | Other
+
 
 
 (**[singl_to_Ty t] transform the singleton type t in a real type Ty*)
 val to_ty : t -> Ty.t
 
+val compare : t -> t -> int
+
 (**[mk_intervals t] return one value present in the interval part of t.
-Assume that the interval part of t is non-empty.
-If t = ]-inf; +inf\[, return 42.
-If t as a part ]-inf; x], return x.
-Otherwise, return the lowest bound of t.
+   Assume that the interval part of t is non-empty.
+   If t = ]-inf; +inf\[, return 42.
+   If t as a part ]-inf; x], return x.
+   Otherwise, return the lowest bound of t.
 *)
 val mk_intervals : Ty.t -> t
 
 (**[mk_enum t] return one value present  in the enum part of [t].
-Assume that the enum part of [t] is non-empty. 
-If what is inside [t] is known, return the first element of [t].
-If what is NOT inside [t] is known, return the word composed of the letter 'a' repeated
-one more time than the max length of the atoms not in [t].
+   Assume that the enum part of [t] is non-empty. 
+   If what is inside [t] is known, return the first element of [t].
+   If what is NOT inside [t] is known, return the word composed of the letter 'a' repeated
+   one more time than the max length of the atoms not in [t].
 *)
 val mk_enums : Ty.t -> t
 
 (**[mk_tuple t] return one value present in the tuple part of [t].
-Assume that the tuple part of [t] is non-empty.
-If the elements of [t] are known, return one inhabitant of one element of [t].
-If the elements of [not t] are known, return (0, 1,...,n, n+1) with n the arity max of the elements not in [t]. 
+   Assume that the tuple part of [t] is non-empty.
+   If the elements of [t] are known, return one inhabitant of one element of [t].
+   If the elements of [not t] are known, return (0, 1,...,n, n+1) with n the arity max of the elements not in [t]. 
 *)
 
 (** [make t] returns one value that is in the type t. 
-Assume that t!= empty.
+    Assume that t!= empty.
 *)
 val mk : Ty.t -> t
 
