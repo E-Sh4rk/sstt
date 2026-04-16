@@ -67,13 +67,24 @@ let arrows = [
 let type_arrows = List.map (fun t -> Descr.mk_arrows t |> VDescr.mk_descr |> Ty.of_def) arrows
 
 let records = [
-  Records.any |> Descr.mk_records |> Ty.mk_descr;
+  Row.mk [(Label.mk "int", int |> Ty.O.required |> Ty.F.mk_descr)] (Ty.F.mk_descr Ty.O.absent) ;
+  Row.mk [] Ty.F.any;
+  Row.mk [(Label.mk "l1",Ty.any |> Ty.F.OTy.required |> Ty.F.mk_descr); (Label.mk "l2", Ty.any |> Ty.F.OTy.required |> Ty.F.mk_descr)] Ty.F.any;
+  Row.mk [] (int |> Ty.F.OTy.optional |> Ty.F.mk_descr);
+  Row.mk [] (int |> Ty.F.OTy.required |> Ty.F.mk_descr);
+  
+
 ]
+let records2 = [
+  {Records.Atom'.bindings = LabelMap.of_list []; tail = Ty.F.OTy.optional Ty.any |> Ty.F.mk_descr; exists = [(LabelSet.of_list [Label.mk "l1"],Ty.any |> Ty.F.OTy.required |> Ty.F.mk_descr)]} 
+]
+let type_records = List.map (fun a -> a|> Row.to_record_atom |> Descr.mk_record |> Ty.mk_descr) records @
+List.map (fun a -> Records.of_dnf' [a]|> Descr.mk_records |> Ty.mk_descr ) records2
 
-let vx1 = Var.mk "'x1"
-let tx1 = Ty.mk_var vx1
-
-let int_bool_list = Ty.of_eqs [(vx1,Ty.cup (Descr.mk_tuple [int;tx1] |> Ty.mk_descr) (Descr.mk_tuple [bool;bool] |> Ty.mk_descr))] |> VarMap.of_list |> VarMap.find vx1
+let int_bool_list = 
+  let vx1 = Var.mk "'x1" in 
+  let tx1 = Ty.mk_var vx1 in 
+  Ty.of_eqs [(vx1,Ty.cup (Descr.mk_tuple [int;tx1] |> Ty.mk_descr) (Descr.mk_tuple [bool;bool] |> Ty.mk_descr))] |> VarMap.of_list |> VarMap.find vx1
 
 let vx2 = Var.mk "'x2"
 let tx2 = Ty.mk_var vx2
@@ -93,8 +104,9 @@ let solvedt1 = Ty.of_eqs [(vt1, nil_int_t1_tt1)]
 let t1 = solvedt1 |> VarMap.of_list |>VarMap.find vt1
 let int_t1 = Descr.mk_tuple [int;t1] |> Ty.mk_descr
 let t2 = Descr.mk_tuple [int_t1;t1] |> Ty.mk_descr
-
-let rec_types = [ bool_tag_list; int_bool_list;t1; t2]
+let rr1 = Row.mk [(Label.mk "x", bool |> Ty.O.required |> Ty.F.mk_descr); (Label.mk "t2", t2 |> Ty.O.required |> Ty.F.mk_descr)] (Ty.O.absent |> Ty.F.mk_descr)
+let r1 = rr1 |> Row.to_record_atom |> Descr.mk_record |> Ty.mk_descr
+let rec_types = [ bool_tag_list; int_bool_list;t1; t2; r1]
 
 
 let list1 = [Ty.any;
@@ -132,8 +144,7 @@ let list4 = [
   x;
   x1
 ]
-let all_types = type_ints @ type_enums @ type_tags @ type_tuple @ type_arrows @ list1 @ list2 @list3 @list4 @ records
-
+let all_types = type_ints @ type_enums @ type_tags @ type_tuple @ type_arrows @ type_records @ rec_types @ list1 @ list2 @list3 @list4
 
 
 let%expect_test _ = 
@@ -145,7 +156,6 @@ let%expect_test _ =
           Witness.pp w 
       else 
         Format.printf "FALSE : %a is not a witness of %a\n" Witness.pp w Printer.print_ty' t) 
-
     all_types;
   [%expect {|
     int : 42
@@ -177,6 +187,17 @@ let%expect_test _ =
     tuple -> (int, int) : fun :< tuple -> int, int >
     tuple -> (int, int) : fun :< tuple -> int, int >
     arrow & ~(tuple \ (int, int) -> tuple \ (int, True | False, True | False)) & ~((int, True | False, True | False) -> (int) | (int, int) | (True | False, True | False, True | False)) : fun :< empty -> empty >
+    { int : int } : { int : 42 }
+    record : {  }
+    { l2 : any ; l1 : any ..} : { l2 : 42 ; l1 : 42 }
+    {  ;; int? } : {  }
+    {  ;; int } : {  ;; 42 }
+    record \ { l1 : any? } : { aaa : 42 }
+    x1 where x1 = foo(True | False) | oof(x1) : foo(True)
+    x1 where x1 = (True | False, True | False) | (int, x1) : ( True, True )
+    x1 where x1 = Nil | (int, x1) : " Nil "
+    (int, x1), x1 where x1 = Nil | (int, x1) : ( (42, Nil), Nil )
+    { t2 : (int, x1), x1 ; x : True | False } where x1 = Nil | (int, x1) : { t2 : (42, Nil), Nil ; x : True }
     any : 42
     True | False : " True "
     True : " True "
@@ -191,5 +212,4 @@ let%expect_test _ =
     True | False, True : ( True, True )
     x1 where x1 = True | False | (x1 -> any) : " True "
     True | (x1 -> any) where x1 = True | False | (x1 -> any) : " True "
-    record : record
     |}]

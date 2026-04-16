@@ -6,7 +6,7 @@ type t = private
   | Arrow of Arrows.t 
   | Tag of (Tag.t * t)
   | Tuple of t list
-  | Record of Records.Atom.t
+  | Record of (Label.t * t ) list * (t option)
   | Other
 
 
