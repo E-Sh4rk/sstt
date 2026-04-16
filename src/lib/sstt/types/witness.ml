@@ -200,7 +200,7 @@ let rec len_false_tag len l =
       l 
   then len 
   else len_false_tag (len+1) l
-let mk_tag make t = 
+let mk_tags_mem make t = 
   let t_tag = Ty.get_descr t |> Descr.get_tags |> Tags.destruct in 
   match t_tag with 
   | (true,co_l) -> mk_tagcomp_list make t co_l
@@ -280,13 +280,14 @@ let mk_record_exists make exists bind_len tail =
         label_list in 
     String.make (new_len+1) 'a' |> Label.mk
   in
-  let refined_tail = Ty.F.OTy.get tail  in 
+
   let exist_to_witness w_exists (lbl_list,fty) = 
-    let oty = Ty.F.get_descr fty in
-    if Ty.F.OTy.is_optional oty then w_exists else 
-      let ty = Ty.F.OTy.get oty in 
+    let oty_exist = Ty.F.get_descr fty in
+    let oty_all = Ty.O.cap oty_exist tail in 
+    if Ty.F.OTy.is_optional oty_all then w_exists else 
+      let ty = Ty.F.OTy.get oty_all in 
       let w_ty = 
-        let w = make (Ty.cap ty refined_tail) in
+        let w = make ty in
         match w with 
         |None -> failwith "Impossible : Undetected empty type in records" 
         | Some w -> w 
@@ -339,7 +340,7 @@ let rec mk_mem t =
     then let w = Some (mk_arrows t) in VDHash.replace mem t_descr w; w
     else 
     if Descr.get_tags t_descr|> Descr.mk_tags |> Ty.mk_descr |> Ty.is_empty |> not 
-    then let w = mk_tag mk_mem t in VDHash.replace mem t_descr w; w
+    then let w = mk_tags_mem mk_mem t in VDHash.replace mem t_descr w; w
     else
     if Descr.get_tuples t_descr|> Descr.mk_tuples |> Ty.mk_descr |> Ty.is_empty |> not
     then let w = mk_tuples_mem mk_mem t in VDHash.replace mem t_descr w; w
@@ -350,8 +351,28 @@ let rec mk_mem t =
     if Descr.get_others t_descr then Some(Other)
     else None
 
+
 let mk t = 
   VDHash.reset mem;
   match mk_mem t with 
   | Some w -> w
   | None -> failwith "Empty Type"
+
+(*DON'T USE INSIDE THIS CODE !*)
+let mk_tags t = 
+  VDHash.reset mem;
+  match mk_tags_mem mk_mem t with 
+  |Some a -> a
+  |None -> failwith "Empty type"
+
+let mk_tuples t = 
+  VDHash.reset mem;
+  match mk_tuples_mem mk_mem t with 
+  |Some a -> a
+  |None -> failwith "Empty type"
+
+let mk_records t = 
+  VDHash.reset mem;
+  match mk_records_mem mk_mem t with 
+  |Some a -> a
+  |None -> failwith "Empty type"

@@ -66,20 +66,39 @@ let arrows = [
 ]
 let type_arrows = List.map (fun t -> Descr.mk_arrows t |> VDescr.mk_descr |> Ty.of_def) arrows
 
+let f_required_int = int |> Ty.O.required |> Ty.F.mk_descr
+let f_optional_int = int |> Ty.O.optional |> Ty.F.mk_descr
+let f_required_bool = bool |> Ty.O.required |> Ty.F.mk_descr
+let f_optional_bool = bool |> Ty.O.optional |> Ty.F.mk_descr
+let f_absent = Ty.O.absent |> Ty.F.mk_descr
+let f_required_any = Ty.any |> Ty.F.OTy.required |> Ty.F.mk_descr
+
 let records = [
-  Row.mk [(Label.mk "int", int |> Ty.O.required |> Ty.F.mk_descr)] (Ty.F.mk_descr Ty.O.absent) ;
+  Row.mk [(Label.mk "int", f_required_int)] (f_absent) ;
   Row.mk [] Ty.F.any;
-  Row.mk [(Label.mk "l1",Ty.any |> Ty.F.OTy.required |> Ty.F.mk_descr); (Label.mk "l2", Ty.any |> Ty.F.OTy.required |> Ty.F.mk_descr)] Ty.F.any;
-  Row.mk [] (int |> Ty.F.OTy.optional |> Ty.F.mk_descr);
-  Row.mk [] (int |> Ty.F.OTy.required |> Ty.F.mk_descr);
-  
+  Row.mk [(Label.mk "l1",f_required_any); (Label.mk "l2", f_required_any)] Ty.F.any;
+  Row.mk [] (f_optional_int);
+  Row.mk [] (f_required_int);
+
 
 ]
 let records2 = [
-  {Records.Atom'.bindings = LabelMap.of_list []; tail = Ty.F.OTy.optional Ty.any |> Ty.F.mk_descr; exists = [(LabelSet.of_list [Label.mk "l1"],Ty.any |> Ty.F.OTy.required |> Ty.F.mk_descr)]} 
+  {Records.Atom'.bindings = LabelMap.of_list [];
+   tail = Ty.F.any;
+   exists = [(LabelSet.of_list [Label.mk "l1"],f_required_any)]
+  };
+  {Records.Atom'.bindings = LabelMap.of_list [];
+   tail = f_required_any; 
+   exists = [(LabelSet.of_list [Label.mk "x"; Label.mk "y"], f_required_bool)]
+  };
+  {Records.Atom'.bindings = LabelMap.of_list [(Label.mk "opt_int", f_optional_int); (Label.mk "bool", f_required_bool)];
+   tail = f_required_any; 
+   exists = [(LabelSet.of_list [Label.mk "x"; Label.mk "y"], f_required_bool)]
+  };
+  
 ]
 let type_records = List.map (fun a -> a|> Row.to_record_atom |> Descr.mk_record |> Ty.mk_descr) records @
-List.map (fun a -> Records.of_dnf' [a]|> Descr.mk_records |> Ty.mk_descr ) records2
+                   List.map (fun a -> Records.of_dnf' [a]|> Descr.mk_records |> Ty.mk_descr ) records2
 
 let int_bool_list = 
   let vx1 = Var.mk "'x1" in 
@@ -193,6 +212,8 @@ let%expect_test _ =
     {  ;; int? } : {  }
     {  ;; int } : {  ;; 42 }
     record \ { l1 : any? } : { aaa : 42 }
+    {  ;; any } \ { y : any? ; x : any? ;; (~(True | False))? } : { aa : True ;; 42 }
+    { bool : True | False ; opt_int : int? ;; any } : { bool : True ;; 42 }
     x1 where x1 = foo(True | False) | oof(x1) : foo(True)
     x1 where x1 = (True | False, True | False) | (int, x1) : ( True, True )
     x1 where x1 = Nil | (int, x1) : " Nil "
