@@ -107,9 +107,11 @@ end = struct
      on the stack *)
   let rec invalidate tbl stop deps = 
     match deps with
-    | Cons ({ key ; next ; marked }  as r) when  not (V.equal key stop) ->
-      if not marked then H.remove tbl key;
-      r.marked <- true;
+    | Cons ({ key ; next ; marked }  as r) when not (V.equal key stop) ->
+      if not marked then begin
+        H.remove tbl key;
+        r.marked <- true;
+      end;
       invalidate tbl stop next
     | _ -> ()
 
