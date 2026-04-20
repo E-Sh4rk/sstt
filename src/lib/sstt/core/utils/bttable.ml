@@ -102,16 +102,13 @@ end = struct
       if entry.active then entry.dependencies <- t.stack::entry.dependencies;
       entry.result
 
-
   (* remove from the list until we find ourselves, this is when we where put
      on the stack *)
   let rec invalidate tbl stop deps = 
     match deps with
-    | Cons ({ key ; next ; marked }  as r) when not (V.equal key stop) ->
-      if not marked then begin
-        H.remove tbl key;
-        r.marked <- true;
-      end;
+    | Cons ({ key ; next ; marked }  as r) when not marked && not (V.equal key stop) ->
+      H.remove tbl key;
+      r.marked <- true;
       invalidate tbl stop next
     | _ -> ()
 
