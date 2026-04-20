@@ -159,3 +159,25 @@ type disjoint_pairs =
 
 "perf4" ('x25, 25) <= disjoint_pairs ;;
 "perf5" [('X, 25) <= disjoint_pairs] ;;
+
+"hard_recursive1" x2 where
+   x1 = {
+        l1 : any -> any ;
+        l2 : (x2 -> x1) & ({ l1 : int -> int ..} -> any)
+   }
+   and
+   x2 = {
+        l1 : (any -> (x1, x1)) & (any -> (x2, x2)) ;
+        l2 : any -> any
+   }
+<=
+{
+    l1 : x2 ;
+    l2 : any -> any } | 'a_rational where
+   x1 = { l1 : any -> any ;
+          l2 : ({ l1 : x2 ; l2 : any -> any } -> x1) & ({ l1 : int -> int ..} -> any)
+        }
+   and
+   x2 = (any -> (x1, x1)) & (any -> ({ l1 : x2 ; l2 : any -> any },
+                                     { l1 : x2 ; l2 : any -> any }))
+;;
