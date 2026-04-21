@@ -94,7 +94,7 @@ let print_nary_op name f prec assoc op fmt vs =
 
 let print_cup f prec assoc fmt vs = print_nary_op "Union" f prec assoc Cup fmt vs
 
-let print_cap f prec assoc fmt vs = print_nary_op "Intersection" f prec assoc Cup fmt vs
+let print_cap f prec assoc fmt vs = print_nary_op "Intersection" f prec assoc Cap fmt vs
 
 let print_neg f prec assoc fmt v =
   let sym,prec',_ as opinfo = unop_info Neg in
