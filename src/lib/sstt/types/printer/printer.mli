@@ -102,6 +102,12 @@ val get_field : ?factorize:bool -> params -> Ty.F.t -> descr fop t
 (** [get_field'] is the same as [get_field] but for converting multiple fields at once. *)
 val get_field' : ?factorize:bool -> params -> Ty.F.t list -> descr fop list t
 
+(** [print_builtin fmt bt] prints the builtin type [bt] using formatter [fmt]. *)
+val print_builtin : Format.formatter -> builtin -> unit
+
+(** [print_interval fmt i] prints the interval [i] using formatter [fmt]. *)
+val print_interval : Format.formatter -> (Z.t option * Z.t option) -> unit
+
 (** [print fmt t] prints the algebraic form [t] using formatter [fmt]. *)
 val print : Format.formatter -> descr t -> unit
 

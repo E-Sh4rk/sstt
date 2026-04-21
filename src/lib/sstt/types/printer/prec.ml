@@ -83,22 +83,46 @@ let print_seq f sym fmt l =
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.fprintf fmt sym) f fmt l
 
-let print_nary_op name f prec assoc op fmt vs =
+(** General printing operators *)
+
+let print_nary f prec assoc (sym,prec',_ as opinfo) fmt vs =
   match vs with
-  | [] -> invalid_arg (name ^ " cannot be empty")
+  | [] -> invalid_arg ("N-ary operator cannot be empty")
   | [ v ] -> Format.fprintf fmt "%a" (f prec assoc) v
   | vs ->
-    let sym,prec',_ as opinfo = varop_info op in
     fprintf prec assoc opinfo fmt "%a"
       (print_seq (f prec' NoAssoc) sym) vs
+let print_nary_op f prec assoc op fmt vs =
+  print_nary f prec assoc (varop_info op) fmt vs
+let print_nary_fop f prec assoc op fmt vs =
+  print_nary f prec assoc (fvarop_info op) fmt vs
 
-let print_cup f prec assoc fmt vs = print_nary_op "Union" f prec assoc Cup fmt vs
-
-let print_cap f prec assoc fmt vs = print_nary_op "Intersection" f prec assoc Cap fmt vs
-
-let print_neg f prec assoc fmt v =
-  let sym,prec',_ as opinfo = unop_info Neg in
+let print_unary f prec assoc (sym,prec',_ as opinfo) fmt v =
   fprintf prec assoc opinfo fmt "%(%)%a" sym (f prec' NoAssoc) v
+let print_unary_op f prec assoc op fmt v =
+  print_unary f prec assoc (unop_info op) fmt v
+let print_unary_fop f prec assoc op fmt v =
+  print_unary f prec assoc (funop_info op) fmt v
+
+let print_binary f prec assoc (sym,prec',_ as opinfo) fmt v1 v2 =
+  fprintf prec assoc opinfo fmt "%a%(%)%a"
+    (f prec' Left) v1 sym
+    (f prec' Right) v2
+let print_binary_op f prec assoc op fmt v1 v2 =
+  print_binary f prec assoc (binop_info op) fmt v1 v2
+let print_binary_fop f prec assoc op fmt v1 v2 =
+  print_binary f prec assoc (fbinop_info op) fmt v1 v2
+
+(** Printing of set-theoretic operators *)
+
+let print_cup f prec assoc fmt vs = print_nary_op f prec assoc Cup fmt vs
+let print_cap f prec assoc fmt vs = print_nary_op f prec assoc Cap fmt vs
+let print_neg f prec assoc fmt v = print_unary_op f prec assoc Neg fmt v
+let print_fcup f prec assoc fmt vs = print_nary_fop f prec assoc FCup fmt vs
+let print_fcap f prec assoc fmt vs = print_nary_fop f prec assoc FCap fmt vs
+let print_fneg f prec assoc fmt v = print_unary_fop f prec assoc FNeg fmt v
+
+(** Auxiliary printing operators *)
 
 let print_lit f prec assoc fmt (pos,a) =
   if pos then f prec assoc fmt a

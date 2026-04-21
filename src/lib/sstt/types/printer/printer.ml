@@ -543,11 +543,14 @@ let print_interval fmt (lb,ub) =
   | Some lb, None ->
     Format.fprintf fmt "(%a..)" pp_z lb
 
+let print_extension_node_ctx prec assoc fmt (E e) =
+  e.print prec assoc fmt e.value
+
 let rec print_descr prec assoc fmt d =
   let rec aux prec assoc fmt d =
     let open Format in
     match d.op with
-    | Extension (E e) -> e.print prec assoc fmt e.value
+    | Extension e -> print_extension_node_ctx prec assoc fmt e
     | Alias str -> fprintf fmt "%s" str
     | Node n -> fprintf fmt "%a" NodeId.pp n
     | Builtin b -> print_builtin fmt b
@@ -566,19 +569,9 @@ let rec print_descr prec assoc fmt d =
       Format.fprintf fmt "{@ %a@ %a}"
         (Prec.print_seq print_binding " ;@ ") bindings
         print_tail tail
-    | Varop (v,ds) ->
-      let sym,prec',_ as opinfo = varop_info v in
-      Prec.fprintf prec assoc opinfo fmt "%a"
-        (Prec.print_seq (aux prec' NoAssoc) sym)
-        ds
-    | Binop (b,d1,d2) ->
-      let sym,prec',_ as opinfo = binop_info b in
-      Prec.fprintf prec assoc opinfo fmt "%a%(%)%a"
-        (aux prec' Left) d1 sym
-        (aux prec' Right) d2
-    | Unop (u,d) ->
-      let sym,prec',_ as opinfo = unop_info u in
-      Prec.fprintf prec assoc opinfo fmt "%(%)%a" sym (aux prec' NoAssoc) d
+    | Varop (v,ds) -> Prec.print_nary_op aux prec assoc v fmt ds
+    | Binop (b,d1,d2) -> Prec.print_binary_op aux prec assoc b fmt d1 d2
+    | Unop (u,d) -> Prec.print_unary_op aux prec assoc u fmt d
   in
   aux prec assoc fmt d
 
@@ -591,19 +584,9 @@ and print_fop prec assoc fmt fop =
         Format.fprintf fmt "%a?" (print_descr max_prec NoAssoc) d
       else
         print_descr prec assoc fmt d
-    | FVarop (v,fops) ->
-      let sym,prec',_ as opinfo = fvarop_info v in
-      Prec.fprintf prec assoc opinfo fmt "%a"
-        (print_seq (aux prec' NoAssoc) sym)
-        fops
-    | FBinop (b,fop1,fop2) ->
-      let sym,prec',_ as opinfo = fbinop_info b in
-      Prec.fprintf prec assoc opinfo fmt "%a%(%)%a"
-        (aux prec' Left) fop1 sym
-        (aux prec' Right) fop2
-    | FUnop (u,fop) ->
-      let sym,prec',_ as opinfo = funop_info u in
-      Prec.fprintf prec assoc opinfo fmt "%(%)%a" sym (aux prec' NoAssoc) fop
+    | FVarop (v,fops) -> Prec.print_nary_fop aux prec assoc v fmt fops
+    | FBinop (b,fop1,fop2) -> Prec.print_binary_fop aux prec assoc b fmt fop1 fop2
+    | FUnop (u,fop) -> Prec.print_unary_fop aux prec assoc u fmt fop
   in
   aux prec assoc fmt fop
 
@@ -635,9 +618,6 @@ let builder ~to_t ~map ~print =
        None -> None
      | Some value -> Some (E {value; map; print})
   )
-
-let print_extension_node_ctx prec assoc fmt (E e) =
-  e.print prec assoc fmt e.value
 
 let get' ?(factorize=false) customs tys =
   let map_m f main = List.map f main in
