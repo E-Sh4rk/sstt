@@ -70,9 +70,7 @@ module MakeOpt(V : Hashtbl.HashedType)(R : sig type t val equal : t -> t-> bool 
 end = struct
   module H = Hashtbl.Make(V)
 
-  type stack =
-      Cons of { key : V.t; mutable marked : bool ; next : stack }
-    | Nil
+  type stack = V.t list
   type entry = {
     mutable dependencies :stack list;  (* the top of the stack at the time the entry was accessed *)
     mutable result : R.t option;       (* the result stored in this entry *)
@@ -81,15 +79,15 @@ end = struct
     table :  entry H.t;                 (* The table of all entries *)
     mutable stack : stack;              (* The stack of entries. *)
   }
-  let create () = { table = H.create 0; stack = Nil}
-  let clear t = H.clear t.table; t.stack <- Nil
+  let create () = { table = H.create 0; stack = []}
+  let clear t = H.clear t.table; t.stack <- []
 
   let find ~default t key =
     match H.find_opt t.table key with
     | None ->
       (* The key is not in the table start from scratch *)
       let entry = { dependencies = []; result = Some default } in
-      t.stack <- Cons { key; marked = false; next = t.stack };
+      t.stack <- key :: t.stack;
       H.add t.table key entry;
       None
 
@@ -101,10 +99,8 @@ end = struct
      on the stack *)
   let rec invalidate tbl stop deps =
     match deps with
-    | Cons ({ key ; next ; marked }  as r) when deps != stop ->
-      if not marked then begin
-        r.marked <- true;
-        match H.find_opt tbl key with
+    |  key :: next when deps != stop ->
+      begin  match H.find_opt tbl key with
           None -> ()
         | Some cp ->
           H.remove tbl key; List.iter (invalidate tbl stop) cp.dependencies
@@ -113,12 +109,12 @@ end = struct
     | _ -> ()
   let[@warning "-27"] update ?(naive=false) t key r =
     match H.find_opt t.table key, t.stack  with
-    | Some ({ result = Some old_r; _ } as cp), Cons s ->
+    | Some ({ result = Some old_r; _ } as cp), _ ::next ->
       if not (R.equal r old_r) then begin
         cp.result <- Some r;
         List.iter (invalidate t.table t.stack) cp.dependencies;
       end;
-      t.stack <- s.next
+      t.stack <- next
     | _ -> raise InvalidAccess
 end
 module MakeSimple(V : Set.OrderedType)(R : sig type t val equal : t -> t-> bool end): sig
