@@ -72,18 +72,17 @@ module MakeOpt(V : Hashtbl.HashedType)(R : sig type t val equal : t -> t-> bool 
 end = struct
   module H = Hashtbl.Make(V)
 
-  exception InvalidAccess
   type stack =
       Cons of { key : V.t; mutable marked : bool ; next : stack }
     | Nil
   type entry = {
-    mutable active : bool;            (* status of the entry *)
+    mutable active : bool;             (* status of the entry *)
     mutable dependencies :stack list;  (* the top of the stack at the time the entry was accessed *)
-    mutable result : R.t option;      (* the result stored in this entry *)
+    mutable result : R.t option;       (* the result stored in this entry *)
   }
   and t = {
-    table :  entry H.t;                 (* The table of all entrys *)
-    mutable stack : stack;           (* The stack of entrys. *)
+    table :  entry H.t;                 (* The table of all entries *)
+    mutable stack : stack;              (* The stack of entries. *)
   }
   let create () = { table = H.create 0; stack = Nil}
   let clear t = H.clear t.table; t.stack <- Nil
