@@ -7,29 +7,27 @@ module MakeOpt(V : Hashtbl.HashedType)(R : sig type t val equal : t -> t-> bool 
 
       This table can be used for computations over co-inductive structures whose
       results depend on an initial guess. When exploring a co-inductive value
-       [v : V.t], we say that [v] is [Active], if it is being explored and the
-      exploration is not finished or, if the exploration is finished but the computation
-      depended one or several [Active] values. The API is as follows:
+      [v : V.t], we first fix its result to an initial guess before exploring it.
+      If we find it again, return the initial guess. When coming back after exploration,
+      if the result is consistent with the initial guess we can simply return it.
+      If not, we need to invalidate all results stored in the table that depended
+      (directly or indirectly) on the initial guess.
+      This fits nicely with a look-up table pattern :
 
      - first, one looks for [v] in the table, using [find ~default:r table v]
      - if [v] is not in the table, it associates an initial result [r : R.t],
-          returns [None] and [v] becomes [Active]. The exploration of [v] can continue.
-     - if [v] is in the table, it means it is encountered again. The initial
-          value stored is returned as [Some r] and all values that became
-          active after [v] and are still active are recorded. These are the dependencies of [v].
+          The exploration of [v] can continue.
+     - if [v] is in the table, it means it is encountered again. The
+          value stored is returned as [Some r] and all values that are curently being
+          explored become [v]'s direct dependencies, which we record.
 
      - when returning from the initial exploration of [v] with a computed
        result [r'], one needs to update the result [update table v r']:
-     - if [R.equal r r'] then the initial guess was correct, we can mark the node
-          as [Inactive], its computation is finalized.
-     - otherwise:
-     - if [v] has no dependecy, then it's simply updated and also marked
-              as [Inactive]. It's result did not depend on any assumption that was wrong.
-     - otherwise the dependencies of [v] are removed from the table: they
-              were computed while making the (wrong) hypothesis that the result for
-              [v] was [r], while it is [r']. Later calls to [find ~default:r table v]
-              will return [r'] unless it is itself invalidated. In that case we must left
-              [v] as [Active].
+     - if [R.equal r r'] then the initial guess was correct the table is in a consistent state.
+     - otherwise the transitive dependencies of [v] are removed from the table: they
+          were computed while making the (wrong) hypothesis that the result for
+          [v] was [r], while it is [r']. Later calls to [find ~default:r table v]
+       will return [r'] unless it is itself invalidated.
 
       {@ocaml[ let rec explore table v =
 
@@ -76,7 +74,6 @@ end = struct
       Cons of { key : V.t; mutable marked : bool ; next : stack }
     | Nil
   type entry = {
-    mutable active : bool;             (* status of the entry *)
     mutable dependencies :stack list;  (* the top of the stack at the time the entry was accessed *)
     mutable result : R.t option;       (* the result stored in this entry *)
   }
@@ -91,15 +88,13 @@ end = struct
     match H.find_opt t.table key with
     | None ->
       (* The key is not in the table start from scratch *)
-      let entry = { active = true; dependencies = []; result = Some default } in
+      let entry = { dependencies = []; result = Some default } in
       t.stack <- Cons { key; marked = false; next = t.stack };
       H.add t.table key entry;
       None
 
     | Some entry ->
-      (* We find an entry, if it is active, record the dependencies, that is
-         the current stack. *)
-      if entry.active then entry.dependencies <- t.stack::entry.dependencies;
+      entry.dependencies <- t.stack::entry.dependencies;
       entry.result
 
   (* remove from the list until we find ourselves, this is when we where put
@@ -118,14 +113,12 @@ end = struct
     | _ -> ()
   let[@warning "-27"] update ?(naive=false) t key r =
     match H.find_opt t.table key, t.stack  with
-    | Some ({ active = true; result = Some old_r; _ } as cp), Cons s ->
+    | Some ({ result = Some old_r; _ } as cp), Cons s ->
       if not (R.equal r old_r) then begin
         cp.result <- Some r;
-        match cp.dependencies with
-          [] -> cp.active <- false
-        | deps -> List.iter (invalidate t.table t.stack) deps;
-      end else cp.active <- false;
-      t.stack <- s.next;
+        List.iter (invalidate t.table t.stack) cp.dependencies;
+      end;
+      t.stack <- s.next
     | _ -> raise InvalidAccess
 end
 module MakeSimple(V : Set.OrderedType)(R : sig type t val equal : t -> t-> bool end): sig
