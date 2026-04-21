@@ -258,6 +258,7 @@ let%expect_test "tests" =
     perf5: [
              'X: 'x25 & 'X
            ]
+    hard_recursive1: true
     |}]
 
 open Extensions

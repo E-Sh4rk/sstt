@@ -47,7 +47,7 @@ open Sigs
 
 
 include (struct
-  module rec TyRef : sig 
+  module rec TyRef : sig
     (* The type of type reference, this module only contains the type definition to avoid
        repeating it everywhere. *)
 
@@ -89,7 +89,7 @@ include (struct
     let equal t1 t2 = Int.equal t1.id t2.id
     let empty = mk ()
     let any = mk ()
-    
+
     let init empty_def any_def =
       assert (empty.def = None && any.def = None);
       empty.def <- Some empty_def;
@@ -112,7 +112,7 @@ include (struct
     let equal = AnyEmpty.equal
 
     let any = AnyEmpty.any
-    let empty = AnyEmpty.empty  
+    let empty = AnyEmpty.empty
   end
   and NSet : Set.S with type elt = AnyEmpty.t = Set.Make(PreNode) (* Sets of Node.t, but use PreNode to have a well defined cycle *)
   and VDescr : VDescr' with type node = Node.t = Vdescr.Make(Node) (* Instanciate VDescr *)
@@ -120,7 +120,7 @@ include (struct
                          and type row = VDescr.Descr.Records.Atom.t = struct
     (* The PreNode module that contain the entry points of all functions on types. *)
     module NH = Hashtbl.Make(PreNode)
-    module Table = Bttable.Make(VDescr)(Bool)
+    module Table = Bttable.MakeOpt(VDescr)(Bool)
     type _ Effect.t += GetCache: (Table.t) t
 
     type vdescr = VDescr.t
