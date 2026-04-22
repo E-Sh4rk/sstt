@@ -8,6 +8,6 @@
 (library
  (name test_witness)
  (inline_tests)
- (libraries sstt )
+ (libraries sstt sstt_repl)
  (preprocess (pps ppx_expect))
  (modules test_witness))

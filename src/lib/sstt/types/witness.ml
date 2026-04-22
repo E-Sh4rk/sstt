@@ -8,10 +8,8 @@ type t = Int of Z.t
        | Record of (Label.t * t) list * (t option)
        | Other
 
-
-module VDHash = Hashtbl.Make(Descr)
-let mem = VDHash.create 16
-
+module DHash = Hashtbl.Make(Descr)
+let mem = DHash.create 16
 
 let rec to_ty s =
   let open Ty in 
@@ -42,11 +40,9 @@ let pp fmt s =
   match s with
     Int i -> Z.pp_print fmt i
   | Enum s -> fprintf fmt "\" %a \"" print_ty' (to_ty (Enum s))
-  | Tuple t -> fprintf fmt "( %a )" print_ty' (to_ty (Tuple t))
+  | Tuple t -> print_ty' fmt (to_ty (Tuple t))
   | Tag ta -> print_ty' fmt (to_ty (Tag ta))
-  | Arrow a -> fprintf fmt "fun :< %a -> %a >" 
-                 print_ty' (Op.Arrows.dom a) 
-                 print_ty' (Op.Arrows.apply a (Op.Arrows.dom a))
+  | Arrow a -> print_ty' fmt (to_ty (Arrow a))
   | Record (b,t) -> print_ty' fmt (to_ty (Record(b,t)))
   | Other -> pp_print_string fmt "Other"
 
@@ -129,40 +125,72 @@ let rec equal w1 w2 =
 let is_in singl t =
   Ty.leq (to_ty singl) t
 
+(**[mk_intervals t] return one value present in the interval part of t.
+   Assume that the interval part of t is non-empty.
+   If t = ]-inf; +inf\[, return 42.
+   If t as a part ]-inf; x], return x.
+   Otherwise, return the lowest bound of t.
+*)
 let mk_intervals t = 
   let atom_list = Ty.get_descr t |> Descr.get_intervals |> Intervals.destruct in
-  let atom = List.hd atom_list |> Intervals.Atom.get in 
-  match atom with 
-  | (None, None) ->  Int (Z.of_int 42)
-  | (Some z1, _) | (None, Some z1) -> Int z1
+  match atom_list with 
+    [] -> None
+  | atom :: _ -> 
+    let inter = Intervals.Atom.get atom in begin
+      match inter with 
+      | (None, None) ->  Some(Int (Z.of_int 42))
+      | (Some z1, _) | (None, Some z1) -> Some(Int z1) 
+    end
 
+
+let rec len_false_enum len l = 
+  if List.for_all 
+      (fun a -> (a |> Enum.name |> String.length) != len) 
+      l 
+  then len 
+  else len_false_enum (len+1) l
+
+(**[mk_enum t] return one value present in the enum part of [t].
+   Assume that the enum part of [t] is non-empty. 
+   If the elements of [t] are known, return the first element of [t].
+   If the elements of [not t] are known, return the word composed of the letter 'a' repeated
+   one more time than the max length of the atoms not in [t].
+*)
 let mk_enums t = 
   let atom_list = Ty.get_descr t |> Descr.get_enums |> Enums.destruct in 
   match atom_list with
-  | (true, lt_enum) -> Enum (List.hd lt_enum)
+  | (true, lt_enum) -> 
+    if List.is_empty lt_enum then None else 
+      Some (Enum (List.hd lt_enum))
   | (false, lt_enum) -> 
     let false_enum = (String.make 
-                        ((List.fold_left 
-                            (fun a b -> max a (String.length (Enums.Atom.name b))) 
-                            0 lt_enum ) + 1) 
+                        (len_false_enum 1 lt_enum)
                         'a') in 
-    Enum (Enums.Atom.mk false_enum)
+    Some(Enum (Enums.Atom.mk false_enum))
 
+(**[mk_arrows t] return one arrow present in the arrow part of [t].
+   Assume that the arrow part of [t] is non-empty.
+   Don't go inside the domains of the arrows, 
+   just return the arrow with all the positive atoms 
+   and the tinyest subgroup of negative atoms that allow
+   to create a subtype of the arrow.
+*)
 let mk_arrows t = 
-  let a1,a2 = Ty.get_descr t |> Descr.get_arrows |> Arrows.dnf |> List.hd in
-  let rec help_arrow t a1 a2 a3 = 
-    let test_arrow = Arrows.of_dnf [(a1,a2)] |> Descr.mk_arrows |> Ty.mk_descr in
-    if Ty.leq test_arrow t then Arrows.of_dnf [a1,a2] 
-    else
-      begin 
-        match a3 with 
-          a:: l -> help_arrow t a1 (a :: a2) l
-        |_ -> 
-          let atom_list = [Ty.get_descr t |> Descr.get_arrows |> Arrows.dnf |> List.hd] in
-          Arrows.of_dnf atom_list
-      end in
-  Arrow(help_arrow t a1 [] a2)
-
+  let arrows = Ty.get_descr t |> Descr.get_arrows |> Arrows.dnf in 
+  if List.is_empty arrows then None else 
+    let a1,a2 = List.hd arrows in
+    let rec help_arrow t a1 a2 a3 = 
+      let test_arrow = Arrows.of_dnf [(a1,a2)] |> Descr.mk_arrows |> Ty.mk_descr in
+      if Ty.leq test_arrow t then Arrows.of_dnf [a1,a2] 
+      else
+        begin 
+          match a3 with 
+            a:: l -> help_arrow t a1 (a :: a2) l
+          |_ -> 
+            let atom_list = [Ty.get_descr t |> Descr.get_arrows |> Arrows.dnf |> List.hd] in
+            Arrows.of_dnf atom_list
+        end 
+    in Some(Arrow(help_arrow t a1 [] a2))
 
 let mk_tag_atom make tag atom = 
   let _,ty = [atom] |> TagComp.of_dnf tag |> Op.TagComp.as_union |> List.hd in
@@ -170,7 +198,6 @@ let mk_tag_atom make tag atom =
   match w with 
   | None -> None 
   | Some w -> Some (Tag (tag,w))
-
 
 let rec mk_tag_pn_list make tag pn_list =
   match pn_list with 
@@ -200,6 +227,12 @@ let rec len_false_tag len l =
       l 
   then len 
   else len_false_tag (len+1) l
+
+(**[mk_tags_mem make t] return one value present in the tuple part of [t].
+   Assume that the tag part of [t] is non-empty.
+   If the elements of [t] are known, take one tag component (tag, type) and return the tag ta(witness ty).
+   If the elements of [not t] are known, return tag(16) with tag being the character 'a' repeated n times, n beign a length of no other tag.
+*)
 let mk_tags_mem make t = 
   let t_tag = Ty.get_descr t |> Descr.get_tags |> Tags.destruct in 
   match t_tag with 
@@ -243,6 +276,12 @@ let rec len_false_tuple len l =
   then len 
   else len_false_tuple (len+1) l
 
+
+(**[mk_tuple_mem make t] return one value present in the tuple part of [t].
+   Assume that the tuple part of [t] is non-empty.
+   If the elements of [t] are known, return one inhabitant of one element of [t].
+   If the elements of [not t] are known, return (0, 1,...,n) with n the smallest arity with no elements in [not t]. 
+*)
 let mk_tuples_mem mk_mem t = 
   let t_tuple = Ty.get_descr t |> Descr.get_tuples |> Tuples.destruct in 
   match t_tuple with 
@@ -250,7 +289,6 @@ let mk_tuples_mem mk_mem t =
   | (false, lt_tuple) -> Some (Tuple(List.init 
                                        (len_false_tuple 1 lt_tuple) 
                                        (fun x -> Int(Z.of_int x))))
-
 
 let mk_record_binding make bindings = 
   List.fold_left
@@ -289,7 +327,7 @@ let mk_record_exists make exists bind_len tail =
       let w_ty = 
         let w = make ty in
         match w with 
-        |None -> failwith "Impossible : Undetected empty type in records" 
+        | None -> failwith "Impossible : Undetected empty type in records" 
         | Some w -> w 
       in 
       ( create_false_label lbl_list bind_len, w_ty ) :: w_exists in
@@ -317,62 +355,55 @@ let rec mk_records_list make l =
     end
   |[] -> None
 
+
+(**[mk_record_mem make t] return one value present in the record part of [t].
+   Assume that the record part of [t] is non-empty.
+   Return a record made from one non_empty atom of r the record part of t with the following caracteristics :
+   - for every (l_i : f_i) of the binding part of r : if f_i is required, add (l_i : witness f_i) to the inhabitant.
+   - for every (L_i : e_i) of the exists part of r : if (e_i && tail) is required, 
+     add (l'_i : witness (e_i && tail)) to the binding,
+     with l'_i not in L_i and the label part of the binding.
+   - if the tail is not optional, put witness tail in the tail.
+*)
 let mk_records_mem make t = 
   let record = Ty.get_descr t |> Descr.get_records in 
   let record_list = Records.dnf' record in
   mk_records_list make record_list
 
+(**[mk_other t] return [true] if t as a type other, [false] otherwise
+*)
+let mk_other t =
+  if Ty.get_descr t |> Descr.get_others then Some Other else
+    None
+
+  (*
+https://ocaml.org/manual/5.4/bindingops.html
+*)
+let (let*) o f =
+  match o with
+    None -> f ()
+  | Some _ -> o 
+
 let rec mk_mem t = 
   let t_descr = Ty.get_descr t in 
-  let w = VDHash.find_opt mem t_descr in
-  match w with 
-  | Some(None) -> None
-  | Some a -> a
-  | None ->
-    VDHash.add mem t_descr None;
-    if Descr.get_intervals t_descr |> Intervals.equal Intervals.empty |> not
-    then let w = Some (mk_intervals t) in VDHash.replace mem t_descr w; w
-    else 
-    if Descr.get_enums t_descr |> Enums.equal Enums.empty |> not 
-    then let w = Some (mk_enums t) in VDHash.replace mem t_descr w; w
-    else 
-    if Descr.get_arrows t_descr |> Descr.mk_arrows |> Ty.mk_descr |> Ty.is_empty |> not
-    then let w = Some (mk_arrows t) in VDHash.replace mem t_descr w; w
-    else 
-    if Descr.get_tags t_descr|> Descr.mk_tags |> Ty.mk_descr |> Ty.is_empty |> not 
-    then let w = mk_tags_mem mk_mem t in VDHash.replace mem t_descr w; w
-    else
-    if Descr.get_tuples t_descr|> Descr.mk_tuples |> Ty.mk_descr |> Ty.is_empty |> not
-    then let w = mk_tuples_mem mk_mem t in VDHash.replace mem t_descr w; w
-    else
-    if Descr.get_records t_descr |> Descr.mk_records |> Ty.mk_descr |> Ty.is_empty |> not
-    then let w = mk_records_mem mk_mem t in VDHash.replace mem t_descr w;w
-    else
-    if Descr.get_others t_descr then Some(Other)
-    else None
-
+  match DHash.find mem t_descr with 
+  | None -> None
+  | Some _ as w -> w
+  | exception Not_found ->
+    DHash.add mem t_descr None;
+    let w = 
+      let* () = mk_intervals t in 
+      let* () = mk_enums t in
+      let* () =  mk_arrows t in
+      let* () = mk_tags_mem mk_mem t in 
+      let* () = mk_tuples_mem mk_mem t in
+      let* () =  mk_records_mem mk_mem t in
+      let* () = mk_other t in 
+      None
+    in DHash.replace mem t_descr w;w
 
 let mk t = 
-  VDHash.reset mem;
+  DHash.reset mem;
   match mk_mem t with 
   | Some w -> w
   | None -> failwith "Empty Type"
-
-(*DON'T USE INSIDE THIS CODE !*)
-let mk_tags t = 
-  VDHash.reset mem;
-  match mk_tags_mem mk_mem t with 
-  |Some a -> a
-  |None -> failwith "Empty type"
-
-let mk_tuples t = 
-  VDHash.reset mem;
-  match mk_tuples_mem mk_mem t with 
-  |Some a -> a
-  |None -> failwith "Empty type"
-
-let mk_records t = 
-  VDHash.reset mem;
-  match mk_records_mem mk_mem t with 
-  |Some a -> a
-  |None -> failwith "Empty type"
