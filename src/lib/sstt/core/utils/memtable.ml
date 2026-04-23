@@ -6,15 +6,13 @@ module type HashedPair = sig
 end
 
 module Make2 (H : HashedPair) = struct
-  type 'a entry =
-    | Empty
-    | Slot of H.t1 * H.t2 * 'a option
+  type 'a entry = int * H.t1 * H.t2 * 'a
 
   type 'a t = {
-    mutable data : 'a entry array;
-    initial : int;
+    mutable data : 'a entry Weak.t;
     mutable size : int;
     mutable mask : int;
+    initial : int;
   }
 
   let initial_capacity n =
@@ -23,73 +21,68 @@ module Make2 (H : HashedPair) = struct
     !c
 
   let create n =
-    let cap = initial_capacity (max n 4) in
-    let table =
-      { data = Array.make cap Empty; size = 0; initial = cap; mask = cap - 1 }
-    in
-    table
+    let cap = initial_capacity (max n 64) in
+    { data = Weak.create cap; size = 0; mask = cap - 1; initial = cap; }
 
   let clear t =
-    Array.fill t.data 0 (Array.length t.data) Empty;
+    Weak.fill t.data 0 (Weak.length t.data) None;
     t.size <- 0
   let reset t =
-    t.data <- Array.make t.initial Empty;
+    t.data <- Weak.create t.initial;
     t.mask <- t.initial - 1;
     t.size <- 0
 
-  let[@inline always] find_slot data mask key1 key2 =
-    let rec loop h =
-      match Array.unsafe_get data h with
-      | Empty -> - h - 2
-      | Slot (k1, k2, _) ->
-        if H.equal k1 k2 key1 key2 then h
-        else loop ((h+1) land mask)
+  let[@inline always] find_slot init_h data mask key1 key2 =
+    let rec loop init_h h =
+      match Weak.get data h with
+      | None -> - h - 2, None
+      | Some (cur_h, k1, k2, o) ->
+        if cur_h = init_h && H.equal k1 k2 key1 key2 then h, Some o
+        else loop init_h ((h + 1) land mask)
     in
-    loop ((H.hash key1 key2) land mask)
+    loop init_h (init_h land mask)
 
-  let insert_no_check data mask key1 key2 o =
-    let h = ref ((H.hash key1 key2) land mask) in
-    while Array.get data !h <> Empty do
+  let insert_no_check init_h data mask o =
+    let h = ref (init_h land mask) in
+    while Weak.check data !h do
       h := (!h + 1) land mask
     done;
-    data.(!h) <- Slot (key1, key2, o)
+    Weak.set data !h o
 
   let resize t =
     let old_data = t.data in
-    let new_cap = Array.length old_data lsl 1 in
+    let new_cap = Weak.length old_data lsl 1 in
     let new_mask = new_cap - 1 in
-    let new_data = Array.make new_cap Empty in
-    Array.iter (function
-        | Empty -> ()
-        | Slot (k1, k2, o) -> insert_no_check new_data new_mask k1 k2 o
-      ) old_data;
+    let new_data = Weak.create new_cap in
+    for i = 0 to Weak.length old_data - 1 do
+      match Weak.get old_data i with
+      | None -> ()
+      | Some (init_h, _, _, _) as o -> insert_no_check init_h new_data new_mask o
+    done;
     t.data <- new_data;
     t.mask <- new_mask
 
-  let find_opt { data; mask; _ }  key1 key2 =
-    let i = find_slot data mask key1 key2 in
-    if i >= 0 then match Array.unsafe_get data i with
-      | Slot (_,_, o) -> o
-      | Empty -> assert false
-    else None
+  let find_opt { data; mask; _ } key1 key2 =
+    let _,o = find_slot (H.hash key1 key2) data mask key1 key2 in o
 
   let find t key1 key2 =
     match find_opt t key1 key2 with
     | Some v -> v
     | None -> raise Not_found
 
-  let calc_size n t = (n lsl 2) > (t lsl 1) + t (* n > 3t/4*)
-  let add t key1 key2 value =
-    let i = find_slot t.data t.mask key1 key2 in
-    let o = Some value in
+  let calc_size n t = (n lsl 2) > (t lsl 1) + t (* n > 0.75 t *)
+  let add t key1 key2 v =
+    let init_h = H.hash key1 key2 in
+    let i,_ = find_slot init_h t.data t.mask key1 key2 in
+    let o = Some (init_h, key1, key2, v) in
     if i >= 0 then
-      t.data.(i) <- Slot (key1, key2, o)
+      Weak.set t.data (i) o
     else begin
-      if calc_size t.size (Array.length t.data) then begin
+      if calc_size t.size (Weak.length t.data) then begin
         resize t;
-        insert_no_check t.data t.mask key1 key2 o
+        insert_no_check init_h t.data t.mask  o
       end else
-        t.data.(- i - 2) <- Slot (key1, key2, o);
+        Weak.set t.data (- i - 2) o;
       t.size <- t.size + 1
     end
 

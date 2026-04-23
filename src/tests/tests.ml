@@ -81,15 +81,15 @@ let%expect_test "tests" =
     var3: empty
     var4: any
     var5: 'x
-    print1: (int -> bool -> true) | (any -> any)
+    print1: (any -> any) | (int -> bool -> true)
     print2: (false, false) | (true, true)
-    print3: { l1 : true ; l2 : true ..} | { l1 : false ; l2 : true }
+    print3: { l1 : false ; l2 : true } | { l1 : true ; l2 : true ..}
     print4: nil | int | (any, x1) where x1 = nil | (any, x1)
     print5: (int -> int) -> bool -> bool
     print6: 'b & ('a, 'b) | 'a
     print7: ~true
     print8: ~(any -> bool)
-    print9: ~((true -> false) & (any -> bool))
+    print9: ~((any -> bool) & (true -> false))
     print10: ~((false, true) | (true, false))
     print11: bool
     print13: 'y
@@ -149,12 +149,12 @@ let%expect_test "tests" =
               'Y: empty
             ]
     tally10: [
-               'Y: empty
-             ]
-             [
                'Y: 'Y & 'y ;
                'A: 'A | 'a ;
                'B: 'B & 'b
+             ]
+             [
+               'Y: empty
              ]
     tally11: [
                'X: 'X | 'a | 'b ;
@@ -295,7 +295,7 @@ let%expect_test "tests_ext" =
       list_42_43: [ 42 43 any* ]
       int_list: [ int* ]
       list_not_only_a: [ any any* (~'a) any* | (~'a) any* ]
-      list_union: [ 42 any* | 43 42 any* ]
+      list_union: [ 43 42 any* | 42 any* ]
       list_regexp: [ ('a | 'b)* ]
       list_with_vars: 42::('a & [ int* ])
       char_any: char

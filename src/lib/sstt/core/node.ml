@@ -120,7 +120,7 @@ include (struct
                                                                             and type row = VDescr.Descr.Records.Atom.t = struct
     (* The PreNode module that contain the entry points of all functions on types. *)
     module NH = Hashtbl.Make(PreNode)
-    module Table = Bttable.MakeOpt(VDescr)(Bool)
+    module Table = Bttable.MakeOpt(PreNode)(Bool)
     type _ Effect.t += GetCache: (Table.t) t
 
     module VDH = Memtable.Make(VDescr)
@@ -158,15 +158,10 @@ include (struct
       t.dependencies <- None ;
       t.simplified <- simplified
 
-
-    let table_size = 1 lsl 19 (* 512k elements*)
+    let table_size = 8192
 
     let cons_table = VDH.create table_size
-    let init_cons_table () =
-      VDH.add cons_table VDescr.empty  empty;
-      VDH.add cons_table VDescr.any any
 
-    let () = init_cons_table ()
     let cons ?(simplified=false) d =
       match VDH.find_opt cons_table d with
         Some n -> n
@@ -200,7 +195,7 @@ include (struct
       | Some s -> s
       | None ->
         let s = t |> def |> VDescr.neg
-          |> cons ~simplified:t.simplified in
+                |> cons ~simplified:t.simplified in
         t.neg <- Some s;
         s.neg <- Some t;
         s
@@ -214,13 +209,6 @@ include (struct
     let conj ts = List.fold_left cap any ts
     let disj ts = List.fold_left cup empty ts
 
-    let reset_caches () =
-      NH2.reset diff_table;
-      NH2.reset cup_table;
-      NH2.reset cap_table;
-      VDH.reset cons_table;
-      init_cons_table ()
-
     let get_cache () = perform GetCache
     let with_own_cache f t =
       let cache = Table.create () in
@@ -229,16 +217,15 @@ include (struct
       | effect GetCache, k -> continue k cache
 
     let is_empty t =
-      let def = def t in
       if t.simplified then
-        VDescr.equal def VDescr.empty
+        VDescr.equal (def t) VDescr.empty
       else
         let cache = get_cache () in
-        begin match Table.find ~default:true cache def with
+        begin match Table.find ~default:true cache t with
           | Some b -> b
           | None ->
-            let b = VDescr.is_empty def in
-            Table.update cache def b;
+            let b = VDescr.is_empty (def t) in
+            Table.update cache t b;
             b
         end
 
@@ -261,9 +248,9 @@ include (struct
       let direct_nodes t = def t |> VDescr.direct_nodes |> NSet.of_list in
       let rec aux ts =
         let ts' = ts
-          |> NSet.to_list
-          |> List.map direct_nodes
-          |> List.fold_left NSet.union ts
+                  |> NSet.to_list
+                  |> List.map direct_nodes
+                  |> List.fold_left NSet.union ts
         in
         if NSet.equal ts ts' then ts' else aux ts'
       in
@@ -285,7 +272,7 @@ include (struct
 
     let of_eqs eqs =
       let deps = eqs
-        |> List.fold_left (fun acc (_, t) -> NSet.union (dependencies t) acc) NSet.empty in
+                 |> List.fold_left (fun acc (_, t) -> NSet.union (dependencies t) acc) NSet.empty in
       let copies = NH.create 10 in
       let () = NSet.iter (fun n -> NH.add copies n (mk ())) deps in
       let new_node n =
@@ -312,7 +299,7 @@ include (struct
                   if has_def nn then Some (v, def nn) else None
                 ) in
               let d = def n |> VDescr.map_nodes new_node
-                |> VDescr.substitute (MixVarMap.of_list1 s) in
+                      |> VDescr.substitute (MixVarMap.of_list1 s) in
               define nn d
             end ;
             define_all (NSet.remove n deps)

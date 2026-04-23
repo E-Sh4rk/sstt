@@ -19,7 +19,7 @@ open Sigs
      constructors and are union of intersections of atoms, the latter containing type references {!Ty.t}. For instance,
      the component for {{!Arrows} arrows} represents:
       {math
-      a = \bigcup_{i=1\ldots m} \bigcap_{j=1 \ldots p} t_{ij}^1 \rightarrow t_{ij}^2 \cap \bigcap_{j=1 \ldots n} \lnot(t_{ij}^1 \rightarrow t_{ij}^2) 
+      a = \bigcup_{i=1\ldots m} \bigcap_{j=1 \ldots p} t_{ij}^1 \rightarrow t_{ij}^2 \cap \bigcap_{j=1 \ldots n} \lnot(t_{ij}^1 \rightarrow t_{ij}^2)
       }
 *)
 
@@ -66,7 +66,6 @@ module Ty : Ty = struct
   let is_any t = N.with_own_cache N.is_any t
 
   let compare, equal, hash = N.compare, N.equal, N.hash
-  let reset_caches = N.reset_caches 
 end
 
 (** @canonical Sstt.VDescr *)
@@ -76,7 +75,7 @@ module VDescr = Ty.VDescr
 module Descr = VDescr.Descr
 
 
-(** {2 Components } 
+(** {2 Components }
 
     Components are the building blocks of types. Each component represents a
     union of intersections (a DNF) of a particular "type constructor" (basic
@@ -96,7 +95,7 @@ module Intervals = Descr.Intervals
 (** @canonical Sstt.Enums *)
 module Enums = Descr.Enums
 
-(** {3 Constructor components } 
+(** {3 Constructor components }
 
     Type constructor components come in two flavors: simple constructors such as
     arrows or records and families such as tuples or tagged type. The latter are
@@ -123,8 +122,8 @@ module Tags = Descr.Tags
 (** @canonical Sstt.TagComp *)
 module TagComp = Tags.Comp
 
-(** 
-   {1 Named identifiers} 
+(**
+   {1 Named identifiers}
 
 *)
 
@@ -135,7 +134,7 @@ module TagComp = Tags.Comp
 
 module type NamedIdentifier = Id.NamedIdentifier
 
-(** @inline *) 
+(** @inline *)
 include Base
 
 (** @canonical Sstt.LabelSet *)
