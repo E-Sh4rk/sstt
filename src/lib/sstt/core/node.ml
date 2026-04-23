@@ -86,7 +86,7 @@ include (struct
       }
     let hash t = Hash.int t.id
     let compare t1 t2 = Int.compare t1.id t2.id
-    let equal t1 t2 = Int.equal t1.id t2.id
+    let equal t1 t2 = t1 == t2
     let empty = mk ()
     let any = mk ()
 
@@ -103,7 +103,7 @@ include (struct
       any.dependencies <- Some (NSet.singleton any)
   end
   and Node : Node with type t = AnyEmpty.t and type vdescr = VDescr.t and type descr = VDescr.Descr.t
-                   and type row = VDescr.Descr.Records.Atom.t = struct
+                                                                      and type row = VDescr.Descr.Records.Atom.t = struct
     (* The module which contains any and empty that is passed to Vdescr.Make *)
     include PreNode
     (* We need to duplicate these here, has the one in PreNode are uninitialized  *)
@@ -117,11 +117,23 @@ include (struct
   and NSet : Set.S with type elt = AnyEmpty.t = Set.Make(PreNode) (* Sets of Node.t, but use PreNode to have a well defined cycle *)
   and VDescr : VDescr' with type node = Node.t = Vdescr.Make(Node) (* Instanciate VDescr *)
   and PreNode : PreNode with type t = AnyEmpty.t and type vdescr = VDescr.t and type descr = VDescr.Descr.t
-                         and type row = VDescr.Descr.Records.Atom.t = struct
+                                                                            and type row = VDescr.Descr.Records.Atom.t = struct
     (* The PreNode module that contain the entry points of all functions on types. *)
     module NH = Hashtbl.Make(PreNode)
-    module Table = Bttable.MakeOpt(VDescr)(Bool)
+    module Table = Bttable.MakeOpt(PreNode)(Bool)
     type _ Effect.t += GetCache: (Table.t) t
+
+    module VDH = Memtable.Make(VDescr)
+    module NH2 = Memtable.Make2(
+      struct
+        type t1 = PreNode.t
+        type t2 = PreNode.t
+        let equal t1 t2 s1 s2 =
+          (t1 == s1 && t2 == s2) ||
+          TyRef.(t1.id = s1.id && t2.id = s2.id)
+        let hash t1 t2 =
+          TyRef.(Hash.mix t1.id t2.id)
+      end)
 
     type vdescr = VDescr.t
     type descr = VDescr.Descr.t
@@ -145,16 +157,37 @@ include (struct
       t.def <- Some d ;
       t.dependencies <- None ;
       t.simplified <- simplified
+
+    let table_size = 8192
+
+    let cons_table = VDH.create table_size
+
     let cons ?(simplified=false) d =
-      let t = mk () in
-      define ~simplified t d ; t
+      match VDH.find_opt cons_table d with
+        Some n -> n
+      | None ->
+        let t = mk () in
+        VDH.add cons_table d t;
+        define ~simplified t d ; t
 
     let of_def d = d |> cons
 
+    let memoize_binop table f =
+      fun t1 t2 ->
+      match NH2.find_opt table t1 t2 with
+        Some v -> v
+      | None ->
+        let t = f t1 t2 in
+        NH2.add table t1 t2 t; t
+
+    let cap_table = NH2.create table_size
     let dcap t1 t2 = VDescr.cap (def t1) (def t2) |> cons
+    let dcap = memoize_binop cap_table dcap
     let cap = fcap ~empty ~any ~cap:dcap
 
+    let cup_table = NH2.create table_size
     let dcup t1 t2 = VDescr.cup (def t1) (def t2) |> cons
+    let dcup = memoize_binop cup_table dcup
     let cup = fcup ~empty ~any ~cup:dcup
 
     let neg t =
@@ -168,7 +201,9 @@ include (struct
         s
     let neg = fneg ~empty ~any ~neg
 
+    let diff_table = NH2.create table_size
     let fdiff t1 t2 = VDescr.diff (def t1) (def t2) |> cons
+    let fdiff = memoize_binop diff_table fdiff
     let diff = fdiff_neg ~empty ~any ~neg ~diff:fdiff
 
     let conj ts = List.fold_left cap any ts
@@ -182,16 +217,15 @@ include (struct
       | effect GetCache, k -> continue k cache
 
     let is_empty t =
-      let def = def t in
       if t.simplified then
-        VDescr.equal def VDescr.empty
+        VDescr.equal (def t) VDescr.empty
       else
         let cache = get_cache () in
-        begin match Table.find ~default:true cache def with
+        begin match Table.find ~default:true cache t with
           | Some b -> b
           | None ->
-            let b = VDescr.is_empty def in
-            Table.update cache def b;
+            let b = VDescr.is_empty (def t) in
+            Table.update cache t b;
             b
         end
 
@@ -265,7 +299,7 @@ include (struct
                   if has_def nn then Some (v, def nn) else None
                 ) in
               let d = def n |> VDescr.map_nodes new_node
-              |> VDescr.substitute (MixVarMap.of_list1 s) in
+                      |> VDescr.substitute (MixVarMap.of_list1 s) in
               define nn d
             end ;
             define_all (NSet.remove n deps)
@@ -275,26 +309,26 @@ include (struct
 
     let substitute s t =
       if MixVarMap.is_empty s then t else
-      let dom = MixVarMap.fold
-        (fun n _ -> MixVarSet.add1 n)
-        (fun r _ -> MixVarSet.add2 r)
-          s MixVarSet.empty in
-      let s = s |> MixVarMap.map1 (fun n -> def n) in
-      (* Optimisation: reuse nodes if possible *)
-      let unchanged n = MixVarSet.disjoint (all_vars n) dom in
-      let deps = dependencies t |> NSet.filter (fun n -> unchanged n |> not) in
-      let copies = NH.create 10 in
-      let () = NSet.iter (fun n -> NH.add copies n (mk ())) deps in
-      let new_node n =
-        match NH.find_opt copies n with
-        | Some n -> n
-        | None -> n
-      in
-      deps |> NSet.iter (fun n ->
-          let d = def n |> VDescr.map_nodes new_node |> VDescr.substitute s in
-          define (new_node n) d
-        ) ;
-      new_node t
+        let dom = MixVarMap.fold
+            (fun n _ -> MixVarSet.add1 n)
+            (fun r _ -> MixVarSet.add2 r)
+            s MixVarSet.empty in
+        let s = s |> MixVarMap.map1 (fun n -> def n) in
+        (* Optimisation: reuse nodes if possible *)
+        let unchanged n = MixVarSet.disjoint (all_vars n) dom in
+        let deps = dependencies t |> NSet.filter (fun n -> unchanged n |> not) in
+        let copies = NH.create 10 in
+        let () = NSet.iter (fun n -> NH.add copies n (mk ())) deps in
+        let new_node n =
+          match NH.find_opt copies n with
+          | Some n -> n
+          | None -> n
+        in
+        deps |> NSet.iter (fun n ->
+            let d = def n |> VDescr.map_nodes new_node |> VDescr.substitute s in
+            define (new_node n) d
+          ) ;
+        new_node t
 
     let factorize t =
       let cache = NH.create 10 in
@@ -328,6 +362,6 @@ include (struct
 
 end : sig (* Hide everything, we could also add that in a .mli file. *)
            module rec Node : (Node with type vdescr = VDescr.t and type descr = VDescr.Descr.t
-                                    and type row=VDescr.Descr.Records.Atom.t)
+                                                               and type row=VDescr.Descr.Records.Atom.t)
            and VDescr : VDescr with type node = Node.t
          end)

@@ -15,14 +15,6 @@ module type Comparable = sig
   *)
 end
 
-module type Comparable' = sig
-  type t
-  type node
-  val compare' : (node -> node -> int) -> t -> t -> int
-  val equal' : (node -> node -> bool) -> t -> t -> bool
-  val hash' : (node -> int) -> t -> int
-end
-
 module type TyBase = sig
   type t
 
@@ -297,8 +289,6 @@ module type OTy = sig
 
     include TyBase with type node := node and type t := t (** @inline *)
 
-    include Comparable' with type node := node and type t := t (** @inline *)
-
     val absent : t
     (** [absent] is the singleton type containing the undefined value, {m \bot}. *)
 
@@ -416,8 +406,6 @@ module type FTy = sig
     and type leaf := OTy.t and type var := RowVar.t
     and module VarSet := RowVarSet
     and module VarMap := RowVarMap
-
-  include Comparable' with type node := node and type t := t (** @inline *)
 
 end
 
@@ -673,7 +661,7 @@ module type Records = sig
   *)
 
   type node
-  
+
   (** @canonical Sstt.Ty.F *)
   module FTy : FTy with type node := node
 
@@ -1088,12 +1076,10 @@ module type PreNode = sig
   val all_vars : t -> MixVarSet.t
   val all_vars_toplevel : t -> MixVarSet.t
   val nodes : t -> t list
-
   val of_eqs : (Var.t * t) list -> (Var.t * t) list
   val substitute : subst -> t -> t
   val factorize : t -> t
   val simplify : t -> unit
-
 end
 module type Node = sig
   include PreNode
@@ -1193,7 +1179,7 @@ module type Ty = sig
   *)
 
   val all_vars : t -> MixVarSet.t
-  
+
   val all_vars_toplevel : t -> MixVarSet.t
 
   val nodes : t -> t list
@@ -1214,7 +1200,6 @@ module type Ty = sig
   (** [factorize t] factorizes equivalent nodes in [t].
       This operation may be expensive since it calls {!equiv} internally.
   *)
-
 
   (** {1 Field types and optional types }*)
 
