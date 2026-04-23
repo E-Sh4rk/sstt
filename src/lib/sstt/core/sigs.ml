@@ -1088,12 +1088,11 @@ module type PreNode = sig
   val all_vars : t -> MixVarSet.t
   val all_vars_toplevel : t -> MixVarSet.t
   val nodes : t -> t list
-
   val of_eqs : (Var.t * t) list -> (Var.t * t) list
   val substitute : subst -> t -> t
   val factorize : t -> t
   val simplify : t -> unit
-
+  val reset_caches : unit -> unit
 end
 module type Node = sig
   include PreNode
@@ -1214,7 +1213,10 @@ module type Ty = sig
   (** [factorize t] factorizes equivalent nodes in [t].
       This operation may be expensive since it calls {!equiv} internally.
   *)
-
+  
+  val reset_caches : unit -> unit
+  (** [reset_caches ()] clears the internal tables used to cache the result of
+    set-theoretic operations.*)
 
   (** {1 Field types and optional types }*)
 
