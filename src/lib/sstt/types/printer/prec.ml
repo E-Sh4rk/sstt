@@ -85,15 +85,23 @@ let print_seq f sym fmt l =
 
 (** General printing operators *)
 
-let print_nary f prec assoc (sym,prec',_ as opinfo) fmt vs =
-  match vs with
-  | [] -> invalid_arg ("N-ary operator cannot be empty")
-  | [ v ] -> Format.fprintf fmt "%a" (f prec assoc) v
-  | vs ->
-    fprintf prec assoc opinfo fmt "%a"
-      (print_seq (f prec' NoAssoc) sym) vs
+let print_nary' fs prec assoc (sym,prec',_ as opinfo) fmt vs =
+  match fs, vs with
+  | [], [] -> invalid_arg ("N-ary operator cannot be empty")
+  | [ f ], [ v ] -> Format.fprintf fmt "%a" (f prec assoc) v
+  | fs, vs ->
+    let fvs = List.combine fs vs in
+    let f fmt (f,v) = f prec' NoAssoc fmt v in
+    fprintf prec assoc opinfo fmt "%a" (print_seq f sym) fvs
+let print_nary f prec assoc opinfo fmt vs =
+  let fs = vs |> List.map (Fun.const f) in
+  print_nary' fs prec assoc opinfo fmt vs
+let print_nary_op' fs prec assoc op fmt vs =
+  print_nary' fs prec assoc (varop_info op) fmt vs
 let print_nary_op f prec assoc op fmt vs =
   print_nary f prec assoc (varop_info op) fmt vs
+let print_nary_fop' fs prec assoc op fmt vs =
+  print_nary' fs prec assoc (fvarop_info op) fmt vs
 let print_nary_fop f prec assoc op fmt vs =
   print_nary f prec assoc (fvarop_info op) fmt vs
 
@@ -104,12 +112,18 @@ let print_unary_op f prec assoc op fmt v =
 let print_unary_fop f prec assoc op fmt v =
   print_unary f prec assoc (funop_info op) fmt v
 
-let print_binary f prec assoc (sym,prec',_ as opinfo) fmt v1 v2 =
+let print_binary' f1 f2 prec assoc (sym,prec',_ as opinfo) fmt v1 v2 =
   fprintf prec assoc opinfo fmt "%a%(%)%a"
-    (f prec' Left) v1 sym
-    (f prec' Right) v2
+    (f1 prec' Left) v1 sym
+    (f2 prec' Right) v2
+let print_binary f prec assoc opinfo fmt v1 v2 =
+  print_binary' f f prec assoc opinfo fmt v1 v2
+let print_binary_op' f1 f2 prec assoc op fmt v1 v2 =
+  print_binary' f1 f2 prec assoc (binop_info op) fmt v1 v2
 let print_binary_op f prec assoc op fmt v1 v2 =
   print_binary f prec assoc (binop_info op) fmt v1 v2
+let print_binary_fop' f1 f2 prec assoc op fmt v1 v2 =
+  print_binary' f1 f2 prec assoc (fbinop_info op) fmt v1 v2
 let print_binary_fop f prec assoc op fmt v1 v2 =
   print_binary f prec assoc (fbinop_info op) fmt v1 v2
 
