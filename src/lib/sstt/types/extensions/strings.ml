@@ -44,9 +44,8 @@ let print prec assoc fmt (pos, strs) =
   else if not pos && strs = [] then
     Format.fprintf fmt "string"
   else
-    let sym,prec',_ as opinfo = binop_info Diff in
-    fprintf prec assoc opinfo fmt "string%(%)%a" sym (aux prec' Right) strs
-
+    print_binary_op' (print_atomic_str "string") aux
+      prec assoc Diff fmt () strs
 
 let printer_builder = Printer.builder ~to_t ~map ~print
 let printer_params = Printer.{aliases =[]; extensions = [(tag, printer_builder)]}

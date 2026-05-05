@@ -73,14 +73,12 @@ let map _ v = v
 
 let print prec assoc fmt t =
   let rec print_line prec assoc fmt (L (n, t)) =
-    let sym,prec',_ as opinfo = binop_info Diff in
     if t = []
-    then
-      Format.fprintf fmt "%s" (Node.name n)
-    else
-      fprintf prec assoc opinfo fmt "%s%(%)%a"
-        (Node.name n) sym
-        (print_cup print_line prec' NoAssoc) t
+    then Format.fprintf fmt "%s" (Node.name n)
+    else print_binary_op'
+      (print_atomic_str (Node.name n)) (print_cup print_line)
+      prec assoc Diff fmt () t
+
   in
   print_cup print_line prec assoc fmt t
 

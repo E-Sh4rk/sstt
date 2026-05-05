@@ -96,8 +96,8 @@ let print prec assoc fmt t =
   else if not pos && comp = [] then
     Format.fprintf fmt "float"
   else
-    let sym,prec',_ as opinfo = binop_info Diff in
-    fprintf prec assoc opinfo fmt "float%(%)%a" sym (aux prec' Right) comp
+    print_binary_op' (print_atomic_str "float") aux
+      prec assoc Diff fmt () comp
 
 let printer_builder = Printer.builder ~to_t ~map ~print
 

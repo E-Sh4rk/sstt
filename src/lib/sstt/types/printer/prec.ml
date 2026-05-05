@@ -85,6 +85,8 @@ let print_seq f sym fmt l =
 
 (** General printing operators *)
 
+let print_atomic_str str (_ : int) (_ : assoc) fmt () = Format.fprintf fmt "%s" str
+
 let print_nary' fs prec assoc (sym,prec',_ as opinfo) fmt vs =
   match fs, vs with
   | [], [] -> invalid_arg ("N-ary operator cannot be empty")
