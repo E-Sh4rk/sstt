@@ -8,7 +8,8 @@ let ints = [
   "(1..)";
   "(..2)";
   "(7..10)";
-  "(1..6) | (9..12)"
+  "(1..6) | (9..12)";
+  "42"
 ]
 
 let enums = [
@@ -72,6 +73,29 @@ let recur = [
   "x2 where x1 = nil | int | (x1, x2) and x2 = (x2 | (),x1)";
 ]
 
+let vars = [
+  "'A";
+  "'a";
+  "('a,'b,'c)\\('a,'b)";
+  "'a |'b";
+  "'a \\ (int | enum |arrow)";
+  "(record, 'a) \\ (record, 'b)";
+  "(record, 'a) \\ (record, 'B)";
+  "(record, 'A) \\ (record, 'b)";
+  "(record, 'A) \\ (record, 'B)";
+  "(record, 'b) \\ (record, 'a)";
+  "'x & 'y";
+  "'x | 'y";
+  "'x & int | 'x \\ int";
+  "'A -> 'b";
+  "'A -> 'B";
+  "('A -> 'B, 'Y)";
+  "{ a: any ;; 'R }";
+  "'g & ~'a";
+  
+
+]
+
 let mixup = [
   "any";
   "~(true | false)";
@@ -80,6 +104,24 @@ let mixup = [
   "~tag(true | false)";
   "~tag1(true | false) & ~tag2(int)";
   "(int,true | false) \\ (int,true)";
+  "((empty,3,4), 1) | (1,2)";
+  "(1,2) | ((empty,1,2), 2)";
+  "{ b:'b ; a : 73 ;; r } where r = { a:int }";
+  "x2 where
+   x1 = {
+        l1 : any -> any ;
+        l2 : (x2 -> x1) & ({ l1 : int -> int ..} -> any)
+   }
+   and
+   x2 = {
+        l1 : (any -> (x1, x1)) & (any -> (x2, x2)) ;
+        l2 : any -> any
+   }";
+   "{x : int | 'a | 'a -> 'a ; y: (int,int)}";
+   "('a -> ('B -> 'B))-> (('B -> 'B)-> 'a)";
+   "{x : 'a -> 'b} & 'a ";
+   "x where x = (('a, x) | ('a, nil)) & 'a";
+   "(x,'a) where x = ('a, x) | nil"
 ]
 
 let all_tests = ints @
@@ -89,25 +131,40 @@ let all_tests = ints @
                 arrows @
                 records @
                 recur @
+                vars @
                 mixup
 
-let type_all = List.map (fun  a -> 
-    let r, _ = Ast.(build_ty 
-                      empty_env 
-                      (IO.parse_type a)) in 
-    r)
+
+
+let type_all = List.map 
+    (fun  a -> 
+       let r, _ = 
+         Ast.(build_ty 
+                empty_env 
+                (IO.parse_type a)) in 
+       r)
     all_tests
 
+let check_trueness w t =
+  let open Witness in 
+  match w with 
+  | Var (sigma,wit) -> Ty.leq (to_ty wit) (Subst.apply sigma t)
+  | _ -> Ty.leq (to_ty w) t
+
+
+let true_witness w t = 
+      if check_trueness w t then
+        Format.printf "@[<h> %a : %a@]@\n"
+          Printer.print_ty' t
+          Witness.pp w
+      else 
+        Format.printf "FALSE : %a is not a witness of %a\n"
+          Witness.pp w 
+          Printer.print_ty' t
 
 let%expect_test _ = 
   List.iter 
-
-    (fun t -> let w = Witness.mk t in if Witness.is_in w t then 
-        Format.printf "@[%a : %a@]@\n" 
-          Printer.print_ty' t 
-          Witness.pp w 
-      else 
-        Format.printf "FALSE : %a is not a witness of %a\n" Witness.pp w Printer.print_ty' t) 
+    (fun t -> let w = Witness.mk t in  true_witness w t)
     type_all;
   [%expect {|
     int : 42
@@ -115,6 +172,7 @@ let%expect_test _ =
     (..2) : 2
     (7..10) : 7
     (1..6) | (9..12) : 1
+    42 : 42
     enum : " a "
     true | false : " true "
     true : " true "
@@ -140,9 +198,9 @@ let%expect_test _ =
     tuple \ ((int, int) | (true | false, true | false, true | false)) : 0
     tuple \ (int, int) : 0
     tuple \ (int, true | false, true | false) : 0
-    arrow : arrow
-    int -> int : int -> int
-    (bool -> bool) & (int -> int) : (bool -> bool) & (int -> int)
+    arrow : fun : < arrow >
+    int -> int : fun : < int -> int >
+    (bool -> bool) & (int -> int) : fun : < (bool -> bool) & (int -> int) >
     { int : int } : { int : 42 }
     record : {  }
     { l1 : any ; l2 : any ..} : { l1 : 42 ; l2 : 42 }
@@ -160,6 +218,24 @@ let%expect_test _ =
     x1 where x1 = true | false | (x1 -> any) : " true "
     true | (x1 -> any) where x1 = true | false | (x1 -> any) : " true "
     x2, x1 where x1 = nil | int | (x1, (x2, x1)) and x2 = tuple0 | (x2, x1) : tuple0, 42
+    'A : 42 with subst [ 'A : any ]
+    'a : 42 with subst [ 'a : any ]
+    'a, 'b, 'c : 42, 42, 42 with subst [ 'a : any ; 'b : any ; 'c : any ]
+    'b | 'a : 42 with subst [ 'a : any ]
+    'a \ (enum | arrow | int) : a(16) with subst [ 'a : any ]
+    (record, 'a) \ (record, 'b) : {  }, 42 with subst [ 'a : any ; 'b : empty ]
+    (record, 'a) \ (record, 'B) : {  }, 42 with subst [ 'a : any ; 'B : empty ]
+    (record, 'A) \ (record, 'b) : {  }, 42 with subst [ 'A : any ; 'b : empty ]
+    (record, 'A) \ (record, 'B) : {  }, 42 with subst [ 'A : any ; 'B : empty ]
+    (record, 'b) \ (record, 'a) : {  }, 42 with subst [ 'b : any ; 'a : empty ]
+    'y & 'x : 42 with subst [ 'x : any ; 'y : any ]
+    'y | 'x : 42 with subst [ 'x : any ]
+    'x : 42 with subst [ 'x : any ]
+    'A -> 'b : arrow with subst [ 'A : empty ; 'b : empty ]
+    'A -> 'B : arrow with subst [ 'A : empty ; 'B : empty ]
+    'A -> 'B, 'Y : arrow, 42 with subst [ 'A : empty ; 'B : empty ; 'Y : any ]
+    { a : any ;; 'R } : {  ;; 42 } with subst [ 'R : any ]
+    'g \ 'a : 42 with subst [ 'g : any ; 'a : empty ]
     any : 42
     ~(true | false) : 42
     tuple0 : tuple0
@@ -167,4 +243,13 @@ let%expect_test _ =
     ~tag(true | false) : 42
     ~(tag1(true | false) | tag2(int)) : 42
     (int, true | false) \ (int, true) : 42, false
+    1, 2 : 1, 2
+    1, 2 : 1, 2
+    { a : 73 ; b : 'b ;; { a : int } } : { a : 73 ; b : 42 ;; { a : 42 } } with subst [ 'b : any ]
+    x2 where x1 = { l1 : any -> any ; l2 : (x2 -> x1) & ({ l1 : int -> int ..} -> any) } and x2 = { l1 : (any -> (x2, x2)) & (any -> (x1, x1)) ; l2 : any -> any } : { l1 : x2 ; l2 : any -> any } where x1 = { l1 : any -> any ; l2 : ({ l1 : x2 ; l2 : any -> any } -> x1) & ({ l1 : int -> int ..} -> any) } and x2 = (any -> ({ l1 : x2 ; l2 : any -> any }, { l1 : x2 ; l2 : any -> any })) & (any -> (x1, x1))
+    { x : int | 'a -> 'a ; y : int, int } : { x : int -> empty ; y : 42, 42 } with subst [ 'a : empty ]
+    ('a -> 'B -> 'B) -> ('B -> 'B) -> 'a : arrow -> arrow -> empty with subst [ 'a : empty ; 'B : empty ]
+    'a & { x : 'a -> 'b } : { x : any -> empty } with subst [ 'a : any ; 'b : empty ]
+    x1 where x1 = 'a & (('a, nil) | ('a, x1)) : 42, nil with subst [ 'a : any ]
+    x1, 'a where x1 = nil | ('a, x1) : nil, 42 with subst [ 'a : any ]
     |}]

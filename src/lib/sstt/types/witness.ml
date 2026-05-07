@@ -6,9 +6,10 @@ type t = Int of Z.t
        | Tag of (Tag.t * t)
        | Tuple of t list
        | Record of (Label.t * t) list * (t option)
+       | Var of (Subst.t * t)
        | Other
 
-module DHash = Hashtbl.Make(Descr)
+module DHash = Hashtbl.Make(Ty)
 let mem = DHash.create 16
 
 let rec to_ty s =
@@ -29,26 +30,41 @@ let rec to_ty s =
       | None -> F.OTy.absent |> F.mk_descr in
     Row.mk binding tail |> Row.to_record_atom |> mk_record |> mk_descr
   | Other -> mk_others true |> mk_descr
+  | Var (_,w) -> to_ty w
+
+let _some_to_ty w =
+  match w with 
+  |Some s -> to_ty s
+  |None -> Ty.empty
 
 let create_record_tail tail = let open Ty.F in 
   (match tail with 
    | Some t -> to_ty t |> OTy.required |> mk_descr 
    | None -> OTy.absent |> mk_descr)
-let pp fmt s =
+
+let pp_subst fmt s = 
+  let s = Subst.bindings1 s in 
+  Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt " ; ") (fun fmt (a,b) -> Format.fprintf fmt "@[<h>%a : %a@]" Var.pp a Printer.print_ty' b) fmt s
+
+
+let pp fmt w =
   let open Format in 
   let open Printer in 
-  match s with
-    Int i -> Z.pp_print fmt i
-  | Enum s -> fprintf fmt "\" %a \"" print_ty' (to_ty (Enum s))
-  | Tuple t -> print_ty' fmt (to_ty (Tuple t))
-  | Tag ta -> print_ty' fmt (to_ty (Tag ta))
-  | Arrow a -> print_ty' fmt (to_ty (Arrow a))
-  | Record (b,t) -> print_ty' fmt (to_ty (Record(b,t)))
+  match w with
+  | Int i -> Z.pp_print fmt i
+  | Enum _ -> fprintf fmt "\" %a \"" print_ty' (to_ty w)
+  | Tuple _ -> print_ty' fmt (to_ty w)
+  | Tag _ -> print_ty' fmt (to_ty w)
+  | Arrow _ -> fprintf fmt "fun : < %a >" print_ty' (to_ty w)
+  | Record _ -> print_ty' fmt (to_ty w)
   | Other -> pp_print_string fmt "Other"
+  | Var (s,wit) -> Format.fprintf fmt "%a with subst [ %a ]" print_ty' (to_ty wit) pp_subst s
+
+
 
 let compare w1 w2 = 
   match (w1,w2) with 
-    Int i1,Int i2 -> Z.compare i1 i2
+  | Int i1,Int i2 -> Z.compare i1 i2
   | Int _, _ -> -1
   | _, Int _ -> 1
   | Enum e1, Enum e2 -> Enums.Atom.compare e1 e2
@@ -172,7 +188,7 @@ let mk_enums t =
    Assume that the arrow part of [t] is non-empty.
    Don't go inside the domains of the arrows, 
    just return the arrow with all the positive atoms 
-   and the tinyest subgroup of negative atoms that allow
+   and the tiniest subgroup of negative atoms that allow
    to create a subtype of the arrow.
 *)
 let mk_arrows t = 
@@ -231,7 +247,7 @@ let rec len_false_tag len l =
 (**[mk_tags_mem make t] return one value present in the tuple part of [t].
    Assume that the tag part of [t] is non-empty.
    If the elements of [t] are known, take one tag component (tag, type) and return the tag ta(witness ty).
-   If the elements of [not t] are known, return tag(16) with tag being the character 'a' repeated n times, n beign a length of no other tag.
+   If the elements of [not t] are known, return tag(16) with tag being the character 'a' repeated n times, n being a length of no other tag.
 *)
 let mk_tags_mem make t = 
   let t_tag = Ty.get_descr t |> Descr.get_tags |> Tags.destruct in 
@@ -358,7 +374,7 @@ let rec mk_records_list make l =
 
 (**[mk_record_mem make t] return one value present in the record part of [t].
    Assume that the record part of [t] is non-empty.
-   Return a record made from one non_empty atom of r the record part of t with the following caracteristics :
+   Return a record made from one non_empty atom of r the record part of t with the following characteristics :
    - for every (l_i : f_i) of the binding part of r : if f_i is required, add (l_i : witness f_i) to the inhabitant.
    - for every (L_i : e_i) of the exists part of r : if (e_i && tail) is required, 
      add (l'_i : witness (e_i && tail)) to the binding,
@@ -376,6 +392,28 @@ let mk_other t =
   if Ty.get_descr t |> Descr.get_others then Some Other else
     None
 
+let rec polyw t = 
+  let v = Ty.vars t in 
+  if (VarSet.is_empty v) then Subst.identity else 
+    let s = Tallying.tally MixVarSet.empty [(t, Ty.empty)] in 
+    if List.is_empty s 
+    then VarSet.to_list v |> List.map (fun x -> (x, Ty.empty)) |> Subst.of_list1  
+    else let sigma = List.hd s in 
+      let alpha = Subst.domain1 sigma |> VarSet.choose in 
+      let to_reject = Subst.find1 sigma alpha in 
+      let sigma_fix = Subst.singleton1 alpha Ty.empty in
+      let to_reject_refined = Subst.apply sigma_fix to_reject in 
+      let new_sigma = Subst.singleton1 alpha (Ty.neg to_reject_refined) in
+      Subst.combine new_sigma (polyw (Subst.apply new_sigma t)) 
+
+
+let mk_var mk_mem sigma t = 
+  let wit = mk_mem (Subst.apply sigma t) in 
+  match wit with 
+  |Some w -> Some (Var (sigma, w))
+  |None -> None
+
+
   (*
 https://ocaml.org/manual/5.4/bindingops.html
 *)
@@ -385,22 +423,27 @@ let (let*) o f =
   | Some _ -> o 
 
 let rec mk_mem t = 
-  let t_descr = Ty.get_descr t in 
-  match DHash.find mem t_descr with 
+  match DHash.find mem t with 
   | None -> None
   | Some _ as w -> w
   | exception Not_found ->
-    DHash.add mem t_descr None;
+    DHash.add mem t None;
+
     let w = 
-      let* () = mk_intervals t in 
-      let* () = mk_enums t in
-      let* () =  mk_arrows t in
-      let* () = mk_tags_mem mk_mem t in 
-      let* () = mk_tuples_mem mk_mem t in
-      let* () =  mk_records_mem mk_mem t in
-      let* () = mk_other t in 
-      None
-    in DHash.replace mem t_descr w;w
+      let sigma = polyw t in 
+      if Subst.is_identity sigma then 
+        let* () = mk_intervals t in 
+        let* () = mk_enums t in
+        let* () =  mk_arrows t in
+        let* () = mk_tags_mem mk_mem t in 
+        let* () = mk_tuples_mem mk_mem t in
+        let* () =  mk_records_mem mk_mem t in
+        let* () = mk_other t in 
+        None
+      else mk_var mk_mem sigma t
+    in 
+    DHash.replace mem t w;w
+(*in DHash.replace mem t_descr w;w*)
 
 let mk t = 
   DHash.reset mem;

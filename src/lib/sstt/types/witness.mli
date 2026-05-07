@@ -7,6 +7,7 @@ type t = private
   | Tag of (Tag.t * t)
   | Tuple of t list
   | Record of (Label.t * t ) list * (t option)
+  | Var of (Subst.t * t)
   | Other
 
 
