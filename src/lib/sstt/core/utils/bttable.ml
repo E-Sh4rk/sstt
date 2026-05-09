@@ -70,9 +70,7 @@ module MakeOpt(V : Hashtbl.HashedType)(R : sig type t val equal : t -> t-> bool 
 end = struct
   module H = Hashtbl.Make(V)
 
-  type stack =
-      Nil
-    | Cons of { entry : entry; mutable marked : bool ; next : stack }
+  type stack = entry list
   and entry = {
     mutable dependencies : stack list;  (* the top of the stack at the time the entry was accessed *)
     mutable result : R.t option;        (* the result stored in this entry. None indicates that
@@ -84,15 +82,15 @@ end = struct
     table :  entry H.t;                 (* The table of all entries *)
     mutable stack : stack;              (* The stack of entries. *)
   }
-  let create () = { table = H.create 0; stack = Nil}
-  let clear t = H.clear t.table; t.stack <- Nil
+  let create () = { table = H.create 0; stack = []}
+  let clear t = H.clear t.table; t.stack <- []
 
   let find ~default t key =
     match H.find_opt t.table key with
     | None | Some { result = None; _ } ->
       (* The key is not in the table or has a stale entry, overwrite it *)
       let entry = { dependencies = []; result = Some default } in
-      t.stack <- Cons { entry; marked = false; next = t.stack };
+      t.stack <- entry :: t.stack;
       H.replace t.table key entry;
       None
     | Some entry ->
@@ -104,25 +102,25 @@ end = struct
      entry to None, to mark it as stale. This allows us to not remove
      the entry from the table (avoid a table look-up using the key).
      This also ensures that an entry is not invalidated more than once.
-     We also mark stack levels. This way we do not iterate the same path twice.
   *)
   let rec invalidate_stack stop stack todo =
-    match stack with
-    |  Cons ({entry; marked; next } as cs) when not marked && stack != stop ->
-      cs.marked <- true; (* mark the level to not traverse it several times *)
-      if entry.result <> None then begin
-        entry.result <- None;
-        invalidate stop entry.dependencies
-      end;
-      invalidate_stack stop next todo
-    | _ -> invalidate stop todo
+    if stack == stop then invalidate stop todo
+    else
+      match stack with
+      |  entry :: next ->
+        if entry.result <> None then begin
+          entry.result <- None;
+          invalidate stop entry.dependencies
+        end;
+        invalidate_stack stop next todo
+      | [] -> invalidate stop todo
   and[@inline always] invalidate stop = function
       [] -> ()
     | dep :: todo -> invalidate_stack stop dep todo
 
   let[@warning "-27"] update ?(naive=false) t _key r =
     match t.stack  with
-    |  Cons { entry = ({result = Some old_r; _ } as entry ) ;next; _ } ->
+    | {result = Some old_r; _ } as entry ::next ->
       if not (R.equal r old_r) then begin
         entry.result <- Some r;
         invalidate t.stack entry.dependencies;
