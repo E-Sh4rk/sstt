@@ -84,9 +84,9 @@ include (struct
         dependencies = None;
         neg = None;
       }
-    let hash t = Hash.int t.id
+    let hash t = t.id
     let compare t1 t2 = Int.compare t1.id t2.id
-    let equal t1 t2 = Int.equal t1.id t2.id
+    let equal t1 t2 = t1 == t2
     let empty = mk ()
     let any = mk ()
 
@@ -121,7 +121,9 @@ include (struct
     (* The PreNode module that contain the entry points of all functions on types. *)
     module NH = Hashtbl.Make(PreNode)
     module Table = Bttable.MakeOpt(VDescr)(Bool)
-    type _ Effect.t += GetCache: (Table.t) t
+
+    type cache = { is_empty_cache : Table.t }
+    type _ Effect.t += GetCache: cache t
 
     type vdescr = VDescr.t
     type descr = VDescr.Descr.t
@@ -145,9 +147,13 @@ include (struct
       t.def <- Some d ;
       t.dependencies <- None ;
       t.simplified <- simplified
+
     let cons ?(simplified=false) d =
-      let t = mk () in
-      define ~simplified t d ; t
+      if VDescr.(equal d empty) then empty
+      else if VDescr.(equal d any) then any
+      else
+        let t = mk () in
+        define ~simplified t d ; t
 
     let of_def d = d |> cons
 
@@ -175,23 +181,28 @@ include (struct
     let disj ts = List.fold_left cup empty ts
 
     let get_cache () = perform GetCache
+
     let with_own_cache f t =
-      let cache = Table.create () in
-      match f t with
-        x -> x
-      | effect GetCache, k -> continue k cache
+      let cache : cache option ref = ref None in
+      try f t with
+      | effect GetCache, k ->
+        match !cache with
+          Some c -> continue k c
+        | None -> let c = { is_empty_cache = Table.create () } in
+          cache := Some c;
+          continue k c
 
     let is_empty t =
       let def = def t in
       if t.simplified then
         VDescr.equal def VDescr.empty
       else
-        let cache = get_cache () in
-        begin match Table.find ~default:true cache def with
+        let { is_empty_cache; _ } = get_cache () in
+        begin match Table.find ~default:true is_empty_cache def with
           | Some b -> b
           | None ->
             let b = VDescr.is_empty def in
-            Table.update cache def b;
+            Table.update is_empty_cache def b;
             b
         end
 
