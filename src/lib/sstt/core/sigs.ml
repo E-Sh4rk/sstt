@@ -15,14 +15,6 @@ module type Comparable = sig
   *)
 end
 
-module type Comparable' = sig
-  type t
-  type node
-  val compare' : (node -> node -> int) -> t -> t -> int
-  val equal' : (node -> node -> bool) -> t -> t -> bool
-  val hash' : (node -> int) -> t -> int
-end
-
 module type TyBase = sig
   type t
 
@@ -336,7 +328,6 @@ module type OTy = sig
                                 and type node := node
                                 and type atom := Atom.t
 
-    include Comparable' with type node := node and type t := t (** @inline *)
 
     val get : t -> Atom.t
 
@@ -445,8 +436,6 @@ module type FTy = sig
     and type leaf := OTy.t and type var := RowVar.t
     and module VarSet := RowVarSet
     and module VarMap := RowVarMap
-
-  include Comparable' with type node := node and type t := t (** @inline *)
 
 end
 

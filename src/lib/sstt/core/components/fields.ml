@@ -80,9 +80,6 @@ module OTy(N:Node) = struct
   let equal = Bdd.equal
   let compare = Bdd.compare
   let hash = Bdd.hash
-  let equal' f = Bdd.equal' (Atom.equal' f) (BoolLeaf.equal)
-  let compare' f = Bdd.compare' (Atom.compare' f) (BoolLeaf.compare)
-  let hash' f = Bdd.hash' (Atom.hash' f) (BoolLeaf.hash)
 
   let leq t1 t2 = diff t1 t2 |> is_empty
   let equiv t1 t2 = leq t1 t2 && leq t2 t1
@@ -92,20 +89,17 @@ module OTy(N:Node) = struct
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
   end
   module Dnf = Dnf.LMake(Comp)
-  let dnf t = N.with_own_cache (fun t -> Bdd.dnf t |> Dnf.export) t
-  let of_dnf dnf = N.with_own_cache (fun dnf -> Dnf.import dnf |> Bdd.of_dnf) dnf
+  let dnf t = Bdd.dnf t |> Dnf.export
+  let of_dnf dnf = Dnf.import dnf |> Bdd.of_dnf
 
   let direct_nodes t = Bdd.atoms t |> List.concat_map Atom.direct_nodes
   let map_nodes f t = Bdd.map_nodes (Atom.map_nodes f) t
   let map f t = Bdd.map_nodes f t
   let simplify t = Bdd.simplify equiv t
+
 end
 
 module Make(N:Node) = struct
   module OTy = OTy(N)
-  include Polymorphic.Make(N)(RowVar)(OTy)
-
-  let equal' f = Bdd.equal' RowVar.equal (OTy.equal' f)
-  let compare' f = Bdd.compare' RowVar.compare (OTy.compare' f)
-  let hash' f = Bdd.hash' RowVar.hash (OTy.hash' f)
+  include Polymorphic.Make(RowVar)(OTy)
 end

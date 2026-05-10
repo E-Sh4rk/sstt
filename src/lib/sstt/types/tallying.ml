@@ -393,26 +393,8 @@ module Make(VS:VarSettings) = struct
 
   (* Caching modules *)
 
-  module VDHash = Hashtbl.Make(VDescr)
-  module FDescr = struct
-    (* Intuitively, this module represents a field descriptor in which
-       direct nodes have been inlined. It is used for caching:
-       to ensure termination, caching of field types should be done
-       by comparing the descriptor of the underlying nodes and not only their id. *)
-
-    module TyHash = Hashtbl.Make(Ty)
-    type t = Ty.F.t * VDescr.t TyHash.t
-    let of_field f =
-      let h = TyHash.create 3 in
-      let cache n = TyHash.replace h n (Ty.def n) ; n in
-      Ty.F.map_nodes cache f |> ignore ;
-      f, h
-    let equal (f1,h1) (f2,h2) = Ty.F.equal'
-      (fun n1 n2 -> VDescr.equal (TyHash.find h1 n1) (TyHash.find h2 n2))
-      f1 f2
-    let hash (f,h) = f |> Ty.F.hash' (fun n -> VDescr.hash (TyHash.find h n))
-  end
-  module FDHash = Hashtbl.Make(FDescr)
+  module MemoTy = Hashtbl.Make(Ty)
+  module MemoFTy = Hashtbl.Make(Ty.F)
 
   (* Core tallying algorithm *)
   
@@ -434,19 +416,19 @@ module Make(VS:VarSettings) = struct
     in psi CSS.any ps ns ()
 
   let norm, norm_field =
-    let memo_ty = VDHash.create 17 in
-    let memo_f = FDHash.create 17 in
+    let memo_ty = MemoTy.create 17 in
+    let memo_f = MemoFTy.create 17 in
     let rec norm_ty t =
       if Ty.is_empty t then CSS.any
       else if MixVarSet.subset (Ty.all_vars t) VS.delta then CSS.empty
-      else norm_vdescr (Ty.def t)
-    and norm_vdescr vd =
-      match VDHash.find_opt memo_ty vd with
+      else norm_vdescr t
+    and norm_vdescr t =
+      match MemoTy.find_opt memo_ty t with
       | Some cstr -> cstr
       | None ->
-        VDHash.add memo_ty vd CSS.any;
-        let res = vd |> VDescr.dnf |> CSS.map_conj norm_summand in
-        VDHash.remove memo_ty vd ; res
+        MemoTy.add memo_ty t CSS.any;
+        let res = t |> Ty.def |> VDescr.dnf |> CSS.map_conj norm_summand in
+        MemoTy.remove memo_ty t ; res
     and norm_summand summand =
       match VToplevel.extract_smallest summand with
       | None ->
@@ -539,13 +521,12 @@ module Make(VS:VarSettings) = struct
       in
       norm_tuple_gen ~diff:Ty.F.diff ~disjoint ~norm:norm_field p ns
     and norm_field (f:Ty.F.t) =
-      let fd = FDescr.of_field f in
-      match FDHash.find_opt memo_f fd with
+      match MemoFTy.find_opt memo_f f with
       | Some cstr -> cstr
       | None ->
-        FDHash.add memo_f fd CSS.any;
+        MemoFTy.add memo_f f CSS.any;
         let res = f |> Ty.F.dnf |> CSS.map_conj norm_field_summand in
-        FDHash.remove memo_f fd ; res
+        MemoFTy.remove memo_f f ; res
     and norm_field_summand summand =
       match FToplevel.extract_smallest summand with
       | None ->
@@ -559,8 +540,8 @@ module Make(VS:VarSettings) = struct
     norm_ty, norm_field
 
   let propagate cs =
-    let memo_ty = VDHash.create 17 in
-    let memo_f = FDHash.create 17 in
+    let memo_ty = MemoTy.create 17 in
+    let memo_f = MemoFTy.create 17 in
     let rec aux (prev,prev') ((cs,cs') : CS'.t) =
       let retry_with css =
         let css_prev () = (prev,prev') |> CSS.singleton in
@@ -574,23 +555,21 @@ module Make(VS:VarSettings) = struct
       | Cons (constr, tl), _ ->
         let (t', _, t) = VC.destruct constr in
         let ty = Ty.diff t' t in
-        let def = Ty.def ty in
-        if VDHash.mem memo_ty def then
+        if MemoTy.mem memo_ty t then
           aux (VCS.add constr prev, prev') (tl,cs')
         else
-          let () = VDHash.add memo_ty def () in
+          let () = MemoTy.add memo_ty t () in
           let res = norm ty |> retry_with in
-          VDHash.remove memo_ty def ; res
+          MemoTy.remove memo_ty t ; res
       | Nil, Cons (constr, tl) ->
         let (f', _, f) = FC.destruct constr in
         let f = Ty.F.diff f' f in
-        let def = FDescr.of_field f in
-        if FDHash.mem memo_f def then
+        if MemoFTy.mem memo_f f then
           aux (prev, FCS.add constr prev') (cs,tl)
         else
-          let () = FDHash.add memo_f def () in
+          let () = MemoFTy.add memo_f f () in
           let res = norm_field f |> retry_with in
-          FDHash.remove memo_f def ; res
+          MemoFTy.remove memo_f f ; res
     in
     aux CS'.any cs
 
@@ -636,6 +615,8 @@ module Make(VS:VarSettings) = struct
     let ncss = cs |> CSS.map_conj (fun (s,t) -> norm (Ty.diff s t)) in
     let mcss = ncss |> CSS.to_list |> CSS.map_disj propagate in
     mcss |> CSS.to_list |> List.map solve
+
+  let tally = Ty.with_shared_cache tally
 end
 
 (* =============== Operations on row and field variables =============== *)

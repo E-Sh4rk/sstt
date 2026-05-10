@@ -3,7 +3,7 @@ open Sigs
 
 module Make(N:Node) = struct
   module Descr = Descr.Make(N)
-  include Polymorphic.Make(N)(Var)(Descr)
+  include Polymorphic.Make(Var)(Descr)
 
   let substitute (s:(t,Descr.Records.Atom.t) MixVarMap.t) t =
     t

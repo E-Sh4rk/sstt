@@ -13,7 +13,7 @@ module type Leaf = sig
   val map_nodes : (node -> node) -> t -> t
 end
 
-module Make(N:Node)(V:Comparable)(L:Leaf with type node = N.t) = struct
+module Make(V:Comparable)(L:Leaf) = struct
   module A = Atom(V)
   module Bdd = Bdd.Make(A)(L)
   module VarMap = Map.Make(V)
@@ -22,8 +22,7 @@ module Make(N:Node)(V:Comparable)(L:Leaf with type node = N.t) = struct
   type leaf = L.t
   type var = V.t
   type t = Bdd.t
-  type node = N.t
-
+  type node = L.node
   let any = Bdd.any
   let empty = Bdd.empty
 
