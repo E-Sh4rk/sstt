@@ -122,15 +122,25 @@ include (struct
     module NH = Hashtbl.Make(PreNode)
     module Table = Bttable.MakeOpt(PreNode)(Bool)
     module ConsCache = Hashtbl.Make(VDescr)
-
+    module BinOpCache = Hashtbl.Make(struct
+        type t = PreNode.t * PreNode.t
+        let equal (t1, t2) (s1, s2) = PreNode.equal t1 s1 && PreNode.equal t2 s2
+        let hash (t1, t2) = Hash.mix (PreNode.hash t1) (PreNode.hash t2) end
+      )
     type cache = { is_empty_cache : Table.t;
-                   cons_cache : PreNode.t ConsCache.t }
+                   cons_cache : PreNode.t ConsCache.t;
+                   inter_cache : PreNode.t BinOpCache.t;
+                   union_cache : PreNode.t BinOpCache.t;
+                   diff_cache : PreNode.t BinOpCache.t }
 
     type _ Effect.t += GetCache: cache t
 
-    let get_cache () = perform GetCache
-    let get_is_empty_cache () = (get_cache ()).is_empty_cache
-    let get_cons_cache () = (get_cache()).cons_cache
+    let[@inline always] get_cache () = perform GetCache
+    let[@inline always] get_is_empty_cache () = (get_cache ()).is_empty_cache
+    let[@inline always] get_cons_cache () = (get_cache()).cons_cache
+    let[@inline always] get_inter_cache () = (get_cache()).inter_cache
+    let[@inline always] get_union_cache () = (get_cache()).union_cache
+    let[@inline always] get_diff_cache () = (get_cache()).diff_cache
 
     type vdescr = VDescr.t
     type descr = VDescr.Descr.t
@@ -176,10 +186,25 @@ include (struct
 
     let of_def d = d |> cons
 
+    let binop op get t1 t2 =
+      try
+        let cache = get () in
+        let key = t1, t2 in
+        match BinOpCache.find_opt cache key with
+          Some t -> t
+        | None ->
+          let t = op t1 t2 in
+          BinOpCache.add cache key t;
+          t
+      with Unhandled GetCache -> op t1 t2
+
+
     let dcap t1 t2 = VDescr.cap (def t1) (def t2) |> cons
+    let dcap = binop dcap get_inter_cache
     let cap = fcap ~empty ~any ~cap:dcap
 
     let dcup t1 t2 = VDescr.cup (def t1) (def t2) |> cons
+    let dcup = binop dcup get_union_cache
     let cup = fcup ~empty ~any ~cup:dcup
 
     let neg t =
@@ -194,24 +219,28 @@ include (struct
     let neg = fneg ~empty ~any ~neg
 
     let fdiff t1 t2 = VDescr.diff (def t1) (def t2) |> cons
+    let fdiff = binop fdiff get_diff_cache
     let diff = fdiff_neg ~empty ~any ~neg ~diff:fdiff
 
     let conj ts = List.fold_left cap any ts
     let disj ts = List.fold_left cup empty ts
 
-    let with_own_cache f t =
+    let with_shared_cache f t =
       let cache : cache option ref = ref None in
       try f t with
       | effect GetCache, k ->
         match !cache with
           Some c -> continue k c (* the topmost cache has already been found *)
         | None ->
-          (* Otherwise, we perform the effect again, to reach the topmost call to with_own_cache *)
-          let c = try perform GetCache with Unhandled GetCache ->
+          (* Otherwise, we perform the effect again, to reach the topmost call to with_shared_cache *)
+          let c = try get_cache () with Unhandled GetCache ->
 
             (* no handler above us, create the cache *)
             { is_empty_cache = Table.create ();
-              cons_cache = ConsCache.create 16 }
+              cons_cache = ConsCache.create 16;
+              inter_cache = BinOpCache.create 16;
+              union_cache = BinOpCache.create 16;
+              diff_cache = BinOpCache.create 16 }
           in
           cache := Some c; (* store the returned cache *)
           continue k c
@@ -229,12 +258,12 @@ include (struct
             b
         end
 
-    let is_empty = with_own_cache is_empty
+    let is_empty = with_shared_cache is_empty
 
     let leq t1 t2 = diff t1 t2 |> is_empty
     let equiv t1 t2 = leq t1 t2 && leq t2 t1
 
-    let equiv = with_own_cache equiv
+    let equiv = with_shared_cache equiv
 
     let is_any t = neg t |> is_empty
     let disjoint t1 t2 = cap t1 t2 |> is_empty
@@ -249,7 +278,7 @@ include (struct
         | Some nt -> define ~simplified:true nt (VDescr.neg s_def);
       end
 
-    let simplify = with_own_cache simplify
+    let simplify = with_shared_cache simplify
 
     let dependencies t =
       let direct_nodes t = def t |> VDescr.direct_nodes |> NSet.of_list in
@@ -359,7 +388,7 @@ include (struct
       in
       aux t
 
-    let factorize = with_own_cache factorize
+    let factorize = with_shared_cache factorize
 
     let mk_var v = VDescr.mk_var v |> cons
     let mk_descr d = VDescr.mk_descr d |> cons

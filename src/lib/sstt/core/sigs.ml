@@ -1100,7 +1100,7 @@ module type PreNode = sig
 
   include SetTheoretic with type t := t
   include SetTheoreticOps with type t := t
-  val with_own_cache : ('a -> 'b) -> 'a -> 'b
+  val with_shared_cache : ('a -> 'b) -> 'a -> 'b
 
   val vars : t -> VarSet.t
   val vars_toplevel : t -> VarSet.t
