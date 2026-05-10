@@ -229,8 +229,13 @@ include (struct
             b
         end
 
+    let is_empty = with_own_cache is_empty
+
     let leq t1 t2 = diff t1 t2 |> is_empty
     let equiv t1 t2 = leq t1 t2 && leq t2 t1
+
+    let equiv = with_own_cache equiv
+
     let is_any t = neg t |> is_empty
     let disjoint t1 t2 = cap t1 t2 |> is_empty
 
@@ -243,6 +248,8 @@ include (struct
           None -> ()
         | Some nt -> define ~simplified:true nt (VDescr.neg s_def);
       end
+
+    let simplify = with_own_cache simplify
 
     let dependencies t =
       let direct_nodes t = def t |> VDescr.direct_nodes |> NSet.of_list in
@@ -351,6 +358,8 @@ include (struct
           end
       in
       aux t
+
+    let factorize = with_own_cache factorize
 
     let mk_var v = VDescr.mk_var v |> cons
     let mk_descr d = VDescr.mk_descr d |> cons

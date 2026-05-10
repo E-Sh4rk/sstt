@@ -95,16 +95,16 @@ module MakeC(N:Node) = struct
 
   let dnf (n, bdd) =
     let (export,_,_,_) = dnf_funs n in
-    N.with_own_cache (fun bdd -> Bdd.dnf bdd |> export) bdd
+    Bdd.dnf bdd |> export
   let of_dnf n dnf =
     let (_,import,_,_) = dnf_funs n in
-    N.with_own_cache (fun dnf -> n, import dnf |> Bdd.of_dnf) dnf
+    n, import dnf |> Bdd.of_dnf
   let dnf' (n, bdd) =
     let (_,_,export',_) = dnf_funs n in
-    N.with_own_cache (fun bdd -> Bdd.dnf bdd |> export') bdd
+    Bdd.dnf bdd |> export'
   let of_dnf' n dnf =
     let (_,_,_,import') = dnf_funs n in
-    N.with_own_cache (fun dnf -> n, import' dnf |> Bdd.of_dnf) dnf
+    n, import' dnf |> Bdd.of_dnf
 
   let direct_nodes (_,t) = Bdd.atoms t |> List.concat_map Atom.direct_nodes
   let map_nodes f (tag,t) = tag, Bdd.map_nodes (Atom.map_nodes f) t
