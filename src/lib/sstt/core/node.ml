@@ -120,10 +120,17 @@ include (struct
                          and type row = VDescr.Descr.Records.Atom.t = struct
     (* The PreNode module that contain the entry points of all functions on types. *)
     module NH = Hashtbl.Make(PreNode)
-    module Table = Bttable.MakeOpt(VDescr)(Bool)
+    module Table = Bttable.MakeOpt(PreNode)(Bool)
+    module ConsCache = Hashtbl.Make(VDescr)
 
-    type cache = { is_empty_cache : Table.t }
+    type cache = { is_empty_cache : Table.t;
+                   cons_cache : PreNode.t ConsCache.t }
+
     type _ Effect.t += GetCache: cache t
+
+    let get_cache () = perform GetCache
+    let get_is_empty_cache () = (get_cache ()).is_empty_cache
+    let get_cons_cache () = (get_cache()).cons_cache
 
     type vdescr = VDescr.t
     type descr = VDescr.Descr.t
@@ -148,12 +155,24 @@ include (struct
       t.dependencies <- None ;
       t.simplified <- simplified
 
+    (* If a handler for the GetCache effect is in place,
+       memoize the node. Otherwise just create a fresh node.
+    *)
     let cons ?(simplified=false) d =
       if VDescr.(equal d empty) then empty
       else if VDescr.(equal d any) then any
       else
-        let t = mk () in
-        define ~simplified t d ; t
+        try
+          let cache = get_cons_cache () in
+          match ConsCache.find_opt cache d with
+            Some t -> t
+          | None ->
+            let t = mk () in
+            ConsCache.add cache d t;
+            define ~simplified t d ; t
+        with
+          Unhandled GetCache ->
+          let t = mk () in define ~simplified t d; t
 
     let of_def d = d |> cons
 
@@ -180,29 +199,33 @@ include (struct
     let conj ts = List.fold_left cap any ts
     let disj ts = List.fold_left cup empty ts
 
-    let get_cache () = perform GetCache
-
     let with_own_cache f t =
       let cache : cache option ref = ref None in
       try f t with
       | effect GetCache, k ->
         match !cache with
-          Some c -> continue k c
-        | None -> let c = { is_empty_cache = Table.create () } in
-          cache := Some c;
+          Some c -> continue k c (* the topmost cache has already been found *)
+        | None ->
+          (* Otherwise, we perform the effect again, to reach the topmost call to with_own_cache *)
+          let c = try perform GetCache with Unhandled GetCache ->
+
+            (* no handler above us, create the cache *)
+            { is_empty_cache = Table.create ();
+              cons_cache = ConsCache.create 16 }
+          in
+          cache := Some c; (* store the returned cache *)
           continue k c
 
     let is_empty t =
-      let def = def t in
       if t.simplified then
-        VDescr.equal def VDescr.empty
+        VDescr.equal (def t) VDescr.empty
       else
-        let { is_empty_cache; _ } = get_cache () in
-        begin match Table.find ~default:true is_empty_cache def with
+        let cache = get_is_empty_cache () in
+        begin match Table.find ~default:true cache t with
           | Some b -> b
           | None ->
-            let b = VDescr.is_empty def in
-            Table.update is_empty_cache def b;
+            let b = VDescr.is_empty (def t) in
+            Table.update cache t b;
             b
         end
 

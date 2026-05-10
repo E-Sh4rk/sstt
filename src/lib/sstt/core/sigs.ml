@@ -705,7 +705,7 @@ module type Records = sig
   *)
 
   type node
-  
+
   (** @canonical Sstt.Ty.F *)
   module FTy : FTy with type node := node
 
@@ -1225,7 +1225,7 @@ module type Ty = sig
   *)
 
   val all_vars : t -> MixVarSet.t
-  
+
   val all_vars_toplevel : t -> MixVarSet.t
 
   val nodes : t -> t list
@@ -1245,6 +1245,18 @@ module type Ty = sig
   val factorize : t -> t
   (** [factorize t] factorizes equivalent nodes in [t].
       This operation may be expensive since it calls {!equiv} internally.
+  *)
+
+  val with_shared_cache : ('a -> 'b) -> 'a -> 'b
+  (** [with_shared_cache f x] computes [f x]. All call to the subtyping algorithm
+      ([is_empty], [leq], [equiv], [disjoint]) will share the same backtracking
+      cache. Furthermore, given an initial type [t] (existing before the call to
+      [with_shared_cache f x]), the set of types that can be created during the
+      computation by applying (repetitively) projections, union, intersections,
+      and negations to [t] is guaranteed to be finite. In otherwords, within the
+      scope of [with_shared_cache f x], [equal] implies syntactic equality of
+      types. All ressources (memoization and backtracking caches) are freed when
+      [with_shared_cache f x] returns.
   *)
 
 

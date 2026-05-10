@@ -66,6 +66,8 @@ module Ty : Ty = struct
   let is_any t = N.with_own_cache N.is_any t
 
   let compare, equal, hash = N.compare, N.equal, N.hash
+
+  let with_shared_cache = N.with_own_cache
 end
 
 (** @canonical Sstt.VDescr *)
