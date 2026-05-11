@@ -56,6 +56,7 @@ include (struct
       mutable def : VDescr.t option ;
       mutable simplified : bool ;
       mutable dependencies : NSet.t option;
+      mutable all_vars : MixVarSet.t option;
       mutable neg : t option
     }
   end = TyRef (* Trick: a recursive module with only types can be its own definition *)
@@ -82,6 +83,7 @@ include (struct
         def = None ;
         simplified = false ;
         dependencies = None;
+        all_vars = None;
         neg = None;
       }
     let hash t = t.id
@@ -103,7 +105,7 @@ include (struct
       any.dependencies <- Some (NSet.singleton any)
   end
   and Node : Node with type t = AnyEmpty.t and type vdescr = VDescr.t and type descr = VDescr.Descr.t
-                   and type row = VDescr.Descr.Records.Atom.t = struct
+                                                                      and type row = VDescr.Descr.Records.Atom.t = struct
     (* The module which contains any and empty that is passed to Vdescr.Make *)
     include PreNode
     (* We need to duplicate these here, has the one in PreNode are uninitialized  *)
@@ -117,9 +119,8 @@ include (struct
   and NSet : Set.S with type elt = AnyEmpty.t = Set.Make(PreNode) (* Sets of Node.t, but use PreNode to have a well defined cycle *)
   and VDescr : VDescr' with type node = Node.t = Vdescr.Make(Node) (* Instanciate VDescr *)
   and PreNode : PreNode with type t = AnyEmpty.t and type vdescr = VDescr.t and type descr = VDescr.Descr.t
-                         and type row = VDescr.Descr.Records.Atom.t = struct
+                                                                            and type row = VDescr.Descr.Records.Atom.t = struct
     (* The PreNode module that contain the entry points of all functions on types. *)
-    module NH = Hashtbl.Make(PreNode)
     module Table = Bttable.MakeOpt(PreNode)(Bool)
     module ConsCache = Hashtbl.Make(VDescr)
     module BinOpCache = Hashtbl.Make(struct
@@ -127,6 +128,7 @@ include (struct
         let equal (t1, t2) (s1, s2) = PreNode.equal t1 s1 && PreNode.equal t2 s2
         let hash (t1, t2) = Hash.mix (PreNode.hash t1) (PreNode.hash t2) end
       )
+
     type cache = { is_empty_cache : Table.t;
                    cons_cache : PreNode.t ConsCache.t;
                    inter_cache : PreNode.t BinOpCache.t;
@@ -135,12 +137,36 @@ include (struct
 
     type _ Effect.t += GetCache: cache t
 
+    let create_cache () =
+      { is_empty_cache = Table.create ();
+        cons_cache = ConsCache.create 16;
+        inter_cache = BinOpCache.create 16;
+        union_cache = BinOpCache.create 16;
+        diff_cache = BinOpCache.create 16 }
+
     let[@inline always] get_cache () = perform GetCache
     let[@inline always] get_is_empty_cache () = (get_cache ()).is_empty_cache
     let[@inline always] get_cons_cache () = (get_cache()).cons_cache
     let[@inline always] get_inter_cache () = (get_cache()).inter_cache
     let[@inline always] get_union_cache () = (get_cache()).union_cache
     let[@inline always] get_diff_cache () = (get_cache()).diff_cache
+
+    let with_shared_cache f t =
+      let cache : cache option ref = ref None in
+      try f t with
+      | effect GetCache, k ->
+        match !cache with
+          Some c -> continue k c (* the topmost cache has already been found *)
+        | None ->
+          (* Otherwise, we perform the effect again, to reach the topmost call to with_shared_cache *)
+          let c = try get_cache () with Unhandled GetCache ->
+            (* no handler above us, create the cache *)
+            create_cache ()
+          in
+          cache := Some c; (* store the returned cache *)
+          continue k c
+
+    module NH = Hashtbl.Make(PreNode)
 
     type vdescr = VDescr.t
     type descr = VDescr.Descr.t
@@ -227,26 +253,6 @@ include (struct
     let conj ts = List.fold_left cap any ts
     let disj ts = List.fold_left cup empty ts
 
-    let with_shared_cache f t =
-      let cache : cache option ref = ref None in
-      try f t with
-      | effect GetCache, k ->
-        match !cache with
-          Some c -> continue k c (* the topmost cache has already been found *)
-        | None ->
-          (* Otherwise, we perform the effect again, to reach the topmost call to with_shared_cache *)
-          let c = try get_cache () with Unhandled GetCache ->
-
-            (* no handler above us, create the cache *)
-            { is_empty_cache = Table.create ();
-              cons_cache = ConsCache.create 16;
-              inter_cache = BinOpCache.create 16;
-              union_cache = BinOpCache.create 16;
-              diff_cache = BinOpCache.create 16 }
-          in
-          cache := Some c; (* store the returned cache *)
-          continue k c
-
     let is_empty_rec t =
       let cache = get_is_empty_cache () in
       begin match Table.find ~default:true cache t with
@@ -277,6 +283,8 @@ include (struct
       let s_def = def t |> VDescr.simplify in
       define ~simplified:true t s_def;
       s_def |> VDescr.direct_nodes |> List.iter simplify_aux;
+      t.dependencies <- None;
+      t.all_vars <- None;
       match t.neg with
         None -> ()
       | Some nt -> define ~simplified:true nt (VDescr.neg s_def)
@@ -309,7 +317,12 @@ include (struct
       NSet.fold (fun n -> VarSet.union (vars_toplevel n)) (dependencies t) VarSet.empty
     let row_vars t =
       NSet.fold (fun n -> RowVarSet.union (row_vars_toplevel n)) (dependencies t) RowVarSet.empty
-    let all_vars t = MixVarSet.of_set (vars t) (row_vars t)
+    let all_vars t = 
+      match t.all_vars with
+       Some s -> s
+       | None ->
+        let s = MixVarSet.of_set (vars t) (row_vars t) in
+        t.all_vars <- Some s; s
 
     let of_eqs eqs =
       let deps = eqs
@@ -340,7 +353,7 @@ include (struct
                   if has_def nn then Some (v, def nn) else None
                 ) in
               let d = def n |> VDescr.map_nodes new_node
-              |> VDescr.substitute (MixVarMap.of_list1 s) in
+                      |> VDescr.substitute (MixVarMap.of_list1 s) in
               define nn d
             end ;
             define_all (NSet.remove n deps)
@@ -350,26 +363,26 @@ include (struct
 
     let substitute s t =
       if MixVarMap.is_empty s then t else
-      let dom = MixVarMap.fold
-        (fun n _ -> MixVarSet.add1 n)
-        (fun r _ -> MixVarSet.add2 r)
-          s MixVarSet.empty in
-      let s = s |> MixVarMap.map1 (fun n -> def n) in
-      (* Optimisation: reuse nodes if possible *)
-      let unchanged n = MixVarSet.disjoint (all_vars n) dom in
-      let deps = dependencies t |> NSet.filter (fun n -> unchanged n |> not) in
-      let copies = NH.create 10 in
-      let () = NSet.iter (fun n -> NH.add copies n (mk ())) deps in
-      let new_node n =
-        match NH.find_opt copies n with
-        | Some n -> n
-        | None -> n
-      in
-      deps |> NSet.iter (fun n ->
-          let d = def n |> VDescr.map_nodes new_node |> VDescr.substitute s in
-          define (new_node n) d
-        ) ;
-      new_node t
+        let dom = MixVarMap.fold
+            (fun n _ -> MixVarSet.add1 n)
+            (fun r _ -> MixVarSet.add2 r)
+            s MixVarSet.empty in
+        let s = s |> MixVarMap.map1 (fun n -> def n) in
+        (* Optimisation: reuse nodes if possible *)
+        let unchanged n = MixVarSet.disjoint (all_vars n) dom in
+        let deps = dependencies t |> NSet.filter (fun n -> unchanged n |> not) in
+        let copies = NH.create 10 in
+        let () = NSet.iter (fun n -> NH.add copies n (mk ())) deps in
+        let new_node n =
+          match NH.find_opt copies n with
+          | Some n -> n
+          | None -> n
+        in
+        deps |> NSet.iter (fun n ->
+            let d = def n |> VDescr.map_nodes new_node |> VDescr.substitute s in
+            define (new_node n) d
+          ) ;
+        new_node t
 
     let factorize t =
       let cache = NH.create 10 in
@@ -405,6 +418,6 @@ include (struct
 
 end : sig (* Hide everything, we could also add that in a .mli file. *)
            module rec Node : (Node with type vdescr = VDescr.t and type descr = VDescr.Descr.t
-                                    and type row=VDescr.Descr.Records.Atom.t)
+                                                               and type row=VDescr.Descr.Records.Atom.t)
            and VDescr : VDescr with type node = Node.t
          end)
