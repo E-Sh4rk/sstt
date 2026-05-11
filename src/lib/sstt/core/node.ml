@@ -175,7 +175,9 @@ include (struct
         try
           let cache = get_cons_cache () in
           match ConsCache.find_opt cache d with
-            Some t -> t
+            Some t ->
+            if not t.simplified && simplified then t.simplified <- true;
+            t
           | None ->
             let t = mk () in
             ConsCache.add cache d t;
@@ -245,40 +247,43 @@ include (struct
           cache := Some c; (* store the returned cache *)
           continue k c
 
-    let is_empty t =
-      if t.simplified then
-        VDescr.equal (def t) VDescr.empty
-      else
-        let cache = get_is_empty_cache () in
-        begin match Table.find ~default:true cache t with
-          | Some b -> b
-          | None ->
-            let b = VDescr.is_empty (def t) in
-            Table.update cache t b;
-            b
-        end
+    let is_empty_rec t =
+      let cache = get_is_empty_cache () in
+      begin match Table.find ~default:true cache t with
+        | Some b -> b
+        | None ->
+          let b = VDescr.is_empty (def t) in
+          Table.update cache t b;
+          b
+      end
 
-    let is_empty = with_shared_cache is_empty
+    let is_empty_rec = with_shared_cache is_empty_rec
+
+    let is_empty t =
+      if t == empty then true
+      else if t == any then false
+      else if t.simplified then VDescr.equal (def t) VDescr.empty
+      else is_empty_rec t
 
     let leq t1 t2 = diff t1 t2 |> is_empty
-    let equiv t1 t2 = leq t1 t2 && leq t2 t1
 
+    let equiv t1 t2 = leq t1 t2 && leq t2 t1
     let equiv = with_shared_cache equiv
 
     let is_any t = neg t |> is_empty
     let disjoint t1 t2 = cap t1 t2 |> is_empty
 
-    let rec simplify t =
-      if not t.simplified then begin
-        let s_def = def t |> VDescr.simplify in
-        define ~simplified:true t s_def;
-        s_def |> VDescr.direct_nodes |> List.iter simplify;
-        match t.neg with
-          None -> ()
-        | Some nt -> define ~simplified:true nt (VDescr.neg s_def);
-      end
+    let rec simplify_rec t =
+      let s_def = def t |> VDescr.simplify in
+      define ~simplified:true t s_def;
+      s_def |> VDescr.direct_nodes |> List.iter simplify_aux;
+      match t.neg with
+        None -> ()
+      | Some nt -> define ~simplified:true nt (VDescr.neg s_def)
+    and simplify_aux t = if not t.simplified then simplify_rec t
 
-    let simplify = with_shared_cache simplify
+    let simplify_rec = with_shared_cache simplify_rec
+    let simplify t = if not t.simplified then simplify_rec t
 
     let dependencies t =
       let direct_nodes t = def t |> VDescr.direct_nodes |> NSet.of_list in
