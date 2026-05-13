@@ -562,8 +562,10 @@ module Make(VS:VarSettings) = struct
     let memo_f = FDHash.create 17 in
     let rec aux (prev,prev') ((cs,cs') : CS'.t) =
       let retry_with css =
-        let css' () = CS'.cap (prev,prev') (cs,cs') |> CSS.singleton in
-        let css = CSS.cap_lazy css css' in
+        let css_prev () = (prev,prev') |> CSS.singleton in
+        let css_cur () = (cs,cs') |> CSS.singleton in
+        let css = CSS.cap_lazy css css_prev in
+        let css = CSS.cap_lazy css css_cur in
         css |> CSS.to_list |> CSS.map_disj (aux CS'.any)
       in
       match VCS.destruct cs, FCS.destruct cs' with
