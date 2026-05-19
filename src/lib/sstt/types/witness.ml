@@ -6,16 +6,15 @@ type t = Int of Z.t
        | Tag of (Tag.t * t)
        | Tuple of t list
        | Record of (Label.t * t) list * (t option)
-       | Var of (Subst.t * t)
        | Other
 
 module DHash = Hashtbl.Make(Ty)
 let mem = DHash.create 16
 
-let rec to_ty s =
+let rec to_ty w =
   let open Ty in 
   let open Descr in 
-  match s with 
+  match w with 
     Int i -> Intervals.Atom.mk_singl i |> mk_interval |> mk_descr
   | Enum e -> mk_enum e |> mk_descr
   | Arrow a -> mk_arrows a |> mk_descr
@@ -30,7 +29,7 @@ let rec to_ty s =
       | None -> F.OTy.absent |> F.mk_descr in
     Row.mk binding tail |> Row.to_record_atom |> mk_record |> mk_descr
   | Other -> mk_others true |> mk_descr
-  | Var (_,w) -> to_ty w
+
 
 let _some_to_ty w =
   match w with 
@@ -47,18 +46,20 @@ let pp_subst fmt s =
   Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt " ; ") (fun fmt (a,b) -> Format.fprintf fmt "@[<h>%a : %a@]" Var.pp a Printer.print_ty' b) fmt s
 
 
-let pp fmt w =
+let pp fmt t =
   let open Format in 
   let open Printer in 
-  match w with
-  | Int i -> Z.pp_print fmt i
-  | Enum _ -> fprintf fmt "\" %a \"" print_ty' (to_ty w)
-  | Tuple _ -> print_ty' fmt (to_ty w)
-  | Tag _ -> print_ty' fmt (to_ty w)
-  | Arrow _ -> fprintf fmt "fun : < %a >" print_ty' (to_ty w)
-  | Record _ -> print_ty' fmt (to_ty w)
-  | Other -> pp_print_string fmt "Other"
-  | Var (s,wit) -> Format.fprintf fmt "%a with subst [ %a ]" print_ty' (to_ty wit) pp_subst s
+  let  (s,w) = t in 
+  let () = 
+    match w with
+    | Int i -> Z.pp_print fmt i
+    | Enum _ -> fprintf fmt "\" %a \"" print_ty' (to_ty w)
+    | Tuple _ -> print_ty' fmt (to_ty w)
+    | Tag _ -> print_ty' fmt (to_ty w)
+    | Arrow _ -> fprintf fmt "fun < %a >" print_ty' (to_ty w)
+    | Record _ -> print_ty' fmt (to_ty w)
+    | Other -> pp_print_string fmt "Other"
+  in if s = Subst.identity then () else fprintf fmt " with subst [ %a ]" pp_subst s
 
 
 
@@ -392,27 +393,85 @@ let mk_other t =
   if Ty.get_descr t |> Descr.get_others then Some Other else
     None
 
+
+
+let rec cut list n =
+  if n <= 0 then []
+  else match list with 
+      a :: l -> a :: cut l (n-1)
+    | [] -> failwith "list too short"
+
+let rev_cut list n =
+  List.rev (cut (List.rev list) n)
+
+let sigma_i old_sigma alpha_i sigma =
+  let s_i = Subst.find1 sigma alpha_i in 
+  Format.printf "s_i : %a \n %!" Printer.print_ty' s_i ;
+    let sigma_fix = Subst.singleton1 alpha_i Ty.empty in
+    let s_i_fix = Subst.apply  sigma_fix s_i |> Ty.neg in 
+    Format.printf "s_i_fix : %a \n %!" Printer.print_ty' s_i_fix ;
+    let sigma = Subst.singleton1 alpha_i s_i_fix in
+    Format.printf "sigma : %a \n %!" Printer.print_subst' sigma ;
+    Subst.combine sigma old_sigma
+
+let sigma_end alpha_k tally =
+  let ty_end = List.fold_left (fun c b -> Ty.cup c (Subst.find1 b alpha_k) ) Ty.empty tally in 
+  let sigma_fix = Subst.singleton1 alpha_k Ty.empty in
+  let ty_end_fix = Subst.apply sigma_fix ty_end |> Ty.neg in 
+  Subst.singleton1 alpha_k ty_end_fix
+
+
+let poly_aux vars tally =
+  let k = List.length vars in
+  let n = List.length tally in 
+  if k < n then 
+  let tally_cut = cut tally k in 
+  let sigma' = List.fold_left2 (sigma_i) (Subst.identity) vars tally_cut in 
+  let rev_tally_cut = rev_cut tally ((List.length tally) - (List.length vars)) in 
+  let alpha_k = List.hd (List.rev vars) in 
+  let sigma' = Subst.remove1 alpha_k sigma' in 
+  Subst.combine sigma' (sigma_end alpha_k rev_tally_cut)
+else 
+  let vars_cut = cut vars n in
+  List.fold_left2 (sigma_i) (Subst.identity) vars_cut tally
+
 let rec polyw t = 
-  let v = Ty.vars t in 
-  if (VarSet.is_empty v) then Subst.identity else 
-    let s = Tallying.tally MixVarSet.empty [(t, Ty.empty)] in 
-    if List.is_empty s 
-    then VarSet.to_list v |> List.map (fun x -> (x, Ty.empty)) |> Subst.of_list1  
-    else let sigma = List.hd s in 
-      let alpha = Subst.domain1 sigma |> VarSet.choose in 
-      let to_reject = Subst.find1 sigma alpha in 
-      let sigma_fix = Subst.singleton1 alpha Ty.empty in
-      let to_reject_refined = Subst.apply sigma_fix to_reject in 
-      let new_sigma = Subst.singleton1 alpha (Ty.neg to_reject_refined) in
-      Subst.combine new_sigma (polyw (Subst.apply new_sigma t)) 
+  Format.printf "t : %a \n %!" Printer.print_ty' t;
+  let v = Ty.vars t in (* *)
+  if (VarSet.is_empty v) 
+  then Subst.identity else 
+  let tally = Tallying.tally MixVarSet.empty [(t, Ty.empty)] in 
+  Format.printf "vars : %a \n %!" (Format.pp_print_list Printer.print_ty') (List.map (Ty.mk_var) (VarSet.to_list v) ) ;
+  Format.printf "tally : %a \n %!" (Format.pp_print_list Printer.print_subst') tally ;
+  if List.is_empty tally then
+     VarSet.to_list v |> List.map (fun x -> (x, Ty.empty)) |> Subst.of_list1  
+  else 
+    let new_sigma = poly_aux (VarSet.to_list v) (tally) in 
+    Format.printf "new_sigma : %a \n %!" Printer.print_subst' new_sigma ;
+    let sigma_rec = polyw (Subst.apply new_sigma t) in 
+    
+    let sigma_composed = List.fold_left (fun a (b,c) -> Subst.combine a (Subst.singleton1 b (Subst.apply sigma_rec c))) Subst.identity (Subst.bindings1 new_sigma) in 
+    Subst.combine sigma_composed sigma_rec
 
-
-let mk_var mk_mem sigma t = 
-  let wit = mk_mem (Subst.apply sigma t) in 
-  match wit with 
-  |Some w -> Some (Var (sigma, w))
-  |None -> None
-
+(*
+let rec polyw t = 
+  let v = Ty.vars t in (* *)
+  if (VarSet.is_empty v) 
+  then Subst.identity 
+  else 
+    match Tallying.tally MixVarSet.empty [(t, Ty.empty)] with 
+      [] -> VarSet.to_list v |> List.map (fun x -> (x, Ty.empty)) |> Subst.of_list1  
+    | sigma :: _ -> (*choix arbitraire de solution*)
+      match sigma |> Subst.bindings1 with 
+      |[] -> assert false (* t est toujours vide, théoriquement impossible*)
+      |(alpha, s) :: _ -> (*choix arbitraire de variable*)
+        let sigma_fix = Subst.singleton1 alpha Ty.empty in (*On veut remplacer Ty.empty par l'ensemble des solutions entre t_inf et t_sup*)
+        let s' = Subst.apply sigma_fix s |> Ty.neg in 
+        let new_sigma = Subst.singleton1 alpha s' in
+        let sigma_rec = polyw (Subst.apply new_sigma t) in 
+        let s'' = Subst.apply sigma_rec s' in 
+        Subst.add1 alpha s'' sigma_rec
+*)
 
   (*
 https://ocaml.org/manual/5.4/bindingops.html
@@ -428,25 +487,27 @@ let rec mk_mem t =
   | Some _ as w -> w
   | exception Not_found ->
     DHash.add mem t None;
-
     let w = 
-      let sigma = polyw t in 
-      if Subst.is_identity sigma then 
-        let* () = mk_intervals t in 
-        let* () = mk_enums t in
-        let* () =  mk_arrows t in
-        let* () = mk_tags_mem mk_mem t in 
-        let* () = mk_tuples_mem mk_mem t in
-        let* () =  mk_records_mem mk_mem t in
-        let* () = mk_other t in 
-        None
-      else mk_var mk_mem sigma t
+      let* () = mk_intervals t in 
+      let* () = mk_enums t in
+      let* () =  mk_arrows t in
+      let* () = mk_tags_mem mk_mem t in 
+      let* () = mk_tuples_mem mk_mem t in
+      let* () =  mk_records_mem mk_mem t in
+      let* () = mk_other t in 
+      None
     in 
     DHash.replace mem t w;w
 (*in DHash.replace mem t_descr w;w*)
 
 let mk t = 
   DHash.reset mem;
-  match mk_mem t with 
-  | Some w -> w
-  | None -> failwith "Empty Type"
+  if Ty.is_empty t then failwith "Empty type";
+  let sigma = polyw t in 
+  let t' = Subst.apply sigma t in 
+  DHash.reset mem;
+  match mk_mem t' with 
+  | Some w -> (sigma,w)
+  | None -> Format.eprintf "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n t : %a \n t sigma : %a \n sigma : %a \n %!" Printer.print_ty' t Printer.print_ty' t' Printer.print_subst' sigma; assert false
+
+(*Mettre polyw dans mk*)

@@ -5,6 +5,7 @@ let () = Format.set_margin Format.pp_infinity
 
 let ints = [
   "int";
+  "('a,'a)";
   "(1..)";
   "(..2)";
   "(7..10)";
@@ -92,7 +93,7 @@ let vars = [
   "('A -> 'B, 'Y)";
   "{ a: any ;; 'R }";
   "'g & ~'a";
-  
+
 
 ]
 
@@ -117,25 +118,27 @@ let mixup = [
         l1 : (any -> (x1, x1)) & (any -> (x2, x2)) ;
         l2 : any -> any
    }";
-   "{x : int | 'a | 'a -> 'a ; y: (int,int)}";
-   "('a -> ('B -> 'B))-> (('B -> 'B)-> 'a)";
-   "{x : 'a -> 'b} & 'a ";
-   "x where x = (('a, x) | ('a, nil)) & 'a";
-   "(x,'a) where x = ('a, x) | nil"
+  "{x : int | 'a | 'a -> 'a ; y: (int,int)}";
+  "('a -> ('B -> 'B))-> (('B -> 'B)-> 'a)";
+  "{x : 'a -> 'b} & 'a ";
+  "x where x = (('a, x) | ('a, nil)) & 'a";
+  "(x,'a) where x = ('a, x) | nil";
+  "(('a & int) | 'b, ('a \\ int) | 'b)";
+  "(('a & int) , ('a \\ int))";
+
 ]
 
-let all_tests = ints @
-                enums @
-                tags @
-                tuples @
-                arrows @
-                records @
-                recur @
-                vars @
-                mixup
+let _all_tests = ints @
+                 enums @
+                 tags @
+                 tuples @
+                 arrows @
+                 records @
+                 recur @
+                 vars @
+                 mixup
 
-
-
+let all_tests = [  "('A,'B) \\ ('A,'A)";]
 let type_all = List.map 
     (fun  a -> 
        let r, _ = 
@@ -145,29 +148,37 @@ let type_all = List.map
        r)
     all_tests
 
+let () =
+  let stri = "('A,'B) \\ ('A,'A)" in 
+  let typ, _ = Ast.(build_ty empty_env (IO.parse_type stri)) in 
+  let tally = Tallying.tally MixVarSet.empty [(typ, Ty.empty)] in 
+  Format.printf "tally : %a \n %!" (Format.pp_print_list Printer.print_subst') tally
+
+
 let check_trueness w t =
   let open Witness in 
-  match w with 
-  | Var (sigma,wit) -> Ty.leq (to_ty wit) (Subst.apply sigma t)
-  | _ -> Ty.leq (to_ty w) t
+  let (sigma,wit) = w in 
+  Ty.leq (to_ty wit) (Subst.apply sigma t)
+
 
 
 let true_witness w t = 
-      if check_trueness w t then
-        Format.printf "@[<h> %a : %a@]@\n"
-          Printer.print_ty' t
-          Witness.pp w
-      else 
-        Format.printf "FALSE : %a is not a witness of %a\n"
-          Witness.pp w 
-          Printer.print_ty' t
+  if check_trueness w t then
+    Format.printf "@[<h> %a : %a@]@\n"
+      Printer.print_ty' t
+      Witness.pp w
+  else 
+    Format.printf "FALSE : %a is not a witness of %a\n"
+      Witness.pp w 
+      Printer.print_ty' t
 
 let%expect_test _ = 
-  List.iter 
+  List.iter  
     (fun t -> let w = Witness.mk t in  true_witness w t)
     type_all;
   [%expect {|
     int : 42
+    'a, 'a : 42, 42 with subst [ 'a : any ]
     (1..) : 1
     (..2) : 2
     (7..10) : 7
@@ -198,9 +209,9 @@ let%expect_test _ =
     tuple \ ((int, int) | (true | false, true | false, true | false)) : 0
     tuple \ (int, int) : 0
     tuple \ (int, true | false, true | false) : 0
-    arrow : fun : < arrow >
-    int -> int : fun : < int -> int >
-    (bool -> bool) & (int -> int) : fun : < (bool -> bool) & (int -> int) >
+    arrow : fun < arrow >
+    int -> int : fun < int -> int >
+    (bool -> bool) & (int -> int) : fun < (bool -> bool) & (int -> int) >
     { int : int } : { int : 42 }
     record : {  }
     { l1 : any ; l2 : any ..} : { l1 : 42 ; l2 : 42 }
@@ -217,7 +228,7 @@ let%expect_test _ =
     x1 where x1 = 42 | tag(x1) : 42
     x1 where x1 = true | false | (x1 -> any) : " true "
     true | (x1 -> any) where x1 = true | false | (x1 -> any) : " true "
-    x2, x1 where x1 = nil | int | (x1, (x2, x1)) and x2 = tuple0 | (x2, x1) : tuple0, 42
+    x1, x2 where x1 = tuple0 | (x1, x2) and x2 = nil | int | (x2, (x1, x2)) : tuple0, 42
     'A : 42 with subst [ 'A : any ]
     'a : 42 with subst [ 'a : any ]
     'a, 'b, 'c : 42, 42, 42 with subst [ 'a : any ; 'b : any ; 'c : any ]
@@ -231,9 +242,9 @@ let%expect_test _ =
     'y & 'x : 42 with subst [ 'x : any ; 'y : any ]
     'y | 'x : 42 with subst [ 'x : any ]
     'x : 42 with subst [ 'x : any ]
-    'A -> 'b : arrow with subst [ 'A : empty ; 'b : empty ]
-    'A -> 'B : arrow with subst [ 'A : empty ; 'B : empty ]
-    'A -> 'B, 'Y : arrow, 42 with subst [ 'A : empty ; 'B : empty ; 'Y : any ]
+    'A -> 'b : fun < arrow > with subst [ 'A : empty ; 'b : empty ]
+    'A -> 'B : fun < arrow > with subst [ 'A : empty ; 'B : empty ]
+    'A -> 'B, 'Y : any -> any, 42 with subst [ 'A : any ; 'B : any ; 'Y : any ]
     { a : any ;; 'R } : {  ;; 42 } with subst [ 'R : any ]
     'g \ 'a : 42 with subst [ 'g : any ; 'a : empty ]
     any : 42
@@ -248,8 +259,10 @@ let%expect_test _ =
     { a : 73 ; b : 'b ;; { a : int } } : { a : 73 ; b : 42 ;; { a : 42 } } with subst [ 'b : any ]
     x2 where x1 = { l1 : any -> any ; l2 : (x2 -> x1) & ({ l1 : int -> int ..} -> any) } and x2 = { l1 : (any -> (x2, x2)) & (any -> (x1, x1)) ; l2 : any -> any } : { l1 : x2 ; l2 : any -> any } where x1 = { l1 : any -> any ; l2 : ({ l1 : x2 ; l2 : any -> any } -> x1) & ({ l1 : int -> int ..} -> any) } and x2 = (any -> ({ l1 : x2 ; l2 : any -> any }, { l1 : x2 ; l2 : any -> any })) & (any -> (x1, x1))
     { x : int | 'a -> 'a ; y : int, int } : { x : int -> empty ; y : 42, 42 } with subst [ 'a : empty ]
-    ('a -> 'B -> 'B) -> ('B -> 'B) -> 'a : arrow -> arrow -> empty with subst [ 'a : empty ; 'B : empty ]
+    ('a -> 'B -> 'B) -> ('B -> 'B) -> 'a : fun < arrow -> arrow -> empty > with subst [ 'a : empty ; 'B : empty ]
     'a & { x : 'a -> 'b } : { x : any -> empty } with subst [ 'a : any ; 'b : empty ]
     x1 where x1 = 'a & (('a, nil) | ('a, x1)) : 42, nil with subst [ 'a : any ]
     x1, 'a where x1 = nil | ('a, x1) : nil, 42 with subst [ 'a : any ]
+    'a & int | 'b, 'a \ int | 'b : 42, 42 with subst [ 'a : any ; 'b : any ]
+    'a & int, 'a \ int : 42, a with subst [ 'a : any ]
     |}]

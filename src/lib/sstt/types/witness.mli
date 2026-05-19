@@ -7,7 +7,6 @@ type t = private
   | Tag of (Tag.t * t)
   | Tuple of t list
   | Record of (Label.t * t ) list * (t option)
-  | Var of (Subst.t * t)
   | Other
 
 
@@ -18,7 +17,7 @@ val to_ty : t -> Ty.t
 val compare : t -> t -> int
 
 (**[pp fmt w] is the pretty printer for the witness type*)
-val pp : Format.formatter -> t -> unit
+val pp : Format.formatter -> Subst.t * t -> unit
 
 (**[equal t1 t2] return [true] if the 2 witnesses [t1] and [t2] are equals, [false] otherwise.*)
 val equal : t -> t -> bool
@@ -30,4 +29,4 @@ val is_in : t -> Ty.t -> bool
 (** [make t] returns one value that is in the type t. 
     Assume that t in non-empty.
 *)
-val mk : Ty.t -> t
+val mk : Ty.t -> Subst.t * t
