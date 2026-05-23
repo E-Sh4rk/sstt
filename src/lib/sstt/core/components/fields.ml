@@ -59,6 +59,10 @@ module OTy(N:Node) = struct
   let any = Bdd.any
   let empty = Bdd.empty
   let mk a = Bdd.singleton a
+  let present = mk Atom.present
+  let absent = mk Atom.absent
+  let required t = Atom.required t |> mk
+  let optional t = Atom.optional t |> mk
 
   let cap = Bdd.cap
   let cup = Bdd.cup

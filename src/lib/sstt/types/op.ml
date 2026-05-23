@@ -119,7 +119,7 @@ module Records' = struct
     let open Atom in
     let dom = LabelSet.union (Atom.dom a1) (Atom.dom a2) in
     let is_opt f = Ty.F.get_descr f |> Ty.O.get |> Ty.O.Atom.is_optional in
-    let present = Ty.F.mk_descr (Ty.O.mk Ty.O.Atom.present) in
+    let present = Ty.F.mk_descr Ty.O.present in
     let bindings = dom |> LabelSet.to_list |> List.map (fun lbl ->
         let oty1, oty2 = Atom.find lbl a1, Atom.find lbl a2 in
         let oty = if is_opt oty2 then
@@ -135,7 +135,7 @@ module Records' = struct
   let remove a lbl =
     let open Atom in
     let bindings = a.Atom.bindings |>
-      LabelMap.add lbl (Ty.O.Atom.absent |> Ty.O.mk |> Ty.F.mk_descr) in
+      LabelMap.add lbl (Ty.F.mk_descr Ty.O.absent) in
     { bindings ; tail=a.tail } |> of_atom
 
 end

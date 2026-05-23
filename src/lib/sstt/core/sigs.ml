@@ -339,6 +339,18 @@ module type OTy = sig
     include Comparable' with type node := node and type t := t (** @inline *)
 
     val get : t -> Atom.t
+
+    val present : t
+    (** [present] is a shortcut for [mk Atom.present]. *)
+
+    val absent : t
+    (** [absent] is a shortcut for [mk Atom.absent]. *)
+
+    val required : node -> t
+    (** [required t] is a shortcut for [mk (Atom.required t)]. *)
+
+    val optional : node -> t
+    (** [optional t] is a shortcut for [mk (Atom.optional t)]. *)
   end
 
 (* Polymorphic layers *)

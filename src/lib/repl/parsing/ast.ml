@@ -263,10 +263,10 @@ and build_field env t =
     Ty.F.neg f, env
   | TUnop (TOption, t) ->
     let f, env = build_field env t in
-    Ty.F.cup f (Ty.O.Atom.absent |> Ty.O.mk |> Ty.F.mk_descr), env
+    Ty.F.cup f (Ty.F.mk_descr Ty.O.absent), env
   | _ ->
     let ty, env = build_ty env t in
-    Ty.F.mk_descr (Ty.O.Atom.required ty |> Ty.O.mk), env
+    Ty.F.mk_descr (Ty.O.required ty), env
 
 let build_row env t : Row.t * env =
   match t with
