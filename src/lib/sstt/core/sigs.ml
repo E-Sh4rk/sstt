@@ -641,7 +641,10 @@ module type RecordAtom = sig
 
   include Comparable with type t := t
   val map_nodes : (node -> node) -> t -> t
-  (** [map_nodes f r] applies [f] to all nodes in [r.bindings]. *)
+  (** [map_nodes f r] applies [f] to all nodes in [r]. *)
+
+  val map : (field -> field) -> t -> t
+  (** [map f r] applies [f] to all fields in [r]. *)
 
   val substitute : t RowVarMap.t -> t -> t
   (** [substitute s r] applies the substitution [s] to [r]. *)

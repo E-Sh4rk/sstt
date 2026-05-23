@@ -16,9 +16,10 @@ module Atom
 
   let hash t =
     Hash.(mix (FTy.hash t.tail) (LabelMap.hash t.bindings))
-  let map_nodes f t =
-    { bindings = LabelMap.map (FTy.map_nodes f) t.bindings ;
-      tail = FTy.map_nodes f t.tail }
+  let map f t =
+    { bindings = LabelMap.map f t.bindings ;
+      tail = f t.tail }
+  let map_nodes f t = map (FTy.map_nodes f) t
   let direct_nodes t =
     let nb = t.bindings |> LabelMap.values |> List.concat_map FTy.direct_nodes in
     let nt = FTy.direct_nodes t.tail in

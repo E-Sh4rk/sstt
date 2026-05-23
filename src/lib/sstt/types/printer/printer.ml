@@ -201,7 +201,7 @@ let tuple lst =
 let rec ty_of_fop fop =
   match fop with
   | FRowVar v -> Ty.F.mk_var v
-  | FTy (d,b) -> Ty.F.mk_descr (d.ty,b)
+  | FTy (d,b) -> Ty.O.mk (d.ty,b) |> Ty.F.mk_descr
   | FUnop (FNeg, fop) -> Ty.F.neg (ty_of_fop fop)
   | FBinop (FDiff, fop1, fop2) -> Ty.F.diff (ty_of_fop fop1) (ty_of_fop fop2)
   | FVarop (FCup, fops) -> Ty.F.disj (List.map ty_of_fop fops)
@@ -309,7 +309,8 @@ let resolve_tuples ctx a =
 
 let resolve_field nf f =
   let aux_oty oty =
-    FTy (nf (Ty.O.get oty), Ty.O.is_optional oty)
+    let ty, b = Ty.O.get oty in
+    FTy (nf ty, b)
   in
   let aux_var v = FRowVar v in
   let aux_ps ps = ps |> List.map aux_var in
