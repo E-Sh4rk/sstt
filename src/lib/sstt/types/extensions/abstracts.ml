@@ -49,17 +49,17 @@ let encode_params encoding ps =
     match encoding with
     | ECov vs ->
       List.combine vs ps |> List.mapi (fun i (v,p) ->
-        let pos = label_of_position false i, Ty.O.optional p in
-        let neg = label_of_position true i, Ty.O.optional (Ty.neg p) in
+        let pos = label_of_position false i, Ty.O.Atom.optional p |> Ty.O.mk in
+        let neg = label_of_position true i, Ty.O.Atom.optional (Ty.neg p) |> Ty.O.mk in
         match v with
         | Cov -> [pos] | Cav -> [neg] | Inv -> [pos;neg]
       ) |> List.concat |> Atom.LabelMap.of_list
     | EInv _ ->
       ps |> List.mapi (fun i p ->
-        label_of_position false i, Ty.O.optional p
+        label_of_position false i, Ty.O.Atom.optional p |> Ty.O.mk
       ) |> Atom.LabelMap.of_list
   in
-  { Atom.bindings ; Atom.tail=Ty.O.absent }
+  { Atom.bindings ; Atom.tail=Ty.O.mk Ty.O.Atom.absent }
   |> of_atom |> Descr.mk_records |> Ty.mk_descr
 
 let mk tag ps =
@@ -77,8 +77,8 @@ let extract_dnf tag dnf =
   let vs = parameters tag in
   let extract_param record i v =
     match v with
-    | Inv | Cov -> find (label_of_position false i) record |> Ty.O.get
-    | Cav -> find (label_of_position true i) record |> Ty.O.get |> Ty.neg
+    | Inv | Cov -> find (label_of_position false i) record |> Ty.O.get |> Ty.O.Atom.get
+    | Cav -> find (label_of_position true i) record |> Ty.O.get |> Ty.O.Atom.get |> Ty.neg
   in
   let extract_params record =
     vs |> List.mapi (extract_param record)

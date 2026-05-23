@@ -533,9 +533,9 @@ module Make(VS:VarSettings) = struct
             (fun () -> norm_record_tests (tl,p) (bs'::ns) ns')
         )
     and norm_record_bindings p ns =
-      let disjoint s1 s2 =
-        let o = Ty.F.cap s1 s2 |> Ty.F.get_descr in
-        Ty.O.is_required o && Ty.O.get o |> Ty.is_empty
+      let disjoint s1 s2 = (* TODO: should be exported... *)
+        let ty, b = Ty.F.cap s1 s2 |> Ty.F.get_descr |> Ty.O.get in
+        not b && Ty.is_empty ty
       in
       norm_tuple_gen ~diff:Ty.F.diff ~disjoint ~norm:norm_field p ns
     and norm_field (f:Ty.F.t) =
@@ -552,7 +552,8 @@ module Make(VS:VarSettings) = struct
         let (_,_,oty) = summand in
         norm_oty oty
       | Some cs -> CSS.single' (FC.mk cs)
-    and norm_oty (n,o) =
+    and norm_oty oty =
+      let n, o = Ty.O.get oty in
       if o then CSS.empty else norm_ty n
     in
     norm_ty, norm_field
