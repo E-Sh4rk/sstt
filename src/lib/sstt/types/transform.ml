@@ -110,6 +110,11 @@ let regroup_tuples n (ps,ns) =
   let p = regroup_pos_line ~any:Ty.any ~conj:Ty.conj n ps in
   regroup_neg_line ~diff:Ty.diff ~leq:Ty.leq p ns
 
+let simpl_oty a = Ty.O.mk (Ty.O.get a)
+let simpl_fty a = Ty.F.map simpl_oty a
+let simpl_record_atom a = Records.Atom.map simpl_fty a
+let simpl_record_clause (ps,ns) =
+  List.map simpl_record_atom ps, List.map simpl_record_atom ns
 let regroup_records (ps,ns) =
   let open Records.Atom in
   let tail, labels = ref Ty.F.any, ref LabelSet.empty in
@@ -117,9 +122,9 @@ let regroup_records (ps,ns) =
     labels := LabelSet.union !labels (dom r) ; tail := Ty.F.cap !tail r.tail) ;
   ns |> List.iter (fun r -> labels := LabelSet.union !labels (dom r)) ;
   let labels, tail = !labels, !tail in
-  let is_empty s =
-    let o = Ty.F.get_descr s in
-    Ty.O.is_required o && Ty.O.get o |> Ty.is_empty
+  let is_empty s = (* TODO: should be exported... *)
+    let (ty,b) = Ty.F.get_descr s |> Ty.O.get in
+    not b && Ty.is_empty ty
   in
   let leq s1 s2 = is_empty (Ty.F.diff s1 s2) in
   let ns1, ns2 = List.partition (fun r -> leq tail r.tail) ns in
@@ -138,7 +143,8 @@ let simpl_arrows ~normalize a =
   Arrows.dnf a |> List.map regroup_arrows |> filter_dnf ~normalize to_ty |> Arrows.of_dnf
 let simpl_records ~normalize r =
   let to_ty a = Descr.mk_record a |> Ty.mk_descr in
-  Records.dnf r |> List.map regroup_records |> filter_dnf ~normalize to_ty |> Records.of_dnf
+  Records.dnf r |> List.map regroup_records |> List.map simpl_record_clause
+  |> filter_dnf ~normalize to_ty |> Records.of_dnf
 let simpl_tuples ~normalize p =
   let n = TupleComp.len p in
   let to_ty a = Descr.mk_tuple a |> Ty.mk_descr in

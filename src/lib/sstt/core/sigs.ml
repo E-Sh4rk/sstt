@@ -280,48 +280,65 @@ end
 
 (* OTy *)
 
+module type OAtom = sig
+  type node
+
+  type t = node * bool
+  (** Whenever the boolean component is [true], it means that the type contains the
+    undefined element {m \bot}. Otherwise, when the boolean component is [false],
+    the type is equivalent to a plain {!Ty.t} type. *)
+
+  include Comparable with type t := t
+  val map_nodes : (node -> node) -> t -> t
+
+  val is_required : t -> bool
+  (** Tests whether {m \bot \not\in t}. *)
+
+  val is_optional : t -> bool
+  (** Tests whether {m \bot \in t}*)
+
+  val any : t
+  val empty : t
+
+  val present : t
+  (** [present] is the singleton type containing all values but the undefined value, {m \bot}. *)
+
+  val absent : t
+  (** [absent] is the singleton type containing the undefined value, {m \bot}. *)
+
+  val required : node -> t
+  (** [required t] returns the type [t, false]. *)
+
+  val optional : node -> t
+  (** [optional t] returns [t, true] which represents the type {m t\cup \bot}. *)
+
+  val get : t -> node
+  (** Returns [get (t, b)] returns [t]. *)
+end
+
 module type OTy = sig
     (** Optional types are subsets of {%html: <span style='font-size:large'>𝟙</span>%}{m \cup\bot}. They are used for the type of
         record fields, to denote the fact that a field may be absent.
     *)
+    
+    type t
+    (** The type of types optional types. *)
 
     type node
-    (** An alias for the type {!Ty.t}. *)
 
-    type t = node * bool
-    (** The type of optional types. Whenever
-        the boolean component is [true], it means that the type contains the
-        undefined element {m \bot}. Otherwise, when the boolean component is [false],
-        the type is equivalent to a plain {!Ty.t} type. *)
+    (**@inline*)
+    include ComponentBase with type t := t
+                          and type node := node
+                          and module type Atom := (OAtom with type node := node)
 
-
-    include TyBase with type node := node and type t := t (** @inline *)
+    (**@inline*)
+    include ConstrComponentOps with type t := t
+                                and type node := node
+                                and type atom := Atom.t
 
     include Comparable' with type node := node and type t := t (** @inline *)
 
-    val absent : t
-    (** [absent] is the singleton type containing the undefined value, {m \bot}. *)
-
-    val required : node -> t
-    (** [required t] returns the type [t, false]. *)
-
-    val optional : node -> t
-    (** [optional t] returns [t, true] which represents the type {m t\cup \bot}. *)
-
-    (** @inline *)
-    include SetTheoretic with type t := t
-
-    val is_absent : t -> bool
-    (** Tests whether {m \bot \equiv t}. *)
-
-    val is_required : t -> bool
-    (** Tests whether {m \bot \not\in t}. *)
-
-    val is_optional : t -> bool
-    (** Tests whether {m \bot \in t}*)
-
-    val get : t -> node
-    (** Returns [get (t, b)] returns [t]. *)
+    val get : t -> Atom.t
   end
 
 (* Polymorphic layers *)
@@ -624,7 +641,10 @@ module type RecordAtom = sig
 
   include Comparable with type t := t
   val map_nodes : (node -> node) -> t -> t
-  (** [map_nodes f r] applies [f] to all nodes in [r.bindings]. *)
+  (** [map_nodes f r] applies [f] to all nodes in [r]. *)
+
+  val map : (field -> field) -> t -> t
+  (** [map f r] applies [f] to all fields in [r]. *)
 
   val substitute : t RowVarMap.t -> t -> t
   (** [substitute s r] applies the substitution [s] to [r]. *)
