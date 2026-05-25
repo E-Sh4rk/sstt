@@ -12,8 +12,8 @@ let solve_recfield v f =
     )
   in
   let eqs = VHT.to_seq nodes |> List.of_seq |> List.map (fun (v',ty') ->
-    v', Subst.apply (Subst.singleton2 v (Row.all_fields f)) ty'
-  ) in
+      v', Subst.apply (Subst.singleton2 v (Row.all_fields f)) ty'
+    ) in
   let s = Ty.of_eqs eqs |> Subst.of_list1 in
   f |> Ty.F.map_nodes (fun n -> Subst.apply s n)
 
@@ -394,28 +394,17 @@ module Make(VS:VarSettings) = struct
   (* Caching modules *)
 
   module VDHash = Hashtbl.Make(VDescr)
-  module FDescr = struct
-    (* Intuitively, this module represents a field descriptor in which
-       direct nodes have been inlined. It is used for caching:
-       to ensure termination, caching of field types should be done
-       by comparing the descriptor of the underlying nodes and not only their id. *)
-
-    module TyHash = Hashtbl.Make(Ty)
-    type t = Ty.F.t * VDescr.t TyHash.t
-    let of_field f =
-      let h = TyHash.create 3 in
-      let cache n = TyHash.replace h n (Ty.def n) ; n in
-      Ty.F.map_nodes cache f |> ignore ;
-      f, h
-    let equal (f1,h1) (f2,h2) = Ty.F.equal'
-      (fun n1 n2 -> VDescr.equal (TyHash.find h1 n1) (TyHash.find h2 n2))
-      f1 f2
-    let hash (f,h) = f |> Ty.F.hash' (fun n -> VDescr.hash (TyHash.find h n))
-  end
-  module FDHash = Hashtbl.Make(FDescr)
+  module FDHash = Hashtbl.Make(struct
+      type t = Ty.F.t
+      (* Bypass the first layer of Node reference and compare
+         using one level of VDescr.
+      *)
+      let equal = Ty.(F.equal' (fun n1 n2 -> VDescr.equal (def n1) (def n2)))
+      let hash = Ty.(F.hash' (fun n -> VDescr.hash (def n)))
+    end)
 
   (* Core tallying algorithm *)
-  
+
   let norm_tuple_gen ~diff ~disjoint ~norm ps ns =
     (* Same algorithm as for subtyping tuples.
        We define it outside norm below so that its type can be
@@ -529,9 +518,9 @@ module Make(VS:VarSettings) = struct
       | [] -> norm_record_bindings p ns
       | (tl',bs')::ns' ->
         CSS.cup_lazy (norm_record_tests (tl,p) ns ns') (fun () ->
-          CSS.cap_lazy (Ty.F.cap tl (Ty.F.neg tl') |> norm_field)
-            (fun () -> norm_record_tests (tl,p) (bs'::ns) ns')
-        )
+            CSS.cap_lazy (Ty.F.cap tl (Ty.F.neg tl') |> norm_field)
+              (fun () -> norm_record_tests (tl,p) (bs'::ns) ns')
+          )
     and norm_record_bindings p ns =
       let disjoint s1 s2 = (* TODO: should be exported... *)
         let ty, b = Ty.F.cap s1 s2 |> Ty.F.get_descr |> Ty.O.get in
@@ -539,13 +528,12 @@ module Make(VS:VarSettings) = struct
       in
       norm_tuple_gen ~diff:Ty.F.diff ~disjoint ~norm:norm_field p ns
     and norm_field (f:Ty.F.t) =
-      let fd = FDescr.of_field f in
-      match FDHash.find_opt memo_f fd with
+      match FDHash.find_opt memo_f f with
       | Some cstr -> cstr
       | None ->
-        FDHash.add memo_f fd CSS.any;
+        FDHash.add memo_f f CSS.any;
         let res = f |> Ty.F.dnf |> CSS.map_conj norm_field_summand in
-        FDHash.remove memo_f fd ; res
+        FDHash.remove memo_f f ; res
     and norm_field_summand summand =
       match FToplevel.extract_smallest summand with
       | None ->
@@ -584,13 +572,12 @@ module Make(VS:VarSettings) = struct
       | Nil, Cons (constr, tl) ->
         let (f', _, f) = FC.destruct constr in
         let f = Ty.F.diff f' f in
-        let def = FDescr.of_field f in
-        if FDHash.mem memo_f def then
+        if FDHash.mem memo_f f then
           aux (prev, FCS.add constr prev') (cs,tl)
         else
-          let () = FDHash.add memo_f def () in
+          let () = FDHash.add memo_f f () in
           let res = norm_field f |> retry_with in
-          FDHash.remove memo_f def ; res
+          FDHash.remove memo_f f ; res
     in
     aux CS'.any cs
 

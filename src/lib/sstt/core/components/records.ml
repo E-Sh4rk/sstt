@@ -2,15 +2,11 @@ open Base
 open Sigs
 open Sstt_utils
 
-module MakeLabelMap
-  (FTy:Polymorphic' with type var = RowVar.t and module VarMap = RowVarMap and module VarSet = RowVarSet)
-  (N:Node) = Hash.MapList(Label)(FTy)
-
 module Atom
   (FTy:Polymorphic' with type var = RowVar.t and module VarMap = RowVarMap and module VarSet = RowVarSet)
   (N:Node) = struct
 
-  module LabelMap = MakeLabelMap(FTy)(N)
+  module LabelMap = Hash.MapList(Label)(FTy)
   type node = N.t
   type t = { bindings : LabelMap.t ; tail : FTy.t }
 
@@ -70,7 +66,7 @@ module Atom'
   (FTy:Polymorphic' with type var = RowVar.t and module VarMap = RowVarMap and module VarSet = RowVarSet)
   (N:Node) = struct
 
-  module LabelMap = MakeLabelMap(FTy)(N)
+  module LabelMap = Hash.MapList(Label)(FTy)
   module LabelSet = LabelMap.Set
   type node = N.t
   type t = { bindings : LabelMap.t ; tail : FTy.t ;

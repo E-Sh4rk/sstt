@@ -8,6 +8,7 @@ module Make(N:Node) = struct
   module Records = Records.Make(N)
   module Tuples = Tuples.Make(N)
   module Tags = Tags.Make(N)
+  module Node = N
 
   type component =
     | Intervals of Intervals.t
@@ -26,8 +27,6 @@ module Make(N:Node) = struct
     tags : Tags.t ;
     others : bool
   }
-  type node = N.t
-
   let any = {
     enums = Enums.any ;
     tags = Tags.any  ;

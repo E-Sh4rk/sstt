@@ -52,10 +52,8 @@ module OTy(N:Node) = struct
   module Atom = OAtom(N)
   module BoolLeaf = Bdd.BoolLeaf
   module Bdd = Bdd.Make(Atom)(BoolLeaf)
-
+  module Node = N
   type t = Bdd.t
-  type node = N.t
-
   let any = Bdd.any
   let empty = Bdd.empty
   let mk a = Bdd.singleton a
@@ -99,7 +97,7 @@ end
 
 module Make(N:Node) = struct
   module OTy = OTy(N)
-  include Polymorphic.Make(N)(RowVar)(OTy)
+  include Polymorphic.Make(RowVar)(OTy)
 
   let equal' f = Bdd.equal' RowVar.equal (OTy.equal' f)
   let compare' f = Bdd.compare' RowVar.compare (OTy.compare' f)

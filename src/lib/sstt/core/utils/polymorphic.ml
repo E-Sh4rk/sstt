@@ -7,13 +7,13 @@ end
 
 module type Leaf = sig
   include Bdd.Leaf
-  type node
+  module Node : Node
   val is_empty : t -> bool
-  val direct_nodes : t -> node list
-  val map_nodes : (node -> node) -> t -> t
+  val direct_nodes : t -> Node.t list
+  val map_nodes : (Node.t -> Node.t) -> t -> t
 end
 
-module Make(N:Node)(V:Comparable)(L:Leaf with type node = N.t) = struct
+module Make(V:Comparable)(L:Leaf) = struct
   module A = Atom(V)
   module Bdd = Bdd.Make(A)(L)
   module VarMap = Map.Make(V)
@@ -22,7 +22,7 @@ module Make(N:Node)(V:Comparable)(L:Leaf with type node = N.t) = struct
   type leaf = L.t
   type var = V.t
   type t = Bdd.t
-  type node = N.t
+  type node = L.Node.t
 
   let any = Bdd.any
   let empty = Bdd.empty
@@ -102,8 +102,8 @@ let weaken s t =
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
   end
   module Dnf = Dnf.Make(Comp)
-  let dnf t = N.with_own_cache (fun t -> Bdd.dnf t |> Dnf.export) t
-  let of_dnf dnf = N.with_own_cache (fun dnf -> Dnf.import dnf |> Bdd.of_dnf) dnf
+  let dnf t = L.Node.with_own_cache (fun t -> Bdd.dnf t |> Dnf.export) t
+  let of_dnf dnf = L.Node.with_own_cache (fun dnf -> Dnf.import dnf |> Bdd.of_dnf) dnf
 
   let simplify t = Bdd.simplify equiv t
 
