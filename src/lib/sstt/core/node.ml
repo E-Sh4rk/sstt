@@ -121,8 +121,32 @@ include (struct
   and PreNode : PreNode with type t = AnyEmpty.t and type vdescr = VDescr.t and type descr = VDescr.Descr.t
                                                                             and type row = VDescr.Descr.Records.Atom.t = struct
     (* The PreNode module that contain the entry points of all functions on types. *)
+
+    (* Subtyping cache *)
     module Table = Bttable.MakeOpt(PreNode)(Bool)
-    module ConsCache = Hashtbl.Make(VDescr)
+
+
+    (** The memoization cache. It is indexed by the pair of a VDescr.t 
+        and the flag indicating if this corresponds to a simplified node.
+        Given a node [t], the following invariant should be maintained when
+        memoization is active (i.e. in the context of a [with_shared_cache]).
+
+        For every a node [n] that occurs in [t], then if 
+        [(def n, n.simplified)] → [n'] is in the cache, then [n == n'].
+
+        This invariant must be enforced by all functions that call [define] below
+        to update the content of a node.
+
+    *)
+    module ConsCache = Hashtbl.Make(struct 
+        type t = VDescr.t * bool 
+        let equal (x1:t) (x2:t) =
+          x1 == x2 ||
+          let t1, b1 = x1 and t2, b2 = x2 in
+          b1 = b2 && VDescr.equal t1 t2
+        let hash (t, b) = Hash.(mix (VDescr.hash t) (int_of_bool b))
+      end)
+
     module BinOpCache = Hashtbl.Make(struct
         type t = PreNode.t * PreNode.t
         let equal (t1, t2) (s1, s2) = PreNode.equal t1 s1 && PreNode.equal t2 s2
@@ -138,8 +162,12 @@ include (struct
     type _ Effect.t += GetCache: cache t
 
     let create_cache () =
+      let cons_cache = ConsCache.create 16 in
+      ConsCache.add cons_cache (VDescr.empty,true) AnyEmpty.empty;
+      ConsCache.add cons_cache (VDescr.any,true) AnyEmpty.any;
+
       { is_empty_cache = Table.create ();
-        cons_cache = ConsCache.create 16;
+        cons_cache ; 
         inter_cache = BinOpCache.create 16;
         union_cache = BinOpCache.create 16;
         diff_cache = BinOpCache.create 16 }
@@ -187,8 +215,12 @@ include (struct
     let equal = AnyEmpty.equal
 
     let define ?(simplified=false) t d =
-      t.def <- Some d ;
+      (* Clear the cached fields *)
       t.dependencies <- None ;
+      t.all_vars <- None;
+      t.neg <- None ;
+
+      t.def <- Some d ;
       t.simplified <- simplified
 
     (* If a handler for the GetCache effect is in place,
@@ -200,13 +232,12 @@ include (struct
       else
         try
           let cache = get_cons_cache () in
-          match ConsCache.find_opt cache d with
-            Some t ->
-            if not t.simplified && simplified then t.simplified <- true;
-            t
+          let k = d, simplified in
+          match ConsCache.find_opt cache k with
+            Some t -> t
           | None ->
             let t = mk () in
-            ConsCache.add cache d t;
+            ConsCache.add cache k t;
             define ~simplified t d ; t
         with
           Unhandled GetCache ->
@@ -240,7 +271,7 @@ include (struct
       | Some s -> s
       | None ->
         let s = t |> def |> VDescr.neg
-                |> cons ~simplified:t.simplified in
+          |> cons ~simplified:t.simplified in
         t.neg <- Some s;
         s.neg <- Some t;
         s
@@ -280,26 +311,34 @@ include (struct
     let disjoint t1 t2 = cap t1 t2 |> is_empty
 
     let rec simplify_rec t =
-      let s_def = def t |> VDescr.simplify in
-      define ~simplified:true t s_def;
-      s_def |> VDescr.direct_nodes |> List.iter simplify_aux;
-      t.dependencies <- None;
-      t.all_vars <- None;
-      match t.neg with
-        None -> ()
-      | Some nt -> define ~simplified:true nt (VDescr.neg s_def)
-    and simplify_aux t = if not t.simplified then simplify_rec t
+      if t.simplified then t
+      else
+        let t_def = def t in
+        let cache = get_cons_cache () in
+        match ConsCache.find_opt cache (t_def,true) with
+          Some t' -> t' (* a simplified t exists in the cache, return it *)
+        | None ->
+          t.simplified <- true; (* to stop the recursion when we encounter t again *)
+          let s_def = t_def |> VDescr.simplify |> VDescr.map_nodes simplify_rec in
+          let k = s_def, true in
+          match ConsCache.find_opt cache k with
+            Some t' -> t.simplified <- false; t' (* the simplified descriptor is already memoized,
+                                                    return it without updating t, as t itself has not been
+                                                    simplified (but replaced by t') *)
+          | None ->
+            define ~simplified:true t s_def;
+            t
 
     let simplify_rec = with_shared_cache simplify_rec
-    let simplify t = if not t.simplified then simplify_rec t
+    let simplify t = if t.simplified then t else simplify_rec t
 
     let dependencies t =
       let direct_nodes t = def t |> VDescr.direct_nodes |> NSet.of_list in
       let rec aux ts =
         let ts' = ts
-                  |> NSet.to_list
-                  |> List.map direct_nodes
-                  |> List.fold_left NSet.union ts
+          |> NSet.to_list
+          |> List.map direct_nodes
+          |> List.fold_left NSet.union ts
         in
         if NSet.equal ts ts' then ts' else aux ts'
       in
@@ -319,14 +358,14 @@ include (struct
       NSet.fold (fun n -> RowVarSet.union (row_vars_toplevel n)) (dependencies t) RowVarSet.empty
     let all_vars t = 
       match t.all_vars with
-       Some s -> s
-       | None ->
+        Some s -> s
+      | None ->
         let s = MixVarSet.of_set (vars t) (row_vars t) in
         t.all_vars <- Some s; s
 
     let of_eqs eqs =
       let deps = eqs
-                 |> List.fold_left (fun acc (_, t) -> NSet.union (dependencies t) acc) NSet.empty in
+        |> List.fold_left (fun acc (_, t) -> NSet.union (dependencies t) acc) NSet.empty in
       let copies = NH.create 10 in
       let () = NSet.iter (fun n -> NH.add copies n (mk ())) deps in
       let new_node n =
@@ -353,7 +392,7 @@ include (struct
                   if has_def nn then Some (v, def nn) else None
                 ) in
               let d = def n |> VDescr.map_nodes new_node
-                      |> VDescr.substitute (MixVarMap.of_list1 s) in
+                |> VDescr.substitute (MixVarMap.of_list1 s) in
               define nn d
             end ;
             define_all (NSet.remove n deps)

@@ -35,7 +35,7 @@ module Ty : Ty = struct
   module VDescr = Node.VDescr
   module F = VDescr.Descr.Records.FTy
   module O = F.OTy
-  let simpl t = N.simplify t ; t
+  let simpl t = N.simplify t
   let s f t = f t |> simpl
   let s' f t = simpl t |> f
 
@@ -60,9 +60,9 @@ module Ty : Ty = struct
   let factorize t = N.factorize t |> simpl
 
   let is_empty t = N.is_empty t
-  let leq t1 t2 = N.equal t1 t2 || (N.leq t1) t2
-  let equiv t1 t2 = N.equal t1 t2 ||(N.equiv t1) t2
-  let disjoint t1 t2 = (N.disjoint t1) t2
+  let leq t1 t2 = N.equal t1 t2 || N.leq t1 t2
+  let equiv t1 t2 = N.equal t1 t2 || N.equiv t1 t2
+  let disjoint t1 t2 = N.disjoint t1 t2
   let is_any t = N.is_any t
 
   let compare, equal, hash = N.compare, N.equal, N.hash
@@ -77,7 +77,7 @@ module VDescr = Ty.VDescr
 module Descr = VDescr.Descr
 
 
-(** {2 Components } 
+(** {2 Components }
 
     Components are the building blocks of types. Each component represents a
     union of intersections (a DNF) of a particular "type constructor" (basic
