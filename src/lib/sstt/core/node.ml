@@ -126,26 +126,25 @@ include (struct
     module Table = Bttable.MakeOpt(PreNode)(Bool)
 
 
-    (** The memoization cache. It is indexed by the pair of a VDescr.t 
-        and the flag indicating if this corresponds to a simplified node.
-        Given a node [t], the following invariant should be maintained when
-        memoization is active (i.e. in the context of a [with_shared_cache]).
+    (** The memoization cache. Two caches are kept, one for simplified the other
+          for unsimplified nodes. Given a node [t], the following invariant
+          should be maintained when memoization is active (i.e. in the context
+          of a [with_shared_cache]).
 
-        For every a node [n] that occurs in [t], then if 
-        [(def n, n.simplified)] → [n'] is in the cache, then [n == n'].
+        For every a node [n] that occurs in [t], if [def n] → [n'] is in the
+        cache, then [n == n']. [n'] is calthenled the canonical node for the
+        descriptor [def n].
 
-        This invariant must be enforced by all functions that call [define] below
-        to update the content of a node.
+        A descriptor has at most two canonical nodes, one in each version of the
+        cache.
 
+        This invariant must be enforced by all functions that call [define]
+        below to update the content of a node.
     *)
-    module ConsCache = Hashtbl.Make(struct 
-        type t = VDescr.t * bool 
-        let equal (x1:t) (x2:t) =
-          x1 == x2 ||
-          let t1, b1 = x1 and t2, b2 = x2 in
-          b1 = b2 && VDescr.equal t1 t2
-        let hash (t, b) = Hash.(mix (VDescr.hash t) (int_of_bool b))
-      end)
+
+    module ConsCache = Hashtbl.Make(VDescr)
+
+    (** Cache for set-theoretic operations *)
 
     module BinOpCache = Hashtbl.Make(struct
         type t = PreNode.t * PreNode.t
@@ -154,7 +153,7 @@ include (struct
       )
 
     type cache = { is_empty_cache : Table.t;
-                   cons_cache : PreNode.t ConsCache.t;
+                   cons_cache : PreNode.t ConsCache.t * PreNode.t ConsCache.t;
                    inter_cache : PreNode.t BinOpCache.t;
                    union_cache : PreNode.t BinOpCache.t;
                    diff_cache : PreNode.t BinOpCache.t }
@@ -162,23 +161,29 @@ include (struct
     type _ Effect.t += GetCache: cache t
 
     let create_cache () =
-      let cons_cache = ConsCache.create 16 in
-      ConsCache.add cons_cache (VDescr.empty,true) AnyEmpty.empty;
-      ConsCache.add cons_cache (VDescr.any,true) AnyEmpty.any;
+      let sim_cons_cache = ConsCache.create 4 in
+      ConsCache.add sim_cons_cache VDescr.empty AnyEmpty.empty;
+      ConsCache.add sim_cons_cache VDescr.any AnyEmpty.any;
 
       { is_empty_cache = Table.create ();
-        cons_cache ; 
-        inter_cache = BinOpCache.create 16;
-        union_cache = BinOpCache.create 16;
-        diff_cache = BinOpCache.create 16 }
+        cons_cache = sim_cons_cache, ConsCache.create 4;
+        inter_cache = BinOpCache.create 4;
+        union_cache = BinOpCache.create 4;
+        diff_cache = BinOpCache.create 4 }
 
     let[@inline always] get_cache () = perform GetCache
     let[@inline always] get_is_empty_cache () = (get_cache ()).is_empty_cache
-    let[@inline always] get_cons_cache () = (get_cache()).cons_cache
+    let[@inline always] get_cons_cache b =
+      let c1, c2 = (get_cache()).cons_cache in
+      if b then c1 else c2
     let[@inline always] get_inter_cache () = (get_cache()).inter_cache
     let[@inline always] get_union_cache () = (get_cache()).union_cache
     let[@inline always] get_diff_cache () = (get_cache()).diff_cache
 
+
+    (* with_shared_cache is made re-entrant by looking for the top-most cache
+       on the call stack, if any.
+    *)
     let with_shared_cache f t =
       let cache : cache option ref = ref None in
       try f t with
@@ -231,13 +236,12 @@ include (struct
       else if VDescr.(equal d any) then any
       else
         try
-          let cache = get_cons_cache () in
-          let k = d, simplified in
-          match ConsCache.find_opt cache k with
-            Some t -> t
+          let cache = get_cons_cache simplified in
+          match ConsCache.find_opt cache d with
+            Some t -> t (* returns the canonical node *)
           | None ->
             let t = mk () in
-            ConsCache.add cache k t;
+            ConsCache.add cache d t; (* sets t as the canonical node *)
             define ~simplified t d ; t
         with
           Unhandled GetCache ->
@@ -284,6 +288,16 @@ include (struct
     let conj ts = List.fold_left cap any ts
     let disj ts = List.fold_left cup empty ts
 
+    (** Entry point of the subtyping algorithm. The fast path is done outside of
+        the scope of with_shared_cache so that a toplevel call to `is_empty`
+        returns quickly if the result is trivial.
+
+      Any function in this module which calls directly or indirectly the
+      subtyping algorithm can be guarded by [with_shared_cache] to share the
+      subtyping cache among all its calls.
+        *)
+
+
     let is_empty_rec t =
       let cache = get_is_empty_cache () in
       begin match Table.find ~default:true cache t with
@@ -302,6 +316,7 @@ include (struct
       else if t.simplified then VDescr.equal (def t) VDescr.empty
       else is_empty_rec t
 
+    (* Derived subtyping function *)
     let leq t1 t2 = diff t1 t2 |> is_empty
 
     let equiv t1 t2 = leq t1 t2 && leq t2 t1
@@ -310,22 +325,26 @@ include (struct
     let is_any t = neg t |> is_empty
     let disjoint t1 t2 = cap t1 t2 |> is_empty
 
+
+    (* Node simplification we recursively traverse the node and simplify it. For
+       each vdescr encountered we ensure that its surrounding node is the
+       canonical one, if it exists in the cache, otherwise we can leave it. *)
+
     let rec simplify_rec t =
       if t.simplified then t
       else
         let t_def = def t in
-        let cache = get_cons_cache () in
-        match ConsCache.find_opt cache (t_def,true) with
+        let cache = get_cons_cache true in
+        match ConsCache.find_opt cache t_def with
           Some t' -> t' (* a simplified t exists in the cache, return it *)
         | None ->
           t.simplified <- true; (* to stop the recursion when we encounter t again *)
           let s_def = t_def |> VDescr.simplify |> VDescr.map_nodes simplify_rec in
-          let k = s_def, true in
-          match ConsCache.find_opt cache k with
-            Some t' -> t.simplified <- false; t' (* the simplified descriptor is already memoized,
-                                                    return it without updating t, as t itself has not been
+          match ConsCache.find_opt cache s_def with
+            Some t' -> t.simplified <- false; t' (* the simplified descriptor alread has a canonical node,
+                                                    return it and resets t.simplified as t itself has not been
                                                     simplified (but replaced by t') *)
-          | None ->
+          | None -> (* No canonical node is found, update in place *)
             define ~simplified:true t s_def;
             t
 
@@ -356,13 +375,15 @@ include (struct
       NSet.fold (fun n -> VarSet.union (vars_toplevel n)) (dependencies t) VarSet.empty
     let row_vars t =
       NSet.fold (fun n -> RowVarSet.union (row_vars_toplevel n)) (dependencies t) RowVarSet.empty
-    let all_vars t = 
+    let all_vars t =
       match t.all_vars with
         Some s -> s
       | None ->
         let s = MixVarSet.of_set (vars t) (row_vars t) in
         t.all_vars <- Some s; s
 
+
+    (** Systems of contractive equations. [simplify] above must be called on the result (done in Core) *)
     let of_eqs eqs =
       let deps = eqs
         |> List.fold_left (fun acc (_, t) -> NSet.union (dependencies t) acc) NSet.empty in
@@ -400,6 +421,7 @@ include (struct
       define_all deps ;
       eqs |> List.map (fun (v,n) -> v,new_node n)
 
+    (** Variable substitution. [simplify] above must be called on the result (done in Core) *)
     let substitute s t =
       if MixVarMap.is_empty s then t else
         let dom = MixVarMap.fold
@@ -423,6 +445,7 @@ include (struct
           ) ;
         new_node t
 
+    (** Common node factorization. [simplify] above must be called on the result (done in Core) *)
     let factorize t =
       let cache = NH.create 10 in
       let nodes = ref [] in
