@@ -30,13 +30,6 @@ let rec to_ty w =
     Row.mk binding tail |> Row.to_record_atom |> mk_record |> mk_descr
   | Other -> mk_others true |> mk_descr
 
-
-
-let create_record_tail tail = let open Ty.F in 
-  (match tail with 
-   | Some t -> to_ty t |> OTy.required |> mk_descr 
-   | None -> OTy.absent |> mk_descr)
-
 let pp_subst fmt s = 
   let s = Subst.bindings1 s in 
   Format.pp_print_list 
@@ -52,7 +45,6 @@ let pp_subst fmt s =
     ) 
     fmt s
 
-
 let pp fmt t =
   let open Format in 
   let open Printer in 
@@ -67,8 +59,6 @@ let pp fmt t =
     | Record _ -> print_ty' fmt (to_ty w)
     | Other -> pp_print_string fmt "#Other"
   in if s = Subst.identity then () else fprintf fmt " with subst [ %a ]" pp_subst s
-
-
 
 let compare w1 w2 = 
   match (w1,w2) with 
@@ -120,6 +110,11 @@ let compare w1 w2 =
   | _ , Record _  -> 1
   | _ -> 0
 
+let create_record_tail tail = let open Ty.F in 
+  (match tail with 
+   | Some t -> to_ty t |> OTy.required |> mk_descr 
+   | None -> OTy.absent |> mk_descr)
+
 let rec equal w1 w2 =
   match (w1,w2) with 
     Int t1, Int t2 -> Z.equal t1 t2
@@ -149,6 +144,19 @@ let rec equal w1 w2 =
 let is_in singl t =
   Ty.leq (to_ty singl) t
 
+  (*
+https://ocaml.org/manual/5.4/bindingops.html
+*)
+let (let*) o f =
+  match o with
+  | None -> f ()
+  | Some _ -> o 
+
+
+
+
+
+
 (**[mk_intervals t] return one value present in the interval part of t.
    Assume that the interval part of t is non-empty.
    If t = ]-inf; +inf\[, return 42.
@@ -167,12 +175,6 @@ let mk_intervals t =
     end
 
 
-let rec len_false_enum len l = 
-  if List.for_all 
-      (fun a -> (a |> Enum.name |> String.length) != len) 
-      l 
-  then len 
-  else len_false_enum (len+1) l
 
 (**[mk_enum t] return one value present in the enum part of [t].
    Assume that the enum part of [t] is non-empty. 
@@ -181,11 +183,20 @@ let rec len_false_enum len l =
    one more time than the max length of the atoms not in [t].
 *)
 let mk_enums t = 
+  let rec len_false_enum len l = 
+    if List.for_all 
+        (fun a -> 
+           (a |> Enum.name |> String.length) != len) 
+        l 
+    then len 
+    else len_false_enum (len+1) l
+  in 
   let atom_list = Ty.get_descr t |> Descr.get_enums |> Enums.destruct in 
   match atom_list with
   | (true, lt_enum) -> 
-    if List.is_empty lt_enum then None else 
-      Some (Enum (List.hd lt_enum))
+    if List.is_empty lt_enum 
+    then None 
+    else Some (Enum (List.hd lt_enum))
   | (false, lt_enum) -> 
     let false_enum = (String.make 
                         (len_false_enum 1 lt_enum)
@@ -201,35 +212,21 @@ let mk_enums t =
 *)
 let mk_arrows t = 
   let arrows = Ty.get_descr t |> Descr.get_arrows |> Arrows.dnf in 
-  if List.is_empty arrows then None else 
+  if List.is_empty arrows 
+  then None 
+  else 
     let a1,a2 = List.hd arrows in
     let rec help_arrow t a1 a2 a3 = 
       let test_arrow = Arrows.of_dnf [(a1,a2)] |> Descr.mk_arrows |> Ty.mk_descr in
-      if Ty.leq test_arrow t then Arrows.of_dnf [a1,a2] 
+      if Ty.leq test_arrow t 
+      then Arrows.of_dnf [a1,a2] 
       else
-        begin 
-          match a3 with 
-            a :: l -> help_arrow t a1 (a :: a2) l
-          | _ -> 
-            let atom_list = [Ty.get_descr t |> Descr.get_arrows |> Arrows.dnf |> List.hd] in
-            Arrows.of_dnf atom_list
-        end 
+        match a3 with 
+        | a :: l -> help_arrow t a1 (a :: a2) l
+        | _ -> 
+          let atom_list = [Ty.get_descr t |> Descr.get_arrows |> Arrows.dnf |> List.hd] in
+          Arrows.of_dnf atom_list
     in Some(Arrow(help_arrow t a1 [] a2))
-
-let mk_tag_atom make tag atom = 
-  let _, ty = [atom] |> TagComp.of_dnf tag |> Op.TagComp.as_union |> List.hd in
-  let w = make ty in 
-  match w with 
-  | None -> None 
-  | Some w -> Some (Tag (tag,w))
-
-
-let rec len_false_tag len l = 
-  if List.for_all 
-      (fun a -> (a |> TagComp.tag |> Tag.name |> String.length) != len) 
-      l 
-  then len 
-  else len_false_tag (len+1) l
 
 (**[mk_tags_mem make t] return one value present in the tuple part of [t].
    Assume that the tag part of [t] is non-empty.
@@ -237,6 +234,20 @@ let rec len_false_tag len l =
    If the elements of [not t] are known, return tag(16) with tag being the character 'a' repeated n times, n being a length of no other tag.
 *)
 let mk_tags_mem make t = 
+  let mk_tag_atom make tag atom = 
+    let _, ty = [atom] |> TagComp.of_dnf tag |> Op.TagComp.as_union |> List.hd in
+    let w = make ty in 
+    match w with 
+    | None -> None 
+    | Some w -> Some (Tag (tag,w))
+  in 
+  let rec len_false_tag len l = 
+    if List.for_all 
+        (fun a -> (a |> TagComp.tag |> Tag.name |> String.length) != len) 
+        l 
+    then len 
+    else len_false_tag (len+1) l
+  in
   let t_tag = Ty.get_descr t |> Descr.get_tags |> Tags.destruct in 
   match t_tag with 
   | (true,co_l) -> List.find_map 
@@ -254,19 +265,6 @@ let mk_tags_mem make t =
     let new_type = Int(Z.of_int 16) in 
     Some (Tag(new_tag,new_type))
 
-let mk_tuple_atoms make atom = 
-  let w = List.map (fun a -> make a ) atom in 
-  if List.mem (let x = None in x) w then None
-  else Some(Tuple(List.map 
-                    (fun a -> match a with  
-                       |None -> failwith "Impossible : Empty type undetected in tuples" 
-                       |Some w -> w) 
-                    w))
-
-let rec len_false_tuple len l = 
-  if List.for_all (fun a -> TupleComp.len a!= len) l 
-  then len 
-  else len_false_tuple (len+1) l
 
 (**[mk_tuple_mem make t] return one value present in the tuple part of [t].
    Assume that the tuple part of [t] is non-empty.
@@ -274,6 +272,24 @@ let rec len_false_tuple len l =
    If the elements of [not t] are known, return (0, 1,...,n) with n the smallest arity with no elements in [not t]. 
 *)
 let mk_tuples_mem mk_mem t = 
+  let mk_tuple_atoms make atom = 
+    let w = List.map (fun a -> make a ) atom in 
+    if List.mem (let x = None in x) w 
+    then None
+    else let new_tuple = List.map 
+             (fun a -> 
+                match a with  
+                | None -> failwith "Impossible : Empty type undetected in tuples" 
+                | Some w -> w) 
+             w
+      in 
+      Some(Tuple(new_tuple))
+  in 
+  let rec len_false_tuple len l = 
+    if List.for_all (fun a -> TupleComp.len a!= len) l 
+    then len 
+    else len_false_tuple (len+1) l
+  in 
   let t_tuple = Ty.get_descr t |> Descr.get_tuples |> Tuples.destruct in 
   match t_tuple with 
   | (true, lt_tuple) -> List.find_map 
@@ -288,64 +304,6 @@ let mk_tuples_mem mk_mem t =
                                        (len_false_tuple 1 lt_tuple) 
                                        (fun x -> Int(Z.of_int x))))
 
-let mk_record_binding make bindings = 
-  List.fold_left
-    (fun map (a,b) -> 
-       let new_b = b |> Ty.F.get_descr in 
-       match new_b with 
-       | (_ , true)-> map
-       | (ty,false) -> let w_ty = make ty in 
-         match w_ty with 
-         | None -> failwith "Empty required field of a record" 
-         | Some w -> (a,w)::map)
-    [] bindings 
-
-let mk_records_tail make tail = 
-  if Ty.F.OTy.is_optional tail 
-  then None 
-  else make (Ty.F.OTy.get tail)
-
-let mk_record_exists make exists bind_len tail = 
-  let create_false_label label_set bind_len =
-    let label_list = LabelSet.to_list label_set in 
-    let new_len = List.fold_left 
-        (fun len lbl -> 
-           let lbl_len = lbl |> Label.name |> String.length in 
-           max len lbl_len)
-        bind_len 
-        label_list in 
-    String.make (new_len+1) 'a' |> Label.mk
-  in
-  let exist_to_witness w_exists (lbl_list,fty) = 
-    let oty_exist = Ty.F.get_descr fty in
-    let oty_all = Ty.O.cap oty_exist tail in 
-    if Ty.F.OTy.is_optional oty_all then w_exists else 
-      let ty = Ty.F.OTy.get oty_all in 
-      let w_ty = 
-        let w = make ty in
-        match w with 
-        | None -> failwith "Empty required field of a record" 
-        | Some w -> w 
-      in 
-      ( create_false_label lbl_list bind_len, w_ty ) :: w_exists in
-  List.fold_left exist_to_witness [] exists
-
-let mk_records_atom' make atom =
-  let bindings = atom.Records.Atom'.bindings |> LabelMap.to_list in 
-  let tail = atom.Records.Atom'.tail |> Ty.F.get_descr in 
-  let exists = atom.Records.Atom'.exists in 
-  let w_binding = mk_record_binding make bindings in 
-  let w_tail = mk_records_tail make tail in 
-  let max_len_binding = List.fold_left 
-      (fun len (a,_) -> 
-         let lbl_len = a |> Label.name |> String.length in 
-         max len lbl_len 
-      ) 
-      0 bindings in 
-  let w_exists = mk_record_exists make exists max_len_binding tail in 
-  Some(Record(w_binding @ w_exists , w_tail))
-
-
 (**[mk_record_mem make t] return one value present in the record part of [t].
    Assume that the record part of [t] is non-empty.
    Return a record made from one non_empty atom of r the record part of t with the following characteristics :
@@ -356,6 +314,64 @@ let mk_records_atom' make atom =
    - if the tail is not optional, put witness tail in the tail.
 *)
 let mk_records_mem make t = 
+  let mk_record_binding make bindings = 
+    List.fold_left
+      (fun map (a,b) -> 
+         let new_b = b |> Ty.F.get_descr |> Ty.O.get in 
+         match new_b with 
+         | (_ , true)-> map
+         | (ty,false) -> let w_ty = make ty in 
+           match w_ty with 
+           | None -> failwith "Empty required field of a record" 
+           | Some w -> (a,w)::map)
+      [] bindings 
+  in 
+  let mk_records_tail make tail = 
+    if tail |> Ty.O.Atom.is_optional 
+    then None 
+    else make (Ty.O.Atom.get tail)
+  in 
+  let mk_record_exists make exists bind_len tail = 
+    let create_false_label label_set bind_len =
+      let label_list = LabelSet.to_list label_set in 
+      let new_len = List.fold_left 
+          (fun len lbl -> 
+             let lbl_len = lbl |> Label.name |> String.length in 
+             max len lbl_len)
+          bind_len 
+          label_list in 
+      String.make (new_len+1) 'a' |> Label.mk
+    in
+    let exist_to_witness w_exists (lbl_list,fty) = 
+      let oty_tail = tail |> Ty.O.mk |> Ty.F.mk_descr in 
+      let oty_all = Ty.F.cap fty oty_tail |> Ty.F.get_descr |> Ty.O.get in 
+      if Ty.O.Atom.is_optional oty_all then w_exists else 
+        let ty = Ty.O.Atom.get oty_all in 
+        let w_ty = 
+          let w = make ty in
+          match w with 
+          | None -> failwith "Empty required field of a record" 
+          | Some w -> w 
+        in 
+        ( create_false_label lbl_list bind_len, w_ty ) :: w_exists in
+    List.fold_left exist_to_witness [] exists
+  in
+  let mk_records_atom' make atom =
+    let bindings = atom.Records.Atom'.bindings |> LabelMap.to_list in 
+    let tail = atom.Records.Atom'.tail |> Ty.F.get_descr |> Ty.O.get
+    in 
+    let exists = atom.Records.Atom'.exists in 
+    let w_binding = mk_record_binding make bindings in 
+    let w_tail = mk_records_tail make tail in 
+    let max_len_binding = List.fold_left 
+        (fun len (a,_) -> 
+           let lbl_len = a |> Label.name |> String.length in 
+           max len lbl_len 
+        ) 
+        0 bindings in 
+    let w_exists = mk_record_exists make exists max_len_binding tail in 
+    Some(Record(w_binding @ w_exists , w_tail))
+  in 
   let record = Ty.get_descr t |> Descr.get_records in 
   let record_list = Records.dnf' record in
   List.find_map (mk_records_atom' make) record_list
@@ -363,170 +379,81 @@ let mk_records_mem make t =
 (**[mk_other t] return [true] if t as a type other, [false] otherwise
 *)
 let mk_other t =
-  if Ty.get_descr t |> Descr.get_others then Some Other else
-    None
+  if Ty.get_descr t |> Descr.get_others 
+  then Some Other 
+  else None
 
 
 
+let increase_by_one mk sup =
+  if Ty.is_any sup 
+  then sup
+  else let _,w = mk (Ty.diff Ty.any sup) in
+    Ty.cup sup (to_ty w)
+
+let decrease_by_one mk inf = 
+  if Ty.is_empty inf 
+  then inf 
+  else let _,w = mk inf in 
+    Ty.diff inf (to_ty w)
 
 
-
-
-
-
-
-
-
-
-
-let bornes (alpha : Var.t)(t :Ty.t) : (Ty.t * Ty.t) = 
-  let sigma_inf = Subst.singleton1 alpha Ty.empty in 
-  let sigma_sup = Subst.singleton1 alpha Ty.any in 
-  let inf = Subst.apply sigma_inf t in 
-  let sup = Subst.apply sigma_sup t in 
-  (inf, sup)
-
-
-let check_vars (subst : Subst.t) (alpha : Var.t) : bool  = 
-  let inf,sup = bornes alpha (Subst.find1 subst alpha) in 
-  (VarSet.is_empty (Ty.vars inf)) && (VarSet.is_empty (Ty.vars sup))
-
-let find_no_vars (v : VarSet.t ) (tally : Subst.t list) : Var.t = 
-  let alphas = List.fold_left 
-      (fun a b -> List.filter (check_vars b) a ) 
-      (VarSet.to_list v) 
-      tally in 
-  List.hd alphas
-
-let tally_to_ts (tally : Subst.t list) : ((Ty.t * Ty.t) list) = 
-  let to_concat = List.map 
-      (fun a -> 
-         List.map 
-           (fun (a,b) -> bornes a b) 
-           (Subst.bindings1 a)
-      ) 
-      tally in 
-  List.concat to_concat
-
-let specific_subst alpha tally = 
-  let spec = List.fold_left (fun a b -> (Subst.singleton1 alpha (Subst.find1 b alpha)) :: a) [] tally in 
-  tally_to_ts spec
-
-
-let find_subst (ts_alpha : (Ty.t * Ty.t) list) : Ty.t = 
-  List.fold_left (fun a (b,c) -> Ty.cap a (Ty.cup (Ty.neg b) (Ty.neg c)) ) Ty.any ts_alpha
-
-let suppr_empty_comp t = 
-  let comps,b = Ty.get_descr t |> Descr.components in 
-  let non_empty = List.fold_left (fun a b -> if Descr.of_component b |> Ty.mk_descr |> Ty.is_empty then a else b::a) [] comps in 
-  non_empty,b
-
-
-
-
-let increase_kind t = 
-  let descr = Ty.get_descr t in
-  if Descr.get_intervals descr |> Descr.mk_intervals |> Ty.mk_descr |> Ty.is_any |> not then 
-    Intervals.any |> Descr.mk_intervals |> Ty.mk_descr |> Ty.cup t 
-  else if Descr.get_enums descr |> Descr.mk_enums |> Ty.mk_descr |> Ty.is_any |> not then 
-    Enums.any |> Descr.mk_enums |> Ty.mk_descr 
-  else if Descr.get_arrows descr |> Descr.mk_arrows |> Ty.mk_descr |> Ty.is_any |> not then
-    Arrows.any |> Descr.mk_arrows |> Ty.mk_descr 
-  else if Descr.get_tags descr |> Descr.mk_tags |> Ty.mk_descr |> Ty.is_any |> not then 
-    Tags.any |> Descr.mk_tags |> Ty.mk_descr
-  else if Descr.get_tuples descr |> Descr.mk_tuples |> Ty.mk_descr |> Ty.is_any |> not then 
-    Tuples.any |> Descr.mk_tuples |> Ty.mk_descr
-  else if Descr.get_records descr |> Descr.mk_records |> Ty.mk_descr |> Ty.is_any |> not then
-    Records.any |> Descr.mk_records |> Ty.mk_descr 
-  else if not(Descr.get_others descr) then
-    Descr.mk_others true |> Ty.mk_descr
-  else failwith "Probleme increase_kind"
-
-
-let rec _sublists comps = 
-  match comps with
-  | []    -> [[]]
-  | x::xs -> let ls = _sublists xs in
-    List.map (fun l -> x::l) ls @ ls
-
-let decrease_kind t = 
-  if Ty.is_empty t then failwith "empty 1" else 
-    let comps = suppr_empty_comp t in
-    match comps with
-    | (_::l), b -> Descr.of_components (l,b) |> Ty.mk_descr
-    |[], true -> Descr.mk_others false |> Ty.mk_descr
-    |[], false -> failwith "t is empty"
-
-
-let rec increase_or_good (alpha : Var.t) (subst : Ty.t) t : Ty.t = 
-  let sigma = Subst.singleton1 alpha subst in 
-  if not (Ty.is_empty (Subst.apply sigma t))  then subst else 
-  if Ty.is_any subst then failwith "supertype atteint" else increase_or_good alpha (increase_kind subst) t
-
-let rec decrease_or_good (alpha : Var.t) (subst : Ty.t) t : Ty.t = 
-  let sigma = Subst.singleton1 alpha subst in 
-  if not (Ty.is_empty (Subst.apply sigma t))  then subst else 
-  if Ty.is_empty subst then increase_or_good alpha subst t else decrease_or_good alpha (decrease_kind subst) t
-
-
-
-
-let rec polyw t =
+let rec polyw mk t =
   let v = Ty.vars t in
-  if (VarSet.is_empty v) 
+  if VarSet.is_empty v
+
   then Subst.identity 
   else 
     let tally =  Tallying.tally MixVarSet.empty [(t, Ty.empty)] in 
     if List.is_empty tally 
     then VarSet.to_list v |> List.map (fun x -> (x, Ty.empty)) |> Subst.of_list1 
     else
-      let alpha = find_no_vars v tally in 
-      let ts_alpha = specific_subst alpha tally in 
-      let subst = find_subst ts_alpha in 
+      let alpha = List.find (
+          fun a -> 
+            let sig_inf = Subst.singleton1 a Ty.empty in 
+            let sig_sup = Subst.singleton1 a Ty.any in 
+            List.for_all (
+              fun subst -> 
+                let nu' = Subst.apply subst (Ty.mk_var a) in 
+                let inf = Subst.apply sig_inf nu' in
+                let sup = Subst.apply sig_sup nu' in 
+                (VarSet.is_empty (Ty.vars inf)) 
+                && (VarSet.is_empty (Ty.vars sup))
+            )
+              tally
+        )
+          (VarSet.to_list v) in 
+      let ts_alpha = 
+        List.fold_left (fun l s -> 
+            let nu = Subst.apply s (Ty.mk_var alpha) in 
+            let sig_inf = Subst.singleton1 alpha Ty.empty in 
+            let sig_sup = Subst.singleton1 alpha Ty.any in 
+            (Subst.apply sig_inf nu, Subst.apply sig_sup nu) :: l
+          )
+          []
+          tally in 
+      let nu = List.fold_left (
+          fun acc (inf,sup) -> 
+            if Ty.is_empty inf && Ty.is_any sup then acc else
+              let nu_inf = decrease_by_one mk (Ty.neg inf) in 
+              let nu_sup = increase_by_one mk (Ty.neg sup) in 
+              Ty.cap acc (Ty.cup nu_inf nu_sup)
+        ) 
+          Ty.any 
+          ts_alpha in 
+      let sigma =
+        let fst_guess =  Subst.singleton1 alpha nu in
+        if t |> Subst.apply fst_guess |> Ty.is_empty |> not
+        then fst_guess
+        else let nu_sup = Ty.neg (Z.of_int 42 |> Intervals.Atom.mk_singl |> Descr.mk_interval |> Ty.mk_descr)
+          in let sup_guess = Subst.singleton1 alpha nu_sup in 
+          if t |> Subst.apply sup_guess |> Ty.is_empty |> not then sup_guess else 
+            let nu_inf = Z.of_int 42 |> Intervals.Atom.mk_singl |> Descr.mk_interval |> Ty.mk_descr
+            in Subst.singleton1 alpha nu_inf 
+      in 
+      Subst.combine sigma (polyw mk (Subst.apply sigma t))
 
-      let good_subst = decrease_or_good alpha subst t in 
-      let sigma = Subst.singleton1 alpha good_subst in
-      Subst.combine sigma (polyw (Subst.apply sigma t))
-
-
-(*
-let alpha_DFS (alpha,s) t polyw = 
-  let sigma_fix = Subst.singleton1 alpha Ty.empty  in 
-
-  let s' = s |> Ty.neg |> Subst.apply sigma_fix  in 
-  let new_sigma = Subst.singleton1 alpha s' in 
-  let new_t = Subst.apply new_sigma t in 
-  if Ty.is_empty new_t then None
-  else 
-    let sigma_rec = polyw (new_t) in 
-    let s'' = Subst.apply sigma_rec s' in 
-    Some (Subst.add1 alpha s'' sigma_rec)
-
-let rec polyw t = 
-  let v = Ty.vars t in
-  if (VarSet.is_empty v) 
-  then Subst.identity 
-  else 
-    let tally =  Tallying.tally MixVarSet.empty [(t, Ty.empty)] in 
-    let sol = List.find_map 
-        (fun sigma -> List.find_map 
-            (fun binding -> alpha_DFS binding t polyw) 
-            (sigma |> Subst.bindings1)) 
-        tally in 
-    match sol with  
-      None ->
-      VarSet.to_list v |> List.map (fun x -> (x, Ty.empty)) |> Subst.of_list1  
-    | Some s -> s
-*)
-  (*
-https://ocaml.org/manual/5.4/bindingops.html
-*)
-let (let*) o f =
-  match o with
-    None -> f ()
-  | Some _ -> o 
-
-let rec mk_mem t = 
+and mk_mem t = 
   let t_descr = Ty.get_descr t in 
   match DHash.find mem t_descr with 
   | None -> None
@@ -543,11 +470,10 @@ let rec mk_mem t =
       let* () = mk_other t in 
       None
     in DHash.replace mem t_descr w;w
-
-let mk t = 
+and mk t = 
   DHash.reset mem;
   if Ty.is_empty t then failwith "Empty type";
-  let sigma = polyw t in 
+  let sigma = polyw mk t in 
   let t' = Subst.apply sigma t in 
   match mk_mem t' with 
   | Some w -> (sigma,w)
@@ -557,4 +483,4 @@ let mk t =
               Printer.print_ty' t' 
               pp_subst sigma
               (Format.pp_print_list pp_subst) (Tallying.tally MixVarSet.empty [(t, Ty.empty)]);
-    failwith "empty type"
+    failwith "empty type created"
