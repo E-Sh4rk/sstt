@@ -221,9 +221,12 @@ include (struct
 
     let define ?(simplified=false) t d =
       (* Clear the cached fields *)
+      let () = match t.neg with
+          None -> ()
+        | Some n -> n.neg <- None; t.neg <- None
+      in
       t.dependencies <- None ;
       t.all_vars <- None;
-      t.neg <- None ;
 
       t.def <- Some d ;
       t.simplified <- simplified
@@ -292,10 +295,10 @@ include (struct
         the scope of with_shared_cache so that a toplevel call to `is_empty`
         returns quickly if the result is trivial.
 
-      Any function in this module which calls directly or indirectly the
-      subtyping algorithm can be guarded by [with_shared_cache] to share the
-      subtyping cache among all its calls.
-        *)
+        Any function in this module which calls directly or indirectly the
+        subtyping algorithm can be guarded by [with_shared_cache] to share the
+        subtyping cache among all its calls.
+    *)
 
 
     let is_empty_rec t =
@@ -340,13 +343,11 @@ include (struct
         | None ->
           t.simplified <- true; (* to stop the recursion when we encounter t again *)
           let s_def = t_def |> VDescr.simplify |> VDescr.map_nodes simplify_rec in
+          define ~simplified:true t s_def;
           match ConsCache.find_opt cache s_def with
-            Some t' -> t.simplified <- false; t' (* the simplified descriptor alread has a canonical node,
-                                                    return it and resets t.simplified as t itself has not been
-                                                    simplified (but replaced by t') *)
-          | None -> (* No canonical node is found, update in place *)
-            define ~simplified:true t s_def;
-            t
+            Some t' -> t' (* the simplified descriptor alread has a canonical node *)
+          | None -> t (* No canonical node t was updated in place *)
+
 
     let simplify_rec = with_shared_cache simplify_rec
     let simplify t = if t.simplified then t else simplify_rec t
