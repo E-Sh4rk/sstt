@@ -54,8 +54,8 @@ module Make(N:Node) = struct
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
   end
   module Dnf = Dnf.LMake(Comp)
-  let dnf t = N.with_own_cache (fun t -> Bdd.dnf t |> Dnf.export) t
-  let of_dnf dnf = N.with_own_cache (fun dnf -> Dnf.import dnf |> Bdd.of_dnf) dnf
+  let dnf t = Bdd.dnf t |> Dnf.export
+  let of_dnf dnf = Dnf.import dnf |> Bdd.of_dnf
 
   let direct_nodes t = Bdd.atoms t |> List.concat_map Atom.direct_nodes
   let map_nodes f t = Bdd.map_nodes (Atom.map_nodes f) t

@@ -1,7 +1,7 @@
 open Core
 open Sstt_utils
 
-module VDHash = Hashtbl.Make(VDescr)
+module VDHash = Hashtbl.Make(Ty)
 
 type ctx = {
   cache : Var.t VDHash.t ;
@@ -15,20 +15,22 @@ let transform f t =
   } in
   let rec aux t =
     let vd = Ty.def t in
-    match VDHash.find_opt ctx.cache vd with
+    match VDHash.find_opt ctx.cache t with
     | Some v -> v
     | None ->
       let v = Var.mk "" in
-      VDHash.add ctx.cache vd v ;
+      VDHash.add ctx.cache t v ;
       let vd = f vd |> VDescr.map_nodes aux_ty in
       ctx.eqs <- (v, Ty.of_def vd)::ctx.eqs ;
       v
   and aux_ty t = aux t |> Ty.mk_var in
   let v = aux t in
   let res = Ty.of_eqs ctx.eqs in
-  res 
+  res
   |> List.find_map (fun (v', t) -> if Var.equal v v' then Some t else None)
   |> Option.get
+
+let transform = Ty.with_shared_cache transform
 
 (* Type simplification *)
 
@@ -184,4 +186,5 @@ let simpl_descr ~normalize d =
 
 let simpl_vdescr ~normalize = VDescr.map (simpl_descr ~normalize)
 
-let simplify ?normalize = transform (simpl_vdescr ~normalize)
+let simplify ?normalize =
+  Ty.with_shared_cache (fun t -> transform (simpl_vdescr ~normalize) t)

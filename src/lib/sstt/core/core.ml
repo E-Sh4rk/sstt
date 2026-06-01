@@ -35,7 +35,7 @@ module Ty : Ty = struct
   module VDescr = Node.VDescr
   module F = VDescr.Descr.Records.FTy
   module O = F.OTy
-  let simpl t = N.with_own_cache N.simplify t ; t
+  let simpl t = N.simplify t
   let s f t = f t |> simpl
   let s' f t = simpl t |> f
 
@@ -57,15 +57,17 @@ module Ty : Ty = struct
   let all_vars, all_vars_toplevel = s' N.all_vars, s' N.all_vars_toplevel
   let of_eqs eqs = N.of_eqs eqs |> List.map (fun (v,ty) -> v, simpl ty)
   let substitute s t = N.substitute s t |> simpl
-  let factorize t = N.with_own_cache N.factorize t |> simpl
+  let factorize t = N.factorize t |> simpl
 
-  let is_empty t = N.with_own_cache N.is_empty t
-  let leq t1 t2 = N.equal t1 t2 || N.with_own_cache (N.leq t1) t2
-  let equiv t1 t2 = N.equal t1 t2 || N.with_own_cache (N.equiv t1) t2
-  let disjoint t1 t2 = N.with_own_cache (N.disjoint t1) t2
-  let is_any t = N.with_own_cache N.is_any t
+  let is_empty t = N.is_empty t
+  let leq t1 t2 = N.equal t1 t2 || N.leq t1 t2
+  let equiv t1 t2 = N.equal t1 t2 || N.equiv t1 t2
+  let disjoint t1 t2 = N.disjoint t1 t2
+  let is_any t = N.is_any t
 
   let compare, equal, hash = N.compare, N.equal, N.hash
+
+  let with_shared_cache = N.with_shared_cache
 end
 
 (** @canonical Sstt.VDescr *)
@@ -75,7 +77,7 @@ module VDescr = Ty.VDescr
 module Descr = VDescr.Descr
 
 
-(** {2 Components } 
+(** {2 Components }
 
     Components are the building blocks of types. Each component represents a
     union of intersections (a DNF) of a particular "type constructor" (basic

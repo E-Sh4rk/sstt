@@ -15,14 +15,6 @@ module type Comparable = sig
   *)
 end
 
-module type Comparable' = sig
-  type t
-  type node
-  val compare' : (node -> node -> int) -> t -> t -> int
-  val equal' : (node -> node -> bool) -> t -> t -> bool
-  val hash' : (node -> int) -> t -> int
-end
-
 module type TyBase = sig
   type t
 
@@ -336,7 +328,6 @@ module type OTy = sig
                                 and type node := node
                                 and type atom := Atom.t
 
-    include Comparable' with type node := node and type t := t (** @inline *)
 
     val get : t -> Atom.t
 
@@ -445,8 +436,6 @@ module type FTy = sig
     and type leaf := OTy.t and type var := RowVar.t
     and module VarSet := RowVarSet
     and module VarMap := RowVarMap
-
-  include Comparable' with type node := node and type t := t (** @inline *)
 
 end
 
@@ -705,7 +694,7 @@ module type Records = sig
   *)
 
   type node
-  
+
   (** @canonical Sstt.Ty.F *)
   module FTy : FTy with type node := node
 
@@ -1111,7 +1100,7 @@ module type PreNode = sig
 
   include SetTheoretic with type t := t
   include SetTheoreticOps with type t := t
-  val with_own_cache : ('a -> 'b) -> 'a -> 'b
+  val with_shared_cache : ('a -> 'b) -> 'a -> 'b
 
   val vars : t -> VarSet.t
   val vars_toplevel : t -> VarSet.t
@@ -1124,7 +1113,7 @@ module type PreNode = sig
   val of_eqs : (Var.t * t) list -> (Var.t * t) list
   val substitute : subst -> t -> t
   val factorize : t -> t
-  val simplify : t -> unit
+  val simplify : t -> t
 
 end
 module type Node = sig
@@ -1225,7 +1214,7 @@ module type Ty = sig
   *)
 
   val all_vars : t -> MixVarSet.t
-  
+
   val all_vars_toplevel : t -> MixVarSet.t
 
   val nodes : t -> t list
@@ -1245,6 +1234,18 @@ module type Ty = sig
   val factorize : t -> t
   (** [factorize t] factorizes equivalent nodes in [t].
       This operation may be expensive since it calls {!equiv} internally.
+  *)
+
+  val with_shared_cache : ('a -> 'b) -> 'a -> 'b
+  (** [with_shared_cache f x] computes [f x]. All call to the subtyping algorithm
+      ([is_empty], [leq], [equiv], [disjoint]) will share the same backtracking
+      cache. Furthermore, given an initial type [t] (existing before the call to
+      [with_shared_cache f x]), the set of types that can be created during the
+      computation by applying (repetitively) projections, union, intersections,
+      and negations to [t] is guaranteed to be finite. In otherwords, within the
+      scope of [with_shared_cache f x], [equal] implies syntactic equality of
+      types. All ressources (memoization and backtracking caches) are freed when
+      [with_shared_cache f x] returns.
   *)
 
 
