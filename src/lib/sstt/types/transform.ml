@@ -124,15 +124,10 @@ let regroup_records (ps,ns) =
     labels := LabelSet.union !labels (dom r) ; tail := Ty.F.cap !tail r.tail) ;
   ns |> List.iter (fun r -> labels := LabelSet.union !labels (dom r)) ;
   let labels, tail = !labels, !tail in
-  let is_empty s = (* TODO: should be exported... *)
-    let (ty,b) = Ty.F.get_descr s |> Ty.O.get in
-    not b && Ty.is_empty ty
-  in
-  let leq s1 s2 = is_empty (Ty.F.diff s1 s2) in
-  let ns1, ns2 = List.partition (fun r -> leq tail r.tail) ns in
+  let ns1, ns2 = List.partition (fun r -> Ty.F.leq tail r.tail) ns in
   let ps, ns1 = List.map (to_tuple labels) ps, List.map (to_tuple labels) ns1 in
   let p = regroup_pos_line ~any:Ty.F.any ~conj:Ty.F.conj (LabelSet.cardinal labels) ps in
-  let ps, ns1 = regroup_neg_line ~diff:Ty.F.diff ~leq p ns1 in
+  let ps, ns1 = regroup_neg_line ~diff:Ty.F.diff ~leq:Ty.F.leq p ns1 in
   let of_tuple tys =
     let bindings = LabelMap.combine labels tys in
     { bindings ; tail }
@@ -186,5 +181,4 @@ let simpl_descr ~normalize d =
 
 let simpl_vdescr ~normalize = VDescr.map (simpl_descr ~normalize)
 
-let simplify ?normalize t =
-  Ty.with_shared_cache (fun t -> transform (simpl_vdescr ~normalize) t) t
+let simplify ?normalize t = transform (simpl_vdescr ~normalize) t

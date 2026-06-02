@@ -12,11 +12,10 @@ let all_fields f = { Records.Atom.bindings=LabelMap.empty ; tail=f }
 let id_for v = all_fields (Ty.F.mk_var v)
 let any, empty = all_fields Ty.F.any, all_fields Ty.F.empty
 
-let pack f = Descr.mk_record (all_fields f) |> Ty.mk_descr
 let norm r =
   let open Records.Atom in
-  let tl = r.tail |> pack in
-  let bindings = r.bindings |> LabelMap.filter (fun _ f -> Ty.equiv (pack f) tl |> not) in
+  let tl = r.tail in
+  let bindings = r.bindings |> LabelMap.filter (fun _ f -> Ty.F.equiv f tl |> not) in
   { r with bindings }
 
 let mk bindings tail = { Records.Atom.bindings=LabelMap.of_list bindings ; tail } |> norm
@@ -25,7 +24,7 @@ let equiv t1 t2 =
   let open Records.Atom in
   let dom = LabelSet.union (dom t1) (dom t2) in
   let t1, t2 = t1.tail::(to_tuple dom t1), t2.tail::(to_tuple dom t2) in
-  List.for_all2 (fun f1 f2 -> Ty.equiv (pack f1) (pack f2)) t1 t2
+  List.for_all2 (fun f1 f2 -> Ty.F.equiv f1 f2) t1 t2
 
 let equiv_constraints t1 t2 =
   let open Records.Atom in

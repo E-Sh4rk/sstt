@@ -153,6 +153,7 @@ module Make(VS:VarSettings) = struct
 
   module FTyB = struct
     include Ty.F
+    (* TODO: export Ty.F.all_vars so that 'pack' can be removed *)
     let pack f = Row.all_fields f |> Row.to_record_atom |> Descr.mk_record |> Ty.mk_descr
     let always_non_empty f =
       let fp =
@@ -511,15 +512,11 @@ module Make(VS:VarSettings) = struct
       | [] -> norm_record_bindings p ns
       | (tl',bs')::ns' ->
         CSS.cup_lazy (norm_record_tests (tl,p) ns ns') (fun () ->
-          CSS.cap_lazy (Ty.F.cap tl (Ty.F.neg tl') |> norm_field)
+          CSS.cap_lazy (Ty.F.diff tl tl' |> norm_field)
             (fun () -> norm_record_tests (tl,p) (bs'::ns) ns')
         )
     and norm_record_bindings p ns =
-      let disjoint s1 s2 = (* TODO: should be exported... *)
-        let ty, b = Ty.F.cap s1 s2 |> Ty.F.get_descr |> Ty.O.get in
-        not b && Ty.is_empty ty
-      in
-      norm_tuple_gen ~diff:Ty.F.diff ~disjoint ~norm:norm_field p ns
+      norm_tuple_gen ~diff:Ty.F.diff ~disjoint:Ty.F.disjoint ~norm:norm_field p ns
     and norm_field (f:Ty.F.t) =
       match MemoFTy.find_opt memo_f f with
       | Some cstr -> cstr
