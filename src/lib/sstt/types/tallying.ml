@@ -180,7 +180,6 @@ module Make(VS:VarSettings) = struct
       if Ty.F.get_vars t |> RowVarSet.mem v then
         Ty.F.weaken (RowVarMap.singleton v (lb, ub)) t
       else t
-    let leq f1 f2 = Ty.F.leq f1 f2
     let pp fmt f = Printer.print_row' fmt (Row.all_fields f)
   end
 
