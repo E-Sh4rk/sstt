@@ -153,18 +153,25 @@ module Make(VS:VarSettings) = struct
 
   module FTyB = struct
     include Ty.F
-    (* TODO: export Ty.F.all_vars so that 'pack' can be removed *)
-    let pack f = Row.all_fields f |> Row.to_record_atom |> Descr.mk_record |> Ty.mk_descr
     let always_non_empty f =
-      let fp =
+      let f =
         match RowVarSet.diff (Ty.F.get_vars f) (MixVarSet.proj2 VS.delta) |> RowVarSet.to_list with
-        | [] -> f |> pack
+        | [] -> f
         | lst ->
           let s = lst |> List.map (fun v -> v, (Ty.F.any, Ty.F.empty)) |> RowVarMap.of_list in
-          Ty.F.strengthen s f |> pack
+          Ty.F.strengthen s f
       in
-      MixVarSet.subset (fp |> Ty.all_vars) VS.delta &&
-      not (Ty.is_empty fp)
+      let no_polyvar f =
+        try
+          let _ =
+            f |> Ty.F.map_nodes
+              (fun n -> if MixVarSet.subset (Ty.all_vars n) VS.delta |> not then raise Exit ; n)
+          in true
+        with Exit -> false
+      in
+      RowVarSet.subset (Ty.F.get_vars f) (MixVarSet.proj2 VS.delta) &&
+      no_polyvar f &&
+      not (Ty.F.is_empty f)
     let strengthen v (lb, ub) t =
       if Ty.F.get_vars t |> RowVarSet.mem v then
         Ty.F.strengthen (RowVarMap.singleton v (lb, ub)) t
@@ -173,7 +180,7 @@ module Make(VS:VarSettings) = struct
       if Ty.F.get_vars t |> RowVarSet.mem v then
         Ty.F.weaken (RowVarMap.singleton v (lb, ub)) t
       else t
-    let leq f1 f2 = Ty.leq (pack f1) (pack f2)
+    let leq f1 f2 = Ty.F.leq f1 f2
     let pp fmt f = Printer.print_row' fmt (Row.all_fields f)
   end
 
