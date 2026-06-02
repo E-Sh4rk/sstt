@@ -222,16 +222,18 @@ include (struct
     let equal = AnyEmpty.equal
 
     let define ?(simplified=false) t d =
-      (* Clear the cached fields *)
-      let () = match t.neg with
-          None -> ()
-        | Some n -> n.neg <- None; t.neg <- None
+      let aux t d =
+        (* Clear the cached fields *)
+        t.dependencies <- None ;
+        t.all_vars <- None;
+        t.def <- Some d ;
+        t.simplified <- simplified
       in
-      t.dependencies <- None ;
-      t.all_vars <- None;
-
-      t.def <- Some d ;
-      t.simplified <- simplified
+      aux t d ;
+      (* Also update the neg node if it exists *)
+      match t.neg with
+      | None -> ()
+      | Some n -> aux n (VDescr.neg d)
 
     (* If a handler for the GetCache effect is in place,
        memoize the node. Otherwise just create a fresh node.
