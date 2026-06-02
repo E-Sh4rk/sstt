@@ -496,11 +496,9 @@ module Make(VS:VarSettings) = struct
       in
       let norm_single_neg_arrow ps (t1, t2) =
         let cstr_domain = Ty.diff t1 (List.map fst ps |> Ty.disj) |> norm_ty in
-        if CSS.is_empty cstr_domain then CSS.empty
-        else
-          let cstr_struct () =
-            if List.is_empty ps then CSS.any else psi t1 (Ty.neg t2) ps () in
-          CSS.cap_lazy cstr_domain cstr_struct
+        let cstr_struct () =
+          if List.is_empty ps then CSS.any else psi t1 (Ty.neg t2) ps () in
+        CSS.cap_lazy cstr_domain cstr_struct
       in
       CSS.map_disj (norm_single_neg_arrow ps) ns
     and norm_tuple n (ps,ns) =
