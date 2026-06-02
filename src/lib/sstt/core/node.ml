@@ -331,10 +331,7 @@ include (struct
       if not t.simplified then begin
         let s_def = def t |> VDescr.simplify in
         define ~simplified:true t s_def;
-        s_def |> VDescr.direct_nodes |> List.iter simplify;
-        match t.neg with
-          None -> ()
-        | Some nt -> define ~simplified:true nt (VDescr.neg s_def);
+        s_def |> VDescr.direct_nodes |> List.iter simplify
       end
     let simplify t = if not t.simplified then with_shared_cache simplify t
 

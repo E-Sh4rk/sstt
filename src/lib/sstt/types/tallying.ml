@@ -428,14 +428,14 @@ module Make(VS:VarSettings) = struct
     let rec norm_ty t =
       if Ty.is_empty t then CSS.any
       else if MixVarSet.subset (Ty.all_vars t) VS.delta then CSS.empty
-      else norm_vdescr t
-    and norm_vdescr t =
-      match MemoTy.find_opt memo_ty t with
-      | Some cstr -> cstr
-      | None ->
-        MemoTy.add memo_ty t CSS.any;
-        let res = t |> Ty.def |> VDescr.dnf |> CSS.map_conj norm_summand in
-        MemoTy.remove memo_ty t ; res
+      else
+        match MemoTy.find_opt memo_ty t with
+        | Some cstr -> cstr
+        | None ->
+          MemoTy.add memo_ty t CSS.any;
+          let res = Ty.def t |> norm_vdescr in
+          MemoTy.remove memo_ty t ; res
+    and norm_vdescr vd = vd |> VDescr.dnf |> CSS.map_conj norm_summand
     and norm_summand summand =
       match VToplevel.extract_smallest summand with
       | None ->
