@@ -55,7 +55,6 @@ include (struct
       id : int ;
       mutable def : VDescr.t option ;
       mutable simplified : bool ;
-      mutable marked : bool ; (* Temporary flag used when simplifying *)
       mutable dependencies : NSet.t option;
       mutable all_vars : MixVarSet.t option;
       mutable neg : t option
@@ -83,7 +82,6 @@ include (struct
         id = next_id () ;
         def = None ;
         simplified = false ;
-        marked = false ;
         dependencies = None;
         all_vars = None;
         neg = None;
@@ -155,7 +153,7 @@ include (struct
       )
 
     type cache = { is_empty_cache : Table.t;
-                   cons_cache : PreNode.t ConsCache.t * PreNode.t ConsCache.t;
+                   cons_cache : PreNode.t ConsCache.t;
                    inter_cache : PreNode.t BinOpCache.t;
                    union_cache : PreNode.t BinOpCache.t;
                    diff_cache : PreNode.t BinOpCache.t }
@@ -163,21 +161,15 @@ include (struct
     type _ Effect.t += GetCache: cache t
 
     let create_cache () =
-      let sim_cons_cache = ConsCache.create 4 in
-      ConsCache.add sim_cons_cache VDescr.empty AnyEmpty.empty;
-      ConsCache.add sim_cons_cache VDescr.any AnyEmpty.any;
-
       { is_empty_cache = Table.create ();
-        cons_cache = sim_cons_cache, ConsCache.create 4;
+        cons_cache = ConsCache.create 4;
         inter_cache = BinOpCache.create 4;
         union_cache = BinOpCache.create 4;
         diff_cache = BinOpCache.create 4 }
 
     let[@inline always] get_cache () = perform GetCache
     let[@inline always] get_is_empty_cache () = (get_cache ()).is_empty_cache
-    let[@inline always] get_cons_cache b =
-      let c1, c2 = (get_cache()).cons_cache in
-      if b then c1 else c2
+    let[@inline always] get_cons_cache () = (get_cache()).cons_cache
     let[@inline always] get_inter_cache () = (get_cache()).inter_cache
     let[@inline always] get_union_cache () = (get_cache()).union_cache
     let[@inline always] get_diff_cache () = (get_cache()).diff_cache
@@ -243,7 +235,7 @@ include (struct
       else if VDescr.(equal d any) then any
       else
         try
-          let cache = get_cons_cache simplified in
+          let cache = get_cons_cache () in
           match ConsCache.find_opt cache d with
             Some t -> t (* returns the canonical node *)
           | None ->
@@ -333,29 +325,18 @@ include (struct
     let disjoint t1 t2 = cap t1 t2 |> is_empty
 
 
-    (* Node simplification we recursively traverse the node and simplify it. For
-       each vdescr encountered we ensure that its surrounding node is the
-       canonical one, if it exists in the cache, otherwise we can leave it. *)
+    (* Node simplification we recursively traverse the node and simplify it. *)
 
-    let rec simplify_rec t =
-      if t.simplified || t.marked then t
-      else
-        let t_def = def t in
-        let cache = get_cons_cache true in
-        match ConsCache.find_opt cache t_def with
-          Some t' -> t' (* a simplified t exists in the cache, return it *)
-        | None ->
-          t.marked <- true; (* to stop the recursion when we encounter t again *)
-          let s_def = t_def |> VDescr.simplify |> VDescr.map_nodes simplify_rec in
-          define ~simplified:true t s_def;
-          t.marked <- false;
-          match ConsCache.find_opt cache s_def with
-            Some t' -> t' (* the simplified descriptor alread has a canonical node *)
-          | None -> t (* No canonical node t was updated in place *)
-
-
-    let simplify_rec = with_shared_cache simplify_rec
-    let simplify t = if t.simplified then t else simplify_rec t
+    let rec simplify t =
+      if not t.simplified then begin
+        let s_def = def t |> VDescr.simplify in
+        define ~simplified:true t s_def;
+        s_def |> VDescr.direct_nodes |> List.iter simplify;
+        match t.neg with
+          None -> ()
+        | Some nt -> define ~simplified:true nt (VDescr.neg s_def);
+      end
+    let simplify t = if not t.simplified then with_shared_cache simplify t
 
     let dependencies t =
       let direct_nodes t = def t |> VDescr.direct_nodes |> NSet.of_list in

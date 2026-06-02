@@ -83,7 +83,7 @@ let%expect_test "tests" =
     var5: 'x
     print1: (int -> bool -> true) | (any -> any)
     print2: (false, false) | (true, true)
-    print3: { l1 : true ; l2 : true ..} | { l1 : false ; l2 : true }
+    print3: { l1 : false ; l2 : true } | { l1 : true ; l2 : true ..}
     print4: nil | int | (any, x1) where x1 = nil | (any, x1)
     print5: (int -> int) -> bool -> bool
     print6: 'b & ('a, 'b) | 'a

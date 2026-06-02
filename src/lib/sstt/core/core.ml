@@ -35,7 +35,7 @@ module Ty : Ty = struct
   module VDescr = Node.VDescr
   module F = VDescr.Descr.Records.FTy
   module O = F.OTy
-  let simpl t = N.simplify t
+  let simpl t = N.simplify t ; t
   let s f t = f t |> simpl
   let s' f t = simpl t |> f
 
