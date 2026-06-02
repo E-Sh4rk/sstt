@@ -55,6 +55,7 @@ include (struct
       id : int ;
       mutable def : VDescr.t option ;
       mutable simplified : bool ;
+      mutable marked : bool ; (* Temporary flag used when simplifying *)
       mutable dependencies : NSet.t option;
       mutable all_vars : MixVarSet.t option;
       mutable neg : t option
@@ -82,6 +83,7 @@ include (struct
         id = next_id () ;
         def = None ;
         simplified = false ;
+        marked = false ;
         dependencies = None;
         all_vars = None;
         neg = None;
@@ -334,16 +336,17 @@ include (struct
        canonical one, if it exists in the cache, otherwise we can leave it. *)
 
     let rec simplify_rec t =
-      if t.simplified then t
+      if t.simplified || t.marked then t
       else
         let t_def = def t in
         let cache = get_cons_cache true in
         match ConsCache.find_opt cache t_def with
           Some t' -> t' (* a simplified t exists in the cache, return it *)
         | None ->
-          t.simplified <- true; (* to stop the recursion when we encounter t again *)
+          t.marked <- true; (* to stop the recursion when we encounter t again *)
           let s_def = t_def |> VDescr.simplify |> VDescr.map_nodes simplify_rec in
           define ~simplified:true t s_def;
+          t.marked <- false;
           match ConsCache.find_opt cache s_def with
             Some t' -> t' (* the simplified descriptor alread has a canonical node *)
           | None -> t (* No canonical node t was updated in place *)
