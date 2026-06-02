@@ -342,6 +342,9 @@ module type OTy = sig
 
     val optional : node -> t
     (** [optional t] is a shortcut for [mk (Atom.optional t)]. *)
+
+    (**@inline*)
+    include SetTheoreticOps with type t := t
   end
 
 (* Polymorphic layers *)
@@ -437,6 +440,8 @@ module type FTy = sig
     and module VarSet := RowVarSet
     and module VarMap := RowVarMap
 
+  (**@inline*)
+  include SetTheoreticOps with type t := t
 end
 
 (* Enums *)

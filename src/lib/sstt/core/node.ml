@@ -307,7 +307,7 @@ include (struct
           b
       end
 
-    let is_empty_rec = with_shared_cache is_empty_rec
+    let is_empty_rec t = with_shared_cache is_empty_rec t
 
     let is_empty t =
       if t == empty then true
@@ -319,7 +319,7 @@ include (struct
     let leq t1 t2 = diff t1 t2 |> is_empty
 
     let equiv t1 t2 = leq t1 t2 && leq t2 t1
-    let equiv = with_shared_cache equiv
+    let equiv t1 t2 = with_shared_cache (equiv t1) t2
 
     let is_any t = neg t |> is_empty
     let disjoint t1 t2 = cap t1 t2 |> is_empty
@@ -455,7 +455,7 @@ include (struct
       in
       aux t
 
-    let factorize = with_shared_cache factorize
+    let factorize t = with_shared_cache factorize t
 
     let mk_var v = VDescr.mk_var v |> cons
     let mk_descr d = VDescr.mk_descr d |> cons

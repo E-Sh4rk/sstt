@@ -30,7 +30,7 @@ let transform f t =
   |> List.find_map (fun (v', t) -> if Var.equal v v' then Some t else None)
   |> Option.get
 
-let transform = Ty.with_shared_cache transform
+let transform f t = Ty.with_shared_cache (transform f) t
 
 (* Type simplification *)
 
@@ -186,5 +186,5 @@ let simpl_descr ~normalize d =
 
 let simpl_vdescr ~normalize = VDescr.map (simpl_descr ~normalize)
 
-let simplify ?normalize =
-  Ty.with_shared_cache (fun t -> transform (simpl_vdescr ~normalize) t)
+let simplify ?normalize t =
+  Ty.with_shared_cache (fun t -> transform (simpl_vdescr ~normalize) t) t

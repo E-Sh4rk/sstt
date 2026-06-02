@@ -616,7 +616,7 @@ module Make(VS:VarSettings) = struct
     let mcss = ncss |> CSS.to_list |> CSS.map_disj propagate in
     mcss |> CSS.to_list |> List.map solve
 
-  let tally = Ty.with_shared_cache tally
+  let tally cs = Ty.with_shared_cache tally cs
 end
 
 (* =============== Operations on row and field variables =============== *)
