@@ -1113,7 +1113,7 @@ module type PreNode = sig
   val of_eqs : (Var.t * t) list -> (Var.t * t) list
   val substitute : subst -> t -> t
   val factorize : t -> t
-  val simplify : t -> t
+  val simplify : t -> unit
 
 end
 module type Node = sig
