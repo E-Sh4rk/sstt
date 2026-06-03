@@ -100,7 +100,6 @@ module OTy(N:Node) = struct
   (* Derived subtyping function *)
   let leq t1 t2 = diff t1 t2 |> is_empty
   let equiv t1 t2 = leq t1 t2 && leq t2 t1
-  let equiv t1 t2 = N.with_shared_cache (equiv t1) t2
   let is_any t = neg t |> is_empty
   let disjoint t1 t2 = cap t1 t2 |> is_empty
 end
@@ -112,7 +111,6 @@ module Make(N:Node) = struct
   (* Derived subtyping function *)
   let leq t1 t2 = diff t1 t2 |> is_empty
   let equiv t1 t2 = leq t1 t2 && leq t2 t1
-  let equiv t1 t2 = N.with_shared_cache (equiv t1) t2
   let is_any t = neg t |> is_empty
   let disjoint t1 t2 = cap t1 t2 |> is_empty
 end
