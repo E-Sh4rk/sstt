@@ -14,10 +14,7 @@ module OAtom(N:Node) = struct
   let compare (n1,b1) (n2,b2) =
     Bool.compare b1 b2 |> ccmp
       N.compare n1 n2
-  let equal' f (n1,b1) (n2,b2) = Bool.equal b1 b2 && f n1 n2
-  let compare' f (n1,b1) (n2,b2) = Bool.compare b1 b2 |> ccmp f n1 n2
   let hash (n, b) = Hash.(mix (bool b) (N.hash n))
-  let hash' f (n, b) = Hash.(mix (bool b) (f n))
 
   let is_optional (_,b) = b
   let is_required (_,b) = not b
