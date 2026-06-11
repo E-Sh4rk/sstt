@@ -45,7 +45,7 @@ module Ty : Ty = struct
     let cap t1 t2 = F.cap t1 t2 |> simpl
     let cup t1 t2 = F.cup t1 t2 |> simpl
     let diff t1 t2 = F.diff t1 t2 |> simpl
-    let neg t = F.neg t |> simpl
+    let neg t = F.neg t (*|> simpl*) (* Negation preserves simplification *)
     let conj ts = F.conj ts |> simpl
     let disj ts = F.disj ts |> simpl
 
@@ -79,7 +79,7 @@ module Ty : Ty = struct
     let cap t1 t2 = O.cap t1 t2 |> simpl
     let cup t1 t2 = O.cup t1 t2 |> simpl
     let diff t1 t2 = O.diff t1 t2 |> simpl
-    let neg t = O.neg t |> simpl
+    let neg t = O.neg t (*|> simpl*) (* Negation preserves simplification *)
     let conj ts = O.conj ts |> simpl
     let disj ts = O.disj ts |> simpl
 
