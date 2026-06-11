@@ -65,6 +65,8 @@ module OTy(N:Node) = struct
   let cup = Bdd.cup
   let neg = Bdd.neg
   let diff = Bdd.diff
+  let conj = List.fold_left cap any
+  let disj = List.fold_left cup empty
 
   let get (ps,ns) =
     Atom.diff (Atom.conj ps) (Atom.disj ns)
