@@ -328,6 +328,8 @@ module type OTy = sig
                                 and type node := node
                                 and type atom := Atom.t
 
+    (** @inline *)
+    include SetTheoretic with type t := t
 
     val get : t -> Atom.t
 
@@ -345,7 +347,14 @@ module type OTy = sig
 
     (**@inline*)
     include SetTheoreticOps with type t := t
-  end
+end
+module type OTy' = sig
+
+  (**@inline*)
+  include OTy
+
+  val simplify : t -> t
+end
 
 (* Polymorphic layers *)
 
@@ -431,17 +440,26 @@ module type FTy = sig
 
   type node
   type t
-
-  module OTy : OTy with type node := node
+  type o
 
   (**@inline*)
   include Polymorphic with type t := t and type node := node
-    and type leaf := OTy.t and type var := RowVar.t
+    and type leaf := o and type var := RowVar.t
     and module VarSet := RowVarSet
     and module VarMap := RowVarMap
 
   (**@inline*)
   include SetTheoreticOps with type t := t
+end
+module type FTy' = sig
+  type node
+
+  module OTy : OTy' with type node := node
+
+  (**@inline*)
+  include FTy with type o := OTy.t and type node := node
+  
+  val simplify : t -> t
 end
 
 (* Enums *)
@@ -700,8 +718,7 @@ module type Records = sig
 
   type node
 
-  (** @canonical Sstt.Ty.F *)
-  module FTy : FTy with type node := node
+  module FTy : FTy' with type node := node
 
   (** @inline*)
   include ComponentBase with type t := t
@@ -1256,6 +1273,9 @@ module type Ty = sig
 
   (** {1 Field types and optional types }*)
 
-  module F = VDescr.Descr.Records.FTy
-  module O = F.OTy
+  module O : OTy with type node := t
+                  and type t = VDescr.Descr.Records.FTy.OTy.t
+  module F : FTy with type node := t
+                  and type t = VDescr.Descr.Records.FTy.t
+                  and type o := O.t
 end

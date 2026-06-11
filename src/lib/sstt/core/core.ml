@@ -33,8 +33,69 @@ module Ty : Ty = struct
   type subst = N.subst
 
   module VDescr = Node.VDescr
-  module F = VDescr.Descr.Records.FTy
-  module O = F.OTy
+  module F = struct
+    module F = VDescr.Descr.Records.FTy
+    type t = F.t
+
+    let simpl = F.simplify
+    let s f t = f t |> simpl
+    let s' f t = (*simpl*) t |> f
+
+    let any, empty = F.any |> simpl, F.empty |> simpl
+    let cap t1 t2 = F.cap t1 t2 |> simpl
+    let cup t1 t2 = F.cup t1 t2 |> simpl
+    let diff t1 t2 = F.diff t1 t2 |> simpl
+    let neg t = F.neg t |> simpl
+    let conj ts = F.conj ts |> simpl
+    let disj ts = F.disj ts |> simpl
+
+    let mk_var, mk_descr, get_descr = s F.mk_var, s F.mk_descr, s' F.get_descr
+    let get_vars = s' F.get_vars
+    let dnf, of_dnf = s' F.dnf, s F.of_dnf
+    let map f t = F.map f t |> simpl
+    let map_nodes f t = F.map_nodes f t |> simpl
+
+    let strengthen, weaken = F.strengthen, F.weaken
+
+    let is_empty t = F.is_empty t
+    let leq t1 t2 = F.equal t1 t2 || F.leq t1 t2
+    let equiv t1 t2 = F.equal t1 t2 || F.equiv t1 t2
+    let disjoint t1 t2 = F.disjoint t1 t2
+    let is_any t = F.is_any t
+
+    let compare, equal, hash = F.compare, F.equal, F.hash
+  end
+  module O = struct
+    module O = VDescr.Descr.Records.FTy.OTy
+    type t = O.t
+    module Atom = O.Atom
+
+    let simpl = O.simplify
+    let s f t = f t |> simpl
+    let s' f t = (*simpl*) t |> f
+
+    let any, empty, present, absent =
+      O.any |> simpl, O.empty |> simpl, O.present |> simpl, O.absent |> simpl
+    let cap t1 t2 = O.cap t1 t2 |> simpl
+    let cup t1 t2 = O.cup t1 t2 |> simpl
+    let diff t1 t2 = O.diff t1 t2 |> simpl
+    let neg t = O.neg t |> simpl
+    let conj ts = O.conj ts |> simpl
+    let disj ts = O.disj ts |> simpl
+
+    let mk, get, required, optional = s O.mk, s' O.get, s O.required, s O.optional
+    let dnf, of_dnf = s' O.dnf, s O.of_dnf
+    let map f t = O.map f t |> simpl
+    let map_nodes f t = O.map_nodes f t |> simpl
+
+    let is_empty t = O.is_empty t
+    let leq t1 t2 = O.equal t1 t2 || O.leq t1 t2
+    let equiv t1 t2 = O.equal t1 t2 || O.equiv t1 t2
+    let disjoint t1 t2 = O.disjoint t1 t2
+    let is_any t = O.is_any t
+
+    let compare, equal, hash = O.compare, O.equal, O.hash
+  end
   let simpl t = N.simplify t ; t
   let s f t = f t |> simpl
   let s' f t = simpl t |> f
