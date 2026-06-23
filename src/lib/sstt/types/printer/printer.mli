@@ -13,17 +13,10 @@ module NodeId : sig
   val pp : Format.formatter -> t -> unit
 end
 
-(** Field operation  *)
-type 'd fop =
-  | FVarop of fvarop * 'd fop list
-  | FBinop of fbinop * 'd fop * 'd fop
-  | FUnop of funop * 'd fop
-  | FTy of 'd * bool
-  | FRowVar of RowVar.t
-
 type builtin =
   | Empty | Any | AnyTuple | AnyEnum | AnyTag | AnyInt
   | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of Tag.t
+
 type descr = { op : op ; ty : Ty.t }
 and op =
   | Extension of extension_node
@@ -34,10 +27,17 @@ and op =
   | Enum of Enum.t
   | Tag of Tag.t * descr
   | Interval of Z.t option * Z.t option
-  | Record of (Label.t * descr fop) list * descr fop
+  | Record of (Label.t * fdescr) list * fdescr
   | Varop of varop * descr list
   | Binop of binop * descr * descr
   | Unop of unop * descr
+and fdescr = { fop : fop ; fty : Ty.F.t }
+and fop =
+  | FVarop of fvarop * fdescr list
+  | FBinop of fbinop * fdescr * fdescr
+  | FUnop of funop * fdescr
+  | FTy of descr * bool
+  | FRowVar of RowVar.t
 and extension_node
 type def = NodeId.t * descr
 type 'm t = { main : 'm ; defs : def list }
@@ -49,7 +49,7 @@ type aliases = (Ty.t * string) list
 (* Printer extensions types and helper *)
 
 type extension_builder
-type build_ctx = { build : Ty.t -> descr ; build_fop : Ty.F.t -> descr fop }
+type build_ctx = { build : Ty.t -> descr ; build_field : Ty.F.t -> fdescr }
 
 val builder :
   to_t:(build_ctx -> TagComp.t -> 'a option) ->
@@ -79,9 +79,14 @@ type params = { aliases : aliases ; extensions : extensions }
 val cup_descr : descr -> descr -> descr
 val cap_descr : descr -> descr -> descr
 val neg_descr : descr -> descr
-val map_descr : (descr -> op) -> descr -> descr
-val map_fop : ('a -> 'b) -> 'a fop -> 'b fop
-val map : (descr -> op) -> descr t -> descr t
+val cup_fdescr : fdescr -> fdescr -> fdescr
+val cap_fdescr : fdescr -> fdescr -> fdescr
+val neg_fdescr : fdescr -> fdescr
+
+val map_descr : (descr -> op) -> (fdescr -> fop) -> descr -> descr
+val map_fdescr : (descr -> op) -> (fdescr -> fop) -> fdescr -> fdescr
+val map : (descr -> op) -> (fdescr -> fop) -> descr t -> descr t
+val map_f : (descr -> op) -> (fdescr -> fop) -> fdescr t -> fdescr t
 
 val empty_params : params
 
@@ -97,10 +102,10 @@ val get : ?factorize:bool -> params -> Ty.t -> descr t
 val get' : ?factorize:bool -> params -> Ty.t list -> descr list t
 
 (** [get_field f fty] transforms the field type [fty] into an algebraic form. *)
-val get_field : ?factorize:bool -> params -> Ty.F.t -> descr fop t
+val get_field : ?factorize:bool -> params -> Ty.F.t -> fdescr t
 
 (** [get_field'] is the same as [get_field] but for converting multiple fields at once. *)
-val get_field' : ?factorize:bool -> params -> Ty.F.t list -> descr fop list t
+val get_field' : ?factorize:bool -> params -> Ty.F.t list -> fdescr list t
 
 (** [print_builtin fmt bt] prints the builtin type [bt] using formatter [fmt]. *)
 val print_builtin : Format.formatter -> builtin -> unit
@@ -122,8 +127,8 @@ val print_descr_atomic : Format.formatter -> descr -> unit
     with precedence [prec] and associativity [assoc], using formatter [fmt]. *)
 val print_descr_ctx : int -> assoc -> Format.formatter -> descr -> unit
 
-(** [print_field fmt fop] prints the algebraic form [fop] using formatter [fmt]. *)
-val print_field_ctx : int -> assoc -> Format.formatter -> descr fop -> unit
+(** [print_field fmt fd] prints the algebraic form [fd] using formatter [fmt]. *)
+val print_field_ctx : int -> assoc -> Format.formatter -> fdescr -> unit
 
 (** [print_ty params fmt ty] prints the type [ty] using formatter [fmt],
     recognizing type aliases and extensions in [params]. Same as [print fmt (get params ty)]. *)
