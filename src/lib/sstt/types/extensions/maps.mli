@@ -12,7 +12,7 @@ val proj : dom:Ty.t -> Ty.t -> Ty.t
 val merge : Ty.t -> Ty.t field -> Ty.t
 
 val to_t : Printer.build_ctx -> TagComp.t -> Printer.descr t option
-val map : ((Printer.descr -> Printer.descr) -> Printer.descr t -> Printer.descr t)
+val map : Printer.descr t Printer.map
 val print : int -> Prec.assoc -> Format.formatter -> Printer.descr t -> unit
 
 val printer_builder : Printer.extension_builder

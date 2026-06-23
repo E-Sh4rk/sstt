@@ -34,7 +34,7 @@ let extract_dnf pty =
 
 let destruct ty = proj_tag ty |> extract_dnf
 
-let map f l =
+let map f _ l =
   let ff t = { dom = f t.dom; codom = f t.codom } in
   List.map (fun (ps, ns) -> List.map ff ps, List.map ff ns) l
 
@@ -44,7 +44,7 @@ let to_t ctx comp =
     if Ty.leq pty any_p |> not then None
     else
       let l = extract_dnf pty in
-      Some (map ctx.Printer.build l)
+      Some (map ctx.Printer.build ctx.Printer.build_field l)
   with Invalid_argument _ -> None
 let proj ~dom t =
   let arr = proj_tag t |> Ty.get_descr |> Descr.get_arrows in

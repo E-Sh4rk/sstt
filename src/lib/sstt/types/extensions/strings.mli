@@ -6,7 +6,7 @@ val any : Ty.t
 
 type t = bool * string list
 val to_t : Printer.build_ctx -> TagComp.t -> t option
-val map : ((Printer.descr -> Printer.descr) -> t -> t)
+val map : t Printer.map
 val print : int -> Prec.assoc -> Format.formatter -> t -> unit
 
 val printer_builder : Printer.extension_builder

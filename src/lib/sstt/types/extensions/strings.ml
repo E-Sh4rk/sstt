@@ -32,7 +32,7 @@ let to_t _ comp =
     else
       None
     with Not_found -> None
-let map _ v = v
+let map _ _ v = v
 
 open Prec
 

@@ -50,10 +50,10 @@ type aliases = (Ty.t * string) list
 
 type extension_builder
 type build_ctx = { build : Ty.t -> descr ; build_field : Ty.F.t -> fdescr }
-
+type 'a map = (descr -> descr) -> (fdescr -> fdescr) -> 'a -> 'a
 val builder :
   to_t:(build_ctx -> TagComp.t -> 'a option) ->
-  map:((descr -> descr) -> 'a -> 'a) ->
+  map:'a map ->
   print:(int -> assoc -> Format.formatter -> 'a -> unit) ->
   extension_builder
 (** [builder ~to_t ~map ~print] returns an extension builder that knows how

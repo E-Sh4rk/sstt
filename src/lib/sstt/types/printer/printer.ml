@@ -53,7 +53,7 @@ and fop =
   | FRowVar of RowVar.t
 and extension_node = E : {
     value : 'a;
-    map : (descr  -> descr) -> 'a -> 'a;
+    map : (descr -> descr) -> (fdescr -> fdescr) -> 'a -> 'a;
     print : int -> assoc -> Format.formatter -> 'a -> unit
   } -> extension_node
 type def = NodeId.t * descr
@@ -87,7 +87,8 @@ let rec map_fdescr f ff fd = (* Assumes f and ff preserve semantic equivalence *
 and map_descr f ff d = (* Assumes f and ff preserve semantic equivalence *)
   let rec aux d =
     let op = match d.op with
-      | Extension (E e) -> Extension (E{ e with value = e.map aux e.value } )
+      | Extension (E e) ->
+        Extension (E{ e with value = e.map aux (map_fdescr f ff) e.value } )
       | Alias str -> Alias str
       | Node n -> Node n
       | Builtin b -> Builtin b
@@ -685,6 +686,7 @@ and print_t fmt t =
 
 (* MAIN *)
 type build_ctx = { build : Ty.t -> descr ; build_field : Ty.F.t -> fdescr }
+type 'a map = (descr -> descr) -> (fdescr -> fdescr) -> 'a -> 'a
 let builder ~to_t ~map ~print =
   (fun ctx ty ->
      let build_ctx = { build=node ctx ; build_field=resolve_field (node ctx) } in

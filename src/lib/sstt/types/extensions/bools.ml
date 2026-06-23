@@ -34,7 +34,7 @@ let to_t _ comp =
     Some { t; f }
   else None
 
-let map _f v = v
+let map _f _ff v = v
 let print _ _ fmt {t; f} =
   match t, f with
   | false, false -> assert false

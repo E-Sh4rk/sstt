@@ -182,7 +182,7 @@ let map_basic f = function
   | Nil -> Nil
   | Cons (d1, d2) -> Cons (f d1, f d2)
 
-let map f = function
+let map f _ = function
     Regexp r -> Regexp (map_re f r)
   | Basic l -> Basic (List.map (map_basic f) l)
 

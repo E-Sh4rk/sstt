@@ -121,7 +121,7 @@ let to_t ctx comp =
       ) params |> Option.some
   with Invalid_argument _ -> None
 
-let map f l =
+let map f _ l =
   l |> List.map (fun (p1, p2) ->
       (List.map (List.map f) p1,
        List.map (List.map f) p2)

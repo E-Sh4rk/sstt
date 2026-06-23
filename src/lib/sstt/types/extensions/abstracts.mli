@@ -13,7 +13,7 @@ val mk_any : Tag.t -> Ty.t
 val destruct : Tag.t -> Ty.t -> Ty.t t
 
 val to_t : Printer.build_ctx -> TagComp.t -> Printer.descr t option
-val map : ((Printer.descr -> Printer.descr) -> Printer.descr t -> Printer.descr t)
+val map : Printer.descr t Printer.map
 val print : Tag.t -> int -> Prec.assoc -> Format.formatter -> Printer.descr t -> unit
 
 val printer_builder : Tag.t -> Printer.extension_builder

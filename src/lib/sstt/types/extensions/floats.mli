@@ -9,7 +9,7 @@ val any : Ty.t
 
 type t = { ninf : bool ; neg : bool ; nzero : bool ; pzero : bool ; pos : bool ; pinf : bool ; nan : bool }
 val to_t : Printer.build_ctx -> TagComp.t -> t option
-val map : ((Printer.descr -> Printer.descr) -> t -> t)
+val map : t Printer.map
 val print : int -> Prec.assoc -> Format.formatter -> t -> unit
 
 val any_t : t

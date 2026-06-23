@@ -35,7 +35,7 @@ let to_t _ comp =
 let any_t = [(Char.chr 0, Char.chr 255)]
 
 open Prec
-let map _f v = v
+let map _f _ff v = v
 let print prec assoc fmt ints =
   let pp_chars _prec _assoc fmt (chr1, chr2) =
     if Char.equal chr1 chr2

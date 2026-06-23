@@ -72,7 +72,7 @@ let to_t _ comp =
   else None
 open Prec
 
-let map _ v = v
+let map _ _ v = v
 let comp_names =
   [
     Ninf, "-inf" ;

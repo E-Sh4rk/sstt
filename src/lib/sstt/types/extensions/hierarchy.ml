@@ -69,7 +69,7 @@ let to_t h _ cmp =
 
 open Prec
 
-let map _ v = v
+let map _ _ v = v
 
 let print prec assoc fmt t =
   let rec print_line prec assoc fmt (L (n, t)) =
