@@ -555,12 +555,12 @@ module Make(VS:VarSettings) = struct
       | Nil, Nil -> (prev,prev') |> CSS.singleton
       | Cons (constr, tl), _ ->
         let (t', _, t) = VC.destruct constr in
-        let ty = Ty.diff t' t in
+        let t = Ty.diff t' t in
         if MemoTy.mem memo_ty t then
           aux (VCS.add constr prev, prev') (tl,cs')
         else
           let () = MemoTy.add memo_ty t () in
-          let res = norm ty |> retry_with in
+          let res = norm t |> retry_with in
           MemoTy.remove memo_ty t ; res
       | Nil, Cons (constr, tl) ->
         let (f', _, f) = FC.destruct constr in
