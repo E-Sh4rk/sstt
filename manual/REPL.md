@@ -17,7 +17,7 @@ where `f` is a field type
 - Recursive type `t where id=t and ...`
 
 Field types `f` are built with the following constructors:
-- Monomorphic row variable `` `x`` (lowercase), polymorphic row variable `` `X`` (uppercase)
+- Monomorphic row variable `` `x`` (lowercase), polymorphic row variable `` `X`` (uppercase), see [`ROWPOLY.md`](ROWPOLY.md) for more info
 - Type `t`
 - Optional type `t?` (e.g. a missing field may be represented by the type `empty?`)
 
