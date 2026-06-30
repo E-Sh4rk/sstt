@@ -41,15 +41,13 @@ Two common shorthands use the tail to express closedness:
 - **Open record** `{ a:bool ; b:int ..}` is shorthand for `{ a:bool ; b:int ;; any? }`.
   The tail `any?` places no constraint on unlisted fields, so any extra fields are allowed.
 
-Any other field type can appear as the tail to express a mixed constraint on unlisted fields.
-
 ## Row variables vs type variables
 
 SSTT supports two kinds of variables for polymorphism.
 
 ### Row variables `` `x ``
 
-A **row variable** `` `x `` (lowercase) or `` `X `` (uppercase, polymorphic) ranges over *rows* — that is, it can be unified with a full row `{ l1:f1 ; l2:f2 ; ... }` encoding a mapping from labels to field types.
+A **row variable** `` `x `` (lowercase) or `` `X `` (uppercase, polymorphic) ranges over *rows* — that is, mappings from labels to field types. *Rows* are noted using the same syntax as *records types* (e.g. ``{ a:bool ..}`` for the row assigning `bool` to the label `a` and `any?` to any other label), even though rows are *not* types (they are assignments).
 
 When a row variable appears as the tail, it captures the entire set of unlisted fields. A row variable cannot appear outside of a record constructor.
 
@@ -69,7 +67,7 @@ The solution encodes the following constraints:
 
 ### Type variables `'x`
 
-A **type variable** `'x` ranges over *types*, not rows.
+A **type variable** `'x` (lowercase) or `` 'X `` (uppercase, polymorphic) ranges over *types*, not rows.
 When used as a tail, it applies the *same* type uniformly to every unlisted field.
 A type variable *cannot* capture `absent`: as a consequence, when used as a tail, the optional variant `'x?` is needed if the record may lack some fields.
 
