@@ -174,8 +174,6 @@ let mk_intervals t =
       | (Some z1, _) | (None, Some z1) -> Some(Int z1) 
     end
 
-
-
 (**[mk_enum t] return one value present in the enum part of [t].
    Assume that the enum part of [t] is non-empty. 
    If the elements of [t] are known, return the first element of [t].
@@ -279,7 +277,7 @@ let mk_tuples_mem mk_mem t =
     else let new_tuple = List.map 
              (fun a -> 
                 match a with  
-                | None -> failwith "Impossible : Empty type undetected in tuples" 
+                | None -> failwith "Impossible : Empty type undetected in tuples" ;
                 | Some w -> w) 
              w
       in 
@@ -386,7 +384,6 @@ let mk_other t =
 
 
 
-
 let create_ts tally = 
   List.map (fun sigma ->
       let substs = Subst.bindings1 sigma in
@@ -400,41 +397,16 @@ let create_ts tally =
     )
     tally
 
-
-let find_alpha v tally= List.find (
-    fun a -> 
-      let sig_inf = Subst.singleton1 a Ty.empty in 
-      let sig_sup = Subst.singleton1 a Ty.any in 
-      List.for_all (
-        fun subst -> 
-          let nu' = Subst.apply subst (Ty.mk_var a) in 
-          let inf = Subst.apply sig_inf nu' in
-          let sup = Subst.apply sig_sup nu' in 
-          (VarSet.is_empty (Ty.vars inf)) 
-          && (VarSet.is_empty (Ty.vars sup))
-      )
-        tally
-  )
-    (VarSet.to_list v)
-
-
-let create_ts_alpha alpha tal = 
-  List.fold_left (fun l s -> 
-      let nu = Subst.apply s (Ty.mk_var alpha) in 
-      let sig_inf = Subst.singleton1 alpha Ty.empty in 
-      let sig_sup = Subst.singleton1 alpha Ty.any in 
-      (Subst.apply sig_inf nu, Subst.apply sig_sup nu) :: l
-    )
-    []
-    tal 
-
-
-
-let increase_by_one mk sup =
+let rec increase_by_one mk alpha t wit sup =
   if Ty.is_any sup 
   then sup
-  else let _,w = mk (Ty.diff Ty.any sup) in
-    Ty.cup sup (to_ty w)
+  else let to_wit = Ty.diff Ty.any (Ty.cup sup wit) in 
+    let _,w = mk to_wit in 
+    let guess = Ty.cup sup (to_ty w) in
+    let sigma = Subst.singleton1 alpha guess in 
+    if Subst.apply sigma t |> Ty.is_empty then
+      increase_by_one mk alpha t (Ty.cup wit (to_ty w)) sup
+    else  guess
 
 let rec decrease_by_one mk alpha t wit inf = 
   if Ty.is_empty inf 
@@ -443,100 +415,76 @@ let rec decrease_by_one mk alpha t wit inf =
     let _,w = mk to_wit in 
     let guess = Ty.diff inf (to_ty w) in
     let sigma = Subst.singleton1 alpha guess in 
-    if Subst.apply sigma t |> Ty.is_empty then begin
-      decrease_by_one mk alpha t (Ty.cup wit (to_ty w)) inf
-    end
-    else guess
-
-
-(*let create_nu mk alpha t ts = List.fold_left (
-    fun acc (inf,sup) -> 
-      Ty.cup acc (not_alpha mk alpha t (inf,sup))
-  ) 
-    Ty.empty 
-    ts
-*)
-
-let choose_one i s alpha t =
-  let s_i = Subst.singleton1 alpha i in 
-  if Subst.apply s_i t |> Ty.is_empty then s else i
-
-
-let no_alpha mk alpha t (acc_i,acc_s) (inf,sup) =
-  if Ty.is_empty inf 
-  then if Ty.is_empty sup
-  (*Si inf = 0 et sup = 0*)
-
-    then begin
-      (*Format.printf "inf = 0, sup = 0 : (%a, %a) \n" Printer.print_ty' acc_i Printer.print_ty' (Ty.cup acc_s (increase_by_one mk sup));*)
-      acc_i, Ty.cup acc_s (increase_by_one mk sup)
-    end
-    (*Si inf = 0 et sup = 1*)
-    else if Ty.is_any sup 
-    then begin 
-      (*Format.printf "inf = 0, sup = 1 : (%a, %a) \n" Printer.print_ty' acc_i Printer.print_ty' acc_s;*)
-      acc_i,acc_s
-    end
-    (*Si inf = 0 et sup = b*)
-    else acc_i, (Ty.cup acc_s (increase_by_one mk sup))
-  else if Ty.is_any inf
-  (*Si inf = 1 et sup = 1*)
-  then begin
-    (*Format.printf "inf = 1, sup = 1 : (%a, %a) \n" Printer.print_ty' (Ty.cap acc_i (decrease_by_one mk alpha t Ty.empty inf)) Printer.print_ty' acc_s;*)
-    Ty.cap acc_i (decrease_by_one mk alpha t Ty.empty inf), acc_s
-  end
-  else if Ty.is_any sup
-  (*Si inf = a et sup = 1*)
-  then Ty.cap acc_i (decrease_by_one mk alpha t Ty.empty inf), acc_s
-  (*Si inf = a et sup = b*)
-  else Ty.cap acc_i (decrease_by_one mk alpha t Ty.empty inf), (Ty.cup acc_s (increase_by_one mk sup))
-
+    if Subst.apply sigma t |> Ty.is_empty then 
+      decrease_by_one mk alpha t (Ty.cup wit (to_ty w)) inf else 
+      guess
 
 let create_nu mk alpha t ts = 
-  let i,s = List.fold_left (no_alpha mk alpha t)
+  let i,s = List.fold_left (fun (acc_i, acc_s) (inf, sup) ->
+      let new_inf = 
+        if Ty.is_empty inf 
+        then acc_i 
+        else Ty.cap acc_i (decrease_by_one mk alpha t Ty.empty inf) 
+      in 
+      let new_sup = 
+        if Ty.is_any sup 
+        then acc_s 
+        else Ty.cup acc_s (increase_by_one mk alpha t Ty.empty sup)
+      in new_inf, new_sup)
       (Ty.any, Ty.empty)
       ts
-  in choose_one i s alpha t
+  in 
+  let s_i = Subst.singleton1 alpha i in 
+  if Subst.apply s_i t |> Ty.is_empty then s else i 
 
+let create_constraint1 alpha tal = 
+  List.fold_left (fun l s -> 
+      let nu = Subst.apply s (Ty.mk_var alpha) in 
+      let sig_inf = Subst.singleton1 alpha Ty.empty in 
+      let sig_sup = Subst.singleton1 alpha Ty.any in 
+      let inf = Subst.apply sig_inf nu in 
+      let sup = Subst.apply sig_sup nu in 
+      if (Ty.is_empty inf && Ty.is_any sup) then l
+      else (inf,sup) :: l
+    )
+    []
+    tal 
 
+let check_enough mk alpha t constr1 =
 
-let find_all_constraints alpha fst_guess tally ts = 
-  List.fold_left (fun acc sigma -> 
+  let nu = create_nu mk alpha t constr1 in 
+  let sigma = Subst.singleton1 alpha nu in 
+  t |> Subst.apply sigma |> Ty.is_empty |> not
+
+let create_constraints2 alpha sigma_1 ts = 
+  List.fold_left (fun acc subst_line -> 
       if List.exists (fun (inf,sup) -> 
-          (Subst.apply fst_guess inf |> Ty.is_empty |> not)
-          || (Subst.apply fst_guess sup |> Ty.is_any |> not) 
+          (Subst.apply sigma_1 inf |> Ty.is_empty |> not)
+          || (Subst.apply sigma_1 sup |> Ty.is_any |> not) 
         )
-          sigma
+          subst_line
       then acc
       else
-        let new_constr = List.find_map (fun (inf,sup) -> 
-            if  (Subst.apply fst_guess inf |> Ty.is_empty |> not)
-             || (Subst.apply fst_guess sup |> Ty.is_any |> not)
-            then None
-            else if (Ty.vars inf |> VarSet.mem alpha) 
-            then let t_i = Tallying.tally MixVarSet.empty [(inf, Ty.empty)] in 
-              Some(create_ts_alpha alpha t_i) 
-            else if (Ty.vars sup |> VarSet.mem alpha) 
-            then let t_s = Tallying.tally MixVarSet.empty [(Ty.any, sup)] in 
-              Some(create_ts_alpha alpha t_s) 
-            else None
-          )
-            sigma
-        in match new_constr with 
-        | None -> acc
+        let new_constr = 
+          List.find_map (fun (inf,sup) -> 
+              if (Ty.vars inf |> VarSet.mem alpha) 
+              then 
+                let t_i = Tallying.tally MixVarSet.empty [(inf, Ty.empty)] in 
+                Some(create_constraint1 alpha t_i) 
+              else if (Ty.vars sup |> VarSet.mem alpha) 
+              then 
+                let t_s = Tallying.tally MixVarSet.empty [(Ty.any, sup)] in 
+                Some(create_constraint1 alpha t_s) 
+              else None
+            )
+            subst_line
+        in match new_constr with
+
+        | None -> assert false
         | Some w -> w @ acc
     )
-    (create_ts_alpha alpha tally)
+    []
     ts
-
-let create_subst mk alpha nu tally ts t = 
-  let fst_guess =  Subst.singleton1 alpha nu in
-  if t |> Subst.apply fst_guess |> Ty.is_empty |> not
-  then fst_guess
-  else let snd_guess = find_all_constraints alpha fst_guess tally ts
-    in 
-    let nu = create_nu mk alpha t snd_guess in
-    Subst.singleton1 alpha nu
 
 let rec polyw mk t =
   let v = Ty.vars t in
@@ -544,20 +492,28 @@ let rec polyw mk t =
   then Subst.identity 
   else 
     let tally =  Tallying.tally MixVarSet.empty [(t, Ty.empty)] in 
+    (*     Format.eprintf "tally : %a \n %!" (Format.pp_print_list Printer.print_subst') tally ; *)
     if List.is_empty tally 
     then VarSet.to_list v |> List.map (fun x -> (x, Ty.empty)) |> Subst.of_list1 
     else
-      begin
-      let ts = create_ts tally
-      in 
-      let alpha = find_alpha v tally in 
-      let nu = create_ts_alpha alpha tally |> create_nu mk alpha t in 
-      let sigma = create_subst mk alpha nu tally ts t 
-      in 
-      t |> Subst.apply sigma |> polyw mk |> Subst.combine sigma
-    end
+      let alpha = VarSet.max_elt v in
+      (*       Format.eprintf "\n alpha : %a \n %!" Printer.print_ty' (Ty.mk_var alpha);
+      *)      let ts = create_ts tally in 
+      let constr = 
+        let constr1 = create_constraint1 alpha tally in 
 
-and mk_mem t = 
+        if check_enough mk alpha t constr1 
+        then constr1
+        else 
+          let nu = create_nu mk alpha t constr1 in 
+          let sigma1 = Subst.singleton1 alpha nu in 
+          constr1 @ create_constraints2 alpha sigma1 ts
+      in 
+      let nu = create_nu mk alpha t constr in 
+      let sigma = Subst.singleton1 alpha nu in 
+      t |> Subst.apply sigma |> polyw mk |> Subst.combine sigma
+
+let rec mk_mem t = 
   let t_descr = Ty.get_descr t in 
   match DHash.find mem t_descr with 
   | None -> None
@@ -567,24 +523,20 @@ and mk_mem t =
     let w = 
       let* () = mk_intervals t in 
       let* () = mk_enums t in
-      let* () =  mk_arrows t in
+      let* () = mk_arrows t in
       let* () = mk_tags_mem mk_mem t in 
       let* () = mk_tuples_mem mk_mem t in
-      let* () =  mk_records_mem mk_mem t in
+      let* () = mk_records_mem mk_mem t in
       let* () = mk_other t in 
       None
-    in DHash.replace mem t_descr w;w
-and mk t = 
+    in DHash.replace mem t_descr w;
+    w
+
+let rec mk t = 
   DHash.reset mem;
-  if Ty.is_empty t then failwith "Empty type";
+  if Ty.is_empty t then assert false;
   let sigma = polyw mk t in 
   let t' = Subst.apply sigma t in 
   match mk_mem t' with 
   | Some w -> (sigma,w)
-  | None -> Format.eprintf 
-              "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n t : %a \n t sigma : %a \n sigma : %a \n tally : %a \n %!" 
-              Printer.print_ty' t 
-              Printer.print_ty' t' 
-              pp_subst sigma
-              (Format.pp_print_list pp_subst) (Tallying.tally MixVarSet.empty [(t, Ty.empty)]);
-    failwith "empty type created"
+  | None -> assert false

@@ -172,6 +172,7 @@ let mixup = [
   "(~'b \\ 'a -> any) \\ (any -> empty), ~'b \\ 'a -> any";
   "(~int & 'A) \\ ('B | (int \\ 42))";
   "(~int | 'A) \\ ('B | (int \\ 42))";
+  (* "('a, int \\ 'B, 'B \\ int)"; *)
 ]
 
 let all_tests =
@@ -185,17 +186,17 @@ let all_tests =
                recur @
                vars @
                mixup
-  else ["'a, ~'a"]
-(*
+  else ["'A, 'B \\ int, int \\ 'B"]
+
 let env = 
   let depart = ["type bool = true | false;;";
-"type unit = ();;"] in 
-List.fold_left (fun a ->)
-  match boul |> Lexing.from_string |> IO.parse_command with 
-  | End -> failwith "impossible"
-  | Elt elt -> Repl.treat_elt Repl.empty_env elt
-*)
-let env = Ast.empty_env
+                "type unit = ();;"] in 
+  List.fold_left (fun acc typ->
+      match typ |> Lexing.from_string |> IO.parse_command with 
+      | End -> failwith "impossible"
+      | Elt elt -> Repl.treat_elt acc elt)
+    Ast.empty_env
+    depart
 let type_all = List.map 
     (fun  a -> 
        let r, _ = 
@@ -270,7 +271,7 @@ let%expect_test _ =
     tuple \ (int, true | false, true | false) : 0
     arrow : fun < arrow >
     int -> int : fun < int -> int >
-    (bool -> bool) & (int -> int) : fun < (bool -> bool) & (int -> int) >
+    (int -> int) & (true | false -> true | false) : fun < (int -> int) & (true | false -> true | false) >
     { int : int } : { int : 42 }
     record : {  }
     { l1 : any ; l2 : any ..} : { l1 : 42 ; l2 : 42 }
@@ -281,20 +282,20 @@ let%expect_test _ =
     { bool : true | false ; opt_int : int? ;; any } : { bool : true ;; 42 }
     {  } : {  }
     record : {  }
-    { l1 : bool ; l2 : true } : { l1 : bool ; l2 : true }
-    { l1 : false ; l2 : true } | { l1 : true ; l2 : true ..} : { l1 : false ; l2 : true }
-    { l1 : false ; l2 : true } | { l1 : true ; l2 : true ..} : { l1 : false ; l2 : true }
-    { l1 : bool ; l2 : true ..} : { l1 : bool ; l2 : true }
+    { l1 : true | false ; l2 : true } : { l1 : true ; l2 : true }
+    { l1 : true ; l2 : true ..} | { l1 : false ; l2 : true } : { l1 : true ; l2 : true }
+    { l1 : true ; l2 : true ..} | { l1 : false ; l2 : true } : { l1 : true ; l2 : true }
+    { l1 : true | false ; l2 : true ..} : { l1 : true ; l2 : true }
     { l1 : 42 } : { l1 : 42 }
     { l1 : 42 ;; int? } : { l1 : 42 }
     { l1 : 42 ; l2 : 73 ..} : { l1 : 42 ; l2 : 73 }
     { l1 : 42 ..} : { l1 : 42 }
     { l : 42 ;; x1 } where x1 = int | { l : 42 ;; x1 } : {  ;; 42 }
     {  ;; (41..42) } : {  ;; 41 }
-    {  ;; 41 } | {  ;; 42 } : {  ;; 41 }
-    { l1 : bool ; l2 : int ..} : { l1 : bool ; l2 : 42 }
-    { l1 : bool ; l2 : int ..} : { l1 : bool ; l2 : 42 }
-    { l1 : bool ; l2 : int } : { l1 : bool ; l2 : 42 }
+    {  ;; 42 } | {  ;; 41 } : {  ;; 42 }
+    { l1 : true | false ; l2 : int ..} \ { l1 : true ; l2 : int ..} : { l1 : false ; l2 : 42 }
+    { l1 : true | false ; l2 : int ..} \ { l1 : true ; l2 : int } : { l1 : true ; l2 : 42 ; aaa : 42 }
+    { l1 : true | false ; l2 : int } \ { l1 : true ; l2 : int ..} : { l1 : false ; l2 : 42 }
     ~(enum | arrow | int | tag | tuple | record) : #Other
     other : " other "
     x1 where x1 = foo(true | false) | oof(x1) : foo(true)
@@ -305,11 +306,11 @@ let%expect_test _ =
     x1 where x1 = 42 | tag(x1) : 42
     x1 where x1 = true | false | (x1 -> any) : " true "
     true | (x1 -> any) where x1 = true | false | (x1 -> any) : " true "
-    x1, x2 where x1 = tuple0 | (x1, x2) and x2 = nil | int | (x2, (x1, x2)) : tuple0, 42
+    x2, x1 where x1 = nil | int | (x1, (x2, x1)) and x2 = tuple0 | (x2, x1) : tuple0, 42
     'A : 42 with subst [ 'A : any ]
     'a : 42 with subst [ 'a : any ]
     'a, 'b, 'c : 42, 42, 42 with subst [ 'a : any ; 'b : any ; 'c : any ]
-    'b | 'a : 42 with subst [ 'a : any ]
+    'b | 'a : 42 with subst [ 'b : any ]
     'a \ (enum | arrow | int) : a(16) with subst [ 'a : any ]
     (record, 'a) \ (record, 'b) : {  }, 42 with subst [ 'a : any ; 'b : empty ]
     (record, 'a) \ (record, 'B) : {  }, 42 with subst [ 'a : any ; 'B : empty ]
@@ -317,12 +318,12 @@ let%expect_test _ =
     (record, 'A) \ (record, 'B) : {  }, 42 with subst [ 'A : any ; 'B : empty ]
     (record, 'b) \ (record, 'a) : {  }, 42 with subst [ 'b : any ; 'a : empty ]
     'y & 'x : 42 with subst [ 'x : any ; 'y : any ]
-    'y | 'x : 42 with subst [ 'x : any ]
+    'y | 'x : 42 with subst [ 'y : any ]
     'a, 'b : 42, 42 with subst [ 'a : any ; 'b : any ]
     'x : 42 with subst [ 'x : any ]
     'A -> 'b : fun < arrow > with subst [ 'A : empty ; 'b : empty ]
     'A -> 'B : fun < arrow > with subst [ 'A : empty ; 'B : empty ]
-    'A -> 'B, 'Y : any -> any, 42 with subst [ 'A : any ; 'B : any ; 'Y : any ]
+    'A -> 'B, 'Y : arrow, 42 with subst [ 'A : empty ; 'B : empty ; 'Y : any ]
     { a : any ;; 'R } : {  ;; 42 } with subst [ 'R : any ]
     'g \ 'a : 42 with subst [ 'g : any ; 'a : empty ]
     any : 42
@@ -339,7 +340,7 @@ let%expect_test _ =
     'a & { x : 'a -> 'b } : { x : any -> any } with subst [ 'a : any ; 'b : any ]
     x1 where x1 = 'a & (('a, nil) | ('a, x1)) : 42, nil with subst [ 'a : any ]
     x1, 'a where x1 = nil | ('a, x1) : nil, 42 with subst [ 'a : any ]
-    'a & int | 'b, 'a \ int | 'b : 42, a with subst [ 'a : any ; 'b : empty ]
+    'a & int | 'b, 'a \ int | 'b : 42, 42 with subst [ 'b : any ]
     'a & int, 'a \ int : 42, a with subst [ 'a : any ]
     ('a, 'a) \ ('b, 'a) : 42, 42 with subst [ 'a : any ; 'b : empty ]
     ('A, 'A) \ ('B, 'A) : 42, 42 with subst [ 'A : any ; 'B : empty ]
@@ -352,17 +353,17 @@ let%expect_test _ =
     'X \ 'y : 42 with subst [ 'X : any ; 'y : empty ]
     'x \ 'Y : 42 with subst [ 'x : any ; 'Y : empty ]
     'X \ 'Y : 42 with subst [ 'X : any ; 'Y : empty ]
-    ('X -> 'Y) \ ('x -> 'y) : fun < (~42 -> empty) \ (any -> empty) > with subst [ 'X : ~42 ; 'Y : empty ; 'x : any ; 'y : empty ]
-    ('X -> 'Y) \ ('Z -> bool) : fun < (any -> any) \ (any -> bool) > with subst [ 'X : any ; 'Y : any ; 'Z : any ]
-    ('X, 'Y) \ ('x, 'y) : 42, 42 with subst [ 'X : any ; 'Y : any ; 'x : any ; 'y : empty ]
-    ('X, 'Y, 'Z) \ ('x, 'y, 'z) : 42, 42, 42 with subst [ 'X : any ; 'Y : any ; 'Z : any ; 'x : any ; 'y : any ; 'z : empty ]
-    ('A -> 'B, 'Y) \ ('x, 'y) : any -> any, 42 with subst [ 'A : any ; 'B : any ; 'Y : any ; 'x : empty ]
-    ('A -> 'B, 'Y) \ ('a -> 'b, 'y) : ~42 -> any, 42 with subst [ 'A : ~42 ; 'B : any ; 'Y : any ; 'a : any ; 'b : empty ; 'y : empty ]
-    ('X -> 'Y, 'X -> 'Y) \ ('a -> 'b, 'b -> 'a) : (~42 -> empty) \ (any -> empty), ~42 -> empty with subst [ 'X : ~42 ; 'Y : empty ; 'a : any ; 'b : empty ]
+    ('X -> 'Y) \ ('x -> 'y) : fun < (~42 -> any) \ (any -> any) > with subst [ 'X : ~42 ; 'Y : any ; 'x : any ; 'y : any ]
+    ('X -> 'Y) \ ('Z -> true | false) : fun < arrow \ (any -> true | false) > with subst [ 'X : empty ; 'Y : any ; 'Z : any ]
+    ('X, 'Y) \ ('x, 'y) : 42, 42 with subst [ 'X : any ; 'Y : any ; 'x : empty ; 'y : any ]
+    ('X, 'Y, 'Z) \ ('x, 'y, 'z) : 42, 42, 42 with subst [ 'X : any ; 'Y : any ; 'Z : any ; 'x : empty ; 'y : any ; 'z : any ]
+    ('A -> 'B, 'Y) \ ('x, 'y) : arrow, 42 with subst [ 'A : empty ; 'B : empty ; 'Y : any ; 'x : empty ; 'y : any ]
+    ('A -> 'B, 'Y) \ ('a -> 'b, 'y) : (~42 -> any) \ (any -> any), 42 with subst [ 'A : ~42 ; 'B : any ; 'Y : any ; 'a : any ; 'b : any ; 'y : any ]
+    ('X -> 'Y, 'X -> 'Y) \ ('a -> 'b, 'b -> 'a) : (~42 -> any) \ (any -> any), ~42 -> any with subst [ 'X : ~42 ; 'Y : any ; 'a : any ; 'b : any ]
     ('X, ~'X) \ ('A, 'B) : 41, 42 with subst [ 'X : ~42 ; 'A : empty ; 'B : any ]
-    { l : 'X ..} \ { l : 'Y } : { l : 42 } with subst [ 'X : any ; 'Y : empty ]
+    { l : 'X ..} \ { l : 'Y } : { l : 42 ; aa : 42 } with subst [ 'X : any ; 'Y : any ]
     { l : 'X } \ { l : 'Y ..} : { l : 42 } with subst [ 'X : any ; 'Y : empty ]
-    'X, 'Y \ int, bool : 42, a, bool with subst [ 'X : any ; 'Y : any ]
+    'X, 'Y \ int, true | false : 42, a, true with subst [ 'X : any ; 'Y : any ]
     'X -> 'Y \ 'A -> 'B : fun < arrow > with subst [ 'X : empty ; 'Y : empty ; 'A : empty ; 'B : empty ]
     'X & int -> 'Y \ int | 'X & int -> 'Y : fun < arrow > with subst [ 'X : empty ; 'Y : empty ]
     (~'a \ 'b -> any) \ (any -> empty), ~'a \ 'b -> any : (any -> any) \ (any -> empty), any -> any with subst [ 'b : empty ; 'a : empty ]
