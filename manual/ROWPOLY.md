@@ -81,13 +81,6 @@ Example — tallying `` [ { a:bool ; b:int } <= { ;; 'A? } ] `` forces `'A?` to 
 
 Example — tallying `` [ { a:bool ; b:int } <= { ;; 'A } ] `` has *no solution*, because a plain type variable `'A` cannot capture the absent field type.
 
-### Summary of differences
-
-| | Row variable `` `x `` | Optional type variable `'x?` | Plain type variable `'x` |
-|---|---|---|---|
-| Ranges over | Rows (mappings from labels to field types) | Types (compatible with `absent`) | Types (not compatible with `absent`) |
-| Tail: captures | Per-label field assignments | Uniform bound on field types | Uniform bound (all fields must be present) |
-
 ## Row-polymorphic function types
 
 Row variables and type variables in record tails enable expressive polymorphic function types.
