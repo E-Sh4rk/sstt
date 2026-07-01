@@ -3,7 +3,7 @@
 SSTT implements row-polymorphism as formalized in the article
 [*Revisiting Row Polymorphism for Set-Theoretic Types*](https://mlaurent.ovh/publications/row_poly.pdf).
 
-## Records and rows
+## Record types: bindings and tail
 
 A **record** in SSTT is a set-theoretic type for labeled collections of values.
 Internally, a record is described by a list of **explicit bindings**: a finite mapping from field labels to field types, plus a **tail**.
