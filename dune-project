@@ -45,5 +45,5 @@
 (package
  (name sstt-web)
  (synopsis "Web targets for sstt-repl")
- (depends sstt-repl js_of_ocaml js_of_ocaml-ppx js_of_ocaml-compiler wasm_of_ocaml-compiler)
+ (depends sstt-repl js_of_ocaml js_of_ocaml-ppx (js_of_ocaml-compiler (= 6.3.2)) (wasm_of_ocaml-compiler (= 6.3.2)))
 )
