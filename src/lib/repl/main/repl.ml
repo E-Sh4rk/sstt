@@ -84,10 +84,11 @@ let print_res pparams env fmt res =
   match res with
   | RBool bs ->
     let print_bool fmt b = Format.fprintf fmt "%b" b in
-    Format.fprintf fmt "@[%a@]" (print_seq_space print_bool) bs
+    Format.fprintf fmt "@[<h>%a@]" (print_seq_space print_bool) bs
   | RTy tys ->
-    Format.fprintf fmt "@[%a@]"
-      (print_seq_cut (Printer.print_ty (params pparams env))) tys
+    let pp_ty fmt t = Format.fprintf fmt "@[<hov>%a@]"
+      (Printer.print_ty (params pparams env)) t in
+    Format.fprintf fmt "@[<v>%a@]" (print_seq_cut pp_ty) tys
   | RSubst ss ->
     Format.fprintf fmt "@[<v>%a@]"
       (print_seq_cut (Printer.print_subst (params pparams env))) ss
