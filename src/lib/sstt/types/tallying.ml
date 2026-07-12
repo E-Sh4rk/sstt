@@ -422,123 +422,128 @@ module Make(VS:VarSettings) = struct
       )
     in psi CSS.any ps ns ()
 
-  let norm, norm_field =
-    let memo_ty = MemoTy.create 17 in
-    let memo_f = MemoFTy.create 17 in
-    let rec norm_ty t =
-      if Ty.is_empty t then CSS.any
-      else if MixVarSet.subset (Ty.all_vars t) VS.delta then CSS.empty
-      else
-        match MemoTy.find_opt memo_ty t with
-        | Some cstr -> cstr
-        | None ->
-          MemoTy.add memo_ty t CSS.any;
-          let res = Ty.def t |> norm_vdescr in
-          MemoTy.remove memo_ty t ; res
-    and norm_vdescr vd = vd |> VDescr.dnf |> CSS.map_conj norm_summand
-    and norm_summand summand =
-      match VToplevel.extract_smallest summand with
-      | None ->
-        let (_,_,d) = summand in
-        norm_descr d
-      | Some cs -> CSS.single (VC.mk cs)
-    and norm_descr d =
-      let (cs, others) = d |> Descr.components in
-      if others then CSS.empty
-      else cs |> CSS.map_conj norm_comp
-    and norm_comp c =
-      let open Descr in
-      match c with
-      | Enums c -> norm_enums c
-      | Arrows c -> norm_arrows c
-      | Intervals c -> norm_intervals c
-      | Tags c -> norm_tags c
-      | Tuples c -> norm_tuples c
-      | Records c -> norm_records c
-    and norm_enums d =
-      match Enums.destruct d with
-      | true, [] -> CSS.any
-      | _, _ -> CSS.empty
-    and norm_intervals d =
-      match Intervals.destruct d with
-      | [] -> CSS.any
-      | _ -> CSS.empty
-    and norm_tags tag =
-      let (cs, others) = tag |> Tags.components in
-      if others then CSS.empty
-      else cs |> CSS.map_conj norm_tagcomp
-    and norm_tagcomp c =
-      let tag = TagComp.tag c in
-      c |> TagComp.dnf |> CSS.map_conj (norm_tag tag)      
-    and norm_arrows arr =
-      arr |> Arrows.dnf |> CSS.map_conj norm_arrow
-    and norm_tuples tup =
-      let (comps, others) = tup |> Tuples.components in
-      if others then CSS.empty
-      else comps |> CSS.map_conj norm_tuplecomp
-    and norm_tuplecomp tup =
-      let n = TupleComp.len tup in
-      tup |> TupleComp.dnf |> CSS.map_conj (norm_tuple n)
-    and norm_records r =
-      r |> Records.dnf |> CSS.map_conj norm_record
-    and norm_arrow (ps, ns) =
-      let rec psi t1 t2 ps () =
-        let cstr = CSS.cup_lazy (norm_ty t1) (fun () -> norm_ty t2) in
-        let cstr_rec () = match ps with
-            [] -> CSS.empty
-          | (s1, s2) :: ps ->
-            if Ty.disjoint t1 s1 || Ty.leq t2 s2 then psi t1 t2 ps ()
-            else CSS.cap_lazy
-              (psi (Ty.diff t1 s1) t2 ps ())
-              (psi t1 (Ty.cap t2 s2) ps)
-        in
-        CSS.cup_lazy cstr cstr_rec
-      in
-      let norm_single_neg_arrow ps (t1, t2) =
-        let cstr_domain = Ty.diff t1 (List.map fst ps |> Ty.disj) |> norm_ty in
-        let cstr_struct () =
-          if List.is_empty ps then CSS.any else psi t1 (Ty.neg t2) ps () in
-        CSS.cap_lazy cstr_domain cstr_struct
-      in
-      CSS.map_disj (norm_single_neg_arrow ps) ns
-    and norm_tuple n (ps,ns) =
-      let ps = mapn (fun () -> List.init n (fun _ -> Ty.any)) Ty.conj ps in
-      norm_tuple_gen ~diff:Ty.diff ~disjoint:Ty.disjoint ~norm:norm_ty ps ns
-    and norm_tag tag line =
-      let tys = TagComp.line_emptiness_checks tag line in
-      CSS.map_disj norm_ty tys
-    and norm_record (ps, ns) =
-      let (tl,p), ns = Records.dnf_line_to_types (ps, ns) in
-      CSS.cup_lazy (norm_field tl)
-        (fun () -> norm_record_tests (tl,p) [] ns)
-    and norm_record_tests (tl,p) ns ns' =
-      match ns' with
-      | [] -> norm_record_bindings p ns
-      | (tl',bs')::ns' ->
-        CSS.cup_lazy (norm_record_tests (tl,p) ns ns') (fun () ->
-          CSS.cap_lazy (Ty.F.diff tl tl' |> norm_field)
-            (fun () -> norm_record_tests (tl,p) (bs'::ns) ns')
-        )
-    and norm_record_bindings p ns =
-      norm_tuple_gen ~diff:Ty.F.diff ~disjoint:Ty.F.disjoint ~norm:norm_field p ns
-    and norm_field (f:Ty.F.t) =
-      match MemoFTy.find_opt memo_f f with
+  type memo = { memo_ty: CSS.t MemoTy.t ; memo_f: CSS.t MemoFTy.t }
+  let rec norm memo t =
+    if Ty.is_empty t then CSS.any
+    else if MixVarSet.subset (Ty.all_vars t) VS.delta then CSS.empty
+    else
+      match MemoTy.find_opt memo.memo_ty t with
       | Some cstr -> cstr
       | None ->
-        MemoFTy.add memo_f f CSS.any;
-        let res = f |> Ty.F.dnf |> CSS.map_conj norm_field_summand in
-        MemoFTy.remove memo_f f ; res
-    and norm_field_summand summand =
-      match FToplevel.extract_smallest summand with
-      | None ->
-        let (_,_,oty) = summand in
-        norm_oty oty
-      | Some cs -> CSS.single' (FC.mk cs)
-    and norm_oty oty =
-      let n, o = Ty.O.get oty in
-      if o then CSS.empty else norm_ty n
+        MemoTy.add memo.memo_ty t CSS.any;
+        let res = Ty.def t |> norm_vdescr memo in
+        MemoTy.remove memo.memo_ty t ; res
+  and norm_vdescr memo vd = vd |> VDescr.dnf |> CSS.map_conj (norm_summand memo)
+  and norm_summand memo summand =
+    match VToplevel.extract_smallest summand with
+    | None ->
+      let (_,_,d) = summand in
+      norm_descr memo d
+    | Some cs -> CSS.single (VC.mk cs)
+  and norm_descr memo d =
+    let (cs, others) = d |> Descr.components in
+    if others then CSS.empty
+    else cs |> CSS.map_conj (norm_comp memo)
+  and norm_comp memo c =
+    let open Descr in
+    match c with
+    | Enums c -> norm_enums memo c
+    | Arrows c -> norm_arrows memo c
+    | Intervals c -> norm_intervals memo c
+    | Tags c -> norm_tags memo c
+    | Tuples c -> norm_tuples memo c
+    | Records c -> norm_records memo c
+  and norm_enums _memo d =
+    match Enums.destruct d with
+    | true, [] -> CSS.any
+    | _, _ -> CSS.empty
+  and norm_intervals _memo d =
+    match Intervals.destruct d with
+    | [] -> CSS.any
+    | _ -> CSS.empty
+  and norm_tags memo tag =
+    let (cs, others) = tag |> Tags.components in
+    if others then CSS.empty
+    else cs |> CSS.map_conj (norm_tagcomp memo)
+  and norm_tagcomp memo c =
+    let tag = TagComp.tag c in
+    c |> TagComp.dnf |> CSS.map_conj (norm_tag memo tag)      
+  and norm_arrows memo arr =
+    arr |> Arrows.dnf |> CSS.map_conj (norm_arrow memo)
+  and norm_tuples memo tup =
+    let (comps, others) = tup |> Tuples.components in
+    if others then CSS.empty
+    else comps |> CSS.map_conj (norm_tuplecomp memo)
+  and norm_tuplecomp memo tup =
+    let n = TupleComp.len tup in
+    tup |> TupleComp.dnf |> CSS.map_conj (norm_tuple memo n)
+  and norm_records memo r =
+    r |> Records.dnf |> CSS.map_conj (norm_record memo)
+  and norm_arrow memo (ps, ns) =
+    let rec psi t1 t2 ps () =
+      let cstr = CSS.cup_lazy (norm memo t1) (fun () -> norm memo t2) in
+      let cstr_rec () = match ps with
+          [] -> CSS.empty
+        | (s1, s2) :: ps ->
+          if Ty.disjoint t1 s1 || Ty.leq t2 s2 then psi t1 t2 ps ()
+          else CSS.cap_lazy
+            (psi (Ty.diff t1 s1) t2 ps ())
+            (psi t1 (Ty.cap t2 s2) ps)
+      in
+      CSS.cup_lazy cstr cstr_rec
     in
-    norm_ty, norm_field
+    let norm_single_neg_arrow ps (t1, t2) =
+      let cstr_domain = Ty.diff t1 (List.map fst ps |> Ty.disj) |> norm memo in
+      let cstr_struct () =
+        if List.is_empty ps then CSS.any else psi t1 (Ty.neg t2) ps () in
+      CSS.cap_lazy cstr_domain cstr_struct
+    in
+    CSS.map_disj (norm_single_neg_arrow ps) ns
+  and norm_tuple memo n (ps,ns) =
+    let ps = mapn (fun () -> List.init n (fun _ -> Ty.any)) Ty.conj ps in
+    norm_tuple_gen ~diff:Ty.diff ~disjoint:Ty.disjoint ~norm:(norm memo) ps ns
+  and norm_tag memo tag line =
+    let tys = TagComp.line_emptiness_checks tag line in
+    CSS.map_disj (norm memo) tys
+  and norm_record memo (ps, ns) =
+    let (tl,p), ns = Records.dnf_line_to_types (ps, ns) in
+    CSS.cup_lazy (norm_field memo tl)
+      (fun () -> norm_record_tests memo (tl,p) [] ns)
+  and norm_record_tests memo (tl,p) ns ns' =
+    match ns' with
+    | [] -> norm_record_bindings memo p ns
+    | (tl',bs')::ns' ->
+      CSS.cup_lazy (norm_record_tests memo (tl,p) ns ns') (fun () ->
+        CSS.cap_lazy (Ty.F.diff tl tl' |> norm_field memo)
+          (fun () -> norm_record_tests memo (tl,p) (bs'::ns) ns')
+      )
+  and norm_record_bindings memo p ns =
+    norm_tuple_gen ~diff:Ty.F.diff ~disjoint:Ty.F.disjoint ~norm:(norm_field memo) p ns
+  and norm_field memo (f:Ty.F.t) =
+    match MemoFTy.find_opt memo.memo_f f with
+    | Some cstr -> cstr
+    | None ->
+      MemoFTy.add memo.memo_f f CSS.any;
+      let res = f |> Ty.F.dnf |> CSS.map_conj (norm_field_summand memo) in
+      MemoFTy.remove memo.memo_f f ; res
+  and norm_field_summand memo summand =
+    match FToplevel.extract_smallest summand with
+    | None ->
+      let (_,_,oty) = summand in
+      norm_oty memo oty
+    | Some cs -> CSS.single' (FC.mk cs)
+  and norm_oty memo oty =
+    let n, o = Ty.O.get oty in
+    if o then CSS.empty else norm memo n
+
+  let norm ty =
+    let memo_ty = MemoTy.create 17 in
+    let memo_f = MemoFTy.create 17 in
+    norm { memo_ty ; memo_f } ty
+  let norm_field ty =
+    let memo_ty = MemoTy.create 17 in
+    let memo_f = MemoFTy.create 17 in
+    norm_field { memo_ty ; memo_f } ty
 
   let propagate cs =
     let memo_ty = MemoTy.create 17 in
