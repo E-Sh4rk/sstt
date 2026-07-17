@@ -103,32 +103,8 @@
     "rmono": [],
     "constr": [
       [
-        "int -> lst(tuple0) | lst(any, x1) -> any where x1 = lst(tuple0 | (any, x1))",
-        "int -> lst(tuple0) | lst(any, x1) -> int where x1 = lst(tuple0 | (any, x1))"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
         "int -> lst(tuple0) | lst(any, x1) -> int where x1 = lst(tuple0 | (any, x1))",
         "int -> lst(tuple0) -> int"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "int -> lst(tuple0) | lst(any, x1) -> int where x1 = lst(tuple0 | (any, x1))",
-        "int -> lst(tuple0) | lst(any, x1) -> any where x1 = lst(tuple0 | (any, x1))"
       ]
     ]
   },
@@ -467,7 +443,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "any"
       ]
     ]
@@ -479,7 +455,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "empty"
       ]
     ]
@@ -491,7 +467,7 @@
     "rmono": [],
     "constr": [
       [
-        "'b & (lst(tuple0) | lst('e, x1) & lst(any, 'd & lst(x2))) -> 'a & int -> 'f | 'e where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2))",
+        "'b & (lst(tuple0) | lst('e, x2) & lst(any, 'd & lst(x1))) -> 'a & int -> 'f | 'e where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2))",
         "'c & ('d & lst(x1) -> 'g & (int -> 'f)) where x1 = tuple0 | (any, lst(x1))"
       ]
     ]
@@ -503,32 +479,8 @@
     "rmono": [],
     "constr": [
       [
-        "lst(tuple0) | lst(any, lst(x3) \\ lst(any, x2) | lst(x4) & lst('a, x1)) & lst('a, x5) -> int -> 'a where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = any, lst(tuple0 | (any, x2)) \\ lst(any, x2) | lst(x4) & lst('a, x1) and x5 = lst(tuple0 | (any, x5))",
+        "lst(tuple0) | lst(any, lst(x1) \\ lst(any, x3) | lst(x4) & lst('a, x2)) & lst('a, x5) -> int -> 'a where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = any, lst(tuple0 | (any, x3)) \\ lst(any, x3) | lst(x4) & lst('a, x2) and x5 = lst(tuple0 | (any, x5))",
         "lst(tuple0) -> int -> empty"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "lst(tuple0) | lst(any, x1) -> int -> any where x1 = lst(tuple0 | (any, x1))",
-        "lst(tuple0) | lst(any, lst(x4) \\ lst(any, x3) | lst(x5) & lst('a, x1)) & lst('a, x2) -> int -> 'a where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = any, lst(tuple0 | (any, x3)) \\ lst(any, x3) | lst(x5) & lst('a, x1)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "lst(tuple0) | lst(any, lst(x4) \\ lst(any, x3) | lst(x2) & lst('a, x1)) & lst('a, x5) -> int -> 'a where x1 = lst(tuple0 | (any, x1)) and x2 = any, lst(tuple0 | (any, x3)) \\ lst(any, x3) | lst(x2) & lst('a, x1) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5))",
-        "lst(tuple0) | lst(any, x1) -> int -> any where x1 = lst(tuple0 | (any, x1))"
       ]
     ]
   },
@@ -672,7 +624,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "any"
       ]
     ]
@@ -684,7 +636,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "empty"
       ]
     ]
@@ -702,6 +654,18 @@
     ]
   },
   {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "lst(tuple0) | lst(any, lst(x8) \\ lst(any, lst(x7)) | lst(x9) & lst('b, x2)) & lst('b, x3) -> ('a & lst(x10) | 'c & 'a & lst(x1) -> lst('b, lst(x5) | 'c & lst(x6))) | ('a & lst(x10) | 'c & 'a & lst(x1) -> 'a & lst(x10) | 'c & 'a & lst(x1)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = 'b, lst(x5) | 'c & lst(x4) and x6 = tuple0 | (any, lst(x6)) and x7 = tuple0 | (any, lst(x7)) and x8 = tuple0 | (any, lst(x8)) and x9 = any, lst(x7) \\ lst(any, lst(x7)) | lst(x9) & lst('b, x2) and x10 = 'b, lst(x10) | 'c & lst(x4)",
+        "lst(tuple0) -> 'a -> 'a"
+      ]
+    ]
+  },
+  {
     "vars": [ "'a" ],
     "mono": [ "'a" ],
     "rvars": [],
@@ -715,37 +679,13 @@
   },
   {
     "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "lst(tuple0) | lst(any, lst(x10) \\ lst(any, x9) | lst(x6) & lst('b, x8)) & lst('b, x7) -> ('a & lst(x4) | 'c & 'a & lst(x5) -> lst('b, lst(x1) | 'c & lst(x2))) | ('a & lst(x4) | 'c & 'a & lst(x5) -> 'a & lst(x4) | 'c & 'a & lst(x5)) where x1 = 'b, lst(x1) | 'c & lst(x3) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = 'b, lst(x4) | 'c & lst(x3) and x5 = tuple0 | (any, lst(x5)) and x6 = any, lst(tuple0 | (any, x9)) \\ lst(any, x9) | lst(x6) & lst('b, x8) and x7 = lst(tuple0 | (any, x7)) and x8 = lst(tuple0 | (any, x8)) and x9 = lst(tuple0 | (any, x9)) and x10 = tuple0 | (any, lst(x10))",
-        "lst(tuple0) -> 'a -> 'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
+    "mono": [ "'a", "'b", "'c" ],
     "rvars": [],
     "rmono": [],
     "constr": [
       [
         "lst(tuple0) -> 'a -> 'a",
-        "lst(tuple0) | lst(any, x1) -> arrow where x1 = lst(tuple0 | (any, x1))"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "lst(tuple0) | lst(any, lst(x3) \\ lst(any, x2) | lst(x4) & lst('b, x1)) & lst('b, x7) -> ('a & lst(x9) | 'c & 'a & lst(x10) -> lst('b, lst(x5) | 'c & lst(x6))) | ('a & lst(x9) | 'c & 'a & lst(x10) -> 'a & lst(x9) | 'c & 'a & lst(x10)) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = any, lst(tuple0 | (any, x2)) \\ lst(any, x2) | lst(x4) & lst('b, x1) and x5 = 'b, lst(x5) | 'c & lst(x8) and x6 = tuple0 | (any, lst(x6)) and x7 = lst(tuple0 | (any, x7)) and x8 = tuple0 | (any, lst(x8)) and x9 = 'b, lst(x9) | 'c & lst(x8) and x10 = tuple0 | (any, lst(x10))",
-        "lst(tuple0) | lst(any, x1) -> arrow where x1 = lst(tuple0 | (any, x1))"
+        "lst(tuple0) | lst(any, lst(x5) \\ lst(any, lst(x4)) | lst(x6) & lst('b, x2)) & lst('b, x3) -> ('a & lst(x7) | 'c & 'a & lst(x1) -> lst('b, lst(x9) | 'c & lst(x10))) | ('a & lst(x7) | 'c & 'a & lst(x1) -> 'a & lst(x7) | 'c & 'a & lst(x1)) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = tuple0 | (any, lst(x5)) and x6 = any, lst(x4) \\ lst(any, lst(x4)) | lst(x6) & lst('b, x2) and x7 = 'b, lst(x7) | 'c & lst(x8) and x8 = tuple0 | (any, lst(x8)) and x9 = 'b, lst(x9) | 'c & lst(x8) and x10 = tuple0 | (any, lst(x10))"
       ]
     ]
   },
@@ -756,8 +696,20 @@
     "rmono": [],
     "constr": [
       [
-        "lst(tuple0) -> 'a -> 'a",
-        "lst(tuple0) | lst(any, lst(x8) \\ lst(any, x7) | lst(x9) & lst('b, x6)) & lst('b, x10) -> ('a & lst(x5) | 'c & 'a & lst(x4) -> lst('b, lst(x1) | 'c & lst(x2))) | ('a & lst(x5) | 'c & 'a & lst(x4) -> 'a & lst(x5) | 'c & 'a & lst(x4)) where x1 = 'b, lst(x1) | 'c & lst(x3) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = 'b, lst(x5) | 'c & lst(x3) and x6 = lst(tuple0 | (any, x6)) and x7 = lst(tuple0 | (any, x7)) and x8 = tuple0 | (any, lst(x8)) and x9 = any, lst(tuple0 | (any, x7)) \\ lst(any, x7) | lst(x9) & lst('b, x6) and x10 = lst(tuple0 | (any, x10))"
+        "lst(tuple0) | lst(any, x1) -> arrow where x1 = lst(tuple0 | (any, x1))",
+        "lst(tuple0) | lst(any, lst(x10) \\ lst(any, x8) | lst(x6) & lst('b, x7)) & lst('b, x9) -> ('a & lst(x5) | 'c & 'a & lst(x1) -> lst('b, lst(x3) | 'c & lst(x4))) | ('a & lst(x5) | 'c & 'a & lst(x1) -> 'a & lst(x5) | 'c & 'a & lst(x1)) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = 'b, lst(x3) | 'c & lst(x2) and x4 = tuple0 | (any, lst(x4)) and x5 = 'b, lst(x5) | 'c & lst(x2) and x6 = any, lst(tuple0 | (any, x8)) \\ lst(any, x8) | lst(x6) & lst('b, x7) and x7 = lst(tuple0 | (any, x7)) and x8 = lst(tuple0 | (any, x8)) and x9 = lst(tuple0 | (any, x9)) and x10 = tuple0 | (any, lst(x10))"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "lst(tuple0) | lst(any, lst(x7) \\ lst(any, x5) | lst(x8) & lst('b, x3)) & lst('b, x6) -> ('a & lst(x10) | 'c & 'a & lst(x1) -> lst('b, lst(x2) | 'c & lst(x9))) | ('a & lst(x10) | 'c & 'a & lst(x1) -> 'a & lst(x10) | 'c & 'a & lst(x1)) where x1 = tuple0 | (any, lst(x1)) and x2 = 'b, lst(x2) | 'c & lst(x4) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5)) and x6 = lst(tuple0 | (any, x6)) and x7 = tuple0 | (any, lst(x7)) and x8 = any, lst(tuple0 | (any, x5)) \\ lst(any, x5) | lst(x8) & lst('b, x3) and x9 = tuple0 | (any, lst(x9)) and x10 = 'b, lst(x10) | 'c & lst(x4)",
+        "lst(tuple0) | lst(any, x1) -> arrow where x1 = lst(tuple0 | (any, x1))"
       ]
     ]
   },
@@ -782,7 +734,7 @@
     "rmono": [],
     "constr": [
       [
-        "(x3 -> ('c & lst(x1) | 'e & 'c & lst(x2) -> lst(x1)) | ('c & lst(x1) | 'e & 'c & lst(x2) -> 'c & lst(x1) | 'e & 'c & lst(x2))) & (lst(tuple0) -> 'c -> 'c) where x1 = 'd, lst(x1) | 'e & lst(x2) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | ('d, x3))",
+        "(x2 -> ('c & lst(x3) | 'e & 'c & lst(x1) -> lst(x3)) | ('c & lst(x3) | 'e & 'c & lst(x1) -> 'c & lst(x3) | 'e & 'c & lst(x1))) & (lst(tuple0) -> 'c -> 'c) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | ('d, x2)) and x3 = 'd, lst(x3) | 'e & lst(x1)",
         "'a -> 'b"
       ]
     ]
@@ -794,7 +746,7 @@
     "rmono": [],
     "constr": [
       [
-        "('a & lst(x2) | 'c & 'a & lst(x1) -> lst(x2)) | ('a & lst(x2) | 'c & 'a & lst(x1) -> 'a & lst(x2) | 'c & 'a & lst(x1)) where x1 = tuple0 | (any, lst(x1)) and x2 = 'b, lst(x2) | 'c & lst(x1)",
+        "('a & lst(x1) | 'c & 'a & lst(x2) -> lst(x1)) | ('a & lst(x1) | 'c & 'a & lst(x2) -> 'a & lst(x1) | 'c & 'a & lst(x2)) where x1 = 'b, lst(x1) | 'c & lst(x2) and x2 = tuple0 | (any, lst(x2))",
         "('a & lst(x2) | 'c & 'a & lst(x1) -> 'a & lst(x2) | 'c & 'a & lst(x1)) & ('a -> 'a) where x1 = tuple0 | (any, lst(x1)) and x2 = 'b, lst(x2) | 'c & lst(x1)"
       ]
     ]
@@ -806,7 +758,7 @@
     "rmono": [],
     "constr": [
       [
-        "('a & lst(x2) | 'c & 'a & lst(x1) -> lst(x2)) | ('a & lst(x2) | 'c & 'a & lst(x1) -> 'a & lst(x2) | 'c & 'a & lst(x1)) where x1 = tuple0 | (any, lst(x1)) and x2 = 'b, lst(x2) | 'c & lst(x1)",
+        "('a & lst(x2) | 'c & 'a & lst(x1) -> 'a & lst(x2) | 'c & 'a & lst(x1)) & ('a -> 'a) where x1 = tuple0 | (any, lst(x1)) and x2 = 'b, lst(x2) | 'c & lst(x1)",
         "empty"
       ]
     ]
@@ -818,7 +770,7 @@
     "rmono": [],
     "constr": [
       [
-        "('a & lst(x1) | 'c & 'a & lst(x2) -> 'a & lst(x1) | 'c & 'a & lst(x2)) & ('a -> 'a) where x1 = 'b, lst(x1) | 'c & lst(x2) and x2 = tuple0 | (any, lst(x2))",
+        "('a & lst(x2) | 'c & 'a & lst(x1) -> lst(x2)) | ('a & lst(x2) | 'c & 'a & lst(x1) -> 'a & lst(x2) | 'c & 'a & lst(x1)) where x1 = tuple0 | (any, lst(x1)) and x2 = 'b, lst(x2) | 'c & lst(x1)",
         "empty"
       ]
     ]
@@ -830,7 +782,7 @@
     "rmono": [],
     "constr": [
       [
-        "('c & lst(x1) | 'e & 'c & lst(x2) -> 'c & lst(x1) | 'e & 'c & lst(x2)) & ('c -> 'c) where x1 = 'd, lst(x1) | 'e & lst(x2) and x2 = tuple0 | (any, lst(x2))",
+        "('c & lst(x2) | 'e & 'c & lst(x1) -> 'c & lst(x2) | 'e & 'c & lst(x1)) & ('c -> 'c) where x1 = tuple0 | (any, lst(x1)) and x2 = 'd, lst(x2) | 'e & lst(x1)",
         "'a -> 'b"
       ]
     ]
@@ -842,8 +794,8 @@
     "rmono": [],
     "constr": [
       [
-        "'a & lst(x1) | 'c & 'a & lst(x2) where x1 = 'b, lst(x1) | 'c & lst(x2) and x2 = tuple0 | (any, lst(x2))",
-        "'a & lst(x2) | 'c & 'a & lst(x1) where x1 = tuple0 | (any, lst(x1)) and x2 = 'b, lst(x2) | 'c & lst(x1)"
+        "'a & lst(x2) | 'c & 'a & lst(x1) where x1 = tuple0 | (any, lst(x1)) and x2 = 'b, lst(x2) | 'c & lst(x1)",
+        "'a & lst(x1) | 'c & 'a & lst(x2) where x1 = 'b, lst(x1) | 'c & lst(x2) and x2 = tuple0 | (any, lst(x2))"
       ]
     ]
   },
@@ -875,7 +827,7 @@
     "rmono": [],
     "constr": [
       [
-        "('c & lst(x2) | 'e & 'c & lst(x1) -> lst(x2)) | ('c & lst(x2) | 'e & 'c & lst(x1) -> 'c & lst(x2) | 'e & 'c & lst(x1)) where x1 = tuple0 | (any, lst(x1)) and x2 = 'd, lst(x2) | 'e & lst(x1)",
+        "('c & lst(x1) | 'e & 'c & lst(x2) -> lst(x1)) | ('c & lst(x1) | 'e & 'c & lst(x2) -> 'c & lst(x1) | 'e & 'c & lst(x2)) where x1 = 'd, lst(x1) | 'e & lst(x2) and x2 = tuple0 | (any, lst(x2))",
         "'a -> 'b"
       ]
     ]
@@ -913,7 +865,7 @@
     "rmono": [],
     "constr": [
       [
-        "('a & ('d & lst(x1), any) & (any, 'c & lst(x2) | 'f & 'c & lst(x4)) -> lst(x5) | 'f & 'c & lst(x3)) & ('a & ('d & lst(tuple0), any) & (any, 'c) -> 'c) where x1 = tuple0 | ('e, lst(x1)) and x2 = 'e, lst(x2) | 'f & lst(x4) and x3 = tuple0 | (any, lst(x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = 'e, lst(x5) | 'f & lst(x3)",
+        "('a & ('d & lst(x4), any) & (any, 'c & lst(x1) | 'f & 'c & lst(x2)) -> lst(x3) | 'f & 'c & lst(x5)) & ('a & ('d & lst(tuple0), any) & (any, 'c) -> 'c) where x1 = 'e, lst(x1) | 'f & lst(x2) and x2 = tuple0 | (any, lst(x2)) and x3 = 'e, lst(x3) | 'f & lst(x5) and x4 = tuple0 | ('e, lst(x4)) and x5 = tuple0 | (any, lst(x5))",
         "'b"
       ]
     ]
@@ -979,7 +931,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "any"
       ]
     ]
@@ -991,7 +943,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "empty"
       ]
     ]
@@ -1003,8 +955,8 @@
     "rmono": [],
     "constr": [
       [
-        "'b & (lst(tuple0) | lst('e, x1) & lst(any, 'd & lst(x3))) -> ('a & lst(x2) -> 'f) | ('a -> 'a) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3))",
-        "'c & ('d & lst(x2) -> 'g & (lst('e, 'a & lst(x1)) -> 'f)) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2))"
+        "'b & (lst(tuple0) | lst('e, x2) & lst(any, 'd & lst(x3))) -> ('a & lst(x1) -> 'f) | ('a -> 'a) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3))",
+        "'c & ('d & lst(x1) -> 'g & (lst('e, 'a & lst(x2)) -> 'f)) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2))"
       ]
     ]
   },
@@ -1015,7 +967,7 @@
     "rmono": [],
     "constr": [
       [
-        "lst(tuple0) | lst(any, lst(x4) \\ lst(any, x5) | lst(x2) & lst('b, x3)) & lst('b, x1) -> lst(x9) | 'c & 'a & lst(x8) -> lst(x7) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = any, lst(tuple0 | (any, x5)) \\ lst(any, x5) | lst(x2) & lst('b, x3) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5)) and x6 = tuple0 | (any, lst(x6)) and x7 = 'b, lst(x7) | 'c & 'a & lst(x6) and x8 = tuple0 | (any, lst(x8)) and x9 = 'b, lst(x9) | 'c & 'a & lst(x6)",
+        "lst(tuple0) | lst(any, lst(x5) \\ lst(any, lst(x1)) | lst(x2) & lst('b, x6)) & lst('b, x7) -> lst(x9) | 'c & 'a & lst(x8) -> lst(x4) | 'c where x1 = tuple0 | (any, lst(x1)) and x2 = any, lst(x1) \\ lst(any, lst(x1)) | lst(x2) & lst('b, x6) and x3 = tuple0 | (any, lst(x3)) and x4 = 'b, lst(x4) | 'c & 'a & lst(x3) and x5 = tuple0 | (any, lst(x5)) and x6 = lst(tuple0 | (any, x6)) and x7 = lst(tuple0 | (any, x7)) and x8 = tuple0 | (any, lst(x8)) and x9 = 'b, lst(x9) | 'c & 'a & lst(x3)",
         "lst(tuple0) -> ('a & lst(x1) -> empty) | ('a -> 'a) where x1 = tuple0 | (any, lst(x1))"
       ]
     ]
@@ -1028,18 +980,6 @@
     "constr": [
       [
         "lst(tuple0) | lst(any, x1) -> arrow where x1 = lst(tuple0 | (any, x1))",
-        "lst(tuple0) -> ('a & lst(x1) -> empty) | ('a -> 'a) where x1 = tuple0 | (any, lst(x1))"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "lst(tuple0) | lst(any, x2) -> x1 -> any where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2))",
         "lst(tuple0) -> ('a & lst(x1) -> empty) | ('a -> 'a) where x1 = tuple0 | (any, lst(x1))"
       ]
     ]
@@ -1064,19 +1004,7 @@
     "constr": [
       [
         "lst(tuple0) | lst(any, x1) -> arrow where x1 = lst(tuple0 | (any, x1))",
-        "lst(tuple0) | lst(any, lst(x6) \\ lst(any, x9) | lst(x8) & lst('b, x7)) & lst('b, x5) -> lst(x4) | 'c & 'a & lst(x2) -> lst(x1) | 'c where x1 = 'b, lst(x1) | 'c & 'a & lst(x3) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = 'b, lst(x4) | 'c & 'a & lst(x3) and x5 = lst(tuple0 | (any, x5)) and x6 = tuple0 | (any, lst(x6)) and x7 = lst(tuple0 | (any, x7)) and x8 = any, lst(tuple0 | (any, x9)) \\ lst(any, x9) | lst(x8) & lst('b, x7) and x9 = lst(tuple0 | (any, x9))"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a", "'b", "'c" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "lst(tuple0) | lst(any, x2) -> x1 -> any where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2))",
-        "lst(tuple0) | lst(any, lst(x7) \\ lst(any, x9) | lst(x6) & lst('b, x8)) & lst('b, x2) -> lst(x5) | 'c & 'a & lst(x3) -> lst(x1) | 'c where x1 = 'b, lst(x1) | 'c & 'a & lst(x4) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = 'b, lst(x5) | 'c & 'a & lst(x4) and x6 = any, lst(tuple0 | (any, x9)) \\ lst(any, x9) | lst(x6) & lst('b, x8) and x7 = tuple0 | (any, lst(x7)) and x8 = lst(tuple0 | (any, x8)) and x9 = lst(tuple0 | (any, x9))"
+        "lst(tuple0) | lst(any, lst(x6) \\ lst(any, lst(x4)) | lst(x5) & lst('b, x7)) & lst('b, x1) -> lst(x3) | 'c & 'a & lst(x2) -> lst(x9) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = 'b, lst(x3) | 'c & 'a & lst(x8) and x4 = tuple0 | (any, lst(x4)) and x5 = any, lst(x4) \\ lst(any, lst(x4)) | lst(x5) & lst('b, x7) and x6 = tuple0 | (any, lst(x6)) and x7 = lst(tuple0 | (any, x7)) and x8 = tuple0 | (any, lst(x8)) and x9 = 'b, lst(x9) | 'c & 'a & lst(x8)"
       ]
     ]
   },
@@ -1088,7 +1016,7 @@
     "constr": [
       [
         "lst(tuple0) -> ('a & lst(x1) -> empty) | ('a -> 'a) where x1 = tuple0 | (any, lst(x1))",
-        "lst(tuple0) | lst(any, lst(x7) \\ lst(any, x9) | lst(x6) & lst('b, x8)) & lst('b, x5) -> lst(x4) | 'c & 'a & lst(x3) -> lst(x1) | 'c where x1 = 'b, lst(x1) | 'c & 'a & lst(x2) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = 'b, lst(x4) | 'c & 'a & lst(x2) and x5 = lst(tuple0 | (any, x5)) and x6 = any, lst(tuple0 | (any, x9)) \\ lst(any, x9) | lst(x6) & lst('b, x8) and x7 = tuple0 | (any, lst(x7)) and x8 = lst(tuple0 | (any, x8)) and x9 = lst(tuple0 | (any, x9))"
+        "lst(tuple0) | lst(any, lst(x9) \\ lst(any, lst(x4)) | lst(x5) & lst('b, x2)) & lst('b, x1) -> lst(x8) | 'c & 'a & lst(x7) -> lst(x3) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = 'b, lst(x3) | 'c & 'a & lst(x6) and x4 = tuple0 | (any, lst(x4)) and x5 = any, lst(x4) \\ lst(any, lst(x4)) | lst(x5) & lst('b, x2) and x6 = tuple0 | (any, lst(x6)) and x7 = tuple0 | (any, lst(x7)) and x8 = 'b, lst(x8) | 'c & 'a & lst(x6) and x9 = tuple0 | (any, lst(x9))"
       ]
     ]
   },
@@ -1099,31 +1027,19 @@
     "rmono": [],
     "constr": [
       [
-        "lst(tuple0) | lst(any, lst(x7) \\ lst(any, x9) | lst(x8) & lst('b, x6)) & lst('b, x5) -> lst(x3) | 'c & 'a & lst(x4) -> lst(x1) | 'c where x1 = 'b, lst(x1) | 'c & 'a & lst(x2) and x2 = tuple0 | (any, lst(x2)) and x3 = 'b, lst(x3) | 'c & 'a & lst(x2) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5)) and x6 = lst(tuple0 | (any, x6)) and x7 = tuple0 | (any, lst(x7)) and x8 = any, lst(tuple0 | (any, x9)) \\ lst(any, x9) | lst(x8) & lst('b, x6) and x9 = lst(tuple0 | (any, x9))",
+        "lst(tuple0) | lst(any, lst(x3) \\ lst(any, lst(x2)) | lst(x5) & lst('b, x4)) & lst('b, x9) -> lst(x7) | 'c & 'a & lst(x8) -> lst(x1) | 'c where x1 = 'b, lst(x1) | 'c & 'a & lst(x6) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = any, lst(x2) \\ lst(any, lst(x2)) | lst(x5) & lst('b, x4) and x6 = tuple0 | (any, lst(x6)) and x7 = 'b, lst(x7) | 'c & 'a & lst(x6) and x8 = tuple0 | (any, lst(x8)) and x9 = lst(tuple0 | (any, x9))",
         "lst(tuple0) | lst(any, x1) -> arrow where x1 = lst(tuple0 | (any, x1))"
       ]
     ]
   },
   {
     "vars": [ "'a", "'b", "'c" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "lst(tuple0) | lst(any, lst(x3) \\ lst(any, x5) | lst(x2) & lst('b, x4)) & lst('b, x1) -> lst(x9) | 'c & 'a & lst(x7) -> lst(x6) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = any, lst(tuple0 | (any, x5)) \\ lst(any, x5) | lst(x2) & lst('b, x4) and x3 = tuple0 | (any, lst(x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = lst(tuple0 | (any, x5)) and x6 = 'b, lst(x6) | 'c & 'a & lst(x8) and x7 = tuple0 | (any, lst(x7)) and x8 = tuple0 | (any, lst(x8)) and x9 = 'b, lst(x9) | 'c & 'a & lst(x8)",
-        "lst(tuple0) | lst(any, x2) -> x1 -> any where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2))"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
     "mono": [ "'a" ],
     "rvars": [],
     "rmono": [],
     "constr": [
       [
-        "lst(tuple0) | lst(any, lst(x6) \\ lst(any, x9) | lst(x7) & lst('b, x8)) & lst('b, x1) -> lst(x3) | 'c & 'a & lst(x2) -> lst(x5) | 'c where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = 'b, lst(x3) | 'c & 'a & lst(x4) and x4 = tuple0 | (any, lst(x4)) and x5 = 'b, lst(x5) | 'c & 'a & lst(x4) and x6 = tuple0 | (any, lst(x6)) and x7 = any, lst(tuple0 | (any, x9)) \\ lst(any, x9) | lst(x7) & lst('b, x8) and x8 = lst(tuple0 | (any, x8)) and x9 = lst(tuple0 | (any, x9))",
+        "lst(tuple0) | lst(any, lst(x5) \\ lst(any, lst(x3)) | lst(x4) & lst('b, x2)) & lst('b, x7) -> lst(x1) | 'c & 'a & lst(x8) -> lst(x9) | 'c where x1 = 'b, lst(x1) | 'c & 'a & lst(x6) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = any, lst(x3) \\ lst(any, lst(x3)) | lst(x4) & lst('b, x2) and x5 = tuple0 | (any, lst(x5)) and x6 = tuple0 | (any, lst(x6)) and x7 = lst(tuple0 | (any, x7)) and x8 = tuple0 | (any, lst(x8)) and x9 = 'b, lst(x9) | 'c & 'a & lst(x6)",
         "lst(tuple0) -> ('a & lst(x1) -> empty) | ('a -> 'a) where x1 = tuple0 | (any, lst(x1))"
       ]
     ]
@@ -1185,17 +1101,10 @@
     "rmono": [],
     "constr": [
       [
-        "((x1, 'd & lst(x3) | 'f & 'd & lst(x2)) -> lst(x3) | 'f & 'd & lst(x2)) & ((lst(tuple0), 'd) -> 'd) where x1 = lst(tuple0 | ('e, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = 'e, lst(x3) | 'f & lst(x2)",
+        "((x3, 'd & lst(x1) | 'f & 'd & lst(x2)) -> lst(x1) | 'f & 'd & lst(x2)) & ((lst(tuple0), 'd) -> 'd) where x1 = 'e, lst(x1) | 'f & lst(x2) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | ('e, x3))",
         "('b, lst('c, lst(tuple0))) -> 'a"
       ]
     ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "lst('a, lst(tuple0))", "empty" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -1221,7 +1130,19 @@
     "mono": [ "'a" ],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "lst('a, lst(tuple0))", "lst('a, lst(tuple0))" ] ]
+    "constr": [ [ "lst('a, lst(tuple0))", "empty" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "lst('b, x1) | lst('a, lst(tuple0)) where x1 = lst('b, x1) | lst('a, lst(tuple0))",
+        "lst('a, lst(tuple0))"
+      ]
+    ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -1242,20 +1163,8 @@
     "rmono": [],
     "constr": [
       [
-        "'a & (lst('e, x3) & lst(any, 'd & lst(x1)) | lst(tuple0)) -> lst('f, x2) | lst('e, lst(tuple0)) | lst(tuple0) where x1 = tuple0 | (any, lst(x1)) and x2 = lst('f, x2) | lst('e, lst(tuple0)) and x3 = lst(tuple0 | (any, x3))",
+        "'a & (lst('e, x2) & lst(any, 'd & lst(x3)) | lst(tuple0)) -> lst('f, x1) | lst('e, lst(tuple0)) | lst(tuple0) where x1 = lst('f, x1) | lst('e, lst(tuple0)) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3))",
         "'b & ('d & lst(x1) -> 'c & lst(x2)) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | ('f, lst(x2))"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "lst(tuple0) -> lst(tuple0)",
-        "lst(any, x4) & lst('a, x1) | lst(tuple0) -> lst('a, x3) | lst('a, lst(tuple0)) | lst(tuple0) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst('a, x3) | lst('a, lst(tuple0)) and x4 = lst(any, x4) & lst('a, x2) | lst(tuple0)"
       ]
     ]
   },
@@ -1266,7 +1175,7 @@
     "rmono": [],
     "constr": [
       [
-        "lst(any, x2) & lst('a, x4) | lst(tuple0) -> lst('a, x3) | lst('a, lst(tuple0)) | lst(tuple0) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(any, x2) & lst('a, x1) | lst(tuple0) and x3 = lst('a, x3) | lst('a, lst(tuple0)) and x4 = lst(tuple0 | (any, x4))",
+        "lst(any, x3) & lst('a, x1) | lst(tuple0) -> lst('a, x4) | lst('a, lst(tuple0)) | lst(tuple0) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(any, x3) & lst('a, x2) | lst(tuple0) and x4 = lst('a, x4) | lst('a, lst(tuple0))",
         "lst(tuple0) -> lst(tuple0)"
       ]
     ]
@@ -1318,8 +1227,20 @@
     "rmono": [],
     "constr": [
       [
-        "((x3, 'd & lst(x2) | 'f & 'd & lst(x1)) -> lst(x2) | 'f & 'd & lst(x1)) & ((lst(tuple0), 'd) -> 'd) where x1 = tuple0 | (any, lst(x1)) and x2 = 'e, lst(x2) | 'f & lst(x1) and x3 = lst(tuple0 | ('e, x3))",
+        "((x1, 'd & lst(x3) | 'f & 'd & lst(x2)) -> lst(x3) | 'f & 'd & lst(x2)) & ((lst(tuple0), 'd) -> 'd) where x1 = lst(tuple0 | ('e, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = 'e, lst(x3) | 'f & lst(x2)",
         "('a, 'c) -> 'b"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [ "'a", "'b", "'c" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "lst(x2) | 'a where x1 = tuple0 | (any, lst(x1)) and x2 = 'b, lst(x2) | 'c & lst(x1)",
+        "'a"
       ]
     ]
   },
@@ -1337,7 +1258,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "any"
       ]
     ]
@@ -1349,7 +1270,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "empty"
       ]
     ]
@@ -1361,7 +1282,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a & (lst(tuple0) | lst('d & lst(tuple0), x1) & lst(any, 'c & lst(x2))) -> lst(tuple0) | 'e where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2))",
+        "'a & (lst(tuple0) | lst('d & lst(tuple0), x2) & lst(any, 'c & lst(x1))) -> lst(tuple0) | 'e where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2))",
         "'b & ('c & lst(x1) -> 'f & 'e) where x1 = tuple0 | (any, lst(x1))"
       ]
     ]
@@ -1373,44 +1294,8 @@
     "rmono": [],
     "constr": [
       [
-        "lst(tuple0) -> lst(tuple0)",
-        "lst(tuple0) | lst(any, lst(x5) \\ lst(any, x4) | lst(x2) & lst(lst(tuple0), x3)) & lst(lst(tuple0), x1) -> lst(tuple0) where x1 = lst(tuple0 | (any, x1)) and x2 = any, lst(tuple0 | (any, x4)) \\ lst(any, x4) | lst(x2) & lst(lst(tuple0), x3) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = tuple0 | (any, lst(x5))"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "lst(tuple0) | lst(any, lst(x5) \\ lst(any, x3) | lst(x4) & lst(lst(tuple0), x2)) & lst(lst(tuple0), x1) -> any where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = any, lst(tuple0 | (any, x3)) \\ lst(any, x3) | lst(x4) & lst(lst(tuple0), x2) and x5 = tuple0 | (any, lst(x5))",
-        "lst(tuple0) | lst(any, lst(x5) \\ lst(any, x4) | lst(x2) & lst(lst(tuple0), x3)) & lst(lst(tuple0), x1) -> lst(tuple0) where x1 = lst(tuple0 | (any, x1)) and x2 = any, lst(tuple0 | (any, x4)) \\ lst(any, x4) | lst(x2) & lst(lst(tuple0), x3) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = tuple0 | (any, lst(x5))"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "lst(tuple0) | lst(any, lst(x5) \\ lst(any, x4) | lst(x2) & lst(lst(tuple0), x3)) & lst(lst(tuple0), x1) -> lst(tuple0) where x1 = lst(tuple0 | (any, x1)) and x2 = any, lst(tuple0 | (any, x4)) \\ lst(any, x4) | lst(x2) & lst(lst(tuple0), x3) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = tuple0 | (any, lst(x5))",
+        "lst(tuple0) | lst(any, lst(x3) \\ lst(any, x4) | lst(x1) & lst(lst(tuple0), x2)) & lst(lst(tuple0), x5) -> lst(tuple0) where x1 = any, lst(tuple0 | (any, x4)) \\ lst(any, x4) | lst(x1) & lst(lst(tuple0), x2) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = lst(tuple0 | (any, x5))",
         "lst(tuple0) -> lst(tuple0)"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "lst(tuple0) | lst(any, lst(x5) \\ lst(any, x4) | lst(x2) & lst(lst(tuple0), x3)) & lst(lst(tuple0), x1) -> lst(tuple0) where x1 = lst(tuple0 | (any, x1)) and x2 = any, lst(tuple0 | (any, x4)) \\ lst(any, x4) | lst(x2) & lst(lst(tuple0), x3) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = tuple0 | (any, lst(x5))",
-        "lst(tuple0) | lst(any, lst(x5) \\ lst(any, x3) | lst(x4) & lst(lst(tuple0), x2)) & lst(lst(tuple0), x1) -> any where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = any, lst(tuple0 | (any, x3)) \\ lst(any, x3) | lst(x4) & lst(lst(tuple0), x2) and x5 = tuple0 | (any, lst(x5))"
       ]
     ]
   },
@@ -1421,7 +1306,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "any"
       ]
     ]
@@ -1433,7 +1318,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "empty"
       ]
     ]
@@ -1445,20 +1330,8 @@
     "rmono": [],
     "constr": [
       [
-        "'a & (lst(tuple0) | lst('d & lst(x5), x1) & lst(any, 'c & lst(x2))) -> lst(x4) | lst(tuple0) | 'e where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = 'g, lst(x4) | 'h & lst(x3) and x5 = tuple0 | ('g, lst(x5))",
-        "'b & ('c & lst(x1) -> 'f & 'e & lst(x2) | 'h & 'f & 'e & lst(x3)) where x1 = tuple0 | (any, lst(x1)) and x2 = 'g, lst(x2) | 'h & lst(x3) and x3 = tuple0 | (any, lst(x3))"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "lst(tuple0) -> lst(tuple0)",
-        "lst(tuple0) | lst(any, lst(x6) \\ lst(any, x7) | lst(x5) & lst(x3, x4)) & lst(x8, x1) -> lst(x2) | lst(tuple0) where x1 = lst(tuple0 | (any, x1)) and x2 = 'a, lst(x2) | lst(tuple0) and x3 = lst(tuple0 | ('a, x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = any, lst(tuple0 | (any, x7)) \\ lst(any, x7) | lst(x5) & lst(x3, x4) and x6 = tuple0 | (any, lst(x6)) and x7 = lst(tuple0 | (any, x7)) and x8 = lst(tuple0 | ('a, x8))"
+        "'a & (lst(tuple0) | lst('d & lst(x2), x4) & lst(any, 'c & lst(x1))) -> lst(x5) | lst(tuple0) | 'e where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | ('g, lst(x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = 'g, lst(x5) | 'h & lst(x3)",
+        "'b & ('c & lst(x2) -> 'f & 'e & lst(x3) | 'h & 'f & 'e & lst(x1)) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = 'g, lst(x3) | 'h & lst(x1)"
       ]
     ]
   },
@@ -1469,7 +1342,7 @@
     "rmono": [],
     "constr": [
       [
-        "lst(tuple0) | lst(any, lst(x5) \\ lst(any, x6) | lst(x7) & lst(x8, x3)) & lst(x4, x1) -> lst(x2) | lst(tuple0) where x1 = lst(tuple0 | (any, x1)) and x2 = 'a, lst(x2) | lst(tuple0) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(tuple0 | ('a, x4)) and x5 = tuple0 | (any, lst(x5)) and x6 = lst(tuple0 | (any, x6)) and x7 = any, lst(tuple0 | (any, x6)) \\ lst(any, x6) | lst(x7) & lst(x8, x3) and x8 = lst(tuple0 | ('a, x8))",
+        "lst(tuple0) | lst(any, lst(x1) \\ lst(any, lst(x3)) | lst(x4) & lst(x2, x5)) & lst(x6, x7) -> lst(x8) | lst(tuple0) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | ('a, x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = any, lst(x3) \\ lst(any, lst(x3)) | lst(x4) & lst(x2, x5) and x5 = lst(tuple0 | (any, x5)) and x6 = lst(tuple0 | ('a, x6)) and x7 = lst(tuple0 | (any, x7)) and x8 = 'a, lst(x8) | lst(tuple0)",
         "lst(tuple0) -> lst(tuple0)"
       ]
     ]
@@ -1481,7 +1354,7 @@
     "rmono": [],
     "constr": [
       [
-        "(x3 -> x2) & (x1 -> lst(tuple0)) where x1 = lst(tuple0 | (lst(tuple0), x1)) and x2 = lst(tuple0 | ('c, x2)) and x3 = lst(tuple0 | (x2, x3))",
+        "(x1 -> x3) & (x2 -> lst(tuple0)) where x1 = lst(tuple0 | (x3, x1)) and x2 = lst(tuple0 | (lst(tuple0), x2)) and x3 = lst(tuple0 | ('c, x3))",
         "'a -> 'b"
       ]
     ]
@@ -1507,7 +1380,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a & lst(x2) -> x3 where x1 = lst(tuple0 | ('c, x1)) and x2 = tuple0 | (x1, lst(x2)) and x3 = lst(tuple0 | ('c, x3))",
+        "'a & lst(x3) -> x1 where x1 = lst(tuple0 | ('c, x1)) and x2 = lst(tuple0 | ('c, x2)) and x3 = tuple0 | (x2, lst(x3))",
         "'b"
       ]
     ]
@@ -1575,7 +1448,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "any"
       ]
     ]
@@ -1587,7 +1460,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "empty"
       ]
     ]
@@ -1599,10 +1472,17 @@
     "rmono": [],
     "constr": [
       [
-        "'b & ('e -> 'f) -> 'a & (lst(tuple0) | lst('e, x1) & lst(any, 'd & lst(x3))) -> lst('f, 'g & lst(x2)) | lst(tuple0) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3))",
-        "'c & ('b & ('e -> 'f) -> 'h & ('d & lst(x2) -> 'g & lst(x1))) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2))"
+        "'b & ('e -> 'f) -> 'a & (lst(tuple0) | lst('e, x3) & lst(any, 'd & lst(x1))) -> lst('f, 'g & lst(x2)) | lst(tuple0) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | (any, x3))",
+        "'c & ('b & ('e -> 'f) -> 'h & ('d & lst(x1) -> 'g & lst(x2))) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2))"
       ]
     ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "arrow -> lst(tuple0) -> lst(tuple0)", "arrow" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -1611,31 +1491,7 @@
     "rmono": [],
     "constr": [
       [
-        "('a -> 'b) -> lst(tuple0) | lst(any, lst(x2) \\ lst(any, x3) | lst(x4) & lst('a, x1)) & lst('a, x5) -> lst('b, x6) | lst(tuple0) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = any, lst(tuple0 | (any, x3)) \\ lst(any, x3) | lst(x4) & lst('a, x1) and x5 = lst(tuple0 | (any, x5)) and x6 = lst('b, x6) | lst(tuple0)",
-        "arrow"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a", "'b" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "arrow -> lst(tuple0) -> lst(tuple0)",
-        "('a -> 'b) -> lst(tuple0) | lst(any, lst(x2) \\ lst(any, x4) | lst(x3) & lst('a, x1)) & lst('a, x6) -> lst('b, x5) | lst(tuple0) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = any, lst(tuple0 | (any, x4)) \\ lst(any, x4) | lst(x3) & lst('a, x1) and x4 = lst(tuple0 | (any, x4)) and x5 = lst('b, x5) | lst(tuple0) and x6 = lst(tuple0 | (any, x6))"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "('a -> 'b) -> lst(tuple0) | lst(any, lst(x2) \\ lst(any, x4) | lst(x3) & lst('a, x1)) & lst('a, x5) -> lst('b, x6) | lst(tuple0) where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = any, lst(tuple0 | (any, x4)) \\ lst(any, x4) | lst(x3) & lst('a, x1) and x4 = lst(tuple0 | (any, x4)) and x5 = lst(tuple0 | (any, x5)) and x6 = lst('b, x6) | lst(tuple0)",
+        "('a -> 'b) -> lst(tuple0) | lst(any, lst(x1) \\ lst(any, lst(x5)) | lst(x6) & lst('a, x4)) & lst('a, x3) -> lst('b, x2) | lst(tuple0) where x1 = tuple0 | (any, lst(x1)) and x2 = lst('b, x2) | lst(tuple0) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = tuple0 | (any, lst(x5)) and x6 = any, lst(x5) \\ lst(any, lst(x5)) | lst(x6) & lst('a, x4)",
         "arrow -> lst(tuple0) -> lst(tuple0)"
       ]
     ]
@@ -1738,7 +1594,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "any"
       ]
     ]
@@ -1750,7 +1606,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "empty"
       ]
     ]
@@ -1770,26 +1626,13 @@
     ]
   },
   {
-    "vars": [ "'a", "'b" ],
+    "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
     "constr": [
       [
-        "int -> (int -> 'a -> 'b) -> lst(tuple0) | lst(any, lst(x4) \\ lst(any, x2) | lst(x3) & lst('a, x1)) & lst('a, x6) -> lst('b, x5) | lst(tuple0) where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = any, lst(tuple0 | (any, x2)) \\ lst(any, x2) | lst(x3) & lst('a, x1) and x4 = tuple0 | (any, lst(x4)) and x5 = lst('b, x5) | lst(tuple0) and x6 = lst(tuple0 | (any, x6))",
-        "int -> arrow"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a", "'b" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "int -> (int -> arrow) -> lst(tuple0) -> lst(tuple0)",
-        "int -> (int -> 'a -> 'b) -> lst(tuple0) | lst(any, lst(x6) \\ lst(any, x4) | lst(x3) & lst('a, x2)) & lst('a, x5) -> lst('b, x1) | lst(tuple0) where x1 = lst('b, x1) | lst(tuple0) and x2 = lst(tuple0 | (any, x2)) and x3 = any, lst(tuple0 | (any, x4)) \\ lst(any, x4) | lst(x3) & lst('a, x2) and x4 = lst(tuple0 | (any, x4)) and x5 = lst(tuple0 | (any, x5)) and x6 = tuple0 | (any, lst(x6))"
+        "int -> (int -> arrow) -> lst(tuple0) -> lst(tuple0)", "int -> arrow"
       ]
     ]
   },
@@ -1800,7 +1643,7 @@
     "rmono": [],
     "constr": [
       [
-        "int -> (int -> 'a -> 'b) -> lst(tuple0) | lst(any, lst(x4) \\ lst(any, x3) | lst(x2) & lst('a, x1)) & lst('a, x5) -> lst('b, x6) | lst(tuple0) where x1 = lst(tuple0 | (any, x1)) and x2 = any, lst(tuple0 | (any, x3)) \\ lst(any, x3) | lst(x2) & lst('a, x1) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5)) and x6 = lst('b, x6) | lst(tuple0)",
+        "int -> (int -> 'a -> 'b) -> lst(tuple0) | lst(any, lst(x4) \\ lst(any, x3) | lst(x1) & lst('a, x2)) & lst('a, x5) -> lst('b, x6) | lst(tuple0) where x1 = any, lst(tuple0 | (any, x3)) \\ lst(any, x3) | lst(x1) & lst('a, x2) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5)) and x6 = lst('b, x6) | lst(tuple0)",
         "int -> (int -> arrow) -> lst(tuple0) -> lst(tuple0)"
       ]
     ]
@@ -1824,7 +1667,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> 'c -> 'd) -> x1 -> x2 where x1 = lst(tuple0 | ('c, x1)) and x2 = lst(tuple0 | ('d, x2))",
+        "(int -> 'c -> 'd) -> x2 -> x1 where x1 = lst(tuple0 | ('d, x1)) and x2 = lst(tuple0 | ('c, x2))",
         "'a -> 'b"
       ]
     ]
@@ -1836,7 +1679,7 @@
     "rmono": [],
     "constr": [
       [
-        "x1 -> x2 where x1 = lst(tuple0 | ('a, x1)) and x2 = lst(tuple0 | ('b, x2))",
+        "x2 -> x1 where x1 = lst(tuple0 | ('b, x1)) and x2 = lst(tuple0 | ('a, x2))",
         "empty"
       ]
     ]
@@ -1940,7 +1783,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "any"
       ]
     ]
@@ -1952,7 +1795,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "empty"
       ]
     ]
@@ -1985,7 +1828,7 @@
     "rmono": [],
     "constr": [
       [
-        "('a -> 'b -> 'a) -> lst(tuple0) | lst(any, lst(x4) \\ lst(any, x1) | lst(x3) & lst('b, x2)) & lst('b, x5) -> 'a -> 'a where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = any, lst(tuple0 | (any, x1)) \\ lst(any, x1) | lst(x3) & lst('b, x2) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5))",
+        "('a -> 'b -> 'a) -> lst(tuple0) | lst(any, lst(x3) \\ lst(any, x4) | lst(x1) & lst('b, x2)) & lst('b, x5) -> 'a -> 'a where x1 = any, lst(tuple0 | (any, x4)) \\ lst(any, x4) | lst(x1) & lst('b, x2) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = lst(tuple0 | (any, x5))",
         "('a -> arrow) -> lst(tuple0) -> 'a -> 'a"
       ]
     ]
@@ -1997,8 +1840,8 @@
     "rmono": [],
     "constr": [
       [
-        "('a -> 'b -> empty) -> lst(tuple0) | lst(any, lst(x2) \\ lst(any, lst(x1)) | lst(x4) & lst('b, x3)) & lst('b, x5) -> 'a -> 'a where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = any, lst(x1) \\ lst(any, lst(x1)) | lst(x4) & lst('b, x3) and x5 = lst(tuple0 | (any, x5))",
-        "('a -> 'b -> 'a) -> lst(tuple0) | lst(any, lst(x3) \\ lst(any, x1) | lst(x4) & lst('b, x2)) & lst('b, x5) -> 'a -> 'a where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = any, lst(tuple0 | (any, x1)) \\ lst(any, x1) | lst(x4) & lst('b, x2) and x5 = lst(tuple0 | (any, x5))"
+        "('a -> 'b -> empty) -> lst(tuple0) | lst(any, lst(x5) \\ lst(any, x3) | lst(x2) & lst('b, x1)) & lst('b, x4) -> 'a -> 'a where x1 = lst(tuple0 | (any, x1)) and x2 = any, lst(tuple0 | (any, x3)) \\ lst(any, x3) | lst(x2) & lst('b, x1) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = tuple0 | (any, lst(x5))",
+        "('a -> 'b -> 'a) -> lst(tuple0) | lst(any, lst(x2) \\ lst(any, x3) | lst(x4) & lst('b, x1)) & lst('b, x5) -> 'a -> 'a where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = any, lst(tuple0 | (any, x3)) \\ lst(any, x3) | lst(x4) & lst('b, x1) and x5 = lst(tuple0 | (any, x5))"
       ]
     ]
   },
@@ -2009,32 +1852,8 @@
     "rmono": [],
     "constr": [
       [
-        "('a -> 'b -> 'a) -> lst(tuple0) | lst(any, lst(x4) \\ lst(any, x3) | lst(x2) & lst('b, x1)) & lst('b, x5) -> 'a -> any where x1 = lst(tuple0 | (any, x1)) and x2 = any, lst(tuple0 | (any, x3)) \\ lst(any, x3) | lst(x2) & lst('b, x1) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5))",
-        "('a -> 'b -> 'a) -> lst(tuple0) | lst(any, lst(x4) \\ lst(any, x1) | lst(x2) & lst('b, x3)) & lst('b, x5) -> 'a -> 'a where x1 = lst(tuple0 | (any, x1)) and x2 = any, lst(tuple0 | (any, x1)) \\ lst(any, x1) | lst(x2) & lst('b, x3) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5))"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a", "'b" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "('a -> 'b -> 'a) -> lst(tuple0) | lst(any, lst(x4) \\ lst(any, x1) | lst(x2) & lst('b, x3)) & lst('b, x5) -> 'a -> 'a where x1 = lst(tuple0 | (any, x1)) and x2 = any, lst(tuple0 | (any, x1)) \\ lst(any, x1) | lst(x2) & lst('b, x3) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5))",
-        "('a -> 'b -> empty) -> lst(tuple0) | lst(any, lst(x4) \\ lst(any, lst(x1)) | lst(x2) & lst('b, x3)) & lst('b, x5) -> 'a -> 'a where x1 = tuple0 | (any, lst(x1)) and x2 = any, lst(x1) \\ lst(any, lst(x1)) | lst(x2) & lst('b, x3) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5))"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [ "'a", "'b" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "('a -> 'b -> 'a) -> lst(tuple0) | lst(any, lst(x5) \\ lst(any, x1) | lst(x4) & lst('b, x3)) & lst('b, x2) -> 'a -> 'a where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = any, lst(tuple0 | (any, x1)) \\ lst(any, x1) | lst(x4) & lst('b, x3) and x5 = tuple0 | (any, lst(x5))",
-        "('a -> 'b -> 'a) -> lst(tuple0) | lst(any, lst(x5) \\ lst(any, x4) | lst(x2) & lst('b, x3)) & lst('b, x1) -> 'a -> any where x1 = lst(tuple0 | (any, x1)) and x2 = any, lst(tuple0 | (any, x4)) \\ lst(any, x4) | lst(x2) & lst('b, x3) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = tuple0 | (any, lst(x5))"
+        "('a -> 'b -> 'a) -> lst(tuple0) | lst(any, lst(x3) \\ lst(any, x4) | lst(x5) & lst('b, x1)) & lst('b, x2) -> 'a -> 'a where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = any, lst(tuple0 | (any, x4)) \\ lst(any, x4) | lst(x5) & lst('b, x1)",
+        "('a -> 'b -> empty) -> lst(tuple0) | lst(any, lst(x3) \\ lst(any, x2) | lst(x1) & lst('b, x4)) & lst('b, x5) -> 'a -> 'a where x1 = any, lst(tuple0 | (any, x2)) \\ lst(any, x2) | lst(x1) & lst('b, x4) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = lst(tuple0 | (any, x5))"
       ]
     ]
   },
@@ -2106,7 +1925,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "any"
       ]
     ]
@@ -2118,7 +1937,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a \\ (lst(any, x1) | lst(tuple0)) where x1 = lst(tuple0 | (any, x1))",
+        "'a \\ (lst(tuple0) | lst(any, x1)) where x1 = lst(tuple0 | (any, x1))",
         "empty"
       ]
     ]
@@ -2132,7 +1951,7 @@
     "rmono": [],
     "constr": [
       [
-        "'c & ('f -> 'k & ('h -> 'g)) -> 'b -> 'a & (lst(tuple0) | lst('f, x2) & lst(any, 'e & lst(x1))) -> 'g | 'b where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2))",
+        "'c & ('f -> 'k & ('h -> 'g)) -> 'b -> 'a & (lst(tuple0) | lst('f, x1) & lst(any, 'e & lst(x2))) -> 'g | 'b where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2))",
         "'d & ('c & ('f -> 'k & ('h -> 'g)) -> 'j & ('b -> 'i & ('e & lst(x1) -> 'h))) where x1 = tuple0 | (any, lst(x1))"
       ]
     ]
@@ -2150,34 +1969,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [
-        "('b -> 'a -> 'a) -> 'a -> lst(tuple0) | lst(any, lst(x4) \\ lst(any, x3) | lst(x1) & lst('b, x2)) & lst('b, x5) -> 'a where x1 = any, lst(tuple0 | (any, x3)) \\ lst(any, x3) | lst(x1) & lst('b, x2) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5))",
-        "arrow -> arrow"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a", "'b" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "arrow -> 'a -> lst(tuple0) -> 'c | 'a",
-        "('b -> 'a -> 'a) -> 'a -> lst(tuple0) | lst(any, lst(x3) \\ lst(any, lst(x2)) | lst(x4) & lst('b, x1)) & lst('b, x5) -> 'a where x1 = lst(tuple0 | (any, x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = any, lst(x2) \\ lst(any, lst(x2)) | lst(x4) & lst('b, x1) and x5 = lst(tuple0 | (any, x5))"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a", "'b" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "('b -> any -> 'c) -> 'a -> lst(tuple0) | lst(any, lst(x5) \\ lst(any, x2) | lst(x3) & lst('b, x4)) & lst('b, x1) -> 'c | 'a where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = any, lst(tuple0 | (any, x2)) \\ lst(any, x2) | lst(x3) & lst('b, x4) and x4 = lst(tuple0 | (any, x4)) and x5 = tuple0 | (any, lst(x5))",
-        "('b -> 'a -> 'a) -> 'a -> lst(tuple0) | lst(any, lst(x4) \\ lst(any, x2) | lst(x3) & lst('b, x1)) & lst('b, x5) -> 'a where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = any, lst(tuple0 | (any, x2)) \\ lst(any, x2) | lst(x3) & lst('b, x1) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5))"
-      ]
+      [ "arrow -> 'a -> lst(tuple0) -> 'b | 'a", "arrow -> arrow" ]
     ]
   },
   {
@@ -2187,20 +1979,8 @@
     "rmono": [],
     "constr": [
       [
-        "('b -> 'a -> 'a) -> 'a -> lst(tuple0) | lst(any, lst(x5) \\ lst(any, x4) | lst(x2) & lst('b, x3)) & lst('b, x1) -> 'a where x1 = lst(tuple0 | (any, x1)) and x2 = any, lst(tuple0 | (any, x4)) \\ lst(any, x4) | lst(x2) & lst('b, x3) and x3 = lst(tuple0 | (any, x3)) and x4 = lst(tuple0 | (any, x4)) and x5 = tuple0 | (any, lst(x5))",
+        "('b -> 'a -> 'a) -> 'a -> lst(tuple0) | lst(any, lst(x4) \\ lst(any, x5) | lst(x1) & lst('b, x2)) & lst('b, x3) -> 'a where x1 = any, lst(tuple0 | (any, x5)) \\ lst(any, x5) | lst(x1) & lst('b, x2) and x2 = lst(tuple0 | (any, x2)) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5))",
         "arrow -> 'a -> lst(tuple0) -> 'c | 'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a", "'b", "'c" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "('b -> 'a -> 'a) -> 'a -> lst(tuple0) | lst(any, lst(x4) \\ lst(any, x3) | lst(x2) & lst('b, x1)) & lst('b, x5) -> 'a where x1 = lst(tuple0 | (any, x1)) and x2 = any, lst(tuple0 | (any, x3)) \\ lst(any, x3) | lst(x2) & lst('b, x1) and x3 = lst(tuple0 | (any, x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5))",
-        "('b -> any -> 'c) -> 'a -> lst(tuple0) | lst(any, lst(x4) \\ lst(any, x1) | lst(x3) & lst('b, x2)) & lst('b, x5) -> 'c | 'a where x1 = lst(tuple0 | (any, x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = any, lst(tuple0 | (any, x1)) \\ lst(any, x1) | lst(x3) & lst('b, x2) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5))"
       ]
     ]
   },
@@ -2367,7 +2147,7 @@
     "rmono": [],
     "constr": [
       [
-        "'d & (Nil | Node(x2)) -> 'c -> 'b -> 'a & (Nil | Node(x1)) -> Node('d & (Nil | Node(x2)), 'c, 'b, 'a & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
+        "'d & (Nil | Node(x1)) -> 'c -> 'b -> 'a & (Nil | Node(x2)) -> Node('d & (Nil | Node(x1)), 'c, 'b, 'a & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "'e"
       ]
     ]
@@ -2798,7 +2578,7 @@
     "rmono": [],
     "constr": [
       [
-        "Node(x3, Key, 'a, Node(Node(x1), Key, 'a, Node(x2) \\ Node(~Node(tuple5), any, any, any, any), int), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3, Key, 'a, x3, int)",
+        "Node(x3, Key, 'a, Node(Node(x2), Key, 'a, Node(x1) \\ Node(~Node(tuple5), any, any, any, any), int), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3, Key, 'a, x3, int)",
         "x1 where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -2918,7 +2698,7 @@
     "rmono": [],
     "constr": [
       [
-        "'e -> 'd -> 'c & (Nil | Node(x2)) -> Node(x1, 'e, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
+        "'e -> 'd -> 'c & (Nil | Node(x1)) -> Node(x2, 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
         "Key -> 'b"
       ]
     ]
@@ -2942,7 +2722,7 @@
     "rmono": [],
     "constr": [
       [
-        "'c & (Nil | Node(x2)) -> Node(x1, Key, 'a, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
+        "'c & (Nil | Node(x1)) -> Node(x2, Key, 'a, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
         "x1 -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -2955,7 +2735,7 @@
     "constr": [
       [
         "'f & (Nil | Node(x1)) -> 'e -> 'd -> 'c & (Nil | Node(x1)) -> Node('f & (Nil | Node(x1)), 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int",
-        "Node(x2, Key, 'a, x1, int) -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int)"
+        "Node(x1, Key, 'a, x2, int) -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int)"
       ]
     ]
   },
@@ -2966,7 +2746,7 @@
     "rmono": [],
     "constr": [
       [
-        "'e -> 'd -> 'c & (Nil | Node(x3)) -> Node(Node(x2, Key, 'a, x1, int), 'e, 'd, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
+        "'e -> 'd -> 'c & (Nil | Node(x1)) -> Node(Node(x2, Key, 'a, x3, int), 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3, Key, 'a, x3, int)",
         "Key -> 'b"
       ]
     ]
@@ -3002,7 +2782,7 @@
     "rmono": [],
     "constr": [
       [
-        "'e -> 'd -> 'c & (Nil | Node(x1)) -> Node(x2, 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
+        "'e -> 'd -> 'c & (Nil | Node(x2)) -> Node(x1, 'e, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "Key -> 'b"
       ]
     ]
@@ -3014,7 +2794,7 @@
     "rmono": [],
     "constr": [
       [
-        "'d -> 'c & (Nil | Node(x1)) -> Node(x2, Key, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
+        "'d -> 'c & (Nil | Node(x2)) -> Node(x1, Key, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "'a -> 'b"
       ]
     ]
@@ -3039,7 +2819,7 @@
     "constr": [
       [
         "'c & (Nil | Node(x3)) -> Node(Node(x2, Key, 'a, x1, int), Key, 'a, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
-        "Node(x1, Key, 'a, Node(x2) \\ Node(~Node(tuple5), any, any, any, any), int) -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int"
+        "Node(x2, Key, 'a, Node(x1) \\ Node(~Node(tuple5), any, any, any, any), int) -> 'b where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)"
       ]
     ]
   },
@@ -3050,7 +2830,7 @@
     "rmono": [],
     "constr": [
       [
-        "Node(Node(x3, Key, 'a, x4, int), Key, 'a, Node(x1, Key, 'a, Node(x2) \\ Node(~Node(tuple5), any, any, any, any), int), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3, Key, 'a, x3, int) and x4 = Nil | Node(x4, Key, 'a, x4, int)",
+        "Node(Node(x4, Key, 'a, x1, int), Key, 'a, Node(x3, Key, 'a, Node(x2) \\ Node(~Node(tuple5), any, any, any, any), int), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3, Key, 'a, x3, int) and x4 = Nil | Node(x4, Key, 'a, x4, int)",
         "x1 where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -3236,7 +3016,7 @@
     "rmono": [],
     "constr": [
       [
-        "'e -> 'd -> 'c & (Nil | Node(x1)) -> Node(Node(x2) \\ Node(any, any, any, ~Node(tuple5), any), 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
+        "'e -> 'd -> 'c & (Nil | Node(x2)) -> Node(Node(x1) \\ Node(any, any, any, ~Node(tuple5), any), 'e, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "Key -> 'b"
       ]
     ]
@@ -3260,7 +3040,7 @@
     "rmono": [],
     "constr": [
       [
-        "'c & (Nil | Node(x1)) -> Node(Node(x2) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
+        "'c & (Nil | Node(x2)) -> Node(Node(x1) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "Node(x1) -> 'b where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int"
       ]
     ]
@@ -3273,7 +3053,7 @@
     "constr": [
       [
         "'f & (Nil | Node(x1)) -> 'e -> 'd -> 'c & (Nil | Node(x1)) -> Node('f & (Nil | Node(x1)), 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int",
-        "Node(Node(x1) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, Node(x2), int) -> 'b where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int"
+        "Node(Node(x2) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, Node(x1), int) -> 'b where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int"
       ]
     ]
   },
@@ -3284,7 +3064,7 @@
     "rmono": [],
     "constr": [
       [
-        "'e -> 'd -> 'c & (Nil | Node(x2)) -> Node(Node(Node(x3) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, Node(x1), int), 'e, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int and x3 = Nil | Node(x3), Key, 'a, Nil | Node(x3), int",
+        "'e -> 'd -> 'c & (Nil | Node(x3)) -> Node(Node(Node(x2) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, Node(x1), int), 'e, 'd, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
         "Key -> 'b"
       ]
     ]
@@ -3296,7 +3076,7 @@
     "rmono": [],
     "constr": [
       [
-        "'d -> 'c & (Nil | Node(x3)) -> Node(Node(Node(x1) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, Node(x2), int), Key, 'd, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
+        "'d -> 'c & (Nil | Node(x2)) -> Node(Node(Node(x3) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, Node(x1), int), Key, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int and x3 = Nil | Node(x3), Key, 'a, Nil | Node(x3), int",
         "'a -> 'b"
       ]
     ]
@@ -3320,7 +3100,7 @@
     "rmono": [],
     "constr": [
       [
-        "Node(Node(Node(x2) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, Node(x1), int), Key, 'a, x3, int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3, Key, 'a, x3, int)",
+        "Node(Node(Node(x1) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, Node(x2), int), Key, 'a, x3, int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3, Key, 'a, x3, int)",
         "x1 where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -3440,7 +3220,7 @@
     "rmono": [],
     "constr": [
       [
-        "'e -> 'd -> 'c & (Nil | Node(x2)) -> Node(Node(x1) \\ Node(any, any, any, ~Node(tuple5), any), 'e, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
+        "'e -> 'd -> 'c & (Nil | Node(x1)) -> Node(Node(x2) \\ Node(any, any, any, ~Node(tuple5), any), 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
         "Key -> 'b"
       ]
     ]
@@ -3452,7 +3232,7 @@
     "rmono": [],
     "constr": [
       [
-        "'d -> 'c & (Nil | Node(x1)) -> Node(Node(x2) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
+        "'d -> 'c & (Nil | Node(x2)) -> Node(Node(x1) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "'a -> 'b"
       ]
     ]
@@ -3488,7 +3268,7 @@
     "rmono": [],
     "constr": [
       [
-        "'e -> 'd -> 'c & (Nil | Node(x3)) -> Node(Node(Node(x2) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, x1, int), 'e, 'd, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
+        "'e -> 'd -> 'c & (Nil | Node(x3)) -> Node(Node(Node(x1) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, x2, int), 'e, 'd, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
         "Key -> 'b"
       ]
     ]
@@ -3500,7 +3280,7 @@
     "rmono": [],
     "constr": [
       [
-        "'d -> 'c & (Nil | Node(x3)) -> Node(Node(Node(x2) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, x1, int), Key, 'd, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
+        "'d -> 'c & (Nil | Node(x3)) -> Node(Node(Node(x1) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, x2, int), Key, 'd, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
         "'a -> 'b"
       ]
     ]
@@ -3524,7 +3304,7 @@
     "rmono": [],
     "constr": [
       [
-        "'e -> 'd -> 'c & (Nil | Node(x2)) -> Node(x1, 'e, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
+        "'e -> 'd -> 'c & (Nil | Node(x1)) -> Node(x2, 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
         "Key -> 'b"
       ]
     ]
@@ -3536,7 +3316,7 @@
     "rmono": [],
     "constr": [
       [
-        "'d -> 'c & (Nil | Node(x2)) -> Node(x1, Key, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
+        "'d -> 'c & (Nil | Node(x1)) -> Node(x2, Key, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
         "'a -> 'b"
       ]
     ]
@@ -3560,8 +3340,8 @@
     "rmono": [],
     "constr": [
       [
-        "'c & (Nil | Node(x3)) -> Node(Node(Node(x1) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, x2, int), Key, 'a, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
-        "Node(x1, Key, 'a, x2, int) -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int)"
+        "'c & (Nil | Node(x1)) -> Node(Node(Node(x3) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, x2, int), Key, 'a, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3), Key, 'a, Nil | Node(x3), int",
+        "Node(x2, Key, 'a, x1, int) -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int)"
       ]
     ]
   },
@@ -3572,7 +3352,7 @@
     "rmono": [],
     "constr": [
       [
-        "Node(Node(Node(x1) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, x2, int), Key, 'a, Node(x3, Key, 'a, x4, int), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3, Key, 'a, x3, int) and x4 = Nil | Node(x4, Key, 'a, x4, int)",
+        "Node(Node(Node(x2) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, x1, int), Key, 'a, Node(x4, Key, 'a, x3, int), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3, Key, 'a, x3, int) and x4 = Nil | Node(x4, Key, 'a, x4, int)",
         "x1 where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -3645,7 +3425,7 @@
     "rmono": [],
     "constr": [
       [
-        "Node(x1) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, Node(x2) \\ Node(~Node(tuple5), any, any, any, any), int where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
+        "Node(x2) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, Node(x1) \\ Node(~Node(tuple5), any, any, any, any), int where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
         "any"
       ]
     ]
@@ -3657,7 +3437,7 @@
     "rmono": [],
     "constr": [
       [
-        "Node(Node(x2) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, Node(x1) \\ Node(~Node(tuple5), any, any, any, any), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
+        "Node(Node(x1) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, Node(x2) \\ Node(~Node(tuple5), any, any, any, any), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
         "x1 where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -3903,7 +3683,7 @@
     "rmono": [],
     "constr": [
       [
-        "'e -> 'd -> 'c & (Nil | Node(x2)) -> Node(Node(x1), 'e, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
+        "'e -> 'd -> 'c & (Nil | Node(x1)) -> Node(Node(x2), 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
         "Key -> 'b"
       ]
     ]
@@ -3915,7 +3695,7 @@
     "rmono": [],
     "constr": [
       [
-        "'d -> 'c & (Nil | Node(x1)) -> Node(Node(x2), Key, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
+        "'d -> 'c & (Nil | Node(x2)) -> Node(Node(x1), Key, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "'a -> 'b"
       ]
     ]
@@ -3939,7 +3719,7 @@
     "rmono": [],
     "constr": [
       [
-        "'c & (Nil | Node(x2)) -> Node(x1, Key, 'a, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
+        "'c & (Nil | Node(x1)) -> Node(x2, Key, 'a, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
         "Node(Node(x1), Key, 'a, Nil, int) -> 'b where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int"
       ]
     ]
@@ -4071,6 +3851,90 @@
     "rmono": [],
     "constr": [
       [
+        "'e -> 'd -> 'c & (Nil | Node(x2)) -> Node(x1, 'e, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
+        "Key -> 'b"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "'d -> 'c & (Nil | Node(x1)) -> Node(x2, Key, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
+        "'a -> 'b"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "'c & (Nil | Node(x1)) -> Node(x2, Key, 'a, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
+        "x1 -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int)"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "'f & (Nil | Node(x1)) -> 'e -> 'd -> 'c & (Nil | Node(x1)) -> Node('f & (Nil | Node(x1)), 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int",
+        "Node(x2, Key, 'a, x1, int) -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int)"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "'e -> 'd -> 'c & (Nil | Node(x3)) -> Node(Node(x1, Key, 'a, x2, int), 'e, 'd, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
+        "Key -> 'b"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "'d -> 'c & (Nil | Node(x3)) -> Node(Node(x1, Key, 'a, x2, int), Key, 'd, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
+        "'a -> 'b"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "'f & (Nil | Node(x1)) -> 'e -> 'd -> 'c & (Nil | Node(x1)) -> Node('f & (Nil | Node(x1)), 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int",
+        "x1 -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int)"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
+    "mono": [ "'a" ],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
         "'e -> 'd -> 'c & (Nil | Node(x1)) -> Node(x2, 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
         "Key -> 'b"
       ]
@@ -4096,90 +3960,6 @@
     "constr": [
       [
         "'c & (Nil | Node(x2)) -> Node(x1, Key, 'a, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
-        "x1 -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "'f & (Nil | Node(x1)) -> 'e -> 'd -> 'c & (Nil | Node(x1)) -> Node('f & (Nil | Node(x1)), 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int",
-        "Node(x1, Key, 'a, x2, int) -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "'e -> 'd -> 'c & (Nil | Node(x2)) -> Node(Node(x1, Key, 'a, x3, int), 'e, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int and x3 = Nil | Node(x3, Key, 'a, x3, int)",
-        "Key -> 'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "'d -> 'c & (Nil | Node(x3)) -> Node(Node(x2, Key, 'a, x1, int), Key, 'd, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
-        "'a -> 'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e", "'f" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "'f & (Nil | Node(x1)) -> 'e -> 'd -> 'c & (Nil | Node(x1)) -> Node('f & (Nil | Node(x1)), 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int",
-        "x1 -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d", "'e" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "'e -> 'd -> 'c & (Nil | Node(x2)) -> Node(x1, 'e, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
-        "Key -> 'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c", "'d" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "'d -> 'c & (Nil | Node(x1)) -> Node(x2, Key, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
-        "'a -> 'b"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "'c & (Nil | Node(x2)) -> Node(x1, Key, 'a, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "Nil -> 'b"
       ]
     ]
@@ -4191,7 +3971,7 @@
     "rmono": [],
     "constr": [
       [
-        "'c & (Nil | Node(x3)) -> Node(Node(x1, Key, 'a, x2, int), Key, 'a, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
+        "'c & (Nil | Node(x3)) -> Node(Node(x2, Key, 'a, x1, int), Key, 'a, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
         "Node(x1, Key, 'a, Nil, int) -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -4563,7 +4343,7 @@
     "rmono": [],
     "constr": [
       [
-        "'e -> 'd -> 'c & (Nil | Node(x2)) -> Node(x1, 'e, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
+        "'e -> 'd -> 'c & (Nil | Node(x1)) -> Node(x2, 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
         "Key -> 'b"
       ]
     ]
@@ -4575,7 +4355,7 @@
     "rmono": [],
     "constr": [
       [
-        "'d -> 'c & (Nil | Node(x1)) -> Node(x2, Key, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
+        "'d -> 'c & (Nil | Node(x2)) -> Node(x1, Key, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "'a -> 'b"
       ]
     ]
@@ -4599,7 +4379,7 @@
     "rmono": [],
     "constr": [
       [
-        "'e -> 'd -> 'c & (Nil | Node(x1)) -> Node(Node(x2), 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
+        "'e -> 'd -> 'c & (Nil | Node(x2)) -> Node(Node(x1), 'e, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "Key -> 'b"
       ]
     ]
@@ -4623,7 +4403,7 @@
     "rmono": [],
     "constr": [
       [
-        "'c & (Nil | Node(x1)) -> Node(Node(x2), Key, 'a, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
+        "'c & (Nil | Node(x2)) -> Node(Node(x1), Key, 'a, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "Node(x1) & Node(Nil, any, any, any, any) -> 'b where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int"
       ]
     ]
@@ -4635,7 +4415,7 @@
     "rmono": [],
     "constr": [
       [
-        "'c & (Nil | Node(x2)) -> Node(x1, Key, 'a, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
+        "'c & (Nil | Node(x1)) -> Node(x2, Key, 'a, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
         "Node(Node(x1), Key, 'a, Node(x2) & Node(Nil, any, any, any, any), int) -> 'b where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int"
       ]
     ]
@@ -4647,7 +4427,7 @@
     "rmono": [],
     "constr": [
       [
-        "Node(x3, Key, 'a, Node(Node(x1), Key, 'a, Node(x2) & Node(Nil, any, any, any, any), int), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3, Key, 'a, x3, int)",
+        "Node(x1, Key, 'a, Node(Node(x2), Key, 'a, Node(x3) & Node(Nil, any, any, any, any), int), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3), Key, 'a, Nil | Node(x3), int",
         "x1 where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -4779,7 +4559,7 @@
     "rmono": [],
     "constr": [
       [
-        "'d -> 'c & (Nil | Node(x1)) -> Node(x2, Key, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
+        "'d -> 'c & (Nil | Node(x2)) -> Node(x1, Key, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "'a -> 'b"
       ]
     ]
@@ -4791,7 +4571,7 @@
     "rmono": [],
     "constr": [
       [
-        "'c & (Nil | Node(x1)) -> Node(x2, Key, 'a, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
+        "'c & (Nil | Node(x2)) -> Node(x1, Key, 'a, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "x1 -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -4815,7 +4595,7 @@
     "rmono": [],
     "constr": [
       [
-        "'e -> 'd -> 'c & (Nil | Node(x3)) -> Node(Node(x1, Key, 'a, x2, int), 'e, 'd, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
+        "'e -> 'd -> 'c & (Nil | Node(x1)) -> Node(Node(x3, Key, 'a, x2, int), 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3, Key, 'a, x3, int)",
         "Key -> 'b"
       ]
     ]
@@ -4888,7 +4668,7 @@
     "constr": [
       [
         "'c & (Nil | Node(x3)) -> Node(Node(x2, Key, 'a, x1, int), Key, 'a, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
-        "Node(x2, Key, 'a, Node(x1) & Node(Nil, any, any, any, any), int) -> 'b where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)"
+        "Node(x1, Key, 'a, Node(x2) & Node(Nil, any, any, any, any), int) -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int"
       ]
     ]
   },
@@ -4899,7 +4679,7 @@
     "rmono": [],
     "constr": [
       [
-        "Node(Node(x4, Key, 'a, x3, int), Key, 'a, Node(x2, Key, 'a, Node(x1) & Node(Nil, any, any, any, any), int), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3, Key, 'a, x3, int) and x4 = Nil | Node(x4, Key, 'a, x4, int)",
+        "Node(Node(x3, Key, 'a, x4, int), Key, 'a, Node(x2, Key, 'a, Node(x1) & Node(Nil, any, any, any, any), int), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3, Key, 'a, x3, int) and x4 = Nil | Node(x4, Key, 'a, x4, int)",
         "x1 where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -5096,7 +4876,7 @@
     "rmono": [],
     "constr": [
       [
-        "'d -> 'c & (Nil | Node(x1)) -> Node(Node(x2) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
+        "'d -> 'c & (Nil | Node(x2)) -> Node(Node(x1) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "'a -> 'b"
       ]
     ]
@@ -5132,7 +4912,7 @@
     "rmono": [],
     "constr": [
       [
-        "'e -> 'd -> 'c & (Nil | Node(x2)) -> Node(Node(Node(x1) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, Nil, int), 'e, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
+        "'e -> 'd -> 'c & (Nil | Node(x1)) -> Node(Node(Node(x2) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, Nil, int), 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
         "Key -> 'b"
       ]
     ]
@@ -5156,7 +4936,7 @@
     "rmono": [],
     "constr": [
       [
-        "'c & (Nil | Node(x1)) -> Node(Node(Node(x2) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, Nil, int), Key, 'a, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
+        "'c & (Nil | Node(x2)) -> Node(Node(Node(x1) \\ Node(any, any, any, ~Node(tuple5), any), Key, 'a, Nil, int), Key, 'a, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "x1 -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -5607,7 +5387,7 @@
     "rmono": [],
     "constr": [
       [
-        "Node(Node(Nil, Key, 'a, Node(x2), int), Key, 'a, x1, int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
+        "Node(Node(Nil, Key, 'a, Node(x1), int), Key, 'a, x2, int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
         "x1 where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -5811,7 +5591,7 @@
     "rmono": [],
     "constr": [
       [
-        "'e -> 'd -> 'c & (Nil | Node(x2)) -> Node(x1, 'e, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
+        "'e -> 'd -> 'c & (Nil | Node(x1)) -> Node(x2, 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
         "Key -> 'b"
       ]
     ]
@@ -5823,7 +5603,7 @@
     "rmono": [],
     "constr": [
       [
-        "'d -> 'c & (Nil | Node(x1)) -> Node(x2, Key, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
+        "'d -> 'c & (Nil | Node(x2)) -> Node(x1, Key, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "'a -> 'b"
       ]
     ]
@@ -5848,7 +5628,7 @@
     "constr": [
       [
         "'c & (Nil | Node(x2)) -> Node(Node(Nil, Key, 'a, x1, int), Key, 'a, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
-        "Node(x2, Key, 'a, x1, int) -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int)"
+        "Node(x1, Key, 'a, x2, int) -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int)"
       ]
     ]
   },
@@ -5859,7 +5639,7 @@
     "rmono": [],
     "constr": [
       [
-        "Node(Node(Nil, Key, 'a, x3, int), Key, 'a, Node(x1, Key, 'a, x2, int), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3, Key, 'a, x3, int)",
+        "Node(Node(Nil, Key, 'a, x1, int), Key, 'a, Node(x2, Key, 'a, x3, int), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3, Key, 'a, x3, int)",
         "x1 where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -6771,7 +6551,7 @@
     "rmono": [],
     "constr": [
       [
-        "'e -> 'd -> 'c & (Nil | Node(x2)) -> Node(x1, 'e, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
+        "'e -> 'd -> 'c & (Nil | Node(x1)) -> Node(x2, 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
         "Key -> 'b"
       ]
     ]
@@ -7057,7 +6837,7 @@
     "rmono": [],
     "constr": [
       [
-        "'e -> 'd -> 'c & (Nil | Node(x2)) -> Node(Node(x1) & Node(any, any, any, Nil, any), 'e, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
+        "'e -> 'd -> 'c & (Nil | Node(x1)) -> Node(Node(x2) & Node(any, any, any, Nil, any), 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
         "Key -> 'b"
       ]
     ]
@@ -7117,7 +6897,7 @@
     "rmono": [],
     "constr": [
       [
-        "'d -> 'c & (Nil | Node(x1)) -> Node(Node(Node(x3) & Node(any, any, any, Nil, any), Key, 'a, Node(x2), int), Key, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3), Key, 'a, Nil | Node(x3), int",
+        "'d -> 'c & (Nil | Node(x3)) -> Node(Node(Node(x1) & Node(any, any, any, Nil, any), Key, 'a, Node(x2), int), Key, 'd, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
         "'a -> 'b"
       ]
     ]
@@ -7129,7 +6909,7 @@
     "rmono": [],
     "constr": [
       [
-        "'c & (Nil | Node(x2)) -> Node(Node(Node(x1) & Node(any, any, any, Nil, any), Key, 'a, Node(x3), int), Key, 'a, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int and x3 = Nil | Node(x3), Key, 'a, Nil | Node(x3), int",
+        "'c & (Nil | Node(x3)) -> Node(Node(Node(x2) & Node(any, any, any, Nil, any), Key, 'a, Node(x1), int), Key, 'a, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
         "x1 -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -7141,7 +6921,7 @@
     "rmono": [],
     "constr": [
       [
-        "Node(Node(Node(x2) & Node(any, any, any, Nil, any), Key, 'a, Node(x1), int), Key, 'a, x3, int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3, Key, 'a, x3, int)",
+        "Node(Node(Node(x1) & Node(any, any, any, Nil, any), Key, 'a, Node(x2), int), Key, 'a, x3, int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3, Key, 'a, x3, int)",
         "x1 where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -7285,7 +7065,7 @@
     "rmono": [],
     "constr": [
       [
-        "'c & (Nil | Node(x1)) -> Node(Node(x2) & Node(any, any, any, Nil, any), Key, 'a, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
+        "'c & (Nil | Node(x2)) -> Node(Node(x1) & Node(any, any, any, Nil, any), Key, 'a, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "x1 -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -7298,7 +7078,7 @@
     "constr": [
       [
         "'f & (Nil | Node(x1)) -> 'e -> 'd -> 'c & (Nil | Node(x1)) -> Node('f & (Nil | Node(x1)), 'e, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int",
-        "Node(Node(x2) & Node(any, any, any, Nil, any), Key, 'a, x1, int) -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int"
+        "Node(Node(x1) & Node(any, any, any, Nil, any), Key, 'a, x2, int) -> 'b where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)"
       ]
     ]
   },
@@ -7357,7 +7137,7 @@
     "rmono": [],
     "constr": [
       [
-        "'d -> 'c & (Nil | Node(x1)) -> Node(x2, Key, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
+        "'d -> 'c & (Nil | Node(x2)) -> Node(x1, Key, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "'a -> 'b"
       ]
     ]
@@ -7381,7 +7161,7 @@
     "rmono": [],
     "constr": [
       [
-        "'c & (Nil | Node(x3)) -> Node(Node(Node(x2) & Node(any, any, any, Nil, any), Key, 'a, x1, int), Key, 'a, 'c & (Nil | Node(x3)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int and x3 = Nil | Node(x3), Key, any, Nil | Node(x3), int",
+        "'c & (Nil | Node(x1)) -> Node(Node(Node(x3) & Node(any, any, any, Nil, any), Key, 'a, x2, int), Key, 'a, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3), Key, 'a, Nil | Node(x3), int",
         "Node(x1, Key, 'a, x2, int) -> 'b where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int)"
       ]
     ]
@@ -7393,7 +7173,7 @@
     "rmono": [],
     "constr": [
       [
-        "Node(Node(Node(x3) & Node(any, any, any, Nil, any), Key, 'a, x4, int), Key, 'a, Node(x1, Key, 'a, x2, int), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3), Key, 'a, Nil | Node(x3), int and x4 = Nil | Node(x4, Key, 'a, x4, int)",
+        "Node(Node(Node(x4) & Node(any, any, any, Nil, any), Key, 'a, x1, int), Key, 'a, Node(x2, Key, 'a, x3, int), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2, Key, 'a, x2, int) and x3 = Nil | Node(x3, Key, 'a, x3, int) and x4 = Nil | Node(x4), Key, 'a, Nil | Node(x4), int",
         "x1 where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -7759,7 +7539,7 @@
     "rmono": [],
     "constr": [
       [
-        "'c & (Nil | Node(x1)) -> Node(x2, Key, 'a, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
+        "'c & (Nil | Node(x2)) -> Node(x1, Key, 'a, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
         "Node(Nil, Key, 'a, Nil, int) -> 'b"
       ]
     ]
@@ -8158,7 +7938,7 @@
     "rmono": [],
     "constr": [
       [
-        "'d -> 'c & (Nil | Node(x2)) -> Node(x1, Key, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
+        "'d -> 'c & (Nil | Node(x1)) -> Node(x2, Key, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
         "'a -> 'b"
       ]
     ]
@@ -8230,7 +8010,7 @@
     "rmono": [],
     "constr": [
       [
-        "Node(x2, Key, 'a, Node(Nil, Key, 'a, Node(x1) & Node(Nil, any, any, any, any), int), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
+        "Node(x1, Key, 'a, Node(Nil, Key, 'a, Node(x2) & Node(Nil, any, any, any, any), int), int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
         "x1 where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -8443,7 +8223,7 @@
     "rmono": [],
     "constr": [
       [
-        "'d -> 'c & (Nil | Node(x2)) -> Node(Node(x1) & Node(any, any, any, Nil, any), Key, 'd, 'c & (Nil | Node(x2)), int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, any, Nil | Node(x2), int",
+        "'d -> 'c & (Nil | Node(x1)) -> Node(Node(x2) & Node(any, any, any, Nil, any), Key, 'd, 'c & (Nil | Node(x1)), int) where x1 = Nil | Node(x1), Key, any, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
         "'a -> 'b"
       ]
     ]
@@ -8515,7 +8295,7 @@
     "rmono": [],
     "constr": [
       [
-        "Node(Node(Node(x2) & Node(any, any, any, Nil, any), Key, 'a, Nil, int), Key, 'a, x1, int) where x1 = Nil | Node(x1, Key, 'a, x1, int) and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
+        "Node(Node(Node(x1) & Node(any, any, any, Nil, any), Key, 'a, Nil, int), Key, 'a, x2, int) where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2, Key, 'a, x2, int)",
         "x1 where x1 = Nil | Node(x1, Key, 'a, x1, int)"
       ]
     ]
@@ -8604,7 +8384,7 @@
     "rmono": [],
     "constr": [
       [
-        "Node(x2) & Node(any, any, any, Nil, any), Key, 'a, Node(x1) & Node(Nil, any, any, any, any), int where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
+        "Node(x1) & Node(any, any, any, Nil, any), Key, 'a, Node(x2) & Node(Nil, any, any, any, any), int where x1 = Nil | Node(x1), Key, 'a, Nil | Node(x1), int and x2 = Nil | Node(x2), Key, 'a, Nil | Node(x2), int",
         "any"
       ]
     ]
@@ -8653,20 +8433,6 @@
         "(x1 -> 'b) -> 'd where x1 = 'g & (x1 -> 'h & ('a -> 'c))"
       ]
     ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "any", "'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [ "'a" ],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "'a", "any" ] ]
   },
   {
     "vars": [ "'a", "'b", "'c", "'d", "'e" ],
@@ -8799,7 +8565,7 @@
     "rmono": [],
     "constr": [
       [
-        "'b & ('e & lst(x1) -> 'd & int) -> 'a & (lst(any, 'e & lst(x2)) | lst(tuple0)) -> int where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2))",
+        "'b & ('e & lst(x2) -> 'd & int) -> 'a & (lst(any, 'e & lst(x1)) | lst(tuple0)) -> int where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2))",
         "'c"
       ]
     ]
@@ -8938,7 +8704,7 @@
     "rmono": [],
     "constr": [
       [
-        "'c & ('b & ('f -> 'e) -> 'i & ('h & lst(x1) -> 'g & lst(x2))) -> 'b & ('f -> 'e) -> 'a & (lst(any, 'h & lst(x4)) & lst('f, x5) | lst(tuple0)) -> lst('e, 'g & lst(x3)) | lst(tuple0) where x1 = tuple0 | (any, lst(x1)) and x2 = tuple0 | (any, lst(x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = lst(tuple0 | (any, x5))",
+        "'c & ('b & ('f -> 'e) -> 'i & ('h & lst(x5) -> 'g & lst(x4))) -> 'b & ('f -> 'e) -> 'a & (lst(any, 'h & lst(x1)) & lst('f, x2) | lst(tuple0)) -> lst('e, 'g & lst(x3)) | lst(tuple0) where x1 = tuple0 | (any, lst(x1)) and x2 = lst(tuple0 | (any, x2)) and x3 = tuple0 | (any, lst(x3)) and x4 = tuple0 | (any, lst(x4)) and x5 = tuple0 | (any, lst(x5))",
         "'d"
       ]
     ]
@@ -8962,7 +8728,7 @@
     "rmono": [],
     "constr": [
       [
-        "('b -> 'a) -> lst(tuple0 | ('b, x1)) -> lst(tuple0 | ('a, x2)) where x1 = lst(tuple0 | ('b, x1)) and x2 = lst(tuple0 | ('a, x2))",
+        "('b -> 'a) -> lst(tuple0 | ('b, x2)) -> lst(tuple0 | ('a, x1)) where x1 = lst(tuple0 | ('a, x1)) and x2 = lst(tuple0 | ('b, x2))",
         "arrow -> lst(tuple0) -> lst(tuple0)"
       ]
     ]
@@ -8998,7 +8764,7 @@
     "rmono": [],
     "constr": [
       [
-        "('b -> 'a) -> lst(tuple0 | ('b, x2)) -> lst(tuple0 | ('a, x1)) where x1 = lst(tuple0 | ('a, x1)) and x2 = lst(tuple0 | ('b, x2))",
+        "('b -> 'a) -> lst(tuple0 | ('b, x1)) -> lst(tuple0 | ('a, x2)) where x1 = lst(tuple0 | ('b, x1)) and x2 = lst(tuple0 | ('a, x2))",
         "arrow"
       ]
     ]
@@ -9046,7 +8812,7 @@
     "rmono": [],
     "constr": [
       [
-        "'a & ('d -> 'c) -> lst(tuple0 | ('d, x1)) -> lst(tuple0 | ('c, x2)) where x1 = lst(tuple0 | ('d, x1)) and x2 = lst(tuple0 | ('c, x2))",
+        "'a & ('d -> 'c) -> lst(tuple0 | ('d, x2)) -> lst(tuple0 | ('c, x1)) where x1 = lst(tuple0 | ('c, x1)) and x2 = lst(tuple0 | ('d, x2))",
         "'b"
       ]
     ]

@@ -18896,7 +18896,7 @@
     "rmono": [],
     "constr": [
       [
-        "(2 -> 3) & (3 -> 4) & (4 -> 5) & (5 -> 6) & (6 -> 7) & (7 -> 8) & (8 -> 9) & (9 -> 10) & (10 -> 11) & (11 -> 12) & (12 -> 13) & (13 -> 14) & (14 -> 15) & (15 -> 16) & (16 -> 17) & (17 -> 18) & (18 -> 19) & (19 -> 20) & (20 -> 21) & (21 -> 22) & (22 -> 23) & (23 -> 24) & (24 -> 25) & (1 -> 2) & (~(0..24) -> 0) & (0 -> 1)",
+        "(~(0..24) -> 0) & (24 -> 25) & (23 -> 24) & (22 -> 23) & (21 -> 22) & (20 -> 21) & (19 -> 20) & (18 -> 19) & (17 -> 18) & (16 -> 17) & (15 -> 16) & (14 -> 15) & (13 -> 14) & (12 -> 13) & (11 -> 12) & (10 -> 11) & (9 -> 10) & (8 -> 9) & (7 -> 8) & (6 -> 7) & (5 -> 6) & (4 -> 5) & (3 -> 4) & (2 -> 3) & (0 -> 1) & (1 -> 2)",
         "(5..15) -> 'a"
       ]
     ]
@@ -18908,7 +18908,7 @@
     "rmono": [],
     "constr": [
       [
-        "(2 -> 3) & (3 -> 4) & (4 -> 5) & (5 -> 6) & (6 -> 7) & (7 -> 8) & (8 -> 9) & (9 -> 10) & (10 -> 11) & (11 -> 12) & (12 -> 13) & (13 -> 14) & (14 -> 15) & (15 -> 16) & (16 -> 17) & (17 -> 18) & (18 -> 19) & (19 -> 20) & (20 -> 21) & (21 -> 22) & (22 -> 23) & (23 -> 24) & (24 -> 25) & (1 -> 2) & (~(0..24) -> 0) & (0 -> 1)",
+        "(~(0..24) -> 0) & (24 -> 25) & (23 -> 24) & (22 -> 23) & (21 -> 22) & (20 -> 21) & (19 -> 20) & (18 -> 19) & (17 -> 18) & (16 -> 17) & (15 -> 16) & (14 -> 15) & (13 -> 14) & (12 -> 13) & (11 -> 12) & (10 -> 11) & (9 -> 10) & (8 -> 9) & (7 -> 8) & (6 -> 7) & (5 -> 6) & (4 -> 5) & (3 -> 4) & (2 -> 3) & (0 -> 1) & (1 -> 2)",
         "(6..16) -> 'a"
       ]
     ]
@@ -18920,7 +18920,7 @@
     "rmono": [],
     "constr": [
       [
-        "(2 -> 3) & (3 -> 4) & (4 -> 5) & (5 -> 6) & (6 -> 7) & (7 -> 8) & (8 -> 9) & (9 -> 10) & (10 -> 11) & (11 -> 12) & (12 -> 13) & (13 -> 14) & (14 -> 15) & (15 -> 16) & (16 -> 17) & (17 -> 18) & (18 -> 19) & (19 -> 20) & (20 -> 21) & (21 -> 22) & (22 -> 23) & (23 -> 24) & (24 -> 25) & (1 -> 2) & (~(0..24) -> 0) & (0 -> 1)",
+        "(~(0..24) -> 0) & (24 -> 25) & (23 -> 24) & (22 -> 23) & (21 -> 22) & (20 -> 21) & (19 -> 20) & (18 -> 19) & (17 -> 18) & (16 -> 17) & (15 -> 16) & (14 -> 15) & (13 -> 14) & (12 -> 13) & (11 -> 12) & (10 -> 11) & (9 -> 10) & (8 -> 9) & (7 -> 8) & (6 -> 7) & (5 -> 6) & (4 -> 5) & (3 -> 4) & (2 -> 3) & (0 -> 1) & (1 -> 2)",
         "(7..17) -> 'a"
       ]
     ]
@@ -18932,7 +18932,7 @@
     "rmono": [],
     "constr": [
       [
-        "(2 -> 3) & (3 -> 4) & (4 -> 5) & (5 -> 6) & (6 -> 7) & (7 -> 8) & (8 -> 9) & (9 -> 10) & (10 -> 11) & (11 -> 12) & (12 -> 13) & (13 -> 14) & (14 -> 15) & (15 -> 16) & (16 -> 17) & (17 -> 18) & (18 -> 19) & (19 -> 20) & (20 -> 21) & (21 -> 22) & (22 -> 23) & (23 -> 24) & (24 -> 25) & (1 -> 2) & (~(0..24) -> 0) & (0 -> 1)",
+        "(~(0..24) -> 0) & (24 -> 25) & (23 -> 24) & (22 -> 23) & (21 -> 22) & (20 -> 21) & (19 -> 20) & (18 -> 19) & (17 -> 18) & (16 -> 17) & (15 -> 16) & (14 -> 15) & (13 -> 14) & (12 -> 13) & (11 -> 12) & (10 -> 11) & (9 -> 10) & (8 -> 9) & (7 -> 8) & (6 -> 7) & (5 -> 6) & (4 -> 5) & (3 -> 4) & (2 -> 3) & (0 -> 1) & (1 -> 2)",
         "(8..18) -> 'a"
       ]
     ]
@@ -18944,7 +18944,7 @@
     "rmono": [],
     "constr": [
       [
-        "(2 -> 3) & (3 -> 4) & (4 -> 5) & (5 -> 6) & (6 -> 7) & (7 -> 8) & (8 -> 9) & (9 -> 10) & (10 -> 11) & (11 -> 12) & (12 -> 13) & (13 -> 14) & (14 -> 15) & (15 -> 16) & (16 -> 17) & (17 -> 18) & (18 -> 19) & (19 -> 20) & (20 -> 21) & (21 -> 22) & (22 -> 23) & (23 -> 24) & (24 -> 25) & (1 -> 2) & (~(0..24) -> 0) & (0 -> 1)",
+        "(~(0..24) -> 0) & (24 -> 25) & (23 -> 24) & (22 -> 23) & (21 -> 22) & (20 -> 21) & (19 -> 20) & (18 -> 19) & (17 -> 18) & (16 -> 17) & (15 -> 16) & (14 -> 15) & (13 -> 14) & (12 -> 13) & (11 -> 12) & (10 -> 11) & (9 -> 10) & (8 -> 9) & (7 -> 8) & (6 -> 7) & (5 -> 6) & (4 -> 5) & (3 -> 4) & (2 -> 3) & (0 -> 1) & (1 -> 2)",
         "(9..19) -> 'a"
       ]
     ]
@@ -21921,7 +21921,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int, int) | (str(enum), str(enum)) | (flt(nan | pinf | pos | pzero | nzero | neg | ninf), flt(nan | pinf | pos | pzero | nzero | neg | ninf)) | (chr((0..255)), chr((0..255))) | (bool(true | false), bool(true | false)) -> bool(true | false)",
+        "(str(enum), str(enum)) | (flt(nan | pinf | pos | pzero | nzero | neg | ninf), flt(nan | pinf | pos | pzero | nzero | neg | ninf)) | (chr((0..255)), chr((0..255))) | (bool(true | false), bool(true | false)) | (int, int) -> bool(true | false)",
         "('a & flt(nan | pinf | pos | pzero | nzero | neg | ninf), flt(nan | pinf | pos | pzero | nzero | neg | ninf)) -> 'b"
       ]
     ]
@@ -23147,21 +23147,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
   },
   {
     "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
     "vars": [],
@@ -23176,6 +23169,13 @@
     "rvars": [],
     "rmono": [],
     "constr": [ [ "bool(false)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
   },
   {
     "vars": [],
@@ -23222,21 +23222,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
   },
   {
     "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
     "vars": [],
@@ -23251,6 +23244,13 @@
     "rvars": [],
     "rmono": [],
     "constr": [ [ "bool(false)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
   },
   {
     "vars": [],
@@ -23294,7 +23294,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -23348,7 +23348,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -23380,7 +23380,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "bool(false)", "any" ], [ "bool(true) | bool(false)", "any" ]
+      [ "bool(false)", "any" ], [ "bool(false) | bool(true)", "any" ]
     ]
   },
   {
@@ -23390,8 +23390,8 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
-        "(bool(false), bool(true) | bool(false)) -> 'a"
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "(bool(false), bool(false) | bool(true)) -> 'a"
       ]
     ]
   },
@@ -23433,21 +23433,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
   },
   {
     "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
     "vars": [],
@@ -23462,6 +23455,13 @@
     "rvars": [],
     "rmono": [],
     "constr": [ [ "bool(false)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
   },
   {
     "vars": [],
@@ -23491,7 +23491,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -23531,7 +23531,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -23563,7 +23563,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "bool(true)", "any" ], [ "bool(true) | bool(false)", "any" ]
+      [ "bool(true)", "any" ], [ "bool(false) | bool(true)", "any" ]
     ]
   },
   {
@@ -23573,8 +23573,8 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
-        "(bool(true), bool(true) | bool(false)) -> 'a"
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "(bool(true), bool(false) | bool(true)) -> 'a"
       ]
     ]
   },
@@ -23616,21 +23616,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
   },
   {
     "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
     "vars": [],
@@ -23651,6 +23644,13 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
     "constr": [ [ "empty", "empty" ] ]
   },
   {
@@ -23666,7 +23666,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "bool(true) | bool(false)", "any" ], [ "bool(false)", "any" ]
+      [ "bool(false) | bool(true)", "any" ], [ "bool(false)", "any" ]
     ]
   },
   {
@@ -23676,8 +23676,8 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
-        "(bool(true) | bool(false), bool(false)) -> 'a"
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "(bool(false) | bool(true), bool(false)) -> 'a"
       ]
     ]
   },
@@ -23708,7 +23708,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "bool(true) | bool(false)", "any" ], [ "bool(true)", "any" ]
+      [ "bool(false) | bool(true)", "any" ], [ "bool(true)", "any" ]
     ]
   },
   {
@@ -23718,8 +23718,8 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
-        "(bool(true) | bool(false), bool(true)) -> 'a"
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "(bool(false) | bool(true), bool(true)) -> 'a"
       ]
     ]
   },
@@ -23750,8 +23750,8 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "bool(true) | bool(false)", "any" ],
-      [ "bool(true) | bool(false)", "any" ]
+      [ "bool(false) | bool(true)", "any" ],
+      [ "bool(false) | bool(true)", "any" ]
     ]
   },
   {
@@ -23761,8 +23761,8 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
-        "(bool(true) | bool(false), bool(true) | bool(false)) -> 'a"
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "(bool(false) | bool(true), bool(false) | bool(true)) -> 'a"
       ]
     ]
   },
@@ -23794,7 +23794,7 @@
     "rmono": [],
     "constr": [
       [
-        "('a & ('d & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_)), any) & (any, 'c & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_))) -> bool(true) | bool(false)) & ('a & ('d & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_)), any) & (any, 'c & (0 | bool(false) | chr(0) | str(_))) -> bool(false)) & ('a & ('d & (int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _)), any) & (any, 'c & (int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _))) -> bool(true)) & ('a & ('d & (0 | bool(false) | chr(0) | str(_)), any) & (any, 'c & (int | bool(true) | bool(false) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_))) -> bool(false))",
+        "('a & ('d & (int | bool(false) | bool(true) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_)), any) & (any, 'c & (int | bool(false) | bool(true) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_))) -> bool(false) | bool(true)) & ('a & ('d & (int | bool(false) | bool(true) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_)), any) & (any, 'c & (0 | bool(false) | chr(0) | str(_))) -> bool(false)) & ('a & ('d & (int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _)), any) & (any, 'c & (int \\ 0 | bool(true) | chr((1..255)) | str(enum \\ _))) -> bool(true)) & ('a & ('d & (0 | bool(false) | chr(0) | str(_)), any) & (any, 'c & (int | bool(false) | bool(true) | chr((1..255)) | chr(0) | flt(nan | pinf | pos | pzero | nzero | neg | ninf) | str(enum \\ _) | str(_))) -> bool(false))",
         "'b"
       ]
     ]
@@ -24178,7 +24178,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -24244,7 +24244,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -24357,7 +24357,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -24409,7 +24409,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -26196,7 +26196,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "('b, 'a) -> 'c"
       ]
     ]
@@ -26206,7 +26206,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
   },
   {
     "vars": [],
@@ -26220,21 +26220,21 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
   },
   {
     "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
     "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
   },
   {
     "vars": [],
@@ -26248,7 +26248,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
   },
   {
     "vars": [ "'a", "'b", "'c" ],
@@ -26276,7 +26276,7 @@
     "rmono": [],
     "constr": [
       [
-        "((~bool(true), ~bool(true)) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
+        "((~bool(true), ~bool(true)) -> bool(false)) & ((bool(true), any) | (any, bool(true)) -> bool(true))",
         "('b, 'a) -> 'c"
       ]
     ]
@@ -26307,14 +26307,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
   },
   {
     "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
     "vars": [],
@@ -26408,20 +26408,8 @@
     "rmono": [],
     "constr": [
       [
-        "(~bool(true) -> ~bool(true) -> bool(false)) & (any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true))",
+        "(~bool(true) -> ~bool(true) -> bool(false)) & (bool(true) -> any -> bool(true)) & (any -> bool(true) -> bool(true))",
         "'a -> 'b"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(~bool(true) -> bool(false)) & (bool(true) -> bool(true)) | (any -> bool(true))",
-        "any -> bool(true)"
       ]
     ]
   },
@@ -26444,7 +26432,8 @@
     "rmono": [],
     "constr": [
       [
-        "(~bool(true) -> bool(false)) & (bool(true) -> bool(true))", "empty"
+        "(~bool(true) -> bool(false)) & (bool(true) -> bool(true)) | (any -> bool(true))",
+        "any -> bool(true)"
       ]
     ]
   },
@@ -26462,174 +26451,19 @@
     "rmono": [],
     "constr": [
       [
+        "(~bool(true) -> bool(false)) & (bool(true) -> bool(true))", "empty"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
         "(~bool(true) -> bool(false)) & (bool(true) -> bool(true)) | (any -> bool(true))",
         "empty"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(~bool(true) -> bool(true)) & (bool(true) -> bool(false))",
-        "'a & bool(true) -> 'b"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(false)", "empty" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "any -> bool(true)", "bool(false) -> 'a" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(bool(true) -> bool(true) -> bool(true)) & (~bool(true) -> any -> bool(false)) & (any -> ~bool(true) -> bool(false))",
-        "bool(true) -> 'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(~bool(true) -> bool(true)) & (bool(true) -> bool(false))",
-        "'a -> 'b"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true)", "empty" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(false)", "empty" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(~bool(true) -> ~bool(true) -> bool(false)) & (any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true))",
-        "bool(false) -> 'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(~bool(true) -> bool(false)) & (bool(true) -> bool(true))",
-        "'a & bool(true) -> 'b"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true)", "empty" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(bool(true) -> bool(true)) & (~bool(true) -> bool(false))",
-        "bool(true) -> 'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(~bool(true) -> ~bool(true) -> bool(false)) & (any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true))",
-        "bool(true) -> 'a"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "any -> bool(true)", "'a \\ bool(true) -> 'b" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true)", "empty" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(bool(true) -> bool(true)) & (~bool(true) -> bool(false))",
-        "bool(true) -> 'a"
       ]
     ]
   },
@@ -26693,13 +26527,6 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
     "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
@@ -26707,7 +26534,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
   },
   {
     "vars": [],
@@ -26715,6 +26542,13 @@
     "rvars": [],
     "rmono": [],
     "constr": [ [ "bool(false)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(true)", "empty" ] ]
   },
   {
     "vars": [],
@@ -26730,7 +26564,45 @@
     "rmono": [],
     "constr": [
       [
-        "(~bool(true) -> ~bool(true) -> bool(false)) & (any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true))",
+        "(~bool(true) -> ~bool(true) -> bool(false)) & (bool(true) -> any -> bool(true)) & (any -> bool(true) -> bool(true))",
+        "bool(true) -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "any -> bool(true)", "'a \\ bool(true) -> 'b" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(bool(true) -> bool(true)) & (~bool(true) -> bool(false))",
+        "bool(true) -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(~bool(true) -> ~bool(true) -> bool(false)) & (bool(true) -> any -> bool(true)) & (any -> bool(true) -> bool(true))",
         "bool(false) -> 'a"
       ]
     ]
@@ -26767,13 +26639,98 @@
     ]
   },
   {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(~bool(true) -> bool(true)) & (bool(true) -> bool(false))",
+        "'a & bool(true) -> 'b"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false)", "empty" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "any -> bool(true)", "bool(false) -> 'a" ] ]
+  },
+  {
     "vars": [ "'a" ],
     "mono": [],
     "rvars": [],
     "rmono": [],
     "constr": [
       [
-        "(~bool(true) -> ~bool(true) -> bool(false)) & (any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true))",
+        "(bool(true) -> bool(true) -> bool(true)) & (~bool(true) -> any -> bool(false)) & (any -> ~bool(true) -> bool(false))",
+        "bool(true) -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(~bool(true) -> bool(true)) & (bool(true) -> bool(false))",
+        "'a -> 'b"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(~bool(true) -> ~bool(true) -> bool(false)) & (bool(true) -> any -> bool(true)) & (any -> bool(true) -> bool(true))",
         "bool(true) -> 'a"
       ]
     ]
@@ -26805,13 +26762,56 @@
     ]
   },
   {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(~bool(true) -> ~bool(true) -> bool(false)) & (bool(true) -> any -> bool(true)) & (any -> bool(true) -> bool(true))",
+        "bool(false) -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(~bool(true) -> bool(false)) & (bool(true) -> bool(true))",
+        "'a & bool(true) -> 'b"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(bool(true) -> bool(true)) & (~bool(true) -> bool(false))",
+        "bool(true) -> 'a"
+      ]
+    ]
+  },
+  {
     "vars": [ "'a", "'b", "'c" ],
     "mono": [],
     "rvars": [],
     "rmono": [],
     "constr": [
       [
-        "('b \\ bool(true) -> ('a \\ bool(true) -> bool(true)) & ('a & bool(true) -> bool(true))) & ('b & bool(true) -> ('a \\ bool(true) -> bool(true)) & ('a & bool(true) -> bool(true)))",
+        "('b & bool(true) -> ('a & bool(true) -> bool(true)) & ('a \\ bool(true) -> bool(true))) & ('b \\ bool(true) -> ('a & bool(true) -> bool(true)) & ('a \\ bool(true) -> bool(true)))",
         "'c"
       ]
     ]
@@ -26837,7 +26837,7 @@
     "rmono": [],
     "constr": [
       [
-        "(~bool(true) -> ~bool(true) -> bool(false)) & (any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true))",
+        "(~bool(true) -> ~bool(true) -> bool(false)) & (bool(true) -> any -> bool(true)) & (any -> bool(true) -> bool(true))",
         "bool(true) -> 'a"
       ]
     ]
@@ -26892,7 +26892,7 @@
     "rmono": [],
     "constr": [
       [
-        "(~bool(true) -> ~bool(true) -> bool(false)) & (any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true))",
+        "(~bool(true) -> ~bool(true) -> bool(false)) & (bool(true) -> any -> bool(true)) & (any -> bool(true) -> bool(true))",
         "bool(false) -> 'a"
       ]
     ]
@@ -26928,7 +26928,7 @@
     "rmono": [],
     "constr": [
       [
-        "(~bool(true) -> ~bool(true) -> bool(false)) & (any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true))",
+        "(~bool(true) -> ~bool(true) -> bool(false)) & (bool(true) -> any -> bool(true)) & (any -> bool(true) -> bool(true))",
         "bool(true) -> 'a"
       ]
     ]
@@ -26983,7 +26983,7 @@
     "rmono": [],
     "constr": [
       [
-        "(~bool(true) -> ~bool(true) -> bool(false)) & (any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true))",
+        "(~bool(true) -> ~bool(true) -> bool(false)) & (bool(true) -> any -> bool(true)) & (any -> bool(true) -> bool(true))",
         "bool(true) -> 'a"
       ]
     ]
@@ -27028,7 +27028,7 @@
     "rmono": [],
     "constr": [
       [
-        "(~bool(true) -> ~bool(true) -> bool(false)) & (any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true))",
+        "(~bool(true) -> ~bool(true) -> bool(false)) & (bool(true) -> any -> bool(true)) & (any -> bool(true) -> bool(true))",
         "~bool(true) -> 'a"
       ]
     ]
@@ -27088,7 +27088,7 @@
     "rmono": [],
     "constr": [
       [
-        "(~bool(true) -> ~bool(true) -> bool(false)) & (any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true))",
+        "(~bool(true) -> ~bool(true) -> bool(false)) & (bool(true) -> any -> bool(true)) & (any -> bool(true) -> bool(true))",
         "bool(false) -> 'a"
       ]
     ]
@@ -27124,7 +27124,7 @@
     "rmono": [],
     "constr": [
       [
-        "(~bool(true) -> ~bool(true) -> bool(false)) & (any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true))",
+        "(~bool(true) -> ~bool(true) -> bool(false)) & (bool(true) -> any -> bool(true)) & (any -> bool(true) -> bool(true))",
         "~bool(true) -> 'a"
       ]
     ]
@@ -27184,7 +27184,7 @@
     "rmono": [],
     "constr": [
       [
-        "(~bool(true) -> ~bool(true) -> bool(false)) & (any -> bool(true) -> bool(true)) & (bool(true) -> any -> bool(true))",
+        "(~bool(true) -> ~bool(true) -> bool(false)) & (bool(true) -> any -> bool(true)) & (any -> bool(true) -> bool(true))",
         "bool(true) -> 'a"
       ]
     ]
@@ -34570,14 +34570,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "(any, ~bool(true | false)) \\ (~int, any)", "empty" ] ]
+    "constr": [ [ "int, ~bool(true | false)", "empty" ] ]
   },
   {
     "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "(any, ~bool(true | false)) \\ (~int, any)", "empty" ] ]
+    "constr": [ [ "int, ~bool(true | false)", "empty" ] ]
   },
   {
     "vars": [],
@@ -34661,24 +34661,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [
-      [
-        "tuple2 & ~(int, bool(true | false)) & ~(any, ~bool(true | false))",
-        "empty"
-      ]
-    ]
+    "constr": [ [ "(~int, any) \\ (any, ~bool(true | false))", "empty" ] ]
   },
   {
     "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [
-      [
-        "tuple2 & ~(int, bool(true | false)) & ~(any, ~bool(true | false))",
-        "empty"
-      ]
-    ]
+    "constr": [ [ "(~int, any) \\ (any, ~bool(true | false))", "empty" ] ]
   },
   {
     "vars": [],
@@ -34960,7 +34950,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(('a -> bool(false)) & (any -> any), any) \\ (any, 'a)", "empty" ]
+      [ "(('a -> bool(false)) & (any -> any), any) & (any, ~'a)", "empty" ]
     ]
   },
   {
@@ -34969,7 +34959,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(('a -> bool(false)) & (any -> any), any) \\ (any, 'a)", "any, 'b" ]
+      [ "(('a -> bool(false)) & (any -> any), any) & (any, ~'a)", "any, 'b" ]
     ]
   },
   {
@@ -34978,7 +34968,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(('a -> bool(false)) & (any -> any), any) \\ (any, 'a)", "'b, any" ]
+      [ "(('a -> bool(false)) & (any -> any), any) & (any, ~'a)", "'b, any" ]
     ]
   },
   {
@@ -35015,7 +35005,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(('a -> bool(false)) & (any -> any), any) & (any, 'a)", "empty" ]
+      [ "(('a -> bool(false)) & (any -> any), any) \\ (any, ~'a)", "empty" ]
     ]
   },
   {
@@ -35024,7 +35014,9 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(('a -> bool(false)) & (any -> any), any) & (any, 'a)", "any, 'b" ]
+      [
+        "(('a -> bool(false)) & (any -> any), any) \\ (any, ~'a)", "any, 'b"
+      ]
     ]
   },
   {
@@ -35033,7 +35025,9 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(('a -> bool(false)) & (any -> any), any) & (any, 'a)", "'b, any" ]
+      [
+        "(('a -> bool(false)) & (any -> any), any) \\ (any, ~'a)", "'b, any"
+      ]
     ]
   },
   {
@@ -35614,7 +35608,7 @@
     "rmono": [],
     "constr": [
       [
-        "((~bool(true), ~bool(true)) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
+        "((~bool(true), ~bool(true)) -> bool(false)) & ((bool(true), any) | (any, bool(true)) -> bool(true))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -35625,7 +35619,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -35654,7 +35648,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "int | str(enum) -> 'a"
       ]
     ]
@@ -35677,8 +35671,8 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "bool(true) | bool(false)", "any" ],
-      [ "bool(true) | bool(false)", "any" ]
+      [ "bool(false) | bool(true)", "any" ],
+      [ "bool(false) | bool(true)", "any" ]
     ]
   },
   {
@@ -35688,8 +35682,8 @@
     "rmono": [],
     "constr": [
       [
-        "((~bool(true), ~bool(true)) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
-        "(bool(true) | bool(false), bool(true) | bool(false)) -> 'a"
+        "((~bool(true), ~bool(true)) -> bool(false)) & ((bool(true), any) | (any, bool(true)) -> bool(true))",
+        "(bool(false) | bool(true), bool(false) | bool(true)) -> 'a"
       ]
     ]
   },
@@ -35728,7 +35722,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "~(int | str(enum)) -> 'a"
       ]
     ]
@@ -35759,7 +35753,7 @@
     "rmono": [],
     "constr": [
       [
-        "((~bool(true), ~bool(true)) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
+        "((~bool(true), ~bool(true)) -> bool(false)) & ((bool(true), any) | (any, bool(true)) -> bool(true))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -35799,7 +35793,7 @@
     "rmono": [],
     "constr": [
       [
-        "((~bool(true), ~bool(true)) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
+        "((~bool(true), ~bool(true)) -> bool(false)) & ((bool(true), any) | (any, bool(true)) -> bool(true))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -35810,7 +35804,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -35832,7 +35826,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a & (int | str(enum)) -> 'b"
       ]
     ]
@@ -35842,14 +35836,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
     "vars": [],
@@ -35863,6 +35850,13 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
     "constr": [ [ "bool(false)", "empty" ] ]
   },
   {
@@ -35870,7 +35864,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -35879,7 +35873,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a \\ (int | str(enum)) -> 'b"
       ]
     ]
@@ -35924,7 +35918,7 @@
     "rmono": [],
     "constr": [
       [
-        "((~bool(true), ~bool(true)) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
+        "((~bool(true), ~bool(true)) -> bool(false)) & ((bool(true), any) | (any, bool(true)) -> bool(true))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -35935,96 +35929,6 @@
     "rvars": [],
     "rmono": [],
     "constr": [ [ "empty", "empty" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(false)", "empty" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
-        "'a & str(enum) -> 'b"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true)", "empty" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(int -> bool(true)) & (~int -> bool(false))",
-        "'a \\ (int | str(enum)) -> 'b"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(false)", "empty" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(false)", "any" ], [ "bool(true)", "any" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "((~bool(true), ~bool(true)) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
-        "(bool(false), bool(true)) -> 'a"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true)", "empty" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "empty", "empty" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(int -> bool(true)) & (~int -> bool(false))",
-        "'a \\ (int | str(enum)) -> 'b"
-      ]
-    ]
   },
   {
     "vars": [],
@@ -36059,7 +35963,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a \\ (int | str(enum)) -> 'b"
       ]
     ]
@@ -36085,7 +35989,7 @@
     "rmono": [],
     "constr": [
       [
-        "((~bool(true), ~bool(true)) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
+        "((~bool(true), ~bool(true)) -> bool(false)) & ((bool(true), any) | (any, bool(true)) -> bool(true))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -36111,7 +36015,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a \\ (int | str(enum)) -> 'b"
       ]
     ]
@@ -36130,7 +36034,97 @@
     "rmono": [],
     "constr": [
       [
-        "('a & int -> 'a & int) & ('a & str(enum) -> 'a & str(enum)) & ('a \\ (int | str(enum)) -> chr(65))",
+        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
+        "'a & str(enum) -> 'b"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(~int -> bool(false)) & (int -> bool(true))",
+        "'a \\ (int | str(enum)) -> 'b"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false)", "any" ], [ "bool(true)", "any" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "((~bool(true), ~bool(true)) -> bool(false)) & ((bool(true), any) | (any, bool(true)) -> bool(true))",
+        "(bool(false), bool(true)) -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "empty", "empty" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(~int -> bool(false)) & (int -> bool(true))",
+        "'a \\ (int | str(enum)) -> 'b"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false)", "empty" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "('a & str(enum) -> 'a & str(enum)) & ('a & int -> 'a & int) & ('a \\ (int | str(enum)) -> chr(65))",
         "'b"
       ]
     ]
@@ -36142,7 +36136,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -36153,7 +36147,28 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
+        "'a -> bool(true)"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> any" ]
     ]
   },
   {
@@ -36165,27 +36180,6 @@
       [
         "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
         "'a -> ~bool(true)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
-        "'a -> any"
       ]
     ]
   },
@@ -36209,7 +36203,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -36238,7 +36232,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -36298,7 +36292,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -36327,7 +36321,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -36380,7 +36374,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "~int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "~int -> 'a" ]
     ]
   },
   {
@@ -36401,7 +36395,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "bool(false)", "any" ], [ "bool(true) | bool(false)", "any" ]
+      [ "bool(false)", "any" ], [ "bool(false) | bool(true)", "any" ]
     ]
   },
   {
@@ -36411,8 +36405,8 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
-        "(bool(false), bool(true) | bool(false)) -> 'a"
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "(bool(false), bool(false) | bool(true)) -> 'a"
       ]
     ]
   },
@@ -36458,7 +36452,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -36469,7 +36463,28 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
+        "'a -> bool(true)"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> any" ]
     ]
   },
   {
@@ -36481,27 +36496,6 @@
       [
         "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
         "'a -> ~bool(true)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
-        "'a -> any"
       ]
     ]
   },
@@ -36511,7 +36505,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a & int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a & int -> 'b" ]
     ]
   },
   {
@@ -36527,7 +36521,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a \\ int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a \\ int -> 'b" ]
     ]
   },
   {
@@ -36553,14 +36547,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
   },
   {
     "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
     "vars": [],
@@ -36581,7 +36575,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
   },
   {
     "vars": [],
@@ -36597,7 +36591,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -36630,7 +36624,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -36674,7 +36668,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a & int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a & int -> 'b" ]
     ]
   },
   {
@@ -36717,7 +36711,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -36750,7 +36744,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -36782,7 +36776,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a \\ int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a \\ int -> 'b" ]
     ]
   },
   {
@@ -36813,7 +36807,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a & int -> bool(true)"
       ]
     ]
@@ -36858,7 +36852,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a & int -> bool(true)"
       ]
     ]
@@ -36888,7 +36882,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a \\ int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a \\ int -> 'b" ]
     ]
   },
   {
@@ -36917,7 +36911,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -36928,7 +36922,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -36939,39 +36933,6 @@
     "constr": [
       [
         "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
-        "'a -> ~bool(true)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
-        "'a -> any"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
         "'a -> bool(true)"
       ]
     ]
@@ -36982,7 +36943,40 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> any" ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
+        "'a -> ~bool(true)"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "'a -> bool(true)"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -37017,7 +37011,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -37046,7 +37040,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -37106,7 +37100,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -37135,7 +37129,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -37211,7 +37205,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -37222,61 +37216,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
-        "'a -> ~bool(true)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
-        "'a -> any"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
-        "'a -> bool(true)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -37297,7 +37237,61 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> any" ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
+        "'a -> ~bool(true)"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "'a -> bool(true)"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
+        "'a -> bool(true)"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -37326,7 +37320,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -37380,7 +37374,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -37391,61 +37385,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
-        "'a -> ~bool(true)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
-        "'a -> any"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
-        "'a -> bool(true)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -37466,7 +37406,61 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "str(enum) -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> any" ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
+        "'a -> ~bool(true)"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "'a -> bool(true)"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
+        "'a -> bool(true)"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "(~int -> bool(false)) & (int -> bool(true))", "str(enum) -> 'a" ]
     ]
   },
   {
@@ -37487,7 +37481,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "bool(false)", "any" ], [ "bool(true) | bool(false)", "any" ]
+      [ "bool(false)", "any" ], [ "bool(false) | bool(true)", "any" ]
     ]
   },
   {
@@ -37497,8 +37491,8 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
-        "(bool(false), bool(true) | bool(false)) -> 'a"
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "(bool(false), bool(false) | bool(true)) -> 'a"
       ]
     ]
   },
@@ -37537,7 +37531,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -37548,7 +37542,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -37559,39 +37553,6 @@
     "constr": [
       [
         "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
-        "'a -> ~bool(true)"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
-        "'a -> any"
-      ]
-    ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
         "'a -> bool(true)"
       ]
     ]
@@ -37602,7 +37563,40 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> any" ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
+        "'a -> ~bool(true)"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "'a -> bool(true)"
+      ]
+    ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -37623,7 +37617,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a & int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a & int -> 'b" ]
     ]
   },
   {
@@ -37639,7 +37633,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a \\ int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a \\ int -> 'b" ]
     ]
   },
   {
@@ -37665,14 +37659,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
   },
   {
     "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
     "vars": [],
@@ -37693,7 +37687,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
   },
   {
     "vars": [],
@@ -37709,7 +37703,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -37756,7 +37750,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -37796,7 +37790,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -37835,7 +37829,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "bool(false)", "any" ], [ "bool(true) | bool(false)", "any" ]
+      [ "bool(false)", "any" ], [ "bool(false) | bool(true)", "any" ]
     ]
   },
   {
@@ -37845,8 +37839,8 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
-        "(bool(false), bool(true) | bool(false)) -> 'a"
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "(bool(false), bool(false) | bool(true)) -> 'a"
       ]
     ]
   },
@@ -37877,7 +37871,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "bool(false)", "any" ], [ "bool(true) | bool(false)", "any" ]
+      [ "bool(false)", "any" ], [ "bool(false) | bool(true)", "any" ]
     ]
   },
   {
@@ -37887,8 +37881,8 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
-        "(bool(false), bool(true) | bool(false)) -> 'a"
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "(bool(false), bool(false) | bool(true)) -> 'a"
       ]
     ]
   },
@@ -37945,7 +37939,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a & int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a & int -> 'b" ]
     ]
   },
   {
@@ -37988,7 +37982,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -38020,7 +38014,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a \\ int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a \\ int -> 'b" ]
     ]
   },
   {
@@ -38044,7 +38038,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -38076,7 +38070,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a \\ int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a \\ int -> 'b" ]
     ]
   },
   {
@@ -38107,7 +38101,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a & int -> bool(true)"
       ]
     ]
@@ -38145,7 +38139,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -38177,7 +38171,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a \\ int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a \\ int -> 'b" ]
     ]
   },
   {
@@ -38208,7 +38202,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a & int -> bool(true)"
       ]
     ]
@@ -38246,7 +38240,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -38278,7 +38272,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a \\ int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a \\ int -> 'b" ]
     ]
   },
   {
@@ -38294,7 +38288,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a \\ int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a \\ int -> 'b" ]
     ]
   },
   {
@@ -38334,7 +38328,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -38343,7 +38337,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -38352,7 +38346,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -38375,7 +38369,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -38459,7 +38453,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -38536,7 +38530,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "~int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "~int -> 'a" ]
     ]
   },
   {
@@ -38606,7 +38600,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -38615,7 +38609,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -38624,7 +38618,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -38633,7 +38627,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a & int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a & int -> 'b" ]
     ]
   },
   {
@@ -38649,7 +38643,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a \\ int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a \\ int -> 'b" ]
     ]
   },
   {
@@ -38719,7 +38713,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a & int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a & int -> 'b" ]
     ]
   },
   {
@@ -38810,7 +38804,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a \\ int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a \\ int -> 'b" ]
     ]
   },
   {
@@ -38841,7 +38835,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a & int -> bool(true)"
       ]
     ]
@@ -38893,7 +38887,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a & int -> bool(true)"
       ]
     ]
@@ -38930,7 +38924,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a \\ int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a \\ int -> 'b" ]
     ]
   },
   {
@@ -38965,7 +38959,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "any -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "any -> 'a" ]
     ]
   },
   {
@@ -38986,8 +38980,8 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "bool(true) | bool(false)", "any" ],
-      [ "bool(true) | bool(false)", "any" ]
+      [ "bool(false) | bool(true)", "any" ],
+      [ "bool(false) | bool(true)", "any" ]
     ]
   },
   {
@@ -38997,8 +38991,8 @@
     "rmono": [],
     "constr": [
       [
-        "((~bool(true), ~bool(true)) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
-        "(bool(true) | bool(false), bool(true) | bool(false)) -> 'a"
+        "((~bool(true), ~bool(true)) -> bool(false)) & ((bool(true), any) | (any, bool(true)) -> bool(true))",
+        "(bool(false) | bool(true), bool(false) | bool(true)) -> 'a"
       ]
     ]
   },
@@ -39036,7 +39030,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> 'b" ]
     ]
   },
   {
@@ -39044,14 +39038,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
     "vars": [],
@@ -39065,47 +39052,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(false)", "empty" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
-        "'a \\ int -> 'b"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
   },
   {
     "vars": [],
@@ -39119,73 +39066,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(false)", "any" ], [ "bool(false)", "any" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "((~bool(true), ~bool(true)) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
-        "(bool(false), bool(false)) -> 'a"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "empty", "empty" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(false)", "empty" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(false)", "any" ], [ "bool(true)", "any" ] ]
-  },
-  {
-    "vars": [ "'a" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [
-        "((~bool(true), ~bool(true)) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
-        "(bool(false), bool(true)) -> 'a"
-      ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true)", "empty" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "empty", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -39220,7 +39101,7 @@
     "rmono": [],
     "constr": [
       [
-        "((~bool(true), ~bool(true)) -> bool(false)) & ((any, bool(true)) | (bool(true), any) -> bool(true))",
+        "((~bool(true), ~bool(true)) -> bool(false)) & ((bool(true), any) | (any, bool(true)) -> bool(true))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -39246,7 +39127,120 @@
     "rmono": [],
     "constr": [
       [
-        "('a & str(enum) -> bool(true)) & ('a \\ (int | str(enum)) -> bool(false)) & ('a & int -> bool(true))",
+        "(str(enum) -> bool(true)) & (~str(enum) -> bool(false))",
+        "'a \\ int -> 'b"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false)", "any" ], [ "bool(true)", "any" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "((~bool(true), ~bool(true)) -> bool(false)) & ((bool(true), any) | (any, bool(true)) -> bool(true))",
+        "(bool(false), bool(true)) -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "empty", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false)", "any" ], [ "bool(false)", "any" ] ]
+  },
+  {
+    "vars": [ "'a" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "((~bool(true), ~bool(true)) -> bool(false)) & ((bool(true), any) | (any, bool(true)) -> bool(true))",
+        "(bool(false), bool(false)) -> 'a"
+      ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "empty", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false)", "empty" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [
+        "('a \\ (int | str(enum)) -> bool(false)) & ('a & str(enum) -> bool(true)) & ('a & int -> bool(true))",
         "'b"
       ]
     ]
@@ -39257,7 +39251,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -39266,7 +39260,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -39287,7 +39281,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -39296,7 +39290,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -39305,7 +39299,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -39321,7 +39315,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -39337,7 +39331,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -39388,7 +39382,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "str(enum) -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "str(enum) -> 'a" ]
     ]
   },
   {
@@ -39459,7 +39453,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "~(int | str(enum)) -> 'a"
       ]
     ]
@@ -39524,7 +39518,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -39533,7 +39527,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -39554,7 +39548,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -39563,7 +39557,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -39572,7 +39566,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -39581,7 +39575,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a & int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a & int -> 'b" ]
     ]
   },
   {
@@ -39598,7 +39592,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))", "'a & str(enum) -> 'b"
+        "(~int -> bool(false)) & (int -> bool(true))", "'a & str(enum) -> 'b"
       ]
     ]
   },
@@ -39616,7 +39610,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a \\ (int | str(enum)) -> 'b"
       ]
     ]
@@ -39715,7 +39709,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a \\ (int | str(enum)) -> 'b"
       ]
     ]
@@ -39755,7 +39749,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a \\ (int | str(enum)) -> 'b"
       ]
     ]
@@ -39781,7 +39775,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a \\ (int | str(enum)) -> 'b"
       ]
     ]
@@ -39806,7 +39800,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a & int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a & int -> 'b" ]
     ]
   },
   {
@@ -39823,7 +39817,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))", "'a & str(enum) -> 'b"
+        "(~int -> bool(false)) & (int -> bool(true))", "'a & str(enum) -> 'b"
       ]
     ]
   },
@@ -39869,7 +39863,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))", "'a & str(enum) -> 'b"
+        "(~int -> bool(false)) & (int -> bool(true))", "'a & str(enum) -> 'b"
       ]
     ]
   },
@@ -39894,7 +39888,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))", "'a & str(enum) -> 'b"
+        "(~int -> bool(false)) & (int -> bool(true))", "'a & str(enum) -> 'b"
       ]
     ]
   },
@@ -39912,7 +39906,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a \\ (int | str(enum)) -> 'b"
       ]
     ]
@@ -39942,7 +39936,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -39950,14 +39944,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "tuple2 \\ (~int, any)", "empty" ] ]
+    "constr": [ [ "int, any", "empty" ] ]
   },
   {
     "vars": [ "'a" ],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "tuple2 \\ (~int, any)", "'a, any" ] ]
+    "constr": [ [ "int, any", "'a, any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -39965,7 +39959,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -39980,7 +39974,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "tuple2 \\ (~int, any)", "'a, any" ] ]
+    "constr": [ [ "int, any", "'a, any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -40008,14 +40002,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "~int, any", "empty" ] ]
+    "constr": [ [ "tuple2 \\ (int, any)", "empty" ] ]
   },
   {
     "vars": [ "'a" ],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "~int, any", "'a, any" ] ]
+    "constr": [ [ "tuple2 \\ (int, any)", "'a, any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -40023,7 +40017,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "~int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "~int -> 'a" ]
     ]
   },
   {
@@ -40060,7 +40054,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -40068,7 +40062,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & tuple2 & ~(~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & (int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -40076,7 +40070,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b & int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b & int -> 'a" ]
     ]
   },
   {
@@ -40098,7 +40092,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & (~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & tuple2 & ~(int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -40106,7 +40100,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b \\ int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
     ]
   },
   {
@@ -40142,7 +40136,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & ('c, any) & ~(~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & ('c, any) & (int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b", "'c" ],
@@ -40170,7 +40164,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & (~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & tuple2 & ~(int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -40178,7 +40172,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b \\ int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
     ]
   },
   {
@@ -40207,7 +40201,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & (~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & tuple2 & ~(int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -40215,7 +40209,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b \\ int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
     ]
   },
   {
@@ -40232,7 +40226,7 @@
     "rmono": [],
     "constr": [
       [
-        "('a & ('c, any) & ('d, any) & ~(~int, any) -> int) & ('a & ('e, any) & (~int, any) -> 7)",
+        "('a & ('c, any) & ('d, any) & (int, any) -> int) & ('a & ('e, any) & ~(int, any) -> 7)",
         "'b"
       ]
     ]
@@ -40244,7 +40238,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -40255,7 +40249,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -40264,7 +40258,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -40273,7 +40267,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> any" ]
     ]
   },
   {
@@ -40282,7 +40276,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> any" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -40290,14 +40284,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "tuple2 & ~(~int, any) & ~(any, ~int)", "empty" ] ]
+    "constr": [ [ "int, int", "empty" ] ]
   },
   {
     "vars": [ "'a" ],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "tuple2 & ~(~int, any) & ~(any, ~int)", "'a, any" ] ]
+    "constr": [ [ "int, int", "'a, any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -40305,7 +40299,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -40313,7 +40307,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "tuple2 & ~(~int, any) & ~(any, ~int)", "any, 'a" ] ]
+    "constr": [ [ "int, int", "any, 'a" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -40321,7 +40315,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -40338,7 +40332,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -40355,9 +40349,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [
-      [ "(int, int) -> int", "tuple2 & ~(~int, any) & ~(any, ~int) -> 'a" ]
-    ]
+    "constr": [ [ "(int, int) -> int", "(int, int) -> 'a" ] ]
   },
   {
     "vars": [],
@@ -40378,14 +40370,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "(~int, any) \\ (any, ~int)", "empty" ] ]
+    "constr": [ [ "any, ~int", "empty" ] ]
   },
   {
     "vars": [ "'a" ],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "(~int, any) \\ (any, ~int)", "'a, any" ] ]
+    "constr": [ [ "any, ~int", "'a, any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -40393,7 +40385,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "~int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "any -> 'a" ]
     ]
   },
   {
@@ -40401,7 +40393,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "(~int, any) \\ (any, ~int)", "any, 'a" ] ]
+    "constr": [ [ "any, ~int", "any, 'a" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -40409,7 +40401,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "~int -> 'a" ]
     ]
   },
   {
@@ -40417,7 +40409,9 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(false)", "any" ], [ "bool(true)", "any" ] ]
+    "constr": [
+      [ "bool(false) | bool(true)", "any" ], [ "bool(false)", "any" ]
+    ]
   },
   {
     "vars": [ "'a" ],
@@ -40426,8 +40420,8 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
-        "(bool(false), bool(true)) -> 'a"
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "(bool(false) | bool(true), bool(false)) -> 'a"
       ]
     ]
   },
@@ -40458,14 +40452,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "any, ~int", "empty" ] ]
+    "constr": [ [ "tuple2 & ~(int, int) & ~(any, ~int)", "empty" ] ]
   },
   {
     "vars": [ "'a" ],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "any, ~int", "'a, any" ] ]
+    "constr": [ [ "tuple2 & ~(int, int) & ~(any, ~int)", "'a, any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -40473,7 +40467,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "any -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "~int -> 'a" ]
     ]
   },
   {
@@ -40481,7 +40475,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "any, ~int", "any, 'a" ] ]
+    "constr": [ [ "tuple2 & ~(int, int) & ~(any, ~int)", "any, 'a" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -40489,7 +40483,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "~int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -40497,9 +40491,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [
-      [ "bool(true) | bool(false)", "any" ], [ "bool(false)", "any" ]
-    ]
+    "constr": [ [ "bool(false)", "any" ], [ "bool(true)", "any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -40508,8 +40500,8 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
-        "(bool(true) | bool(false), bool(false)) -> 'a"
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "(bool(false), bool(true)) -> 'a"
       ]
     ]
   },
@@ -40549,7 +40541,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -40560,7 +40552,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -40569,7 +40561,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -40578,7 +40570,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> any" ]
     ]
   },
   {
@@ -40587,7 +40579,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> any" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -40595,7 +40587,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & tuple2 & ~(~int, any) & ~(any, ~int)", "'b, any" ] ]
+    "constr": [ [ "'a & (int, int)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -40603,7 +40595,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b & int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b & int -> 'a" ]
     ]
   },
   {
@@ -40625,29 +40617,6 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & (~int, any) & ~(any, ~int)", "'b, any" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b \\ int -> 'a" ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(false)", "empty" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
     "constr": [ [ "'a & (any, ~int)", "'b, any" ] ]
   },
   {
@@ -40656,7 +40625,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b -> 'a" ]
     ]
   },
   {
@@ -40664,7 +40633,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false)", "empty" ] ]
   },
   {
     "vars": [],
@@ -40678,28 +40654,21 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(false)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
   },
   {
     "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
-    "vars": [],
+    "vars": [ "'a", "'b" ],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
-  },
-  {
-    "vars": [ "'a", "'b", "'c" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "'a & ('b & int, any) & (any, ~int)", "any, 'c" ] ]
+    "constr": [ [ "'a & tuple2 & ~(int, int) & ~(any, ~int)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -40707,7 +40676,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b \\ int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
     ]
   },
   {
@@ -40718,11 +40687,36 @@
     "constr": [ [ "bool(false)", "empty" ] ]
   },
   {
+    "vars": [ "'a", "'b", "'c" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "'a & ('b, any) & ~(int, int) & ~(any, ~int)", "any, 'c" ]
+    ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b & int -> 'a" ]
+    ]
+  },
+  {
     "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true)", "any" ], [ "bool(false)", "any" ] ]
+    "constr": [ [ "bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false)", "any" ], [ "bool(true)", "any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -40731,8 +40725,8 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
-        "(bool(true), bool(false)) -> 'a"
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "(bool(false), bool(true)) -> 'a"
       ]
     ]
   },
@@ -40764,7 +40758,30 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b \\ int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false)", "empty" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'a & tuple2 & ~(int, int) & ~(any, ~int)", "'b, any" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
     ]
   },
   {
@@ -40788,7 +40805,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -40809,13 +40826,34 @@
   },
   { "vars": [], "mono": [], "rvars": [], "rmono": [], "constr": [] },
   {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'a & tuple2 & ~(int, int) & ~(any, ~int)", "'b, any" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false)", "empty" ] ]
+  },
+  {
     "vars": [ "'a", "'b", "'c" ],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [
-      [ "'a & ('b, any) & (~int, any) & ~(any, ~int)", "any, 'c" ]
-    ]
+    "constr": [ [ "'a & ('b & int, any) & (any, ~int)", "any, 'c" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -40823,7 +40861,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b & int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
     ]
   },
   {
@@ -40831,14 +40869,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true)", "empty" ] ]
+    "constr": [ [ "bool(false)", "empty" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & (any, ~int)", "'b, any" ] ]
+    "constr": [ [ "'a & tuple2 & ~(int, int) & ~(any, ~int)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -40846,22 +40884,8 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
     ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true)", "empty" ] ]
   },
   {
     "vars": [],
@@ -40875,21 +40899,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(false)", "any" ], [ "bool(true)", "any" ] ]
+    "constr": [ [ "bool(true)", "any" ], [ "bool(false)", "any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -40898,8 +40908,8 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
-        "(bool(false), bool(true)) -> 'a"
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "(bool(true), bool(false)) -> 'a"
       ]
     ]
   },
@@ -40923,7 +40933,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & (any, ~int)", "'b, any" ] ]
+    "constr": [ [ "'a & tuple2 & ~(int, int) & ~(any, ~int)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -40931,22 +40941,8 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
     ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true)", "empty" ] ]
   },
   {
     "vars": [],
@@ -40956,27 +40952,11 @@
     "constr": [ [ "bool(false)", "empty" ] ]
   },
   {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
-  },
-  {
     "vars": [ "'a", "'b", "'c" ],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [
-      [ "'a & ('b, any) & ~(~int, any) & ~(any, ~int)", "any, 'c" ]
-    ]
+    "constr": [ [ "'a & ('b, any) & (int, int)", "any, 'c" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -40984,7 +40964,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b & int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b & int -> 'a" ]
     ]
   },
   {
@@ -41006,7 +40986,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & (~int, any) & ~(any, ~int)", "'b, any" ] ]
+    "constr": [ [ "'a & (any, ~int)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -41014,7 +40994,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b \\ int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b -> 'a" ]
     ]
   },
   {
@@ -41022,7 +41002,35 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
     "constr": [ [ "bool(false)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
     "vars": [],
@@ -41038,7 +41046,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -41057,8 +41065,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int, int) -> int",
-        "'a & ('c, any) & (any, 'd) & ~(~int, any) & ~(any, ~int) -> 'b"
+        "(int, int) -> int", "'a & ('c, any) & (any, 'd) & (int, int) -> 'b"
       ]
     ]
   },
@@ -41081,7 +41088,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & (~int, any) & ~(any, ~int)", "'b, any" ] ]
+    "constr": [ [ "'a & (any, ~int)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -41089,7 +41096,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b \\ int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b -> 'a" ]
     ]
   },
   {
@@ -41097,7 +41104,35 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
     "constr": [ [ "bool(false)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
     "vars": [],
@@ -41118,29 +41153,6 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & (~int, any) & ~(any, ~int)", "'b, any" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b \\ int -> 'a" ]
-    ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(false)", "empty" ] ]
-  },
-  {
-    "vars": [ "'a", "'b" ],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
     "constr": [ [ "'a & (any, ~int)", "'b, any" ] ]
   },
   {
@@ -41149,7 +41161,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b -> 'a" ]
     ]
   },
   {
@@ -41157,7 +41169,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false)", "empty" ] ]
   },
   {
     "vars": [],
@@ -41171,21 +41190,37 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "'a & tuple2 & ~(int, int) & ~(any, ~int)", "'b, any" ] ]
+  },
+  {
+    "vars": [ "'a", "'b" ],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
+    ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
     "constr": [ [ "bool(false)", "empty" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
   },
   {
     "vars": [ "'a", "'b", "'c", "'d", "'e", "'f", "'g", "'h" ],
@@ -41194,7 +41229,7 @@
     "rmono": [],
     "constr": [
       [
-        "('a & ('c, any) & (any, 'd) & ~(~int, any) & ~(any, ~int) -> int) & ('a & ('e, any) & (any, 'f) & (~int, any) & ~(any, ~int) -> No) & ('a & ('g \\ int, any) & (any, 'h) & (any, ~int) -> No) & ('a & ('g & int, any) & (any, 'h) & (any, ~int) -> No)",
+        "('a & ('c, any) & (any, 'd) & (int, int) -> int) & ('a & ('e & int, any) & (any, 'f) & ~(int, int) -> No) & ('a & ('e \\ int, any) & (any, 'f) & (any, ~int) -> No) & ('a & ('g, any) & (any, 'h) & ~(any, ~int) & ~(int, int) -> No)",
         "'b"
       ]
     ]
@@ -41219,7 +41254,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "any -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "any -> 'a" ]
     ]
   },
   {
@@ -41263,7 +41298,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b -> 'a" ]
     ]
   },
   {
@@ -41271,14 +41306,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
   },
   {
     "vars": [],
@@ -41292,20 +41320,6 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
-  },
-  {
-    "vars": [],
-    "mono": [],
-    "rvars": [],
-    "rmono": [],
     "constr": [ [ "bool(true)", "empty" ] ]
   },
   {
@@ -41313,7 +41327,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "empty", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
     "vars": [],
@@ -41328,6 +41349,20 @@
     "rvars": [],
     "rmono": [],
     "constr": [ [ "bool(false)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "bool(true)", "empty" ] ]
+  },
+  {
+    "vars": [],
+    "mono": [],
+    "rvars": [],
+    "rmono": [],
+    "constr": [ [ "empty", "empty" ] ]
   },
   {
     "vars": [ "'a", "'b", "'c" ],
@@ -41336,7 +41371,7 @@
     "rmono": [],
     "constr": [
       [
-        "('a & ('c \\ int, any) -> bool(false)) & ('a & ('c & int, any) -> bool(true))",
+        "('a & ('c & int, any) -> bool(true)) & ('a & ('c \\ int, any) -> bool(false))",
         "'b"
       ]
     ]
@@ -41348,7 +41383,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "'a -> bool(true)"
       ]
     ]
@@ -41359,7 +41394,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -41394,7 +41429,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "any -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "any -> 'a" ]
     ]
   },
   {
@@ -41415,8 +41450,8 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "bool(true) | bool(false)", "any" ],
-      [ "bool(true) | bool(false)", "any" ]
+      [ "bool(false) | bool(true)", "any" ],
+      [ "bool(false) | bool(true)", "any" ]
     ]
   },
   {
@@ -41426,8 +41461,8 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
-        "(bool(true) | bool(false), bool(true) | bool(false)) -> 'a"
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
+        "(bool(false) | bool(true), bool(false) | bool(true)) -> 'a"
       ]
     ]
   },
@@ -41451,7 +41486,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "any -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "any -> 'a" ]
     ]
   },
   {
@@ -41496,7 +41531,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "'a -> bool(true)"
       ]
     ]
@@ -41507,7 +41542,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -41528,7 +41563,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> 'b" ]
     ]
   },
   {
@@ -41536,14 +41571,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
   },
   {
     "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
     "vars": [],
@@ -41564,7 +41599,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -41582,14 +41617,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
   },
   {
     "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
     "vars": [],
@@ -41610,7 +41645,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
   },
   {
     "vars": [],
@@ -41626,7 +41661,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -41651,7 +41686,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a \\ int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a \\ int -> 'b" ]
     ]
   },
   {
@@ -41689,7 +41724,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -41715,7 +41750,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a \\ int -> bool(false)"
       ]
     ]
@@ -41750,14 +41785,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
   },
   {
     "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
     "vars": [],
@@ -41778,7 +41813,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
   },
   {
     "vars": [],
@@ -41794,7 +41829,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -41819,7 +41854,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a & int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a & int -> 'b" ]
     ]
   },
   {
@@ -41857,7 +41892,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -41895,7 +41930,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -41906,7 +41941,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -41915,7 +41950,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -41924,7 +41959,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> any" ]
     ]
   },
   {
@@ -41933,7 +41968,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> any" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -41943,7 +41978,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "'a -> bool(true)"
       ]
     ]
@@ -41954,7 +41989,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -41963,7 +41998,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -41972,7 +42007,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -41987,7 +42022,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "tuple2 \\ (~int, any)", "empty" ] ]
+    "constr": [ [ "int, any", "empty" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -41995,7 +42030,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -42003,7 +42038,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "tuple2 \\ (~int, any)", "'a, any" ] ]
+    "constr": [ [ "int, any", "'a, any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -42011,7 +42046,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -42028,7 +42063,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -42052,7 +42087,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "tuple2 \\ (~int, any)", "'a, any" ] ]
+    "constr": [ [ "int, any", "'a, any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -42080,7 +42115,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "~int, any", "empty" ] ]
+    "constr": [ [ "tuple2 \\ (int, any)", "empty" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -42088,7 +42123,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -42096,7 +42131,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "~int, any", "'a, any" ] ]
+    "constr": [ [ "tuple2 \\ (int, any)", "'a, any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -42104,7 +42139,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "~int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "~int -> 'a" ]
     ]
   },
   {
@@ -42121,7 +42156,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -42145,7 +42180,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "~int, any", "'a, any" ] ]
+    "constr": [ [ "tuple2 \\ (int, any)", "'a, any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -42153,7 +42188,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "~int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "~int -> 'a" ]
     ]
   },
   {
@@ -42196,7 +42231,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "tuple2 \\ (~int, any)", "empty" ] ]
+    "constr": [ [ "int, any", "empty" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -42204,7 +42239,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "str(enum) -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "str(enum) -> 'a" ]
     ]
   },
   {
@@ -42212,7 +42247,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "tuple2 \\ (~int, any)", "'a, any" ] ]
+    "constr": [ [ "int, any", "'a, any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -42220,7 +42255,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -42237,7 +42272,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -42261,7 +42296,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "tuple2 \\ (~int, any)", "'a, any" ] ]
+    "constr": [ [ "int, any", "'a, any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -42269,7 +42304,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "int -> 'a" ]
     ]
   },
   {
@@ -42298,7 +42333,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "tuple2 \\ (~int, any)", "'a, any" ] ]
+    "constr": [ [ "int, any", "'a, any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -42326,7 +42361,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "~int, any", "empty" ] ]
+    "constr": [ [ "tuple2 \\ (int, any)", "empty" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -42334,7 +42369,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "str(enum) -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "str(enum) -> 'a" ]
     ]
   },
   {
@@ -42342,7 +42377,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "~int, any", "'a, any" ] ]
+    "constr": [ [ "tuple2 \\ (int, any)", "'a, any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -42350,7 +42385,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "~int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "~int -> 'a" ]
     ]
   },
   {
@@ -42367,7 +42402,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -42391,7 +42426,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "~int, any", "'a, any" ] ]
+    "constr": [ [ "tuple2 \\ (int, any)", "'a, any" ] ]
   },
   {
     "vars": [ "'a" ],
@@ -42399,7 +42434,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "~int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "~int -> 'a" ]
     ]
   },
   {
@@ -42444,7 +42479,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "'a -> ~bool(true)"
       ]
     ]
@@ -42455,7 +42490,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -42464,7 +42499,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -42473,7 +42508,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> any" ]
     ]
   },
   {
@@ -42482,7 +42517,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> any" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -42492,7 +42527,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "'a -> bool(true)"
       ]
     ]
@@ -42503,7 +42538,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -42512,7 +42547,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> bool(true)" ]
     ]
   },
   {
@@ -42521,7 +42556,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> ~bool(true)" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> ~bool(true)" ]
     ]
   },
   {
@@ -42530,7 +42565,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a -> 'b" ]
     ]
   },
   {
@@ -42538,14 +42573,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(false)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(false)" ] ]
   },
   {
     "vars": [],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "bool(true)" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "bool(true)" ] ]
   },
   {
     "vars": [],
@@ -42566,14 +42601,14 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "bool(true) | bool(false)", "empty" ] ]
+    "constr": [ [ "bool(false) | bool(true)", "empty" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & tuple2 & ~(~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & (int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -42581,7 +42616,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b & int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b & int -> 'a" ]
     ]
   },
   {
@@ -42597,7 +42632,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a \\ int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a \\ int -> 'b" ]
     ]
   },
   {
@@ -42620,7 +42655,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a \\ int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a \\ int -> 'b" ]
     ]
   },
   {
@@ -42635,7 +42670,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & (~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & tuple2 & ~(int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -42643,7 +42678,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b \\ int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
     ]
   },
   {
@@ -42667,7 +42702,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(false), bool(false)) -> 'a"
       ]
     ]
@@ -42691,7 +42726,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & ('c, any) & (~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & ('c, any) & ~(int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b", "'c" ],
@@ -42700,7 +42735,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))", "'c & 'b & ~int -> 'a"
+        "(~int -> bool(false)) & (int -> bool(true))", "'c & 'b & ~int -> 'a"
       ]
     ]
   },
@@ -42739,7 +42774,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(false), bool(true)) -> 'a"
       ]
     ]
@@ -42763,7 +42798,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & ('c, any) & ~(~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & ('c, any) & (int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b", "'c" ],
@@ -42772,7 +42807,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))", "'c & 'b & int -> 'a"
+        "(~int -> bool(false)) & (int -> bool(true))", "'c & 'b & int -> 'a"
       ]
     ]
   },
@@ -42790,7 +42825,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a \\ int -> bool(false)"
       ]
     ]
@@ -42809,7 +42844,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a \\ int -> bool(false)"
       ]
     ]
@@ -42819,7 +42854,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & (~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & tuple2 & ~(int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -42827,7 +42862,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b \\ int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
     ]
   },
   {
@@ -42870,7 +42905,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & ('c, any) & ('d, any) & ~(~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & ('c, any) & ('d, any) & (int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b", "'c", "'d" ],
@@ -42893,7 +42928,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a & str(enum) -> bool(false)"
       ]
     ]
@@ -42912,7 +42947,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a & str(enum) -> bool(false)"
       ]
     ]
@@ -42922,7 +42957,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & (~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & tuple2 & ~(int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -42930,7 +42965,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b \\ int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
     ]
   },
   {
@@ -42954,7 +42989,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a & str(enum) -> bool(false)"
       ]
     ]
@@ -42973,7 +43008,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a & str(enum) -> bool(false)"
       ]
     ]
@@ -42983,7 +43018,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & (~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & tuple2 & ~(int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -42991,7 +43026,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b \\ int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
     ]
   },
   {
@@ -43006,7 +43041,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & tuple2 & ~(~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & (int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -43014,7 +43049,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b & int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b & int -> 'a" ]
     ]
   },
   {
@@ -43030,7 +43065,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a & int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a & int -> 'b" ]
     ]
   },
   {
@@ -43053,7 +43088,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'a & int -> 'b" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'a & int -> 'b" ]
     ]
   },
   {
@@ -43068,7 +43103,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & (~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & tuple2 & ~(int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -43076,7 +43111,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b \\ int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
     ]
   },
   {
@@ -43100,7 +43135,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(false)) -> 'a"
       ]
     ]
@@ -43124,7 +43159,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & ('c, any) & (~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & ('c, any) & ~(int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b", "'c" ],
@@ -43133,7 +43168,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))", "'c & 'b & ~int -> 'a"
+        "(~int -> bool(false)) & (int -> bool(true))", "'c & 'b & ~int -> 'a"
       ]
     ]
   },
@@ -43172,7 +43207,7 @@
     "rmono": [],
     "constr": [
       [
-        "((bool(true), bool(true)) -> bool(true)) & ((any, ~bool(true)) | (~bool(true), any) -> bool(false))",
+        "((bool(true), bool(true)) -> bool(true)) & ((~bool(true), any) | (any, ~bool(true)) -> bool(false))",
         "(bool(true), bool(true)) -> 'a"
       ]
     ]
@@ -43203,7 +43238,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & ('c, any) & ~(~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & ('c, any) & (int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b", "'c" ],
@@ -43226,7 +43261,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a & int -> bool(true)"
       ]
     ]
@@ -43245,7 +43280,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a & int -> bool(true)"
       ]
     ]
@@ -43255,7 +43290,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & (~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & tuple2 & ~(int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -43263,7 +43298,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b \\ int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
     ]
   },
   {
@@ -43287,7 +43322,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a & int -> bool(true)"
       ]
     ]
@@ -43306,7 +43341,7 @@
     "rmono": [],
     "constr": [
       [
-        "(int -> bool(true)) & (~int -> bool(false))",
+        "(~int -> bool(false)) & (int -> bool(true))",
         "'a & int -> bool(true)"
       ]
     ]
@@ -43316,7 +43351,7 @@
     "mono": [],
     "rvars": [],
     "rmono": [],
-    "constr": [ [ "'a & (~int, any)", "'b, any" ] ]
+    "constr": [ [ "'a & tuple2 & ~(int, any)", "'b, any" ] ]
   },
   {
     "vars": [ "'a", "'b" ],
@@ -43324,7 +43359,7 @@
     "rvars": [],
     "rmono": [],
     "constr": [
-      [ "(int -> bool(true)) & (~int -> bool(false))", "'b \\ int -> 'a" ]
+      [ "(~int -> bool(false)) & (int -> bool(true))", "'b \\ int -> 'a" ]
     ]
   },
   {
@@ -43341,7 +43376,7 @@
     "rmono": [],
     "constr": [
       [
-        "('b & str(enum) -> ('a & ('d, any) & ('e, any) & ('g, any) & ~(~int, any) -> int) & ('a & ('h, any) & ('i, any) & (~int, any) -> 0)) & ('b & int -> ('a & ('f, any) & ('g, any) & ~(~int, any) -> int) & ('a & ('h, any) & ('i, any) & (~int, any) -> 0)) & ('b \\ int -> 'a & ('h, any) & ('i, any) & (~int, any) -> 0)",
+        "('b & str(enum) -> ('a & ('d, any) & ('e, any) & ('g, any) & (int, any) -> int) & ('a & ('h, any) & ('i, any) & ~(int, any) -> 0)) & ('b & int -> ('a & ('f, any) & ('g, any) & (int, any) -> int) & ('a & ('h, any) & ('i, any) & ~(int, any) -> 0)) & ('b \\ int -> 'a & ('h, any) & ('i, any) & ~(int, any) -> 0)",
         "'c"
       ]
     ]
