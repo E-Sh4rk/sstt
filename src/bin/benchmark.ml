@@ -3,7 +3,7 @@ open Output
 open Sstt
 
 let default_timeout = 10
-let raw_output = false
+let raw_output = true
 
 let pp_hr fmt f =
   let open Format in
