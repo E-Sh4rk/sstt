@@ -1,4 +1,4 @@
-export COMMIT = $(shell git describe --always --tags HEAD)
+export COMMIT = $(shell git describe --always --tags HEAD 2>/dev/null || echo unknown)
 
 all: run
 
@@ -29,7 +29,7 @@ js:
 	opam exec -- dune build --profile release src/bin/js.bc.js
 	cp _build/default/src/bin/js.bc.js web/sstt.js
 	chmod +w web/sstt.js
-	git describe --always --tags HEAD > web/version.txt
+	(git describe --always --tags HEAD > web/version.txt) || (echo "unknown" > web/version.txt)
 	chmod +w web/version.txt
 
 wasm:
@@ -37,7 +37,7 @@ wasm:
 	cp _build/default/src/bin/wasm.bc.wasm.js web/sstt.js
 	cp -r _build/default/src/bin/wasm.bc.wasm.assets web/
 	chmod +w web/sstt.js web/wasm.bc.wasm.assets web/wasm.bc.wasm.assets/*
-	git describe --always --tags HEAD > web/version.txt
+	(git describe --always --tags HEAD > web/version.txt) || (echo "unknown" > web/version.txt)
 	chmod +w web/version.txt
 
 test-deps:
