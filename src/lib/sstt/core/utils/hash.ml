@@ -1,6 +1,6 @@
 open Sstt_utils
 let enable_hashconsing = Config.hash_consing
-let print_hashconsing_stats = Config.hash_consing
+let print_hashconsing_stats = false
 
 let const0 = 0x278dde6d (* 2^32 * golden ratio, mod 2^30 *)
 let const1 = 0x3f4a7c15 (* from SplitMix64 *)
