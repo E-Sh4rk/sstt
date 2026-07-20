@@ -9,7 +9,7 @@ fi
 trap ctrl_c INT
 
 ctrl_c () {
-    test -f "$CFG".backup && mv "$CFG".backup "$CFG"
+    cp "$CFG".orig "$CFG"
 }
 
 CFG=src/lib/sstt/core/utils/config.ml
@@ -48,7 +48,6 @@ do
     echo "Running configuration $(basename $c)"
     output=`basename "$c" .pre`.log
     rm -f "$output"
-    cp "$CFG" "$CFG".backup
     cp "$c" "$CFG"
     for b in ${CORPUS_A} ${CORPUS_B} ${CORPUS_C}
     do
@@ -58,7 +57,7 @@ do
 	sed -i "$CFG" -e 's/let *benchmark_size *= .*/let benchmark_size = true/'
 	opam exec -- dune exec --display=quiet -- src/bin/benchmark.exe "$b" | grep 'space\|errors' | cut -f 2 -d ':' >> "$output"
     done
-    mv "$CFG".backup "$CFG"
+    cp "$CFG".orig "$CFG"
 done
 paste -d '&' benchmarks/00_prelude.log [0-9]*.log | sed -e 's/&/ & /g'  -e 's:$:\\\\:g' | tee benchmark.log
 
