@@ -18,7 +18,8 @@ CORPUS_B=benchmarks/1_union_inter.json
 CORPUS_C=benchmarks/2_dyn.json
 echo " \\GRAYLINE    & Building  
  \\GRAYLINE    & Solving   
- \\GRAYLINE A.   & Total     
+ \\GRAYLINE A. & Total
+ \\GRAYLINE    & Slowdown
  \\GRAYLINE    & \\# Sol.
  \\GRAYLINE  $(cat ${CORPUS_A} | grep '\"vars\"' | wc -l) & Size      
  \\GRAYLINE instances   & Avg. Size 
@@ -27,6 +28,7 @@ echo " \\GRAYLINE    & Building
               & Building  
               & Solving   
           B.  & Total
+              & Slowdown
 	      & \\# Sol.
          $(cat ${CORPUS_B} | grep '\"vars\"' | wc -l)     & Size      
          instances & Avg. Size 
@@ -35,6 +37,7 @@ echo " \\GRAYLINE    & Building
  \\GRAYLINE    & Building  
  \\GRAYLINE   & Solving   
  \\GRAYLINE C. & Total
+ \\GRALINE    & Slowdown
  \\GRAYLINE   & \# Sol.
  \\GRAYLINE $(cat ${CORPUS_C} | grep '\"vars\"' | wc -l) & Size      
  \\GRAYLINE instances  & Avg. Size 
@@ -42,20 +45,31 @@ echo " \\GRAYLINE    & Building
  \\GRAYLINE    & Timeout   " > benchmarks/00_prelude.log
 
 
-
+REF=01_bdt_opt_sub_opt_tall.ml.log
 for c in benchmarks/config/*.pre
 do
     echo "Running configuration $(basename $c)"
     output=`basename "$c" .pre`.log
     rm -f "$output"
     cp "$c" "$CFG"
+    L=3
     for b in ${CORPUS_A} ${CORPUS_B} ${CORPUS_C}
     do
 	echo "   Input $(basename $b)"
 	sed -i "$CFG" -e 's/let *benchmark_size *= .*/let benchmark_size = false/'
 	opam exec -- dune exec --display=quiet -- src/bin/benchmark.exe "$b" | grep -v 'space\|errors' | cut -f 2 -d ':' >> "$output"
+	SD="-"
+	if [ "$output" != "$REF" ]
+	then
+	    ORIG=`cat "$REF" | sed -n "${L}p"`
+	    CUR=`cat "$output" | sed -n "${L}p"`
+	    SD=`echo 2 k "$CUR" "$ORIG" '/' p | dc`
+	fi
+	sed -i "${L}a\\
+$SD" "$output"
 	sed -i "$CFG" -e 's/let *benchmark_size *= .*/let benchmark_size = true/'
 	opam exec -- dune exec --display=quiet -- src/bin/benchmark.exe "$b" | grep 'space\|errors' | cut -f 2 -d ':' >> "$output"
+	L=$(($L + 9))
     done
     cp "$CFG".orig "$CFG"
 done
