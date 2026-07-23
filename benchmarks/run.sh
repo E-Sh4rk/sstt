@@ -37,7 +37,7 @@ echo " \\GRAYLINE    & Building
  \\GRAYLINE    & Building  
  \\GRAYLINE   & Solving   
  \\GRAYLINE C. & Total
- \\GRALINE    & Slowdown
+ \\GRAYLINE    & Slowdown
  \\GRAYLINE   & \# Sol.
  \\GRAYLINE $(cat ${CORPUS_C} | grep '\"vars\"' | wc -l) & Size      
  \\GRAYLINE instances  & Avg. Size 
@@ -49,7 +49,7 @@ REF=01_bdt_opt_sub_opt_tall.ml.log
 for c in benchmarks/config/*.pre
 do
     echo "Running configuration $(basename $c)"
-    output=`basename "$c" .pre`.log
+    output=output/`basename "$c" .pre`.log
     rm -f "$output"
     cp "$c" "$CFG"
     L=3
@@ -63,7 +63,7 @@ do
 	then
 	    ORIG=`cat "$REF" | sed -n "${L}p"`
 	    CUR=`cat "$output" | sed -n "${L}p"`
-	    SD=`echo 2 k "$CUR" "$ORIG" '/' p | dc`
+	    SD="\\SD\{$(echo 2 k "$CUR" "$ORIG" '/' p | dc)\}"
 	fi
 	sed -i "${L}a\\
 $SD" "$output"
@@ -73,5 +73,5 @@ $SD" "$output"
     done
     cp "$CFG".orig "$CFG"
 done
-paste -d '&' benchmarks/00_prelude.log [0-9]*.log | sed -e 's/&/ & /g'  -e 's:$:\\\\:g' | tee benchmark.log
+paste -d '&' benchmarks/00_prelude.log [0-9]*.log | sed -e 's/&/ & /g'  -e 's:$:\\\\:g' | tee output/benchmark.tex
 

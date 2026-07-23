@@ -1,0 +1,56 @@
+\documentclass[a4paper]{article}
+
+\PassOptionsToPackage{usenames,dvipsnames,table}{xcolor}
+\usepackage{listings, float, xspace, array}
+\usepackage{amsmath, mathtools}
+\usepackage[dvipsnames,table]{xcolor}
+\usepackage{mathpartir,graphicx,stmaryrd}
+\usepackage{forest}
+\usepackage{bbm}
+\usepackage{enumitem}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{wrapfig}
+\usepackage{mathrsfs}
+\usepackage{framed}
+\usepackage{nicematrix}
+
+%%% CRAZY STUFF FOR INPUT IN TABULAR
+% Source - https://tex.stackexchange.com/a/611803
+% Posted by Phelype Oleinik
+% Retrieved 2026-07-23, License - CC BY-SA 4.0
+
+\ExplSyntaxOn
+\cs_new:Npn \expandableinput #1
+  { \use:c { @@input } { \file_full_name:n {#1} } }
+\AddToHook{env/NiceTabular/begin}
+  { \cs_set_eq:NN \input \expandableinput }
+\ExplSyntaxOff
+
+
+
+\begin{document}
+  \newcommand{\GRAYLINE}{\rowcolor[rgb]{ .906,  .902,  .902}}
+  \newcommand{\WHITELINE}{\rowcolor[rgb]{ .906,  .902,  .902}}
+  \newcommand{\CMIN}[1]{\cellcolor{blue!20}{#1}}
+  \newcommand{\CMAX}[1]{\cellcolor{red!20}{#1}}
+\newcommand{\SD}[1]{$\times$\,#1}
+  \
+
+\renewcommand{\arraystretch}{1.0} % expand the rows vertically
+\begin{NiceTabular}{ |l|l||c:ccc||c:c||@{}c@{}||c| }[first-row]
+  & & \multicolumn{4}{c}{Type representation} &
+  \multicolumn{2}{>{\centering\arraybackslash}b{2cm}}{Naive Subtyping} &
+  \multicolumn{1}{>{\centering\arraybackslash}b{1cm}}{\,\,\,Naive Tallying}  &
+  \\
+    \toprule
+  Corpus & Measure & \begin{tabular}{@{}c@{}} BDT \\ (ideal) \end{tabular}  & SS$^\star$ & HC & {SS+HC} & BDT & SS & SS &CDuce \\
+  \midrule
+  \input{benchmark.tex}
+   \bottomrule
+\end{NiceTabular}
+\renewcommand{\arraystretch}{1.0}
+
+\vspace*{1mm}
+\noindent {\small $\star$ : Default mode of the SSTT library}
+\end{document}
