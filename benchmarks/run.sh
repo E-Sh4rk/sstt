@@ -67,7 +67,7 @@ do
         echo
         paste "$output".* | while read l;
         do
-           echo "2 k $l + + 3 / p" | dc | sed -e 's/[.]00/g/' >> "$output"
+           echo "3 k $l + + 3 / p" | dc | tr -d ' ' | sed -e 's/[.]000/g' -e "s/^[.]/0./" >> "$output"
         done
         rm -f "$output".*
 	SD="-"
