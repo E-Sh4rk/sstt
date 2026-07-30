@@ -52,14 +52,19 @@ module FieldCtx : sig
     (** [from_tys mono tys] generates a [t] for the labels and row variables
         appearing in [tys], excluding the row variables in [mono]. *)
 
-    val fvars_associated_with : t -> RowVar.t -> RowVarSet.t
-    (** Returns the set of fresh row variables associated with a row variable in a field context. *)
+    val fresh_vars : t -> RowVarSet.t
+    (** Returns the set of fresh row variables introduced by a field context. *)
 
-    val fvar_associated_with : t -> fvar -> RowVar.t
-    (** Returns the fresh row variable associated with a field variable in a field context. *)
+    val fvars : t -> fvar list
+    (** Returns the set of field variables captured by a field context. *)
 
-    val rvar_associated_with : t -> RowVar.t -> fvar option
-    (** Returns the field variable associated with a fresh row variable in a field context. *)
+    val fresh_var_of_fvar : t -> fvar -> RowVar.t
+    (** [fresh_var_of_fvar t fvar] returns the fresh row variable associated with [fvar] in [t].
+        Returns the row variable associated with [fvar] if no fresh row variable is found. *)
+
+    val fvar_of_fresh_var : t -> RowVar.t -> fvar option
+    (** [fvar_of_fresh_var t rv] returns the field variable associated with [rv] in [t].
+        Returns [None] if no associated field variable is found. *)
 
     val decorrelate : t -> Ty.t -> Ty.t
     (** Refresh row variables of a type according to a field context. *)

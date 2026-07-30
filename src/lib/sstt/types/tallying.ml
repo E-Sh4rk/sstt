@@ -665,17 +665,28 @@ module FieldCtx = struct
   let of_tys delta tys =
     let rvs = RowVarSet.diff (rvs_of_tys tys) delta in
     mk (labels_of_tys tys) rvs
+  
   let decorrelate (s,_) ty = Subst.apply s ty
   let recombine (_,rs) ty = Subst.apply rs ty
   let recombine' (s,rs) sol =
     Subst.compose sol s |> Subst.remove_many2 (Subst.intro2 s) |> Subst.compose_restr rs
-  let fvars_associated_with (s,_) rv = Subst.find2 s rv |> Row.row_vars_toplevel
-  let fvar_associated_with (s,_) (rv,lbl) =
-    Subst.find2 s rv |> Row.find lbl |> Ty.F.get_vars |> RowVarSet.elements |> List.hd
-  let rvar_associated_with (_,rs) rv =
+    
+  let get_var f = match Ty.F.get_vars f |> RowVarSet.elements with [rv] -> rv | _ -> assert false
+  let fresh_var_of_fvar (s,_) (rv,lbl) = Subst.find2 s rv |> Row.find lbl |> get_var
+  let fvar_of_fresh_var (_,rs) rv =
     match Subst.find2 rs rv |> Row.bindings with
-    | [lbl,f] -> Some (Ty.F.get_vars f |> RowVarSet.elements |> List.hd, lbl)
-    | _ -> None
+    | [] -> None
+    | [lbl,f] -> Some (get_var f, lbl)
+    | _ -> assert false
+
+  let fresh_vars (_,rs) = Subst.domain2 rs
+  let fvars (_,rs) =
+    Subst.bindings2 rs |> List.map (fun (_, r) ->
+      match Row.bindings r with
+      | [lbl,f] -> get_var f, lbl
+      | _ -> assert false
+      )
+
 end
 
 (* =============== Exported functions =============== *)
