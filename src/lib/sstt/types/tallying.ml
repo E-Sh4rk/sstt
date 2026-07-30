@@ -673,18 +673,17 @@ module FieldCtx = struct
     
   let get_var f = match Ty.F.get_vars f |> RowVarSet.elements with [rv] -> rv | _ -> assert false
   let fresh_var_of_fvar (s,_) (rv,lbl) = Subst.find2 s rv |> Row.find lbl |> get_var
-  let fvar_of_fresh_var (_,rs) rv =
-    match Subst.find2 rs rv |> Row.bindings with
-    | [] -> None
-    | [lbl,f] -> Some (get_var f, lbl)
-    | _ -> assert false
+  let fvar_of_fresh_var (s,rs) rv =
+    let rv' = Subst.find2 rs rv |> Row.tail |> get_var in
+    Subst.find2 s rv' |> Row.bindings |> List.find_map (fun (lbl,f) ->
+      let rv'' = get_var f in
+      if RowVar.equal rv rv'' then Some (rv',lbl) else None
+    )
 
   let fresh_vars (_,rs) = Subst.domain2 rs
-  let fvars (_,rs) =
-    Subst.bindings2 rs |> List.map (fun (_, r) ->
-      match Row.bindings r with
-      | [lbl,f] -> get_var f, lbl
-      | _ -> assert false
+  let fvars (s,_) =
+    Subst.bindings2 s |> List.concat_map (fun (rv, r) ->
+        Row.bindings r |> List.map (fun (lbl,_) -> rv, lbl)
       )
 
 end
