@@ -625,64 +625,69 @@ module Make(VS:VarSettings) = struct
   let tally cs = Ty.with_shared_cache tally cs
 end
 
-(* =============== Operations on row and field variables =============== *)
+(* =============== Operations on field variables =============== *)
 
-let labels_of_ty t =
-  let labels = ref LabelSet.empty in
-  let _ = Ty.nodes t |> List.iter (fun n ->
-      Ty.def n |> VDescr.map (fun d ->
-        let _ = d |> Descr.get_records |> Records.map (fun r ->
-            labels := LabelSet.union !labels (Records.Atom.dom r) ; r
-        ) in d
-      ) |> ignore
-    ) in !labels
-let labels_of_tys tys = tys
-  |> List.map labels_of_ty
-  |> List.fold_left LabelSet.union LabelSet.empty
-let rvs_of_tys tys = tys
-  |> List.map Ty.row_vars
-  |> List.fold_left RowVarSet.union RowVarSet.empty
-module RVH = Hashtbl.Make(RowVar)
-type field_ctx = Subst.t * Subst.t
-let get_field_ctx' labels rvs =
-  (* Substitute row variables with "field variables" *)
-  let labels = LabelSet.elements labels in
-  let original_rv = RVH.create 10 in
-  let s, rs = rvs |> RowVarSet.elements |> List.map (fun rv ->
-    let bindings = labels |> List.map (fun lbl ->
-        let rv' = RowVar.mk (RowVar.name rv) in
-        RVH.add original_rv rv' rv ;
-        lbl, rv'
-      ) in
-    (rv, Row.mk (List.map (fun (lbl, rv') -> lbl, Ty.F.mk_var rv') bindings) (Ty.F.mk_var rv)),
-    (List.map (fun (_, rv') -> rv', Row.id_for rv) bindings)
-  ) |> List.split in
-  Subst.of_list2 s, List.concat rs |> Subst.of_list2
-let get_field_ctx delta tys =
-  let rvs = RowVarSet.diff (rvs_of_tys tys) delta in
-  get_field_ctx' (labels_of_tys tys) rvs
-let decorrelate_fields (s,_) ty = Subst.apply s ty
-let recombine_fields (_,rs) ty = Subst.apply rs ty
-let recombine_fields' (s,rs) sol =
-  Subst.compose sol s |> Subst.remove_many2 (Subst.intro2 s) |> Subst.compose_restr rs
-let fvars_associated_with (s,_) rv = Subst.find2 s rv |> Row.row_vars_toplevel
-let fvar_associated_with (s,_) (rv,lbl) =
-  Subst.find2 s rv |> Row.find lbl |> Ty.F.get_vars |> RowVarSet.elements |> List.hd
-let rvar_associated_with (_,rs) rv =
-  match Subst.find2 rs rv |> Row.bindings with
-  | [lbl,f] -> Some (Ty.F.get_vars f |> RowVarSet.elements |> List.hd, lbl)
-  | _ -> None
+module FieldCtx = struct
+  type fvar = RowVar.t * Label.t
+  type t = Subst.t * Subst.t
+
+  let labels_of_ty t =
+    let labels = ref LabelSet.empty in
+    let _ = Ty.nodes t |> List.iter (fun n ->
+        Ty.def n |> VDescr.map (fun d ->
+          let _ = d |> Descr.get_records |> Records.map (fun r ->
+              labels := LabelSet.union !labels (Records.Atom.dom r) ; r
+          ) in d
+        ) |> ignore
+      ) in !labels
+  let labels_of_tys tys = tys
+    |> List.map labels_of_ty
+    |> List.fold_left LabelSet.union LabelSet.empty
+  let rvs_of_tys tys = tys
+    |> List.map Ty.row_vars
+    |> List.fold_left RowVarSet.union RowVarSet.empty
+
+  module RVH = Hashtbl.Make(RowVar)
+  let mk labels rvs =
+    (* Substitute row variables with "field variables" *)
+    let labels = LabelSet.elements labels in
+    let original_rv = RVH.create 10 in
+    let s, rs = rvs |> RowVarSet.elements |> List.map (fun rv ->
+      let bindings = labels |> List.map (fun lbl ->
+          let rv' = RowVar.mk (RowVar.name rv) in
+          RVH.add original_rv rv' rv ;
+          lbl, rv'
+        ) in
+      (rv, Row.mk (List.map (fun (lbl, rv') -> lbl, Ty.F.mk_var rv') bindings) (Ty.F.mk_var rv)),
+      (List.map (fun (_, rv') -> rv', Row.id_for rv) bindings)
+    ) |> List.split in
+    Subst.of_list2 s, List.concat rs |> Subst.of_list2
+  let of_tys delta tys =
+    let rvs = RowVarSet.diff (rvs_of_tys tys) delta in
+    mk (labels_of_tys tys) rvs
+  let decorrelate (s,_) ty = Subst.apply s ty
+  let recombine (_,rs) ty = Subst.apply rs ty
+  let recombine' (s,rs) sol =
+    Subst.compose sol s |> Subst.remove_many2 (Subst.intro2 s) |> Subst.compose_restr rs
+  let fvars_associated_with (s,_) rv = Subst.find2 s rv |> Row.row_vars_toplevel
+  let fvar_associated_with (s,_) (rv,lbl) =
+    Subst.find2 s rv |> Row.find lbl |> Ty.F.get_vars |> RowVarSet.elements |> List.hd
+  let rvar_associated_with (_,rs) rv =
+    match Subst.find2 rs rv |> Row.bindings with
+    | [lbl,f] -> Some (Ty.F.get_vars f |> RowVarSet.elements |> List.hd, lbl)
+    | _ -> None
+end
 
 (* =============== Exported functions =============== *)
 
-let tally_fields delta cs =
+let tally_const_rows delta cs =
   let module Tallying = Make(struct let delta = delta end) in
   Tallying.tally cs
 
 let tally delta cs =
-  let frc = cs |> List.concat_map (fun (t1,t2) -> [t1;t2]) |> get_field_ctx (MixVarSet.proj2 delta) in
-  cs |> List.map (fun (t1,t2) -> decorrelate_fields frc t1, decorrelate_fields frc t2)
-  |> tally_fields delta |> List.map (recombine_fields' frc)
+  let frc = cs |> List.concat_map (fun (t1,t2) -> [t1;t2]) |> FieldCtx.of_tys (MixVarSet.proj2 delta) in
+  cs |> List.map (fun (t1,t2) -> FieldCtx.decorrelate frc t1, FieldCtx.decorrelate frc t2)
+  |> tally_const_rows delta |> List.map (FieldCtx.recombine' frc)
 
 let decompose delta s1 s2 =
   let union_many = List.fold_left MixVarSet.union MixVarSet.empty in

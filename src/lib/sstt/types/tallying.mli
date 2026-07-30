@@ -22,48 +22,51 @@ type constr = Ty.t * Ty.t
     the type variables already present in [constrs] are reused. *)
 val tally : MixVarSet.t -> constr list -> Subst.t list
 
+(** Run a limited version of the tallying algorithm that only looks for
+    substitutions involving constant rows (i.e. rows of the form [ { ;; fty } ]).
+    Calling [tally_const_rows] on a tallying instance where field variables
+    have been decorrelated and recombining fields in the solutions is equivalent
+    to calling [tally]. *)
+val tally_const_rows : MixVarSet.t -> constr list -> Subst.t list
+
 (** [decompose mono s1 s2] returns a set of substitutions [s] whose domain
     is disjoint with [mono] and such that the composition of [s] and [s1] yields [s2].
     In particular, a non-empty result means that [s1] is more general than [s2]
     (in the sense that [s2] can be obtained by composing [s1] with another substitution). *)
 val decompose : MixVarSet.t -> Subst.t -> Subst.t -> Subst.t list
 
-(** {1 Operations on row variables}*)
+module FieldCtx : sig
 
-(** A field variable is a pair ([rv], [lbl]) that denotes a row variable
-    [rv] appearing in a field labeled [lbl]. *)
+    type fvar = RowVar.t * Label.t
+    (** A field variable is a pair ([rv], [lbl]) that denotes a row variable
+        [rv] appearing in the context of a field labeled [lbl]. *)
 
-type field_ctx
-(** An environment that defines a correspondance between some field variables and
-    fresh row variables. *)
+    type t
+    (** An environment that defines a correspondance between field variables and
+        fresh row variables. *)
 
-val get_field_ctx' : LabelSet.t -> RowVarSet.t -> field_ctx
-(** Generates a [field_ctx] for a set of row variables and labels. *)
+    val mk : LabelSet.t -> RowVarSet.t -> t
+    (** Generates a [t] for a set of row variables and labels. *)
 
-val get_field_ctx : RowVarSet.t -> Ty.t list -> field_ctx
-(** [field_ctx mono tys] generates a [field_ctx] for the labels and row variables
-    appearing in [tys], excluding the row variables in [mono]. *)
+    val of_tys : RowVarSet.t -> Ty.t list -> t
+    (** [from_tys mono tys] generates a [t] for the labels and row variables
+        appearing in [tys], excluding the row variables in [mono]. *)
 
-val fvars_associated_with : field_ctx -> RowVar.t -> RowVarSet.t
-(** Returns the set of fresh row variables associated with a row variable in a field context. *)
+    val fvars_associated_with : t -> RowVar.t -> RowVarSet.t
+    (** Returns the set of fresh row variables associated with a row variable in a field context. *)
 
-val fvar_associated_with : field_ctx -> (RowVar.t * Label.t) -> RowVar.t
-(** Returns the fresh row variable associated with a field variable in a field context. *)
+    val fvar_associated_with : t -> fvar -> RowVar.t
+    (** Returns the fresh row variable associated with a field variable in a field context. *)
 
-val rvar_associated_with : field_ctx -> RowVar.t -> (RowVar.t * Label.t) option
-(** Returns the field variable associated with a fresh row variable in a field context. *)
+    val rvar_associated_with : t -> RowVar.t -> fvar option
+    (** Returns the field variable associated with a fresh row variable in a field context. *)
 
-val decorrelate_fields : field_ctx -> Ty.t -> Ty.t
-(** Refresh row variables of a type according to a field context. *)
+    val decorrelate : t -> Ty.t -> Ty.t
+    (** Refresh row variables of a type according to a field context. *)
 
-val recombine_fields : field_ctx -> Ty.t -> Ty.t
-(** Recombine row variables of a type according to a field context. *)
+    val recombine : t -> Ty.t -> Ty.t
+    (** Recombine row variables of a type according to a field context. *)
 
-val recombine_fields' : field_ctx -> Subst.t -> Subst.t
-(** Recombine row variables of a substitution according to a field context. *)
-
-val tally_fields : MixVarSet.t -> constr list -> Subst.t list
-(** Run a limited version of the tallying algorithm that only looks for
-    substitutions involving constant rows (i.e. rows of the form [ { ;; fty } ]).
-    Calling [tally_fields] on a tallying instance where fields have been decorrelated
-    and recombining fields in the solutions is equivalent to calling [tally]. *)
+    val recombine' : t -> Subst.t -> Subst.t
+    (** Recombine row variables of a substitution according to a field context. *)
+end
