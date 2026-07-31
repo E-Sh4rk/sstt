@@ -164,7 +164,7 @@ module Make(VS:VarSettings) = struct
       let no_polyvar f =
         try
           let _ =
-            f |> Ty.F.map_nodes
+            f |> Records.FTy.map_nodes (* [Records.FTy] instead of [Ty.F] to avoid simplifications. *)
               (fun n -> if MixVarSet.subset (Ty.all_vars n) VS.delta |> not then raise Exit ; n)
           in true
         with Exit -> false
