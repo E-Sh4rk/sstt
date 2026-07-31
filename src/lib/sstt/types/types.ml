@@ -10,6 +10,8 @@ module Transform = Transform
 
 module Tallying = Tallying
 
+module Dependencies = Dependencies
+
 module FieldCtx = FieldCtx
 
 (** {1 Pretty-printing of types} *)

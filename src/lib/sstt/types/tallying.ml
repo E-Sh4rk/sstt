@@ -632,9 +632,10 @@ let tally_const_rows delta cs =
   Tallying.tally cs
 
 let tally delta cs =
-  let frc = cs |> List.concat_map (fun (t1,t2) -> [t1;t2]) |> FieldCtx.of_tys (MixVarSet.proj2 delta) in
-  cs |> List.map (fun (t1,t2) -> FieldCtx.decorrelate frc t1, FieldCtx.decorrelate frc t2)
-  |> tally_const_rows delta |> List.map (FieldCtx.recombine' frc)
+  let delta2 = MixVarSet.proj2 delta in
+  let fc = cs |> List.map (fun (a,b) -> FieldCtx.of_tys delta2 [a;b]) |> FieldCtx.merge_many in
+  cs |> List.map (fun (t1,t2) -> FieldCtx.decorrelate fc t1, FieldCtx.decorrelate fc t2)
+  |> tally_const_rows delta |> List.map (FieldCtx.recombine' fc)
 
 let decompose delta s1 s2 =
   let union_many = List.fold_left MixVarSet.union MixVarSet.empty in
