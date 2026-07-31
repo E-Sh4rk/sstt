@@ -48,6 +48,18 @@ module FieldCtx : sig
     val mk : LabelSet.t -> RowVarSet.t -> t
     (** Generates a [t] for a set of row variables and labels. *)
 
+    val singl : fvar -> t
+    (** Generates a [t] for a single field variable. *)
+
+    val empty : t
+
+    val merge : t -> t -> t
+    (** [merge t1 t2] returns a new field context containing bindings
+        from [t1] and from [t2], with priority to [t1]. *)
+
+    val merge_many : t list -> t
+    (** [merge_many ts] merges the field contexts [ts] in order. *)
+
     val of_tys : RowVarSet.t -> Ty.t list -> t
     (** [from_tys mono tys] generates a [t] for the labels and row variables
         appearing in [tys], excluding the row variables in [mono]. *)
