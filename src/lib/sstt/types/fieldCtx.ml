@@ -70,7 +70,13 @@ let of_tys delta tys =
   let module NS = Dependencies.NodeSet in
   let visited = ref [] in
   let rec aux tys =
-    let tys = NS.remove Ty.any tys |> NS.remove Ty.empty in
+    (* A type with no label and no polymorphic row variable (at any depth)
+       cannot contribute any field variable, and neither can its dependencies:
+       such a type can be ignored (this covers in particular any and empty). *)
+    let tys = tys |> NS.filter (fun ty ->
+        RowVarSet.subset (Ty.row_vars ty) delta |> not ||
+        LabelSet.is_empty (Ty.nodes ty |> tl_labels) |> not
+      ) in
     if List.exists (NS.subset tys) !visited then empty
     else begin
       visited := tys::(List.filter (fun tys' -> NS.subset tys' tys |> not) !visited) ;

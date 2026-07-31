@@ -15,6 +15,7 @@ let of_list1 lst = of_list lst []
 let of_list2 lst = of_list [] lst
 let to_core_subst s = MixVarMap.map2 Row.to_record_atom s
 
+let is_identity = MixVarMap.is_empty
 let combine s1 s2 =
   let union _ = raise (Invalid_argument "Domains are not disjoint") in
   MixVarMap.union union union s1 s2
@@ -91,24 +92,28 @@ let find2 s v =
   | Some r -> r
 
 let compose t2 t1 =
-  let s2 = to_core_subst t2 in
-  let dom1, rdom1 = domain1 t1, domain2 t1 in
-  let b1 = bindings1 t1
-    |> List.map (fun (v,t) -> (v, Ty.substitute s2 t)) in
-  let b2 = bindings1 t2
-    |> List.filter (fun (v, _) -> VarSet.mem v dom1 |> not) in
-  let rb1 = bindings2 t1
-    |> List.map (fun (v,r) -> (v, Row.substitute s2 r)) in
-  let rb2 = bindings2 t2
-    |> List.filter (fun (v, _) -> RowVarSet.mem v rdom1 |> not) in
-  of_list (b1@b2) (rb1@rb2)
+  if is_identity t2 then t1
+  else if is_identity t1 then t2
+  else
+    let s2 = to_core_subst t2 in
+    let dom1, rdom1 = domain1 t1, domain2 t1 in
+    let b1 = bindings1 t1
+      |> List.map (fun (v,t) -> (v, Ty.substitute s2 t)) in
+    let b2 = bindings1 t2
+      |> List.filter (fun (v, _) -> VarSet.mem v dom1 |> not) in
+    let rb1 = bindings2 t1
+      |> List.map (fun (v,r) -> (v, Row.substitute s2 r)) in
+    let rb2 = bindings2 t2
+      |> List.filter (fun (v, _) -> RowVarSet.mem v rdom1 |> not) in
+    of_list (b1@b2) (rb1@rb2)
 
 let compose_restr t2 t1 =
-  let s2 = to_core_subst t2 in
-  t1 |> map1 (Ty.substitute s2) |> map2 (Row.substitute s2)
+  if is_identity t2 then t1
+  else
+    let s2 = to_core_subst t2 in
+    t1 |> map1 (Ty.substitute s2) |> map2 (Row.substitute s2)
 
 let equiv s1 s2 = MixVarMap.equal Ty.equiv Row.equiv s1 s2
-let is_identity s = MixVarMap.is_empty s
 
 let apply s ty = Ty.substitute (to_core_subst s) ty
 let apply_to_row s r = Row.substitute (to_core_subst s) r
