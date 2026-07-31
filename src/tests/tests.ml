@@ -220,6 +220,18 @@ let%expect_test "tests" =
     tally_row9: [
                   `A: { na_rm : 0 ; p : `A }
                 ]
+    tally_row10: [
+                   `R: { dummy : `R ; lbl1 : `R ; lbl2 : `R ; lbl3 : `R ;; empty }
+                 ]
+                 [
+                   `R: { lbl1 : empty ;; `R }
+                 ]
+                 [
+                   `R: { lbl2 : empty ;; `R }
+                 ]
+                 [
+                   `R: { lbl3 : empty ;; `R }
+                 ]
     app1: int
     app2: any
     app3: (-5..5)
