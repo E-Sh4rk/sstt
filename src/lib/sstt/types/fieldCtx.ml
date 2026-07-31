@@ -88,3 +88,6 @@ let of_tys delta tys =
     end
   in
   aux (NS.of_list tys)
+
+let labels_toplevel ty = tl_labels [ty]
+let labels ty = Ty.nodes ty |> tl_labels

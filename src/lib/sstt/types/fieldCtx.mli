@@ -53,7 +53,13 @@ val recombine : t -> Ty.t -> Ty.t
 val recombine' : t -> Subst.t -> Subst.t
 (** Recombine row variables of a substitution according to a field context. *)
 
+
+val labels_toplevel : Ty.t -> LabelSet.t
+(** [labels_toplevel ty] returns the explicit labels appearing at top-level in [ty]. *)
+
+val labels : Ty.t -> LabelSet.t
+(** [labels ty] returns the explicit labels appearing in [ty]. *)
+
 val of_tys : RowVarSet.t -> Ty.t list -> t
 (** [of_tys mono tys] generates a [t] that decorrelates the field variables
     that may be compared when comparing the types [tys], excluding the row variables in [mono]. *)
-
