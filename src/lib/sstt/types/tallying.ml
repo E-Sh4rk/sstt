@@ -12,8 +12,8 @@ let solve_recfield v f =
     )
   in
   let eqs = VHT.to_seq nodes |> List.of_seq |> List.map (fun (v',ty') ->
-    v', Subst.apply (Subst.singleton2 v (Row.all_fields f)) ty'
-  ) in
+      v', Subst.apply (Subst.singleton2 v (Row.all_fields f)) ty'
+    ) in
   let s = Ty.of_eqs eqs |> Subst.of_list1 in
   f |> Ty.F.map_nodes (fun n -> Subst.apply s n)
 
@@ -238,7 +238,9 @@ module Make(VS:VarSettings) = struct
           c' :: ll
 
     let cap l1 l2 =
-      if List.length l2 <= List.length l1
+      if is_any l1 then l2
+      else if is_any l2 then l1
+      else if List.compare_lengths  l2 l1 <= 0
       then List.fold_left (fun acc c -> add c acc) l1 l2
       else List.fold_left (fun acc c -> add c acc) l2 l1
 
@@ -282,7 +284,10 @@ module Make(VS:VarSettings) = struct
     let singleton e = (VCS.singleton e, FCS.any)
     let singleton' e = (VCS.any, FCS.singleton e)
 
-    let cap (vt1, ft1) (vt2, ft2) = (VCS.cap vt1 vt2, FCS.cap ft1 ft2)
+    let cap ((vt1, ft1) as s1) ((vt2, ft2) as s2) =
+      if is_any s1 then s2
+      else if is_any s2 then s1
+      else (VCS.cap vt1 vt2, FCS.cap ft1 ft2)
 
     let subsumes (vt1, ft1) (vt2, ft2) =
       VCS.subsumes vt1 vt2 && FCS.subsumes ft1 ft2
@@ -323,20 +328,38 @@ module Make(VS:VarSettings) = struct
       if List.exists (CS'.subsumes c) l then l
       else List.filter (fun c' -> CS'.subsumes c' c |> not) l |> insert_aux c
 
-    let cup t1 t2 = List.fold_left (fun acc cs -> add cs acc) t1 t2
+    let cup t1 t2 =
+      if is_any t1 then any else if is_any t2 then any else
+        List.fold_left (fun acc cs -> add cs acc) t1 t2
+    let cup t1 t2 = fcup ~empty ~any ~cup t1 t2
+
     let cap t1 t2 =
-      (cartesian_product t1 t2)
-      |> List.fold_left (fun acc (cs1,cs2) -> try add (CS'.cap cs1 cs2) acc with Unsat -> acc) empty
+      if is_any t1 then t2
+      else if is_any t2 then t1
+      else
+        (cartesian_product t1 t2)
+        |> List.fold_left (fun acc (cs1,cs2) -> try add (CS'.cap cs1 cs2) acc with Unsat -> acc) empty
+
+    let cap t1 t2 = fcap ~empty ~any ~cap t1 t2
 
     let cup_lazy t1 t2 =
       if is_any t1 then any
       else cup t1 (t2 ())
+
     let cap_lazy t1 t2 =
       if is_empty t1 then empty
       else cap t1 (t2 ())
 
-    let map_disj f t = List.fold_left (fun acc e -> cup_lazy acc (fun () -> f e)) empty t
-    let map_conj f t = List.fold_left (fun acc e -> cap_lazy acc (fun () -> f e)) any t
+
+    let[@inline always] map_op op default f t =
+      match t with
+        [] -> default
+      | [ e ] -> f e
+      | e :: t -> List.fold_left (fun acc e -> op acc (fun () -> f e)) (f e) t
+
+    let map_disj f t = map_op cup_lazy empty f t
+    let map_conj f t = map_op cap_lazy any f t
+
     let to_list (l:t) = l
   end
 
@@ -404,7 +427,7 @@ module Make(VS:VarSettings) = struct
   module MemoFTy = Hashtbl.Make(Ty.F)
 
   (* Core tallying algorithm *)
-  
+
   let norm_tuple_gen ~diff ~disjoint ~norm ps ns =
     (* Same algorithm as for subtyping tuples.
        We define it outside norm below so that its type can be
@@ -413,13 +436,13 @@ module Make(VS:VarSettings) = struct
     let rec psi acc ss ts () =
       let cstr = ss |> CSS.map_disj norm in
       CSS.cup_lazy cstr (fun () ->
-        match ts with
-          [] -> CSS.empty
-        | tt :: ts ->
-          if List.exists2 disjoint ss tt then psi acc ss ts ()
-          else fold_distribute_comb (fun acc ss ->
-              CSS.cap_lazy acc (psi acc ss ts)) diff acc ss tt
-      )
+          match ts with
+            [] -> CSS.empty
+          | tt :: ts ->
+            if List.exists2 disjoint ss tt then psi acc ss ts ()
+            else fold_distribute_comb (fun acc ss ->
+                CSS.cap_lazy acc (psi acc ss ts)) diff acc ss tt
+        )
     in psi CSS.any ps ns ()
 
   type memo = { memo_ty: CSS.t MemoTy.t ; memo_f: CSS.t MemoFTy.t }
@@ -467,7 +490,7 @@ module Make(VS:VarSettings) = struct
     else cs |> CSS.map_conj (norm_tagcomp memo)
   and norm_tagcomp memo c =
     let tag = TagComp.tag c in
-    c |> TagComp.dnf |> CSS.map_conj (norm_tag memo tag)      
+    c |> TagComp.dnf |> CSS.map_conj (norm_tag memo tag)
   and norm_arrows memo arr =
     arr |> Arrows.dnf |> CSS.map_conj (norm_arrow memo)
   and norm_tuples memo tup =
@@ -487,8 +510,8 @@ module Make(VS:VarSettings) = struct
         | (s1, s2) :: ps ->
           if Ty.disjoint t1 s1 || Ty.leq t2 s2 then psi t1 t2 ps ()
           else CSS.cap_lazy
-            (psi (Ty.diff t1 s1) t2 ps ())
-            (psi t1 (Ty.cap t2 s2) ps)
+              (psi (Ty.diff t1 s1) t2 ps ())
+              (psi t1 (Ty.cap t2 s2) ps)
       in
       CSS.cup_lazy cstr cstr_rec
     in
@@ -514,9 +537,9 @@ module Make(VS:VarSettings) = struct
     | [] -> norm_record_bindings memo p ns
     | (tl',bs')::ns' ->
       CSS.cup_lazy (norm_record_tests memo (tl,p) ns ns') (fun () ->
-        CSS.cap_lazy (Ty.F.diff tl tl' |> norm_field memo)
-          (fun () -> norm_record_tests memo (tl,p) (bs'::ns) ns')
-      )
+          CSS.cap_lazy (Ty.F.diff tl tl' |> norm_field memo)
+            (fun () -> norm_record_tests memo (tl,p) (bs'::ns) ns')
+        )
   and norm_record_bindings memo p ns =
     norm_tuple_gen ~diff:Ty.F.diff ~disjoint:Ty.F.disjoint ~norm:(norm_field memo) p ns
   and norm_field memo (f:Ty.F.t) =
@@ -565,7 +588,7 @@ module Make(VS:VarSettings) = struct
           aux (VCS.add constr prev, prev') (tl,cs')
         else
           let () = MemoTy.add memo_ty t () in
-          let res = norm t |> retry_with in
+          let res = norm t|> retry_with in
           MemoTy.remove memo_ty t ; res
       | Nil, Cons (constr, tl) ->
         let (f', _, f) = FC.destruct constr in
@@ -640,7 +663,7 @@ let tally delta cs =
 let decompose delta s1 s2 =
   let union_many = List.fold_left MixVarSet.union MixVarSet.empty in
   let vars = union_many
-    [Subst.domain s1 ; Subst.intro s1 ; Subst.domain s2 ; Subst.intro s2 ] in
+      [Subst.domain s1 ; Subst.intro s1 ; Subst.domain s2 ; Subst.intro s2 ] in
   let fresh, fresh_inv = Subst.refresh (MixVarSet.diff vars delta) in
   let fresh_vars = Subst.intro fresh in
   let s2 = Subst.compose fresh s2 in
