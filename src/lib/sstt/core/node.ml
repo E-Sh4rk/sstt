@@ -427,7 +427,7 @@ include (struct
         new_node t
 
     (** Common node factorization. [simplify] above must be called on the result (done in Core) *)
-    let factorize t =
+    let factorize_many ts =
       let cache = NH.create 10 in
       let nodes = ref [] in
       let rec aux t =
@@ -447,9 +447,10 @@ include (struct
               n
           end
       in
-      aux t
+      List.map aux ts
 
-    let factorize t = with_shared_cache factorize t
+    let factorize_many ts = with_shared_cache factorize_many ts
+    let factorize t = factorize_many [t] |> List.hd
 
     let mk_var v = VDescr.mk_var v |> cons
     let mk_descr d = VDescr.mk_descr d |> cons

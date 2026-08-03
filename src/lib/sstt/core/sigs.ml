@@ -1135,6 +1135,7 @@ module type PreNode = sig
   val of_eqs : (Var.t * t) list -> (Var.t * t) list
   val substitute : subst -> t -> t
   val factorize : t -> t
+  val factorize_many : t list -> t list
   val simplify : t -> unit
 
 end
@@ -1255,6 +1256,11 @@ module type Ty = sig
 
   val factorize : t -> t
   (** [factorize t] factorizes equivalent nodes in [t].
+      This operation may be expensive since it calls {!equiv} internally.
+  *)
+
+  val factorize_many : t list -> t list
+  (** [factorize_many ts] factorizes equivalent nodes in [ts].
       This operation may be expensive since it calls {!equiv} internally.
   *)
 
