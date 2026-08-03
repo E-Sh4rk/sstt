@@ -116,10 +116,14 @@ module Ty : Ty = struct
   let vars, vars_toplevel, nodes = s' N.vars, s' N.vars_toplevel, s' N.nodes
   let row_vars, row_vars_toplevel = s' N.row_vars, s' N.row_vars_toplevel
   let all_vars, all_vars_toplevel = s' N.all_vars, s' N.all_vars_toplevel
-  let of_eqs eqs = N.of_eqs eqs |> List.map (fun (v,ty) -> v, simpl ty)
   let substitute s t = N.substitute s t |> simpl
   let factorize t = N.factorize t |> simpl
   let factorize_many ts = N.factorize_many ts |> List.map simpl
+  let of_eqs eqs =
+    let res = N.of_eqs eqs in
+    let vars, tys = List.split res in
+    let tys = factorize_many tys in
+    List.combine vars tys
 
   let is_empty t = N.is_empty t
   let leq t1 t2 = N.equal t1 t2 || N.leq t1 t2
