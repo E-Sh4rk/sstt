@@ -364,17 +364,17 @@ include (struct
         t.all_vars <- Some s; s
 
 
-    (** Systems of contractive equations. [simplify] above must be called on the result (done in Core) *)
+    (** Systems of contractive equations. [factorize_many] must be called on the result (done in Core) *)
     let of_eqs eqs =
       let deps = eqs
         |> List.fold_left (fun acc (_, t) -> NSet.union (dependencies t) acc) NSet.empty in
       let copies = NH.create 10 in
       let () = NSet.iter (fun n -> NH.add copies n (mk ())) deps in
+      let def_vars = eqs |> List.map fst |> VarSet.of_list in
       let new_node n =
-        match eqs |> List.find_opt (fun (v,_) ->
-            VDescr.equal (VDescr.mk_var v) (def n)) with
-        | None -> NH.find copies n
-        | Some (_,n) -> NH.find copies n (* Optimisation to avoid introducing a useless node *)
+        if VarSet.disjoint (vars n) def_vars
+        then n (* Optimisation: avoid introducing a useless node *)
+        else NH.find copies n
       in
       let rec define_all deps =
         if NSet.is_empty deps |> not then
@@ -434,17 +434,19 @@ include (struct
         match NH.find_opt cache t with
         | Some n -> n
         | None ->
-          begin match
-              List.find_opt (fun (t', _) -> equiv t t') !nodes
-            with
+          begin match List.find_opt (fun (t', _) -> equiv t t') !nodes with
             | Some (_, n) -> n
             | None ->
               let n = mk () in
               NH.add cache t n;
               nodes := (t, n) :: !nodes;
-              let vd = def t |> VDescr.map_nodes aux in
-              define n vd ;
-              n
+              let vd = def t in
+              let vd' = VDescr.map_nodes aux vd in
+              if VDescr.equal vd vd'
+              then ( (* Optimisation: do not recreate nodes that are unchanged (e.g. any) *)
+                nodes := !nodes |> List.map (fun (t',n') -> if Node.equal n n' then (t',t) else (t',n')) ;
+                NH.replace cache t t ; t)
+              else (define n vd' ; n)
           end
       in
       List.map aux ts

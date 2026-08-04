@@ -21,7 +21,7 @@ let%expect_test "tests" =
     empty2: true
     atom1: false
     atom2: true
-    tags1: tag((true, false) | (false, true))
+    tags1: tag((false, true) | (true, false))
     tags2: tag1(true, false) | tag2(false, true)
     tags3: true
     tags4: 42
@@ -90,14 +90,14 @@ let%expect_test "tests" =
     print7: ~true
     print8: ~(any -> bool)
     print9: ~((any -> bool) & (true -> false))
-    print10: ~((true, false) | (false, true))
+    print10: ~((false, true) | (true, false))
     print11: bool
     print13: 'y
     print14: nil, (bool, x1) where x1 = nil | (bool, x1)
     print15: tuple \ tuple2
     print16: ~(40..44)
     print17: ~tag(42)
-    print18: ('c -> 'd) & ('a -> 'b) & ~('g -> 'h) & ~('e -> 'f)
+    print18: ('a -> 'b) & ('c -> 'd) & ~('e -> 'f) & ~('g -> 'h)
     print19: tag \ sometag(unit)
     print20: ~(bool | int | unit)
     tally1:
