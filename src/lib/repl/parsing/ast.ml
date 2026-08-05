@@ -258,9 +258,11 @@ and build_field env t =
       | TCup -> Ty.F.cup f1 f2, env
       | TDiff -> Ty.F.diff f1 f2, env
     end
-  | TUnop (TNeg, t) ->
+  (* Having a negation operator over fields would be too confusing
+     with the regular type negation *)
+  (* | TUnop (TNeg, t) ->
     let f, env = build_field env t in
-    Ty.F.neg f, env
+    Ty.F.neg f, env *)
   | TUnop (TOption, t) ->
     let f, env = build_field env t in
     Ty.F.cup f (Ty.F.mk_descr Ty.O.absent), env

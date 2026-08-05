@@ -661,7 +661,9 @@ and print_fdescr prec assoc fmt fd =
         print_descr prec assoc fmt d
     | FVarop (v,fops) -> Prec.print_nary_fop aux prec assoc v fmt fops
     | FBinop (b,fop1,fop2) -> Prec.print_binary_fop aux prec assoc b fmt fop1 fop2
-    | FUnop (u,fop) -> Prec.print_unary_fop aux prec assoc u fmt fop
+    | FUnop (FNeg,fop) ->
+      (* Prec.print_unary_fop aux prec assoc u fmt fop *)
+      Prec.print_binary_fop aux prec assoc FDiff fmt fany fop
   in
   aux prec assoc fmt fd
 

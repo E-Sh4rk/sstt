@@ -22,7 +22,8 @@ Field types `f` are built with the following constructors:
 - Optional type `t?` (e.g. a missing field may be represented by the type `empty?`)
 
 The following set-theoretic connectives can be used for both types and field types:
-union `|`, intersection `&`, difference `\`, and negation `~`.
+union `|`, intersection `&`, difference `\`, and negation `~` (only for regular types:
+for field types, difference should be used instead).
 
 The operator precedence is the usual one: `~`, `\`, `&`, `|`, `->`.
 

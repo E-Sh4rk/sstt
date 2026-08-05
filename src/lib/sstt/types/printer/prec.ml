@@ -55,7 +55,7 @@ let unop_info u = match u with
   | Neg -> fs "~", 5, NoAssoc
 
 let funop_info u = match u with
-  | FNeg -> fs "~", 5, NoAssoc
+  | FNeg -> raise (Invalid_argument "no syntax for field negation operator")
 
 (** Maximum priority *)
 let max_prec = 100
