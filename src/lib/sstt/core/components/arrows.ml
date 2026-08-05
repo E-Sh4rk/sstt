@@ -30,12 +30,25 @@ module Make(N:Node) = struct
   let cup = Bdd.cup
   let neg = Bdd.neg
   let diff = Bdd.diff
+
+  (* The general case splits into the two branches [psi (t1\s1) t2 ps] and
+     [psi t1 (t2&s2) ps]. When [t1] and [s1] are disjoint, [t1\s1] is
+     equivalent to [t1], so the first branch implies the second one (as [psi]
+     can only become true when [t1] or [t2] gets smaller) and is thus the only
+     one to consider;
+     symmetrically, when [t2] is a subtype of [s2], [t2&s2] is equivalent to
+     [t2] and the second branch implies the first one.
+     Note that in each of these two cases we must keep the branch as it is in
+     the general case (with [N.diff t1 s1], resp. [N.cap t2 s2]) rather than
+     use the equivalent [t1] (resp. [t2]): this keeps [psi] monotonic w.r.t.
+     the emptiness assumptions of the cache. *)
   let rec psi t1 t2 ps =
     N.is_empty t1 || N.is_empty t2 ||
     match ps with
     | [] -> false
     | (s1,s2)::ps ->
-      if N.disjoint t1 s1 || N.leq t2 s2 then psi t1 t2 ps
+      if N.disjoint t1 s1 then psi (N.diff t1 s1) t2 ps
+      else if N.leq t2 s2 then psi t1 (N.cap t2 s2) ps
       else psi (N.diff t1 s1) t2 ps && psi t1 (N.cap t2 s2) ps
 
   let is_clause_empty' ps (t1,t2) =

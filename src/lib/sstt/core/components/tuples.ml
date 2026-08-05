@@ -50,13 +50,29 @@ module MakeC(N:Node) = struct
     let init = fun () -> List.init n (fun _ -> N.empty) in
     mapn init N.disj ps
 
+  (* If a component of [ss] is disjoint from the corresponding component of
+     [tt], then the line of the general case associated to this component
+     implies all the other ones, so that it is the only one to consider.
+     Note that we must return this line ([N.diff s t] at this position) rather
+     than [ss] itself, even though both are semantically equal: this keeps
+     [psi] monotonic w.r.t. the emptiness assumptions of the cache. *)
+  let rec disjoint_line ss tt =
+    match ss, tt with
+    | [], [] -> None
+    | s::ss, t::tt ->
+      if N.disjoint s t then Some ((N.diff s t)::ss)
+      else disjoint_line ss tt |> Option.map (fun ss -> s::ss)
+    | _, _ -> assert false
+
   let rec psi acc ss ts =
     List.exists N.is_empty ss ||
     match ts with
     | [] -> false
     | tt::ts ->
-      if List.exists2 N.disjoint ss tt then psi acc ss ts
-      else fold_distribute_comb (fun acc ss -> acc && psi acc ss ts) N.diff acc ss tt
+      match disjoint_line ss tt with
+      | Some ss -> psi acc ss ts
+      | None ->
+        fold_distribute_comb (fun acc ss -> acc && psi acc ss ts) N.diff acc ss tt
   let is_clause_empty n (ps,ns,b) =
     not b || psi true (conj n ps) ns
   let is_empty (n,t) = Bdd.for_all_lines (is_clause_empty n) t
