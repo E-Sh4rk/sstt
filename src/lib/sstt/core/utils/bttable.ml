@@ -1,34 +1,33 @@
 exception InvalidAccess
 (** Raised if a entry is used more than once. *)
 
-module MakeOpt(V : Hashtbl.HashedType): sig
+module type S = sig
   (**
-     Hash table specialized for computations over co-inductive structures.
+     Table specialized for computations over co-inductive structures.
 
       This table can be used for boolean computations over co-inductive
       structures whose results depend on an initial guess, the initial guess
-      being [true]. When exploring a co-inductive value [v : V.t], we first fix
+      being [true]. When exploring a co-inductive value [v : key], we first fix
       its result to [true] before exploring it. If we find it again, return
       [true]. When coming back after exploration, if the result is [true] the
-      guess was correct and we can simply return it. If it is [false], we need
-      to invalidate the results stored in the table that depended (directly or
-      indirectly) on the initial guess.
+      guess was correct and we can simply return it. If it is [false], the
+      results that depended (directly or indirectly) on the initial guess
+      cannot be trusted anymore.
       This fits nicely with a look-up table pattern :
 
      - first, one looks for [v] in the table, using [find table v]
      - if [v] is not in the table, it associates the result [true] to it,
           The exploration of [v] can continue.
      - if [v] is in the table, it means it is encountered again. The
-          value stored is returned as [Some r] and all values that are curently being
-          explored become [v]'s direct dependencies, which we record.
+          value stored is returned as [Some r].
 
      - when returning from the initial exploration of [v] with a computed
        result [r'], one needs to update the result [update table v r']:
      - if [r'] is [true] then the initial guess was correct the table is in a consistent state.
-     - otherwise the transitive dependencies of [v] are removed from the table: they
-          were computed while making the (wrong) hypothesis that the result for
-          [v] was [true], while it is [false]. Later calls to [find table v]
-       will return [false].
+     - otherwise the results that depended on the initial guess are removed from
+          the table: they were computed while making the (wrong) hypothesis
+          that the result for [v] was [true], while it is [false]. Later calls
+          to [find table v] will return [false].
 
       {@ocaml[ let rec explore table v =
 
@@ -38,7 +37,7 @@ module MakeOpt(V : Hashtbl.HashedType): sig
         | None ->
           let r' = (* COMPUTATION, may call explore recursively *) in
 
-          (* this will invalidate the dependencies if [r'] is [false] *)
+          (* this will discard the results depending on the guess if [r'] is [false] *)
           update table v r'
 
       ]}
@@ -49,10 +48,13 @@ module MakeOpt(V : Hashtbl.HashedType): sig
       in the table: adding the hypothesis that the result for some value is
       [true] can only make more results [true]. Consequently, a computed
       [false] does not rely on any hypothesis (it would still be [false] with
-      fewer hypotheses), and thus never has to be invalidated: results equal to
+      fewer hypotheses), and thus never has to be discarded: results equal to
       [false] are definitive. Only results equal to [true] (be they guesses of
-      ongoing explorations or computed results) may be invalidated.
+      ongoing explorations or computed results) may be discarded.
   *)
+
+  type key
+  (** The type of the values explored. *)
 
   type t
   (** The type of the table.*)
@@ -63,13 +65,13 @@ module MakeOpt(V : Hashtbl.HashedType): sig
   val clear : t -> unit
   (** Clears the table. *)
 
-  val find : t -> V.t -> bool option
+  val find : t -> key -> bool option
   (** Retrieves the result associated with a value.
       If the value is not in the table, the initial guess [true]
       is added and a entry is returned.
   *)
 
-  val update : t -> V.t -> bool -> unit
+  val update : t -> key -> bool -> unit
   (** Updates the value associated with the value that created the entry.
         If the supplied value is [false], all values in
         the table whose result dependend on the initial guess are removed from
@@ -77,9 +79,15 @@ module MakeOpt(V : Hashtbl.HashedType): sig
 
       @raise InvalidAccess if the value is not already in the table.
   *)
+end
 
-end = struct
+(** Hash table implementation of {!S}. The results that depend on a guess are
+    tracked precisely, so that only them are discarded when the guess turns out
+    to be wrong. *)
+module MakeOpt(V : Hashtbl.HashedType): S with type key = V.t = struct
   module H = Hashtbl.Make(V)
+
+  type key = V.t
 
   type stack = entry list
   and entry = {
@@ -160,16 +168,14 @@ end = struct
     | _ -> raise InvalidAccess
 end
 
-module MakeSimple(V : Set.OrderedType): sig
-  type t
-  val create : unit -> t
-  val clear : t -> unit
-  val find : t -> V.t -> bool option
-  val update : t -> V.t -> bool -> unit
-
-end = struct
+(** Straightforward implementation of {!S}, using persistent sets: when a guess
+    turns out to be wrong, all the results equal to [true] that were computed
+    in the meantime are discarded, even those that did not depend on it. *)
+module MakeSimple(V : Set.OrderedType): S with type key = V.t = struct
 
   module S = Set.Make(V)
+
+  type key = V.t
 
   (* [t] contains the keys whose result is [true] (a guess, that may be
      invalidated), [f] those whose result is [false] (definitive). *)
@@ -201,4 +207,30 @@ end = struct
         else { old_cache with f = S.add key cache.f }
       in
       t := (new_cache :: prev_stack)
+end
+
+(** Implementation of {!S} without any caching: only the keys currently being
+    explored are remembered, so that a key is never explored twice in the same
+    call stack (which is enough to guarantee termination in theory).
+    Every other result is recomputed from scratch. Useful to
+    measure what the caching strategies of {!MakeOpt} and {!MakeSimple} actually buy. *)
+module MakeNaive(V : Set.OrderedType): S with type key = V.t = struct
+
+  module S = Set.Make(V)
+
+  type key = V.t
+
+  (* The keys currently being explored, all of them guessed to be [true]. *)
+  type t = S.t ref
+
+  let create () = ref S.empty
+  let clear t = t := S.empty
+
+  let find t key =
+    if S.mem key !t then Some true
+    else begin t := S.add key !t ; None end
+
+  let update t key _r =
+    if S.mem key !t |> not then raise InvalidAccess ;
+    t := S.remove key !t
 end
