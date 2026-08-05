@@ -169,37 +169,36 @@ module MakeSimple(V : Set.OrderedType): sig
 
 end = struct
 
-  module M = Map.Make(V)
+  module S = Set.Make(V)
 
-  type t = (bool M.t list) ref
+  (* [t] contains the keys whose result is [true] (a guess, that may be
+     invalidated), [f] those whose result is [false] (definitive). *)
+  type cache = { t : S.t ; f : S.t }
 
-  let create () = ref ([M.empty])
-  let clear r = r := [ M.empty ]
+  type t = (cache list) ref
+
+  let empty_cache = { t = S.empty ; f = S.empty }
+
+  let create () = ref ([empty_cache])
+  let clear r = r := [ empty_cache ]
   let find t key =
     let cache = match !t with [] -> assert false | c :: _ -> c in
-    match M.find_opt key cache with
-      Some _ as v -> v
-    | None ->
-      let new_cache = M.add key true cache in
+    if S.mem key cache.t then Some true
+    else if S.mem key cache.f then Some false
+    else begin
+      let new_cache = { cache with t = S.add key cache.t } in
       t := new_cache :: !t;
       None
+    end
 
   let update t key r =
     match !t with
     | [] | [ _ ] -> raise InvalidAccess
     | cache :: old_cache :: prev_stack ->
-      match M.find_opt key cache with
-      | None -> raise InvalidAccess
-      | Some old_r ->
-        let new_cache =
-          if r = old_r then cache
-          else
-            (* The guess [true] was wrong: restore the previous cache, but keep
-               the results equal to [false] computed in the meantime, as they
-               cannot depend on the wrong guess (see MakeOpt). *)
-            old_cache
-            |> M.fold (fun k b acc -> if b then acc else M.add k b acc) cache
-            |> M.add key r
-        in
-        t := (new_cache :: prev_stack)
+      if S.mem key cache.t |> not then raise InvalidAccess ;
+      let new_cache =
+        if r then cache
+        else { old_cache with f = S.add key cache.f }
+      in
+      t := (new_cache :: prev_stack)
 end
