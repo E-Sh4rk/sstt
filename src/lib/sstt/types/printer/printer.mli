@@ -76,9 +76,14 @@ val builder :
 type extensions = (Tag.t * extension_builder) list
 type params = { aliases : aliases ; extensions : extensions }
 
+val any_descr : descr
+val empty_descr : descr
 val cup_descr : descr -> descr -> descr
 val cap_descr : descr -> descr -> descr
 val neg_descr : descr -> descr
+
+val any_fdescr : fdescr
+val empty_fdescr : fdescr
 val cup_fdescr : fdescr -> fdescr -> fdescr
 val cap_fdescr : fdescr -> fdescr -> fdescr
 val neg_fdescr : fdescr -> fdescr

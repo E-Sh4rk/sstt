@@ -769,9 +769,14 @@ let print_ty' = print_ty empty_params
 let print_subst' = print_subst empty_params
 let print_row' = print_row empty_params
 
+let any_descr = any
+let empty_descr = empty
 let cap_descr = cap'
 let cup_descr = cup'
 let neg_descr = neg
+
+let any_fdescr = fany
+let empty_fdescr = fempty
 let cap_fdescr = fcap'
 let cup_fdescr = fcup'
 let neg_fdescr = fneg
