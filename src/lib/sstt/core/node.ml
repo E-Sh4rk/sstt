@@ -123,7 +123,7 @@ include (struct
     (* The PreNode module that contain the entry points of all functions on types. *)
 
     (* Subtyping cache *)
-    module Table = Bttable.MakeOpt(PreNode)(Bool)
+    module Table = Bttable.MakeOpt(PreNode)
 
 
     (** The memoization cache. Two caches are kept, one for simplified the other
@@ -299,7 +299,7 @@ include (struct
 
     let is_empty_rec t =
       let cache = get_is_empty_cache () in
-      begin match Table.find ~default:true cache t with
+      begin match Table.find cache t with
         | Some b -> b
         | None ->
           let b = VDescr.is_empty (def t) in
