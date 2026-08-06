@@ -104,8 +104,9 @@ module MakeC(N:Node) = struct
     let t' = Bdd.simplify (equiv tag) t in
     if t == t' then n else (tag, t')
 
-  let equal (_,t1) (_,t2) = Bdd.equal t1 t2
-  let compare (_,t1) (_,t2) = Bdd.compare t1 t2
+  let equal (tag1,t1) (tag2,t2) = Tag.equal tag1 tag2 && Bdd.equal t1 t2
+  let compare (tag1,t1) (tag2,t2) =
+    Tag.compare tag1 tag2 |> ccmp Bdd.compare t1 t2
 end
 
 module Make(N:Node) = struct

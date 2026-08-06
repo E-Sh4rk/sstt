@@ -35,7 +35,7 @@ module MakeC(N:Node) = struct
   let len = index
 
   let check_length len len' =
-    if Index.equal len len' |> not then
+    if Int.equal len len' |> not then
       invalid_arg "Heterogeneous tuple lengths."
 
   let cap (len1, t1) (len2, t2) = check_length len1 len2 ; len1, Bdd.cap t1 t2
@@ -130,8 +130,9 @@ module MakeC(N:Node) = struct
     let t' = Bdd.simplify (equiv tag) t in
     if t == t' then n else (tag, t')
 
-  let equal (_,t1) (_,t2) = Bdd.equal t1 t2
-  let compare (_,t1) (_,t2) = Bdd.compare t1 t2
+  let equal (len1,t1) (len2,t2) = Int.equal len1 len2 && Bdd.equal t1 t2
+  let compare (len1,t1) (len2,t2) =
+    Int.compare len1 len2 |> ccmp Bdd.compare t1 t2
 end
 
 module Make(N:Node) = struct
