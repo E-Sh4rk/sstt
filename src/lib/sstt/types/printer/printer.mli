@@ -42,9 +42,8 @@ and extension_node
 type def = NodeId.t * descr
 type 'm t = { main : 'm ; defs : def list }
 
-(** A pretty-printing context. *)
-
 type aliases = (Ty.t * string) list
+(** Types that must be printed using the given name. *)
 
 (* Printer extensions types and helper *)
 
@@ -59,22 +58,26 @@ val builder :
 (** [builder ~to_t ~map ~print] returns an extension builder that knows how
       to print values of a particular extension.
 
-    [to_t] is a function such that [to_t node ctx ty] converts [ty] into [Some
-    e], where [e] is some arbitrary representation of [ty]. The function can use
-    the parameter [node ctx ty'] if it wishes to convert [ty'] to an algebraic
-    representation (of type [descr]). The sharing and aliases of [ty'] is
-    controled by the pretty-printing context [ctx]. If the conversion fails,
-    [to_t] returns [None].
+    [to_t ctx comp] converts the tag component [comp] into [Some e], where [e]
+    is some arbitrary representation of [comp]. It can use [ctx.build ty] (resp.
+    [ctx.build_field fty]) if it wishes to convert a type [ty] (resp. a field
+    type [fty]) occurring in [comp] to an algebraic representation of type
+    [descr] (resp. [fdescr]); sharing and aliases of these sub-types are then
+    taken care of by the printer. If the conversion fails, [to_t] returns
+    [None].
 
-    [map f e] traverses the representation [e], applying [f] to every [descr] it
-    contains.
-    
-    [print ctx assoc fmt e] pretty-prints the representation [e] at
-    precedence [ctx] and associativity [assoc], using the formatter [fmt].
+    [map f ff e] traverses the representation [e], applying [f] to every
+    [descr] and [ff] to every [fdescr] it contains.
+
+    [print prec assoc fmt e] pretty-prints the representation [e] at
+    precedence [prec] and associativity [assoc], using the formatter [fmt].
 *)
 
 type extensions = (Tag.t * extension_builder) list
+(** The extension builder to use for each tag. *)
+
 type params = { aliases : aliases ; extensions : extensions }
+(** A pretty-printing context. *)
 
 val any_descr : descr
 val empty_descr : descr
@@ -132,7 +135,9 @@ val print_descr_atomic : Format.formatter -> descr -> unit
     with precedence [prec] and associativity [assoc], using formatter [fmt]. *)
 val print_descr_ctx : int -> assoc -> Format.formatter -> descr -> unit
 
-(** [print_field fmt fd] prints the algebraic form [fd] using formatter [fmt]. *)
+(** [print_field_ctx prec assoc fmt fd] prints the field descriptor [fd] in a
+    context with precedence [prec] and associativity [assoc], using formatter
+    [fmt]. *)
 val print_field_ctx : int -> assoc -> Format.formatter -> fdescr -> unit
 
 (** [print_ty params fmt ty] prints the type [ty] using formatter [fmt],

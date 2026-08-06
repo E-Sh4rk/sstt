@@ -61,7 +61,7 @@ module type SetTheoreticOps = sig
   type t
 
   val is_empty : t -> bool
-  (** Emptyness test. [is_empty t] returns [true] if and only if [t] is semantically equivalent
+  (** Emptiness test. [is_empty t] returns [true] if and only if [t] is semantically equivalent
       to [empty]. *)
 
   val is_any : t -> bool
@@ -198,7 +198,7 @@ module type OptIndexedComponentOps = sig
   type t
   type atom'
 
-  (** Operations on optimzed indexed components *)
+  (** Operations on optimized indexed components *)
 
   type index
   (** The type of indices. *)
@@ -215,8 +215,8 @@ module type ComponentFamily = sig
 
   (** {1 Basics }*)
 
-  (** A compononet {i family } is a set of components indexed by a values. For
-      instances, tuples constitute a family of components indexed by their size.
+  (** A component {i family } is a set of components indexed by a value. For
+      instance, tuples constitute a family of components indexed by their size.
       For instance, 3-tuples and 4-tuples behave similarly, but are distinct
       components that cannot be mixed (their intersection is empty).
   *)
@@ -232,7 +232,7 @@ module type ComponentFamilyOps = sig
   (** {1 Indexed component and misc. operations}*)
 
   type t
-  (** The type {!t} represents the a disjoint union of components of the family.
+  (** The type {!t} represents a disjoint union of components of the family.
       For instance, in the case of tuples, it can represent a set
       of all 2-tuples and 3-tuples (but nothing else), or the set
       of all tuples that are not 4-tuples.
@@ -247,7 +247,7 @@ module type ComponentFamilyOps = sig
 
   val components : t -> comp list * bool
   (** [components t] returns a pair [(cs,b)] where [cs] are the tuple components
-       explicitely present in [t], and [b] is a boolean indicating whether components
+       explicitly present in [t], and [b] is a boolean indicating whether components
        of other cardinalities are [any] (if [b] is [true]) or [empty] (if [b] is [false]). *)
 
   val of_components : comp list * bool -> t
@@ -786,7 +786,7 @@ module type TupleComp = sig
 
   (** @inline
 
-      An atom for a tuple of arity [n] si simply an (orederd) list of [n] nodes.
+      An atom for a tuple of arity [n] is simply an (ordered) list of [n] nodes.
   *)
   include ComponentBase
     with type t := t
@@ -1216,15 +1216,18 @@ module type Ty = sig
 
   val get_descr : t -> VDescr.Descr.t
   (** [get_descr t] extracts a monomorphic descriptor from [t],
-      which describes [t] by ignoring its top-level type variables.s *)
+      which describes [t] by ignoring its top-level type variables. *)
 
   (** {1 Misc. operations }*)
 
   val vars : t -> VarSet.t
-  (** [vars t] returns the set of all variables in [t].
-      Note that due to simplifications some variables may or may not be present.
-      For instance,
-      if {m t_1 \equiv \alpha } and {m t_2 \equiv \lnot \alpha}
+  (** [vars t] returns the set of all variables in [t]. This is a syntactic
+      notion: a variable that does not affect the denotation of [t] may or may
+      not be reported, depending on the simplifications that have been applied
+      to [t]. For instance, if {m t_1 \equiv \alpha } and
+      {m t_2 \equiv \lnot \alpha}, then [vars t1] and [vars t2] both contain
+      {m \alpha}, while [vars (cup t1 t2)] is empty, as the union is simplified
+      into {%html: <span style='font-size:large'>𝟙</span>%}.
   *)
 
   val vars_toplevel : t -> VarSet.t

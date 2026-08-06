@@ -91,12 +91,12 @@ module Records : sig
   *)
   val proj : Label.t -> t -> Ty.O.t
 
-  (** [merge t1 t2] returns the atom resulting from the merging of
+  (** [merge t1 t2] returns the record component resulting from the merging of
       [t1] and [t2] (non-absent fields in [t2] override those in [t1]). *)
   val merge : atom -> atom -> t
 
-  (** [remove t l] returns the atom obtained by making the field [l]
-      absent in [t]. *)
+  (** [remove t l] returns the record component obtained by making the field
+      [l] absent in [t]. *)
   val remove : atom -> Label.t -> t
 end
 
@@ -132,12 +132,12 @@ module Records' : sig
   *)
   val proj : Label.t -> t -> Ty.F.t
 
-  (** [merge t1 t2] returns the atom resulting from the merging of
+  (** [merge t1 t2] returns the record component resulting from the merging of
       [t1] and [t2] (non-absent fields in [t2] override those in [t1]). *)
   val merge : atom -> atom -> t
 
-  (** [remove t l] returns the atom obtained by making the field [l]
-      absent in [t]. *)
+  (** [remove t l] returns the record component obtained by making the field
+      [l] absent in [t]. *)
   val remove : atom -> Label.t -> t
 end
 

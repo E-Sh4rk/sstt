@@ -236,7 +236,7 @@ module type Map = sig
   (** Create a map from the given domain and values, taken in the order of the
         list.
 
-      @raise Invalid_arugment if the domain and list of values do not
+      @raise Invalid_argument if the domain and list of values do not
       have the same length.
   *)
 end

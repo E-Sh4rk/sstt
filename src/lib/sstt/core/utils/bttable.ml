@@ -1,5 +1,5 @@
 exception InvalidAccess
-(** Raised if a entry is used more than once. *)
+(** Raised if an entry is used more than once. *)
 
 module type S = sig
   (**
@@ -68,7 +68,7 @@ module type S = sig
   val find : t -> key -> bool option
   (** Retrieves the result associated with a value.
       If the value is not in the table, the initial guess [true]
-      is added and a entry is returned.
+      is added and an entry is returned.
   *)
 
   val update : t -> key -> bool -> unit
