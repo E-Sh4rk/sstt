@@ -586,11 +586,11 @@ module type Intervals = sig
 
   val lb : t -> Z.t option
   (** [lb t] extracts the lower-bound of [t], or [None] if [t] has no lower-bound.
-    Raises [Invalid_argument] if [t] is empty. *)
+    @raise Invalid_argument if [t] is empty. *)
 
   val ub : t -> Z.t option
   (** [ub t] extracts the upper-bound of [t], or [None] if [t] has no upper-bound.
-    Raises [Invalid_argument] if [t] is empty. *)
+    @raise Invalid_argument if [t] is empty. *)
 
 end
 
@@ -1250,7 +1250,7 @@ module type Ty = sig
   val of_eqs : (Var.t * t) list -> (Var.t * t) list
   (** [of_eqs [(x1,t1);...;(xn,tn)]] returns the types [x1], ..., [xn]
       satisfying the system of equations [x1=t1], ..., [xn=tn].
-      Raises: [Invalid_argument] if the set of equations is not contractive. *)
+      @raise Invalid_argument if the set of equations is not contractive. *)
 
   type row = VDescr.Descr.Records.Atom.t
   type subst = (t, row) MixVarMap.t

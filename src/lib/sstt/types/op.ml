@@ -61,10 +61,8 @@ module TupleComp = struct
     mapn (fun _ -> raise EmptyAtom) Ty.disj (as_union t)
 
   let proj i t =
-    as_union t |> List.map (fun lst -> 
-        match List.nth_opt lst i with
-          Some v -> v
-        | None -> invalid_arg "Op.TupleComp.proj") |> Ty.disj
+    if i < 0 || i >= TupleComp.len t then invalid_arg "Op.TupleComp.proj" ;
+    as_union t |> List.map (fun lst -> List.nth lst i) |> Ty.disj
 
   let merge a1 a2 = a1@a2
 end

@@ -47,9 +47,10 @@ module TupleComp : sig
   val approx : t -> atom
 
   (** [proj n t] returns the type resulting from the projection on the
-      [n]-th component (0-indexed) of [t]. 
+      [n]-th component (0-indexed) of [t].
       {%html: <style>ul.at-tags > li > p { display: inline }</style>%}
-      @raise Invalid_argument if [n] is negative or greater than the arity of [t].
+      @raise Invalid_argument if [n] is negative or greater than or equal to
+      the arity of [t].
   *)
   val proj : int -> t -> Ty.t
 
@@ -160,10 +161,10 @@ module TagComp : sig
   val preserves_cup : t -> bool
 
   (** [as_atom t] expresses [t] as an atom.
-      Raises: [Invalid_argument] if the tag component does not satisfy [is_identity]. *)
+      @raise Invalid_argument if the tag component does not satisfy [is_identity]. *)
   val as_atom : t -> atom
 
   (** [as_union t] expresses [t] as a union of atoms.
-      Raises: [Invalid_argument] if the tag component does not satisfy [preserves_cap]. *)
+      @raise Invalid_argument if the tag component does not satisfy [preserves_cap]. *)
   val as_union : t -> atom list
 end
