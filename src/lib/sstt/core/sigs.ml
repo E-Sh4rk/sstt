@@ -567,7 +567,11 @@ module type Intervals = sig
                              and type repr := Atom.t list
   (** @inline
 
-      The explicit representation of an {!Intervals.t} is a list of {!Atom.t}. *)
+      The explicit representation of an {!Intervals.t} is a list of {!Atom.t}.
+      The list given to [construct] needs not be sorted nor disjoint: intervals
+      that overlap or are adjacent are merged. Conversely, [destruct] always
+      returns intervals sorted in increasing order, pairwise disjoint and
+      pairwise non-adjacent. *)
 
   val destruct_neg : t -> Atom.t list
   (** [destruct_neg t] returns the explicit representation of the negation of [t].

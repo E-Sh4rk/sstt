@@ -119,14 +119,18 @@ let extract_singl t =
 (* In all the function below, comparisons are
    those of the Number module. *)
 
+(* [(a,b) @:: l] adds the interval [(a,b)] in front of the normalized list [l].
+   The only invariant required is that [(a,b)] starts no later than the head of
+   [l] (that is, [a <= c] below): the intervals of [l] that overlap [(a,b)] or
+   are adjacent to it are merged with it, so that the result is normalized. *)
 let rec ( @:: ) (a, b) l =
   let open Number in
   match l with
   | [] -> (a,b) $:: []
   | ((c, d),_) :: ll ->
-    (* invariant, b < c *)
     if b = PosInf then (a,b) $:: []
-    else if succ b = c then (a, d) @:: ll
+    else if c <= b then (a, max b d) @:: ll (* overlapping *)
+    else if succ b = c then (a, d) @:: ll (* adjacent *)
     else  (a,b) $:: l
 
 
