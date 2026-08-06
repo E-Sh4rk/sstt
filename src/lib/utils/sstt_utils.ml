@@ -55,7 +55,7 @@ let mapn default f lst =
       let hds, tls = map_split (function (e::l) -> e, l | _ -> assert false) lst in
       (f hds)::(aux f tls)
   in
-  if lst = [] then default () else aux f lst
+  if List.is_empty lst then default () else aux f lst
 
 (*
   fold_distribute_comb f comb acc [x1;x2;...;xn] [y1;y2;...;yn]

@@ -218,7 +218,7 @@ module Make(VS:VarSettings) = struct
     type descr = Nil | Cons of C.t * t
 
     let any = []
-    let is_any t = (t = [])
+    let is_any t = List.is_empty t
     let singleton e = [e]
     let destruct t =
       match t with

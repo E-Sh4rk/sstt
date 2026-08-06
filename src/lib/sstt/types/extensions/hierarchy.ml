@@ -23,11 +23,11 @@ let new_node h ~name ~subnodes =
     List.fold_left NSet.union nodes trans
   in
   try
-    let n = Node.mk name in
     let sub = NSet.of_list subnodes in
     let trans = trans_of sub in
     let sub = sub |> NSet.filter (fun n ->
         NSet.subset trans (NSet.remove n sub |> trans_of) |> not) in
+    let n = Node.mk name in
     let trans = NSet.add n trans in
     let atom = Enum.mk name in
     NHT.add h.nodes n { sub ; trans ; atom } ;

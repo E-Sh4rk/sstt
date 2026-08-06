@@ -297,8 +297,8 @@ let%expect_test "tests_ext" =
     [%expect {|
       list_42_43: [ 42 43 any* ]
       int_list: [ int* ]
-      list_not_only_a: [ any any* (~'a) any* | (~'a) any* ]
-      list_union: [ 43 42 any* | 42 any* ]
+      list_not_only_a: [ !((~'a) | any any* (~'a)) any* ]
+      list_union: [ !(42 | 43 42) any* ]
       list_regexp: [ ('b | 'a)* ]
       list_with_vars: 42::('a & [ int* ])
       char_any: char

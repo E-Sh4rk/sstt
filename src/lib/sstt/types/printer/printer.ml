@@ -12,8 +12,8 @@ module NodeId = struct
   let name t = Option.get t.name
   let rename t name = t.name <- Some name
   let hash t = Hash.int t.id
-  let compare t1 t2 = compare t1.id t2.id
-  let equal t1 t2 = (t1.id = t2.id)
+  let compare t1 t2 = Int.compare t1.id t2.id
+  let equal t1 t2 = Int.equal t1.id t2.id
   let pp fmt t =
     match t.name with
     | None -> Format.fprintf fmt "(%i)" t.id

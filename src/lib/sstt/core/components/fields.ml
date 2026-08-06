@@ -68,13 +68,14 @@ module OTy(N:Node) = struct
   let conj = List.fold_left cap any
   let disj = List.fold_left cup empty
 
-  let get (ps,ns) =
+  (* The atom denoted by a clause of the DNF. *)
+  let atom_of_clause (ps,ns) =
     Atom.diff (Atom.conj ps) (Atom.disj ns)
   let is_clause_empty (ps,ns,b) =
-    not b || Atom.is_empty (get (ps,ns))
+    not b || Atom.is_empty (atom_of_clause (ps,ns))
   let is_empty t = Bdd.for_all_lines is_clause_empty t
   let get = Bdd.fold_lines (fun acc (ps,ns,b) ->
-    if b then Atom.cup acc (get (ps,ns)) else acc) Atom.empty
+    if b then Atom.cup acc (atom_of_clause (ps,ns)) else acc) Atom.empty
 
   let equal = Bdd.equal
   let compare = Bdd.compare

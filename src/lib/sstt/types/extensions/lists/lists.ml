@@ -109,22 +109,25 @@ module IMap = Map.Make(Int)
 
 let to_automaton params_r =
   let auto = Automaton.create () in
-  let rec aux env t =
-    match IMap.find_opt t.id env with
+  (* [env] is shared by all the branches: a graph node reachable from
+     several branches must be associated with a single state. *)
+  let env = ref IMap.empty in
+  let rec aux t =
+    match IMap.find_opt t.id !env with
       Some s -> s
     | None ->
       let state = Automaton.mk_state auto in
-      let env = IMap.add t.id state env in
+      env := IMap.add t.id state !env ;
       let treat_d d =
         match d with
         | RNil -> Automaton.set_final auto state
         | RCons (d, t) ->
-          let state' = aux env t in
+          let state' = aux t in
           Automaton.add_trans auto state d state'
       in
       List.iter treat_d t.graph ; state
   in
-  let state = aux IMap.empty params_r in
+  let state = aux params_r in
   assert (Automaton.is_initial auto state) ;
   auto
 

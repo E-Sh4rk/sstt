@@ -97,10 +97,6 @@ type node
    empty set is the empty list. *)
 include Hash.List(Interval)
 
-let hash = function
-    [] -> Hash.const2
-  | (_, h) :: _ -> h
-
 let empty = []
 let any = Interval.any $:: []
 let mk i = i $:: []
