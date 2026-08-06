@@ -126,20 +126,25 @@ include (struct
     module Table = Bttable.MakeOpt(PreNode)
 
 
-    (** The memoization cache. Two caches are kept, one for simplified the other
-          for unsimplified nodes. Given a node [t], the following invariant
-          should be maintained when memoization is active (i.e. in the context
-          of a [with_shared_cache]).
+    (** The memoization cache for node construction, used by [cons] when
+        memoization is active (i.e. in the context of a [with_shared_cache]).
+        It associates a descriptor [d] to the node that was created for it, so
+        that two calls to [cons] with equal descriptors return the same node.
+        This is what makes the number of nodes created within the scope of a
+        [with_shared_cache] finite.
 
-        For every a node [n] that occurs in [t], if [def n] → [n'] is in the
-        cache, then [n == n']. [n'] is calthenled the canonical node for the
-        descriptor [def n].
+        Note that the binding [d] → [n] does not guarantee that [def n] is [d]:
+        [define] may be called afterwards on [n] to update its content, in
+        which case the binding becomes stale. This happens with [simplify],
+        which replaces the definition of a node by an equivalent, simplified
+        one. It is harmless (redefinitions preserve the denotation of a node),
+        but it means that a descriptor does not have a unique node associated
+        to it: [cons] applied to the simplified definition of [n] may return a
+        node different from [n].
 
-        A descriptor has at most two canonical nodes, one in each version of the
-        cache.
-
-        This invariant must be enforced by all functions that call [define]
-        below to update the content of a node.
+        The other functions calling [define] below ([of_eqs], [substitute] and
+        [factorize_many]) only do so on freshly created nodes, which are not in
+        the cache.
     *)
 
     module ConsCache = Hashtbl.Make(VDescr)
@@ -237,10 +242,10 @@ include (struct
         try
           let cache = get_cons_cache () in
           match ConsCache.find_opt cache d with
-            Some t -> t (* returns the canonical node *)
+            Some t -> t (* returns the memoized node *)
           | None ->
             let t = mk () in
-            ConsCache.add cache d t; (* sets t as the canonical node *)
+            ConsCache.add cache d t; (* memoizes t for the descriptor d *)
             define ~simplified t d ; t
         with
           Unhandled GetCache ->
