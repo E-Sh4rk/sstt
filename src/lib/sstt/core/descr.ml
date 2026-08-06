@@ -99,7 +99,7 @@ module Make(N:Node) = struct
     let records = frec t.records in
     let intervals = fint t.intervals in
     let others = fo t.others in
-    if enums == t.enums && tags == t.tags && tuples == t.tuples && arrows = t.arrows &&
+    if enums == t.enums && tags == t.tags && tuples == t.tuples && arrows == t.arrows &&
        records == t.records && intervals == t.intervals && others == t.others
     then t
     else
