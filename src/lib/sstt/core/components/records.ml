@@ -176,13 +176,29 @@ module Make(N:Node) = struct
     let tests = ns |> List.map (fun r -> r.Atom.tail, Atom.to_tuple dom r) in
     (tl, p), tests
 
+  (* If a component of [ss] is disjoint from the corresponding component of
+     [tt], then the line of the general case associated to this component
+     implies all the other ones, so that it is the only one to consider.
+     Note that we must return this line ([FTy.diff s t] at this position) rather
+     than [ss] itself, even though both are semantically equal: this keeps
+     [psi] monotonic w.r.t. the emptiness assumptions of the cache. *)
+  let rec disjoint_line ss tt =
+    match ss, tt with
+    | [], [] -> None
+    | s::ss, t::tt ->
+      if FTy.disjoint s t then Some ((FTy.diff s t)::ss)
+      else disjoint_line ss tt |> Option.map (fun ss -> s::ss)
+    | _, _ -> assert false
+
   let rec psi acc ss ts =
     List.exists FTy.is_empty ss ||
     match ts with
     | [] -> false
     | tt::ts ->
-      if List.exists2 FTy.disjoint ss tt then psi acc ss ts
-      else fold_distribute_comb (fun acc ss -> acc && psi acc ss ts) FTy.diff acc ss tt
+      match disjoint_line ss tt with
+      | Some ss -> psi acc ss ts
+      | None ->
+        fold_distribute_comb (fun acc ss -> acc && psi acc ss ts) FTy.diff acc ss tt
   let is_clause_empty (ps,ns,b) =
     if b then
       let (tl,p), ns = dnf_line_to_types (ps, ns) in
