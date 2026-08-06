@@ -1,46 +1,89 @@
 open Core
 open Prec
 
+(** Names for the recursive definitions introduced when printing a type. *)
 module NodeId : sig
   type t
+  (** The identity of a definition. Two occurrences of the same definition
+      share the same {!t}. *)
+
   val mk : unit -> t
+  (** Creates a fresh, yet unnamed, identifier. *)
+
   val has_name : t -> bool
+  (** Tests whether a name has already been given to this identifier. *)
+
   val name : t -> string
+  (** Returns the name of this identifier.
+      @raise Invalid_argument if it has no name yet. *)
+
   val rename : t -> string -> unit
+  (** Sets the name of this identifier. *)
+
   val hash : t -> int
   val compare : t -> t -> int
   val equal : t -> t -> bool
+
   val pp : Format.formatter -> t -> unit
+  (** Prints the name of this identifier, or a placeholder if it has none. *)
 end
 
+(** The types that have a dedicated syntax, and thus are not printed as an
+    algebraic combination of smaller types. [AnyTupleComp n] is the type of all
+    the [n]-uples, and [AnyTagComp tag] the type of all the values tagged with
+    [tag]. *)
 type builtin =
   | Empty | Any | AnyTuple | AnyEnum | AnyTag | AnyInt
   | AnyArrow | AnyRecord | AnyTupleComp of int | AnyTagComp of Tag.t
 
 type descr = { op : op ; ty : Ty.t }
+(** An algebraic representation [op] of the type [ty]. The two are kept
+    together so that transformations of the representation can be checked
+    against, or driven by, the type it denotes. *)
+
 and op =
   | Extension of extension_node
-  | Alias of string
+      (** A type recognized by one of the {!extensions} of the printing
+          context. *)
+  | Alias of string  (** A type recognized as one of the {!aliases}. *)
   | Node of NodeId.t
+      (** A reference to one of the definitions of the enclosing {!t}, used for
+          recursive types and for sharing. *)
   | Builtin of builtin
   | Var of Var.t
   | Enum of Enum.t
   | Tag of Tag.t * descr
   | Interval of Z.t option * Z.t option
+      (** An interval, [None] denoting an infinite bound. *)
   | Record of (Label.t * fdescr) list * fdescr
+      (** The explicit fields of a record, and its tail. *)
   | Varop of varop * descr list
   | Binop of binop * descr * descr
   | Unop of unop * descr
+
 and fdescr = { fop : fop ; fty : Ty.F.t }
+(** An algebraic representation [fop] of the field type [fty]. *)
+
 and fop =
   | FVarop of fvarop * fdescr list
   | FBinop of fbinop * fdescr * fdescr
   | FUnop of funop * fdescr
   | FTy of descr * bool
+      (** A plain type, the boolean indicating whether the field is optional
+          (that is, whether the type also contains the undefined value). *)
   | FRowVar of RowVar.t
+
 and extension_node
+(** The representation of a type by an {!extension_builder}, together with the
+    functions needed to traverse and print it. *)
+
 type def = NodeId.t * descr
+(** A definition, printed after the [where] keyword. *)
+
 type 'm t = { main : 'm ; defs : def list }
+(** The representation [main] of the type(s) being printed (a {!descr}, an
+    {!fdescr}, or a list of them), together with the definitions its [Node]
+    references refer to. *)
 
 type aliases = (Ty.t * string) list
 (** Types that must be printed using the given name. *)
@@ -48,7 +91,15 @@ type aliases = (Ty.t * string) list
 (* Printer extensions types and helper *)
 
 type extension_builder
+(** Knows how to recognize and print the tag components of a particular
+    extension. Built with {!builder}. *)
+
 type build_ctx = { build : Ty.t -> descr ; build_field : Ty.F.t -> fdescr }
+(** Converts the types occurring inside an extension into algebraic
+    representations, taking care of their sharing and aliases. *)
+
+(** Traverses the representation of an extension, applying the given functions
+    to every {!descr} and {!fdescr} it contains. *)
 type 'a map = (descr -> descr) -> (fdescr -> fdescr) -> 'a -> 'a
 val builder :
   to_t:(build_ctx -> TagComp.t -> 'a option) ->

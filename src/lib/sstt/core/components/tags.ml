@@ -43,6 +43,20 @@ module MakeC(N:Node) = struct
   let neg (tag, t) = tag, Bdd.neg t
   let diff (tag1, t1) (tag2, t2) = check_tag tag1 tag2 ; tag1, Bdd.diff t1 t2
 
+  (* A line [(ps,ns)] denotes the type
+     [tag(p1) & ... & tag(pk) & ~tag(n1) & ... & ~tag(nl)].
+     - if the interpretation of [tag] is monotonic, this type is empty as soon
+       as [pi <= nj] for some [i] and [j]; otherwise, we can only conclude when
+       [pi] and [nj] are equivalent ([equiv] below);
+     - if it preserves intersections (resp. unions), the positive (resp.
+       negative) atoms can be merged into a single one ([merge_ps], resp.
+       [merge_ns]);
+     - if it preserves the corresponding extremum, the type is also empty when the positive
+       part is empty, or when the negative part is [any]. These two tests are
+       only needed when a single side has been merged ([extremum] below): when
+       both sides are merged, [ps] and [ns] are singletons, so the product
+       below contains exactly one pair [(p,n)] and the test [p\n] already
+       covers them. *)
   let line_emptiness_checks tag (ps,ns) =
     let equiv, merge_ps, merge_ns, extremum =
       match Tag.properties tag with

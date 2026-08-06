@@ -19,10 +19,22 @@ module FieldCtx = FieldCtx
 module Prec = Prec
 module Printer = Printer
 
-(** {1 Extensions } 
+(** {1 Extensions }
 
-This modules provides several common data-types, encoded as tagged type with a
-particular tag.
+These modules provide several common data-types, encoded as tagged type with a
+particular tag. They all follow the same pattern:
+
+- a tag identifying the encoding (or, when the extension is parameterized, a
+  function creating one), together with constructors and destructors for the
+  types of the extension;
+- a type [t] representing such a type in a form that is convenient to print,
+  and the three functions [to_t], [map] and [print] that {!Printer.builder}
+  expects. [to_t] returns [None] when the tag component it is given is not a
+  valid encoding for this extension;
+- [printer_builder], the result of applying {!Printer.builder} to the previous
+  three, and [printer_params], ready-to-use {!Printer.params} recognizing the
+  extension. The parameters of several extensions can be combined with
+  {!Printer.merge_params}.
 *)
 
 

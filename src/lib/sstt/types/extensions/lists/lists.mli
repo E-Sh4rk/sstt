@@ -53,18 +53,35 @@ type 'a regexp =
   | Star of 'a regexp
   | Plus of 'a regexp
   | Option of 'a regexp
+(** A regular expression over the elements of a list. *)
 
 type basic = Nil | Cons of Printer.descr * Printer.descr
+(** A list type that is not turned into a regular expression: either the empty
+    list, or a head and a tail. *)
 
 type t =
   | Regexp of Printer.descr regexp
+      (** The list type, as a regular expression over its elements. *)
   | Basic of basic list
+      (** The list type, as a union of empty lists and head/tail pairs. Used
+          when it cannot be expressed as a regular expression, typically
+          because its tail contains a type variable. *)
 
 val to_t : Printer.build_ctx -> TagComp.t -> t option
+(** Recognizes a list type (see {!Sstt.Extensions}). *)
+
 val map : t Printer.map
+(** Applies the given function to the elements of the list type. *)
+
 val print : int -> Prec.assoc -> Format.formatter -> t -> unit
+(** Prints a list type. *)
 
 val printer_builder : Printer.extension_builder
+(** The printer extension for lists. *)
+
 val printer_params : Printer.params
+(** Printing parameters recognizing lists. *)
 
 val build : Ty.t regexp -> Ty.t
+(** [build r] returns the type of the lists whose elements form a word of the
+    regular expression [r]. *)

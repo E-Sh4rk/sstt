@@ -242,8 +242,12 @@ module type ComponentFamilyOps = sig
   type atom
   type comp
   type index
+
   val mk : atom -> t
+  (** Creates a family from a single atom (of the component it belongs to). *)
+
   val mk_comp : comp -> t
+  (** Creates a family from a single component. *)
 
   val components : t -> comp list * bool
   (** [components t] returns a pair [(cs,b)] where [cs] are the tuple components
@@ -251,6 +255,7 @@ module type ComponentFamilyOps = sig
        of other cardinalities are [any] (if [b] is [true]) or [empty] (if [b] is [false]). *)
 
   val of_components : comp list * bool -> t
+  (** Inverse of {!components}. *)
 
   val get : index -> t -> comp
   (** [get i t] returns the component of index [i] in [t]. *)
@@ -259,6 +264,7 @@ module type ComponentFamilyOps = sig
   val map : (comp -> comp) -> t -> t
 
   val construct : bool * comp list -> t
+  (** Inverse of {!destruct}. *)
 
   (** [destruct t] returns a pair [(b,cs)] such that:
       if [b] is true, then [t] contains exactly the tuple components [cs],
@@ -332,6 +338,8 @@ module type OTy = sig
     include SetTheoretic with type t := t
 
     val get : t -> Atom.t
+    (** [get t] over-approximates [t] by a single atom (the union of the atoms
+        of its DNF). *)
 
     val present : t
     (** [present] is a shortcut for [mk Atom.present]. *)
@@ -989,6 +997,7 @@ module type Descr = sig
   (** [of_component c] is equivalent to [of_components [(c,false)]]. *)
 
   val construct : bool * component list -> t
+  (** Inverse of {!destruct}. *)
 
   (** [destruct t] returns a pair [(b,cs)] such that:
       if [b] is true, then [t] contains exactly the components [cs],
@@ -1245,8 +1254,13 @@ module type Ty = sig
   *)
 
   val all_vars : t -> MixVarSet.t
+  (** [all_vars t] returns both the type variables and the row variables of [t]
+      (that is, [vars t] and [row_vars t]). *)
 
   val all_vars_toplevel : t -> MixVarSet.t
+  (** [all_vars_toplevel t] returns both the top-level type variables and the
+      top-level row variables of [t] (that is, [vars_toplevel t] and
+      [row_vars_toplevel t]). *)
 
   val nodes : t -> t list
   (** [nodes t] returns all the nodes appearing in [t] (including [t] itself). *)
