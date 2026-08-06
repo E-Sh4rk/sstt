@@ -88,6 +88,13 @@ end
 module Atom = Interval
 type node
 
+(* A set of integers is represented by the list of its maximal intervals.
+   The following invariant is maintained by every function below, and assumed
+   by all of them: the intervals are non-empty, sorted in increasing order,
+   pairwise disjoint and pairwise non-adjacent (i.e. two consecutive intervals
+   [(a,b)] and [(c,d)] satisfy [succ b < c], so that they cannot be merged into
+   a single one). In particular, the representation of a set is unique, and the
+   empty set is the empty list. *)
 include Hash.List(Interval)
 
 let hash = function

@@ -574,7 +574,8 @@ module type Intervals = sig
       pairwise non-adjacent. *)
 
   val destruct_neg : t -> Atom.t list
-  (** [destruct_neg t] returns the explicit representation of the negation of [t].
+  (** [destruct_neg t] returns the explicit representation of the negation of [t]
+      (with the same guarantees as [destruct]).
       The negation of [t] is sometimes simpler than [t] itself,
       which may justify working on this negative form
       (for instance when pretty-printing).

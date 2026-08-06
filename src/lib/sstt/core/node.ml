@@ -122,7 +122,23 @@ include (struct
                                                                             and type row = VDescr.Descr.Records.Atom.t = struct
     (* The PreNode module that contain the entry points of all functions on types. *)
 
-    (* Subtyping cache *)
+    (* Subtyping cache.
+
+       While the emptiness of a node is being decided, the table associates the
+       hypothesis [true] ("this node is empty") to every node currently being
+       explored, and this hypothesis is used to decide the emptiness of the
+       nodes below. The decision procedure must therefore be MONOTONIC w.r.t.
+       these hypotheses: assuming that a node is empty must only make more
+       nodes empty. See the "Monotonicity" section of {!Bttable}, whose
+       invalidation strategy relies on it.
+
+       This is a real constraint for the emptiness relations of the components
+       ([psi] in Arrows, Tuples and Records): a shortcut that discards a
+       negative atom because of an emptiness test (disjointness, subtyping) is
+       only correct if the branch it keeps is one of the branches of the
+       general case. Otherwise a new hypothesis could make the shortcut
+       applicable and yield a non-empty answer where the general case would
+       have concluded emptiness. *)
     module Table = Bttable.MakeOpt(PreNode)
 
 
@@ -314,6 +330,11 @@ include (struct
 
     let is_empty_rec t = with_shared_cache is_empty_rec t
 
+    (* The fast path for simplified nodes relies on the following invariant of
+       [simplify]: the definition of a simplified node is syntactically
+       [VDescr.empty] if and only if it is semantically empty. Any change to
+       the simplification of a component must preserve it, otherwise [is_empty]
+       becomes unsound (it would answer [false] on an empty type). *)
     let is_empty t =
       if t == empty then true
       else if t == any then false
