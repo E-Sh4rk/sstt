@@ -4,9 +4,23 @@
 
 The Simple Set-Theoretic Types library implements set-theoretic
 types and all related operations (set-theoretic operations, subtyping,
-type-substitution, tallying). The entry point of this library is the module 
+type-substitution, tallying). The entry point of this library is the module
 {!module-Sstt}.
 
+{1 Thread safety}
+
+The library is {b not} thread-safe for the following reasons:
+
+- identifiers ({!Sstt.Var}, {!Sstt.RowVar}, {!Sstt.Label}, {!Sstt.Tag},
+  {!Sstt.Enum}, as well as the identifiers of types and of printer
+  definitions) are allocated from global counters. Concurrent allocations may
+  give the same identifier to two distinct entities, which would then be
+  considered equal;
+- types are mutable: the definition of a type is updated in place when it is
+  simplified;
+- the memoization and subtyping caches are installed by an effect handler
+  (see {!Sstt.Ty.with_shared_cache}), which is local to the fiber installing
+  it.
 
 {1 Examples}
 

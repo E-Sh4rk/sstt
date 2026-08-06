@@ -1,7 +1,8 @@
 # Simple Set-Theoretic Types (SSTT) library
 
 SSTT is an OCaml library for manipulating set-theoretic types ([documentation](https://e-sh4rk.github.io/sstt/doc/)).  
-**Disclaimer: this library is a work in progress and is subject to breaking change.**
+**Disclaimer: this library is a work in progress and is subject to breaking change.**  
+**Note: the library is not thread-safe: it must be used from a single thread of a single domain.**
 
 Currently, it supports the following type constructors:
 - Enums
