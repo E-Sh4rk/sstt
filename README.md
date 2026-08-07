@@ -1,28 +1,37 @@
 # Simple Set-Theoretic Types (SSTT) library
 
-SSTT is an OCaml library for manipulating set-theoretic types ([documentation](https://e-sh4rk.github.io/sstt/doc/)).  
-**Disclaimer: this library is a work in progress and is subject to breaking change.**  
-**Note: the library is not thread-safe: it must be used from a single thread of a single domain.**
+SSTT is an OCaml library for manipulating set-theoretic types.  
+[Documentation](https://e-sh4rk.github.io/sstt/doc/) - [REPL](https://e-sh4rk.github.io/sstt/) - [Manual](manual/REPL.md)
 
-Currently, it supports the following type constructors:
+> [!NOTE]
+> This library only implements a set-theoretic type algebra, it is **not** a full type system. If you are looking for a set-theoretic type system implementation, you can take a look at [MLsem](https://github.com/E-Sh4rk/MLsem).
+
+> [!IMPORTANT]
+> This library is a research artifact and is subject to breaking changes.
+
+Currently, it supports the following built-in type constructors:
 - Enums
-- Tags
 - Integer intervals
 - Arrows
 - Tuples of any arity
-- Records with row polymorphism
+- Records
+- Tags (a.k.a. ``[Opaque Data Types](https://doi.org/10.1145/3798220)'')
 - Type variables and row variables
+- Set-theoretic connectives and equirecursive types
 
-The following operations are implemented:
+> [!TIP]
+> The type algebra can be extended with other type constructors (e.g. Booleans, Strings, Lists, etc.) using encodings. For instance, [RSTT](https://github.com/E-Sh4rk/rstt) provides extensions for the R language.
+
+It features the following operations on set-theoretic types:
 - Semantic subtyping
 - DNF extraction and simplification
-- Usual type operators such as projections and application
-- Substitution
+- Usual type operators such as projections and arrow type applications
+- Application of a substitution
 - Tallying (= unification but with subtyping constraints)
 - Pretty printing (or more generally, extraction of an algebraic representation)
 
-It also provides a REPL ([web version](https://e-sh4rk.github.io/sstt/)) that allows performing common operations (subtyping, tallying, etc.) with a conveninent syntax.
-See [`manual/REPL.md`](manual/REPL.md) for examples and a description of the syntax.
+> [!WARNING]
+> This library is not thread-safe: it must be used from a single thread of a single domain.
 
 ## Installation
 
@@ -32,8 +41,6 @@ This library uses algebraic effects and requires at least the version `5.3.0` of
 opam switch create sstt 5.3.0
 eval $(opam env --switch=sstt)
 ```
-
-### Using OPAM
 
 The easiest way to install this library is through [opam](https://opam.ocaml.org/), the OCaml Package Manager.  
 The SSTT library can be installed as follows:
