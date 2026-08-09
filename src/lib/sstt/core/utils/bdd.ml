@@ -250,6 +250,9 @@ module Make(N:Atom)(L:Leaf) = struct
     | Pos (a, ctx) -> to_t ctx (hnode a t empty)
     | Neg (a, ctx) -> to_t ctx (hnode a empty t)
 
+  (** [simplify eq t] will return the empty BDT if [t] represents the empty type
+      for the equivalence relation [eq]. However, it does not ensure the result is
+      always minimal. *)
   let simplify eq t =
     let rec aux ctx t =
       if t == empty || t == any then t else
@@ -267,6 +270,22 @@ module Make(N:Atom)(L:Leaf) = struct
             else t
     in
     aux Root (map_nodes N.simplify t)
+(*
+Note on the non-optimality:
+Consider three nodes A, B, C such that B < C < A and A ⊆ B ⊆ C,
+the type (B∧¬A) ∨ (¬B∧C):
+
+   B
+¬A   C
+
+will not be simplified into C ∧ ¬A
+
+   C
+¬A
+
+Minimizing an OBDD for an incompletely specified function at a fixed variable order is NP-hard, cf.
+"On the complexity of minimizing the OBDD size for incompletely specified functions" (Sauerhoff & Wegener, 1996)
+*)
 
 
 end
