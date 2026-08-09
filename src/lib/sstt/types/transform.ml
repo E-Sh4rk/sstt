@@ -179,8 +179,7 @@ let simpl_descr ~normalize d =
     ) in
     construct (b, comps)
 
-let simpl_vdescr ~normalize ~extra vd =
-  let vd = match extra with None -> vd | Some f -> f vd in
-  VDescr.map (simpl_descr ~normalize) vd
+let simpl_vdescr ~normalize vd = VDescr.map (simpl_descr ~normalize) vd
 
-let simplify ?normalize ?extra t = transform (simpl_vdescr ~normalize ~extra) t
+let simplify ?normalize t = transform (simpl_vdescr ~normalize) t
+let simplify_vdescr ?normalize vd = simpl_vdescr ~normalize vd
