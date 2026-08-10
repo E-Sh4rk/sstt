@@ -59,12 +59,13 @@ module Make(VS:VarSettings) = struct
     module V : V
     module B : B with type var := V.t
     type t
-    val trivial : V.t -> t
     val mk : B.t * V.t * B.t -> t
     val destruct : t -> B.t * V.t * B.t
     val var : t -> V.t
     val merge : t -> t -> t
     val subsumes : t list -> t -> t -> bool
+    val trivial : V.t -> t
+    val is_trivial : t -> bool
     val compare : t -> t -> int
     val assert_sat : t list -> t -> unit
     val pp : Format.formatter -> t -> unit
@@ -101,7 +102,10 @@ module Make(VS:VarSettings) = struct
       if unsat ctx c
       then raise_notrace Unsat
 
+    (* The constraint on [v] that constrains nothing. *)
     let trivial v = (B.empty, v, B.any)
+    let is_trivial (s, _, t) = B.leq s B.empty && B.leq B.any t
+
     let mk e = assert_sat [] e ; e
 
     let merge (s, v, t) (s', _, t') =
@@ -195,6 +199,14 @@ module Make(VS:VarSettings) = struct
 
   (* Constraint sets *)
 
+  (* A constraint set is a conjunction of constraints, with at most one
+     constraint per variable, ordered by variable.
+
+     INVARIANT: a constraint set never contains a trivial constraint
+     (in the sense of [C.is_trivial]). Such a constraint is satisfied by any
+     assignment of its variable, so it carries no information and is discarded
+     by [singleton] and [add].
+  *)
   module type CS = sig
     module C : C
     type t
@@ -219,23 +231,31 @@ module Make(VS:VarSettings) = struct
 
     let any = []
     let is_any t = List.is_empty t
-    let singleton e = [e]
+    let singleton e = if C.is_trivial e then any else [e]
     let destruct t =
       match t with
       | [] -> Nil
       | c::t -> Cons (c, t)
 
-    let rec add c l =
-      match l with
-        [] -> [ c ]
-      | c' :: ll ->
-        let n = V.compare (C.var c) (C.var c') in
-        if n < 0 then c::l
-        else if n = 0 then (C.merge c c')::ll
-        else
-          let ll = add c ll in
-          C.assert_sat ll c' ;
-          c' :: ll
+    (* Trivial constraints are dropped in order to preserve the invariant.
+       Note that [C.merge] can only make bounds more restrictive, so merging
+       a non-trivial constraint never produces a trivial one. *)
+    let add c l =
+      if C.is_trivial c then l
+      else
+        let rec add l =
+          match l with
+            [] -> [ c ]
+          | c' :: ll ->
+            let n = V.compare (C.var c) (C.var c') in
+            if n < 0 then c::l
+            else if n = 0 then (C.merge c c')::ll
+            else
+              let ll = add ll in
+              C.assert_sat ll c' ;
+              c' :: ll
+        in
+        add l
 
     let cap l1 l2 =
       if is_any l1 then l2
@@ -244,19 +264,19 @@ module Make(VS:VarSettings) = struct
       then List.fold_left (fun acc c -> add c acc) l1 l2
       else List.fold_left (fun acc c -> add c acc) l2 l1
 
-    (* A constraint set l1 subsumes a constraint set l2 if
-       forall constraint c2 in m2, there exists
-       c1 in t1 such that c1 subsumes c2
-    *)
+    (* A constraint set [l1] subsumes a constraint set [l2] if, for every
+       constraint [c2] of [l2], the constraint of [l1] on the variable of [c2]
+       subsumes [c2]. *)
     let subsumes l1 l2 =
+      let unconstrained ctx1 c2 = C.subsumes ctx1 (C.var c2 |> C.trivial) c2 in
       let rec aux ctx1 l1 l2 =
         match l1, l2 with
         | _, [] -> true
-        | [], _ -> false
+        | [], c2::ll2 -> unconstrained ctx1 c2 && aux ctx1 l1 ll2
         | c1::ll1, c2::ll2 ->
           let n = V.compare (C.var c1) (C.var c2) in
           if n > 0 then aux (c1::ctx1) ll1 l2
-          else if n < 0 then C.subsumes ctx1 (C.var c2 |> C.trivial) c2 && aux ctx1 l1 ll2
+          else if n < 0 then unconstrained ctx1 c2 && aux ctx1 l1 ll2
           else C.subsumes ctx1 c1 c2 && aux (c1::ctx1) ll1 ll2
       in
       aux [] (List.rev l1) (List.rev l2)
@@ -303,10 +323,10 @@ module Make(VS:VarSettings) = struct
   (* Sets of constraint sets *)
 
   module CSS = struct
-    (* Constraint sets are ordered list of non subsumable elements.
-       They represent union of constraints, so we maintain the invariant
-       that we don't want to add a constraint set that subsumes an already
-       existing one.
+    (* Sets of constraint sets are ordered lists of non subsumable constraint
+       sets. They represent a union of constraint sets, so we maintain the
+       invariant that we don't want to add a constraint set that subsumes an
+       already existing one.
     *)
     type t = CS'.t list
     let empty : t = []
