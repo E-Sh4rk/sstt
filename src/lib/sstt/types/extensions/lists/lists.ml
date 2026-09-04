@@ -201,7 +201,7 @@ let rec print_r prec fmt regexp =
     if prec' <= prec
     then begin
       need_paren := true ;
-      Format.fprintf fmt "!("
+      Format.fprintf fmt "("
     end
   in
   let () = match regexp with

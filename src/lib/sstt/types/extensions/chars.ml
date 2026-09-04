@@ -40,7 +40,7 @@ let print prec assoc fmt ints =
   let pp_chars _prec _assoc fmt (chr1, chr2) =
     if Char.equal chr1 chr2
     then Format.fprintf fmt "%C" chr1
-    else Format.fprintf fmt "(%C-%C)" chr1 chr2
+    else Format.fprintf fmt "(%C..%C)" chr1 chr2
   in
   if ints = any_t then Format.fprintf fmt "char"
   else print_cup pp_chars prec assoc fmt ints
