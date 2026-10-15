@@ -9,13 +9,13 @@
 (generate_opam_files true)
 
 (authors
- "Mickael Laurent"
- "Kim Nguyen"
+ "Mickaël Laurent"
+ "Kim Nguyễn"
 )
 
 (maintainers
- "Mickael Laurent"
- "Kim Nguyen"
+ "Mickaël Laurent"
+ "Kim Nguyễn"
 )
 
 (homepage "https://github.com/E-Sh4rk/sstt")
