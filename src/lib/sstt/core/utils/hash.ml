@@ -32,437 +32,397 @@ sig
   include Hashtbl.HashedType with type t := t
 end
 
-module List(X : Comparable) : sig
-  type t = (X.t * int) list
-  include Comparable with type t := t
-  val ($::) : X.t -> t -> t
-  val of_list : X.t list -> t
-  val map : (X.t -> X.t) -> t -> t
-  val to_list : t -> X.t list
-  val filter : (X.t -> bool) -> t -> t
-  val for_all : (X.t -> bool) -> t -> bool
-  val length : t -> int
-end = struct
+module List (X : Comparable) = struct
 
-  type t = (X.t * int) list
+  type t = X.t list * int list
+  let empty = [], []
+  let is_empty = function ([], _) -> true | _ -> false
+  let uncons = function
+      [], [] -> None
+    | x::l, _::h -> Some (x, (l, h))
+    | _ -> assert false
 
-  let compare_hash (x1, h1) (x2, h2) =
-    let c = Int.compare h1 h2 in
-    if c <> 0 then c else X.compare x1 x2
+  let rec compare4 l1 h1 l2 h2 =
+    match h1, h2 with
+      [],[] -> 0
+    | [], _ -> -1
+    | _, [] -> 1
+    | i1 :: hh1, i2 :: hh2 ->
+      let c = Int.compare i1 i2 in
+      if c <> 0 then c else
+        match l1, l2 with
+          x1 :: ll1, x2 :: ll2 ->
+          let c = X.compare x1 x2 in
+          if c <> 0 then c else compare4 ll1 hh1 ll2 hh2
+        | _ -> assert false
 
-  let equal_hash (x1, h1) (x2, h2) =
-    Int.equal h1 h2 && X.equal x1 x2
-  let compare = List.compare compare_hash
-  let equal = List.equal equal_hash
+  let compare (l1, h1) (l2, h2) = compare4 l1 h1 l2 h2
 
-  let[@inline always] hash = function
+  let rec equal4 l1 h1 l2 h2 =
+    match l1, h1, l2, h2 with
+      [], _, [], _ -> true
+    | x1::ll1, i1::hh1, x2::ll2, i2::hh2 ->
+      i1 == i2 && X.equal x1 x2 && equal4 ll1 hh1 ll2 hh2
+    | _ -> false
+
+  let equal (l1, h1) (l2, h2) = equal4 l1 h1 l2 h2
+
+  let[@inline always] get_hash = function
       [] -> const0
-    | (_, h) :: _ -> h
+    | h :: _ -> h
 
-  let[@inline always] ($::) x l = (x, mix (hash l) (X.hash x))::l
+  let[@inline always] combine_hash h x =
+    (mix (get_hash h) (X.hash x)) :: h
 
-  let of_list l = List.fold_left (fun acc e -> e $:: acc) [] (List.rev l)
-  let map f l =
-    let rec loop l =
-      match l with
-        [] -> []
-      | (e, _) :: ll -> (f e) $:: loop ll
-    in loop l
+  let[@inline always] hash (_, h) = get_hash h
 
-  let to_list = List.map fst
+  let[@inline always] ($::) x (l, h) =
+    (x :: l,combine_hash h x)
 
-  let rec filter f = function
-    | [] -> []
-    | (e, _) :: ll -> if f e then e $:: filter f ll else filter f ll
+  let of_list l =
+    l, l |> List.rev |> List.fold_left combine_hash []
 
-  let rec for_all f = function
-    | [] -> true
-    | (e, _) :: ll -> (f e) && for_all f ll
+  let map f (l, _) =
+    List.rev_map f l |>
+    List.fold_left (fun acc x -> x $:: acc) empty
 
-  let length = List.length
+  let to_list = fst
+
+  let rec filter2 f l h =
+    match l, h with
+      [], _ -> empty
+    | x :: ll, _ :: hh ->
+      let rl, rh = filter2 f ll hh in
+      if f x then
+        if rl == ll && rh == hh then (l, h) else x $:: (rl, rh)
+      else (rl, rh)
+    | _ -> assert false
+
+  let filter f (l, h) = filter2 f l h
+  let for_all f (l, _) = List.for_all f l
+
+  let length (l, _ )= List.length l
 end
 
 
-module type Set = sig
-
-
+module type Set =
+sig
   type elt
-  (** The type of elements in the set. *)
-
   type t
-  (** Sets of comparable and hashable elements which support hash in constant time.
-      We call the view of a set is the list [(x0,h0) :: (x1, h1) :: … :: []]
-      where the [xi] are the ordered elements of the set and [hi] is
-      the has computed between the has of element [xi] and the tail of
-      the list starting with element [xi+1].
-  *)
-
-  val compare : t -> t -> int
-  (** Total order between two sets implemented as lexicographic order over the views. *)
-
-  val equal : t -> t -> bool
-  (** Equal is structural equality between the views. *)
-
-  val hash : t -> int
-  (** Compute the hash of the set, in constant time. *)
+  include Comparable with type t:=t
 
   val empty : t
-  (** The empty set. *)
-
   val is_empty : t -> bool
-
+  val add : elt -> t -> t
   val subset : t -> t -> bool
-
   val elements : t -> elt list
-  (** Return the elements of the set as a sorted list. *)
-
   val filter : (elt -> bool) -> t -> t
-  (** Filtering, [filter f s] is the set of elements of [s] for which [f] returns [true]. *)
-
+  val map : (elt -> elt) -> t -> t
   val mem : elt -> t -> bool
-  (** Membership test. *)
-
   val of_list : elt list -> t
-  (** Convert from a list of elements which may contain duplicates w.r.t to the
-      comparison function. (which element is kept in this case is unspecified).
-  *)
-
   val to_list : t -> elt list
-  (** An alias for elements. *)
-
   val union : t -> t -> t
-  (** The union of two sets. If an element compares equal in both set, the
-      element of the first set is kept.*)
-
   val inter : t -> t -> t
-  (** The intersection of two sets. If an element compares equal in both set, the
-      element of the first set is kept. *)
-
   val diff : t -> t -> t
-  (** The difference of two sets. *)
-
   val cardinal : t -> int
-  (** Return the number of elements in the set. *)
-
 end
-
-module type Map = sig
+module type Map =
+sig
   type key
-  (** The type of keys *)
-
   type value
-  (** The type of values *)
-
   type t
-  (** Maps of hashable and comparable keys and values which support hash in
-      constant time.
-  *)
-
   module Set : Set with type elt = key
-  (** Represent sets of keys *)
-
   val add : key -> value -> t -> t
-  (** Add a binding to a map. If a binding already exists, the old value is replaced. *)
-
   val dom : t -> Set.t
-  (** The domain of the map (in constant time). *)
-
   val bindings : t -> (key * value) list
-  (** Return the list of bindings. *)
-
   val compare : t -> t -> int
-  (** Total ordering between maps. *)
-
   val equal : t -> t -> bool
-  (** Equality between two maps. *)
-
   val hash : t -> int
-  (** Hash value of a map (in constant time). *)
-
   val empty : t
-  (** The empty map. *)
-
   val exists : (key -> value -> bool) -> t -> bool
-  (** Test whether a binding verifies a predicate. *)
-
   val filter : (key -> value -> bool) -> t -> t
-  (** Return the map of bindings which verify a predicate. *)
-
   val find_opt : key -> t -> value option
-  (** Find a value in the map. Runs in linear time in the number of bindings. *)
-
   val map : (value -> value) -> t -> t
-  (** Return a map with the same keys and updated values *)
-
   val filter_map : (key -> value -> value option) -> t -> t
-
   val of_list : (key * value) list -> t
-  (** Build from a list of bindings *)
-
   val singleton : key -> value -> t
-  (** Return the map with one binding. *)
-
   val to_list : t -> (key * value) list
-  (** An alias for bindings. *)
-
-  val merge : (key -> value option -> value option -> value option) -> t -> t -> t
-  (** Merge two maps. For each key the merge function is called. The optional
-      value given as first (resp. second) arguments determines the presence of the
-      binding in the first (resp. second) map.
-      If the merge function returns [None], no binding is created for that key.
-  *)
-
+  val merge :
+    (key -> value option -> value option -> value option) -> t -> t -> t
   val values_for_domain : Set.t -> value -> t -> value list
-  (** [values_for_domain dom def map] returns a map whose domain is [dom] and whose
-      value is:
-      - taken from [map] if the binding exists there
-      - otherwise [def]
-  *)
-
   val values : t -> value list
-  (** Return the values of a map. *)
-
   val constant : Set.t -> value -> t
-  (** Return a constant map with from the given domain. *)
-
   val fold : ('a -> key -> value -> 'a) -> 'a -> t -> 'a
-  (** Folding over the bindings of the map. *)
-
   val is_singleton_opt : t -> (key * value) option
-  (** If the map is a singleton, returns its single binding as [Some (k, v)].
-      Otherwise returns [None]. *)
-
   val combine : Set.t -> value list -> t
-  (** Create a map from the given domain and values, taken in the order of the
-        list.
-
-      @raise Invalid_argument if the domain and list of values do not
-      have the same length.
-  *)
 end
-include (
+
+
+module SetList ( X : Comparable ) =
 struct
+  type elt = X.t
+  include List(X)
+  let elements = to_list
+
+  let rec mem_list x l =
+    match l with
+      [] -> false
+    | y :: ll ->
+      let c = X.compare y x in
+      if c < 0 then mem_list x ll
+      else c = 0
+
+  let mem x (l, _) = mem_list x l
+
+  let rec add2 x l h =
+    match l with
+      []  -> x $:: empty
+    | y :: ll ->
+      let c = X.compare x y in
+      if c < 0 then x $:: (l, h)
+      else if c = 0 then (l, h)
+      else match h with
+          _ :: hh ->  y $:: add2 x ll hh
+        | _ -> assert false
+
+  let add x (l, h) = add2 x l h
+
+  let of_list l =
+    Stdlib.List.fold_left (fun acc x -> add x acc) empty l
+
+  let map f (l,_) =
+    Stdlib.List.fold_left (fun acc x -> add (f x) acc) empty l
+
+  let rec union4 l1 h1 l2 h2 =
+    match l1 with
+      [] -> (l2, h2)
+    | x1 :: ll1 ->
+      match l2 with
+        [] -> (l1, h1)
+      | x2 :: ll2 ->
+        match h1, h2 with
+          (_ :: hh1), (_ :: hh2) ->
+          let c = X.compare x1 x2 in
+          if c < 0 then x1 $:: union4 ll1 hh1 l2 h2
+          else if c = 0 then x1 $:: union4 ll1 hh1 ll2 hh2
+          else x2 $:: union4 l1 h1 ll2 hh2
+        | _ -> assert false
+  let union (l1, h1) (l2, h2) = union4 l1 h1 l2 h2
+
+  let rec inter4 l1 h1 l2 h2 =
+    match l1 with
+      [] -> empty
+    | x1 :: ll1 ->
+      match l2 with
+        [] -> empty
+      | x2 :: ll2 ->
+        match h1, h2 with
+          (_ :: hh1, _ :: hh2) ->
+          let c = X.compare x1 x2 in
+          if c < 0 then inter4 ll1 hh1 l2 h2
+          else if c = 0 then x1 $:: inter4 ll1 hh1 ll2 hh2
+          else inter4 l1 h1 ll2 hh2
+        | _ -> assert false
+
+  let inter (l1, h1) (l2, h2) = inter4 l1 h1 l2 h2
+
+  let rec diff4 l1 h1 l2 h2 =
+    match l1 with
+      [] -> empty
+    | x1 :: ll1 ->
+      match l2 with
+        [] -> (l1, h1)
+      | x2 :: ll2 ->
+        match h1, h2 with
+          (_ :: hh1, _ :: hh2) ->
+          let c = X.compare x1 x2 in
+          if c < 0 then x1 $:: diff4 ll1 hh1 l2 h2
+          else if c = 0 then diff4 ll1 hh1 ll2 hh2
+          else diff4 l1 h1 ll2 hh2
+        | _ -> assert false
+
+  let diff (l1, h1) (l2, h2) = diff4 l1 h1 l2 h2
+
+  let cardinal (l, _) = Stdlib.List.length l
+  let subset l1 l2 = diff l1 l2 |> is_empty
+end
+
+module MapList (K : Comparable) (V : Comparable)
+=
+struct
+  type key = K.t
+  type value = V.t
+
+  module Keys = SetList(K)
+  module Set = Keys
+  module Values = List(V)
+  type t = Keys.t * Values.t
 
 
-  module SetList ( X : Comparable ) =
-  struct
-    type elt = X.t
-    include List(X)
-    let elements = to_list
-    let empty = []
-    let rec mem x l =
-      match l with
-        [] -> false
-      | (y, _) :: ll ->
-        let c = X.compare y x in
-        if c < 0 then mem x ll
-        else c = 0
-
-    let rec add x l =
-      match l with
-        []  -> x $:: []
-      | (y, _) :: ll ->
-        let c = X.compare x y in
-        if c < 0 then x $:: l
-        else if c = 0 then l
-        else y $:: add x ll
-
-    let of_list l = Stdlib.List.fold_left (fun acc x -> add x acc) empty l
-    let rec union l1 l2 =
-      match l1, l2 with
-        ([], l) | (l, []) -> l
-      | (x1, _) :: ll1, (x2, _) :: ll2 ->
-        let c = X.compare x1 x2 in
-        if c < 0 then x1 $:: union ll1 l2
-        else if c = 0 then x1 $:: union ll1 ll2
-        else x2 $:: union l1 ll2
-    let rec inter l1 l2 =
-      match l1, l2 with
-        ([], _) | (_, []) -> []
-      | (x1, _) :: ll1, (x2, _) :: ll2 ->
-        let c = X.compare x1 x2 in
-        if c < 0 then inter ll1 l2
-        else if c = 0 then x1 $:: inter ll1 ll2
-        else inter l1 ll2
-    let rec diff l1 l2 =
-      match l1, l2 with
-        ([], _) -> []
-      | (l, []) -> l
-      | (x1, _) :: ll1, (x2, _) :: ll2 ->
-        let c = X.compare x1 x2 in
-        if c < 0 then x1 $:: diff ll1 l2
-        else if c = 0 then diff ll1 ll2
-        else diff l1 ll2
-    let cardinal t = Stdlib.List.length t
-    let is_empty = Stdlib.List.is_empty
-    let subset t1 t2 = diff t1 t2 |> is_empty
-  end
-
-  module MapList (K : Comparable) (V : Comparable)
-  =
-  struct
-    type key = K.t
-    type value = V.t
-
-    module Set = SetList(K)
-    module VL = List(V)
-    type t = Set.t * VL.t
+  let[@inline always] hash (lk, lv) =
+    mix (Keys.hash lk) (Values.hash lv)
 
 
-    let[@inline always] hash (lk, lv) =
-      mix (Set.hash lk) (VL.hash lv)
-
-    let[@inline always] uncons = function
-      | [] -> assert false
-      | e::l -> e, l
-
-    let add k v (lk, lv) =
-      let rec loop lk lv =
-        match lk with
-          [] -> Set.(k $:: []), VL.(v $:: [])
-        | (k',_) :: llk ->
-          let c = K.compare k k' in
-          if c < 0 then  Set.(k $:: lk), VL.(v $:: lv)
-          else
-            let (v', _), llv = uncons lv in
-            if c = 0 then lk, VL.(v $:: llv)
+  let rec add4 k v lk hk lv hv =
+    match lk with
+      [] -> Keys.(k $:: empty), Values.(v  $:: empty)
+    | k' :: llk ->
+      let c = K.compare k k' in
+      if c < 0 then  Keys.(k $:: (lk, hk)), Values.(v $:: (lv,hv))
+      else
+        match lv with
+          [] -> assert false
+        | v' :: llv ->
+          match hk, hv with
+            _::hhk, _::hhv ->
+            if c = 0 then
+              (lk,hk), Values.(v $:: (llv, hhv))
             else
-              let rk, rv = loop llk llv in
-              Set.(k' $:: rk), VL.(v' $:: rv)
-      in loop lk lv
+              let rk, rv = add4 k v llk hhk llv hhv in
+              Keys.(k' $:: rk), Values.(v' $:: rv)
+          | _ -> assert false
 
-    let bindings (lk, lv) = Stdlib.List.map2 (fun (k, _) (v, _) -> (k, v)) lk lv
+  let add k v ((lk, hk), (lv, hv)) = add4 k v lk hk lv hv
 
-    let compare (lk1, lv1) (lk2, lv2) =
-      let c = Set.compare lk1 lk2 in
-      if c <> 0 then c else VL.compare lv1 lv2
+  let bindings ((lk,_), (lv,_)) =
+    Stdlib.List.map2 (fun k v -> (k, v)) lk lv
 
-    let equal ((lk1, lv1) as m1) ((lk2, lv2) as m2) =
-      m1 == m2 || (Set.equal lk1 lk2 && VL.equal lv1 lv2)
+  let compare (lk1, lv1) (lk2, lv2) =
+    let c = Keys.compare lk1 lk2 in
+    if c <> 0 then c else Values.compare lv1 lv2
 
-    let empty = [], []
+  let equal ((lk1, lv1) as m1) ((lk2, lv2) as m2) =
+    m1 == m2 || (Keys.equal lk1 lk2 && Values.equal lv1 lv2)
 
-    let exists f (lk, lv) =
-      Stdlib.List.exists2 (fun (k,_) (v, _) -> f k v) lk lv
+  let empty = Keys.empty, Values.empty
 
-    let filter f (lk, lv) =
-      let rec loop lk lv =
-        match lk with
-        | [] -> empty
-        | (k, _)::llk ->
-          let (v, _), llv = uncons lv in
-          if f k v then
-            let rk, rv = loop  llk llv in
-            Set.(k $:: rk), VL.(v $:: rv)
-          else
-            loop llk llv
-      in
-      loop lk lv
+  let exists f ((lk,_), (lv,_)) =
+    Stdlib.List.exists2 (fun k v -> f k v) lk lv
 
-    let map f (lk, lv) = (lk, VL.map f lv)
+  let rec filter2 f lk lv =
+    match lk with
+    | [] -> Keys.empty, Values.empty
+    | k::llk ->
+      match lv with
+        [] -> assert false
+      | v :: llv ->
+        if f k v then
+          let rk, rv = filter2 f llk llv in
+          Keys.(k $:: rk), Values.(v $:: rv)
+        else
+          filter2 f llk llv
 
-    let find_opt k (lk, lv) =
-      let rec loop lk lv =
-        match lk with
-          [] -> None
-        | (k', _) :: llk ->
-          let c = K.compare k k' in
-          if c < 0 then None
-          else
-            let (v, _), llv = uncons lv in
-            if c = 0 then Some v
-            else loop llk llv
-      in
-      loop lk lv
+  let filter f ((lk, _),(lv, _)) = filter2 f lk lv
 
-    let of_list l = Stdlib.List.fold_left (fun acc (k, v) -> add k v acc) empty l
+  let map f (lk, lv) = (lk, Values.map f lv)
 
-    let singleton k v = add k v empty
+  let rec find_opt2 k lk lv =
+    match lk with
+      [] -> None
+    | k' :: llk ->
+      let c = K.compare k k' in
+      if c < 0 then None
+      else
+        match lv with
+          v :: llv ->
+          if c = 0 then Some v
+          else find_opt2 k llk llv
+        | _ -> assert false
 
-    let to_list = bindings
+  let find_opt k ((lk, _),(lv, _)) = find_opt2 k lk lv
 
-    let dom (lk, _) = lk
+  let of_list l = Stdlib.List.fold_left (fun acc (k, v) -> add k v acc) empty l
 
-    let filter_map f (lk, lv) =
-      let rec loop lk lv =
-        match lk with
-          [] -> empty
-        | (k, _)::llk ->
-          let (v, _), llv = uncons lv in
-          match f k v with
-            None -> loop llk llv
-          | Some v' ->
-            let rk, rv = loop llk llv in
-            Set.(k $:: rk), VL.(v' $:: rv)
-      in loop lk lv
+  let singleton k v = add k v empty
 
-    let cons_opt k vo ((lk, lv) as m) =
-      match vo with
-        None -> m
-      | Some v -> Set.(k $:: lk), VL.(v $:: lv)
+  let to_list = bindings
 
-    let merge f (lk1, lv1) (lk2, lv2) =
-      let rec loop lk1 lv1 lk2 lv2 =
-        match lk1 with
-          [] -> filter_map (fun k v -> f k None (Some v)) (lk2, lv2)
-        | (k1, _)::llk1 ->
-          match lk2 with
-            [] -> filter_map (fun k v -> f k (Some v) None) (lk1, lv1)
-          | (k2, _)::llk2 ->
-            let (v1, _), llv1 = uncons lv1 in
-            let (v2, _), llv2 = uncons lv2 in
-            let c = K.compare k1 k2 in
-            if c < 0 then
-              let ov1 = f k1 (Some v1) None in
-              let r = loop llk1 llv1 lk2 lv2 in
-              cons_opt k1 ov1 r
-            else if c = 0 then
-              let ov = f k1 (Some v1) (Some v2) in
-              let r = loop llk1 llv1 llk2 llv2 in
-              cons_opt k1 ov r
-            else let ov2 = f k2 None (Some v2) in
-              let r = loop lk1 lv1 llk2 llv2  in
-              cons_opt k2 ov2 r
-      in
-      loop lk1 lv1 lk2 lv2
+  let dom (lk, _) = lk
 
-    let values (_, lv) = VL.to_list lv
+  let rec filter_map2 f lk lv =
+    match lk with
+      [] -> Keys.empty, Values.empty
+    | k::llk ->
+      match lv with
+        [] -> assert false
+      | v :: llv ->
+        match f k v with
+          None -> filter_map2 f llk llv
+        | Some v' ->
+          let rk, rv = filter_map2 f llk llv in
+          Keys.(k $:: rk), Values.(v' $:: rv)
 
-    let values_for_domain s def (lk, lv)=
-      let rec loop s lk lv =
-        match s with
-          []  -> VL.to_list lv
-        | (x, _) :: ss ->
-          match lk with
-          | [] -> Stdlib.List.map (fun _ -> def) s
-          | (k, _)::llk ->
-            let c = K.compare x k in
-            if c < 0 then def :: loop ss lk lv
-            else
-              let (v, _), llv = uncons lv in
-              if c > 0 then
-                v :: loop s llk llv
-              else
-                v :: loop ss llk llv
-      in
-      loop s lk lv
+  let filter_map f ((lk, _), (lv, _)) = filter_map2 f lk lv
 
-    let constant dom def =
-      (dom, Stdlib.List.fold_left (fun acc _ -> VL.(def $:: acc)) [] dom)
+  let cons_opt k vo ((lk, lv) as m) =
+    match vo with
+      None -> m
+    | Some v -> Keys.(k $:: lk), Values.(v $:: lv)
 
-    let fold f acc (lk, lv) =
-      Stdlib.List.fold_left2 (fun acc (k, _) (v, _) -> f acc k v) acc lk lv
+  let rec merge4 f lk1 lv1 lk2 lv2 =
+    match lk1 with
+      [] -> filter_map2 (fun k v -> f k None (Some v)) lk2 lv2
+    | k1::llk1 ->
+      match lk2 with
+        [] -> filter_map2 (fun k v -> f k (Some v) None) lk1 lv1
+      | k2 ::llk2 ->
+        match lv1, lv2 with
+          v1 :: llv1, v2 :: llv2 ->
+          let c = K.compare k1 k2 in
+          if c < 0 then
+            let ov1 = f k1 (Some v1) None in
+            let r = merge4 f llk1 llv1 lk2 lv2 in
+            cons_opt k1 ov1 r
+          else if c = 0 then
+            let ov = f k1 (Some v1) (Some v2) in
+            let r = merge4 f llk1 llv1 llk2 llv2 in
+            cons_opt k1 ov r
+          else let ov2 = f k2 None (Some v2) in
+            let r = merge4 f lk1 lv1 llk2 llv2 in
+            cons_opt k2 ov2 r
+        | _ -> assert false
 
-    let is_singleton_opt (lk, lv) =
+  let merge f ((lk1, _),(lv1, _)) ((lk2, _),(lv2, _)) =
+    merge4 f lk1 lv1 lk2 lv2
+
+  let values (_, lv) = Values.to_list lv
+
+  let rec values_for_domain3 def ls lk lv =
+    match ls with
+      []  -> lv
+    | x :: lls ->
       match lk with
-        (k, _) :: [] -> let (v, _), _ = uncons lv in Some (k, v)
-      | _ -> None
+      | [] -> Stdlib.List.map (fun _ -> def) ls
+      | k::llk ->
+        let c = K.compare x k in
+        if c < 0 then def :: values_for_domain3 def lls lk lv
+        else
+          match lv with
+            v :: llv ->
+            if c > 0 then
+              v :: values_for_domain3 def ls llk llv
+            else
+              v :: values_for_domain3 def lls llk llv
+          | _ -> assert false
 
-    let combine dom values =
-      if (Set.cardinal dom <> Stdlib.List.length values) then invalid_arg "Map.combine";
-      dom,VL.of_list values
-  end
-end : sig
-  module SetList (X : Comparable) : Set with type elt = X.t
-  module MapList (K : Comparable) (V : Comparable) : Map with type key = K.t and type value = V.t
-end)
+  let values_for_domain (ls, _) def ((lk, _),(lv, _)) =
+    values_for_domain3 def ls lk lv
+
+  let constant ((l, _) as dom) def =
+    (dom, Stdlib.List.fold_left (fun acc _ -> Values.(def $:: acc)) Values.empty l)
+
+  let fold f acc ((lk,_), (lv,_)) =
+    Stdlib.List.fold_left2 f acc lk lv
+
+  let is_singleton_opt ((lk, _), (lv, _)) =
+    match lk with
+      [] -> None
+    | k ::_ ->
+      match lv with
+        v :: _ -> Some (k, v)
+      | _ -> assert false
+
+  let combine ((l, _) as dom) values =
+    if Stdlib.List.compare_lengths l values <> 0 then invalid_arg "Map.combine";
+    dom, Values.of_list values
+end

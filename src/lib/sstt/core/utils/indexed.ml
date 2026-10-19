@@ -21,17 +21,18 @@ end
 
 module Make(C : IdxComp) = struct
 
-  type t = { map : (C.t * int) list; others : bool }
+  module HList = Hash.List(C)
+
+  type t = { map : HList.t; others : bool }
   (* When others is [true], missing tags are mapped to Any
      When others is [false], missing tags are mapped to Empty
   *)
 
-  module HList = Hash.List(C)
   let hash t = Hash.mix (HList.hash t.map) (Bool.hash t.others)
 
   let ($::) = HList.($::)
   let mk a =
-    { map = a $:: [] ; others = false }
+    { map = a $:: HList.empty ; others = false }
 
   let of_comp_list l =
     l
@@ -46,11 +47,11 @@ module Make(C : IdxComp) = struct
       let map = of_comp_list cs in
       { map ; others=false }
     else
-      let map = of_comp_list cs |> HList.map C.neg in
+      let map = of_comp_list cs |> HList.to_list |> List.map C.neg |> HList.of_list in
       { map ; others=true }
 
-  let any = { map = [] ; others = true }
-  let empty = { map = [] ; others = false }
+  let any = { map = HList.empty ; others = true }
+  let empty = { map = HList.empty ; others = false }
 
   let neg t =
     let others = not t.others in
@@ -58,6 +59,7 @@ module Make(C : IdxComp) = struct
     { map ; others }
 
   let neg = fneg ~empty ~any ~neg
+
   let [@inline always] (@?) o l =
     match o with
       None -> l
@@ -65,24 +67,26 @@ module Make(C : IdxComp) = struct
 
   let[@inline always] op empty1 empty2 missing1 missing2 comb12 combo t1 t2 =
     let rec loop l1 l2 =
-      match l1, l2 with
-      | [], _ -> empty1 l2
-      | _, [] -> empty2 l1
-      | (a1,_) :: ll1, (a2,_) :: ll2 ->
-        let e1 = C.index a1 in
-        let e2 = C.index a2 in
-        let c = C.Index.compare e1 e2 in
-        if c < 0 then (missing2 a1) @? loop ll1 l2
-        else if c > 0 then (missing1 a2) @? loop l1 ll2
-        else (comb12 a1 a2)$::loop ll1 ll2
+      match HList.uncons l1 with
+        None -> empty1 l2
+      | Some (a1, ll1) ->
+        match HList.uncons l2 with
+          None -> empty2 l1
+        | Some (a2, ll2) ->
+          let e1 = C.index a1 in
+          let e2 = C.index a2 in
+          let c = C.Index.compare e1 e2 in
+          if c < 0 then (missing2 a1) @? loop ll1 l2
+          else if c > 0 then (missing1 a2) @? loop l1 ll2
+          else (comb12 a1 a2)$::loop ll1 ll2
     in
     let others = combo t1.others t2.others in
     { map = loop t1.map t2.map; others }
 
-  let cst_nil _ = []
+  let cst_nil _ = HList.empty
   let cst_none _ = None
   let cap t1 t2 =
-    op 
+    op
       (if t1.others then Fun.id else cst_nil)
       (if t2.others then Fun.id else cst_nil)
       (if t1.others then Option.some else cst_none)
@@ -91,7 +95,7 @@ module Make(C : IdxComp) = struct
       (&&) t1 t2
   let cap = fcap ~empty ~any ~cap
   let cup t1 t2 =
-    op 
+    op
       (if t1.others then cst_nil else Fun.id)
       (if t2.others then cst_nil else Fun.id)
       (if t1.others then cst_none else Option.some)
@@ -100,7 +104,7 @@ module Make(C : IdxComp) = struct
       (||) t1 t2
   let cup = fcup  ~empty ~any ~cup
   let diff t1 t2 =
-    op 
+    op
       (if t1.others then HList.map C.neg else cst_nil)
       (if not t2.others then Fun.id else cst_nil)
       (if t1.others then (fun x -> Some (C.neg x)) else cst_none)
@@ -113,7 +117,7 @@ module Make(C : IdxComp) = struct
     not t.others && HList.for_all C.is_empty t.map
 
   let direct_nodes t =
-    List.concat_map (fun (c, _) -> C.direct_nodes c) t.map
+    List.concat_map C.direct_nodes (HList.to_list t.map)
 
   let map_nodes f t =
     let map = HList.map (C.map_nodes f) t.map in
@@ -127,26 +131,28 @@ module Make(C : IdxComp) = struct
     let map = HList.filter (fun t -> p t |> not) map in
     { map ; others = t.others }
 
-  let components t = (List.map fst t.map, t.others)
+  let components t = (HList.to_list t.map, t.others)
 
   let destruct t =
+    let l = HList.to_list t.map in
     if t.others then
-      (false, List.map (fun (c, _) -> C.neg c) t.map)
+      (false, List.map C.neg l)
     else
-      (true,  HList.to_list t.map)
+      (true, l)
 
   let rec find_tag tag l =
     match l with
       [] -> None
-    | (a,_) :: ll -> 
+    | a :: ll ->
       let c = C.Index.compare (C.index a) tag in
       if c < 0 then find_tag tag ll
       else if c > 0 then None
       else Some a
+
   let get tag t =
-    match find_tag tag t.map with
+    match find_tag tag (HList.to_list t.map) with
     | Some a -> a
-    | None -> 
+    | None ->
       if t.others then C.any tag
       else  C.empty tag
 
