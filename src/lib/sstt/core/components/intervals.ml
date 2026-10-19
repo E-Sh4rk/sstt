@@ -97,11 +97,12 @@ type node
    empty set is the empty list. *)
 include Hash.List(Interval)
 
-let empty = []
-let any = Interval.any $:: []
-let mk i = i $:: []
 
-let destruct t = List.map fst t 
+let any = Interval.any $:: empty
+
+let mk i = i $:: empty
+
+let destruct t = to_list t 
 
 let lb t =
   match t with
@@ -128,10 +129,10 @@ let extract_singl t =
    are adjacent to it are merged with it, so that the result is normalized. *)
 let rec ( @:: ) (a, b) l =
   let open Number in
-  match l with
-  | [] -> (a,b) $:: []
-  | ((c, d),_) :: ll ->
-    if b = PosInf then (a,b) $:: []
+  match uncons l with
+  | None -> (a,b) $:: empty
+  | Some((c, d),ll) ->
+    if b = PosInf then (a,b) $:: empty
     else if c <= b then (a, max b d) @:: ll (* overlapping *)
     else if succ b = c then (a, d) @:: ll (* adjacent *)
     else  (a,b) $:: l
@@ -139,9 +140,11 @@ let rec ( @:: ) (a, b) l =
 
 let rec cup_rec i1 i2 =
   let open Number in
-  match i1, i2 with
-  | [], l | l, [] -> l
-  | ((a1, b1) as c1,_) :: ii1, ((a2, b2) as c2,_) :: ii2 ->
+  match uncons i1, uncons i2 with
+  | None, _ -> i2
+  | _, None -> i1 
+  | Some ((a1, b1) as c1, ii1),
+    Some ((a2, b2) as c2, ii2) ->
     if a1 > b2 then c2 @:: cup i1 ii2
     else if a2 > b1 then c1 @:: cup ii1 i2
     else
@@ -153,9 +156,9 @@ and cup t1 t2 = fcup ~empty ~any ~cup:cup_rec t1 t2
 
 let rec cap_rec i1 i2 =
   let open Number in
-  match i1, i2 with
-  | [], _ | _, [] -> []
-  | ((a1, b1),_) :: ii1, ((a2, b2),_) :: ii2 ->
+  match uncons i1, uncons i2 with
+  | None, _ | _, None -> empty
+  | Some ((a1, b1), ii1), Some ((a2, b2),ii2) ->
     if a1 > b2 then cap i1 ii2
     else if a2 > b1 then cap ii1 i2
     else
@@ -167,9 +170,11 @@ and cap t1 t2 = fcap ~empty ~any ~cap:cap_rec t1 t2
 
 let rec diff_rec i1 i2 =
   let open Number in
-  match i1, i2 with
-  | ([] as l), _ | l, [] -> l
-  | ((a1, b1) as c1,_) :: ii1, ((a2, b2),_) :: ii2 ->
+  match uncons i1, uncons i2 with
+    None,_ -> empty
+  | _, None -> i1
+  | Some ((a1, b1) as c1,ii1) ,
+    Some ((a2, b2),ii2)  ->
     if b1 < a2 then c1 @:: diff ii1 i2
     else if b2 < a1 then diff i1 ii2
     else if a2 <= a1 then
