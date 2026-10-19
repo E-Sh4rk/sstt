@@ -68,17 +68,19 @@ let to_repr build ty =
   let tl_tbl = VDHash.create 8 in
   let cpt = ref 0 in
   let descr ty =
-    match VDHash.find_opt hd_tbl (Ty.def ty) with
+    let def = Ty.def ty in
+    match VDHash.find_opt hd_tbl def with
       Some d -> d
     | None -> let d = build ty in
-      VDHash.add hd_tbl (Ty.def ty) d; d
+      VDHash.add hd_tbl def d; d
   in
   let rec try_graph_node ty =
-    match VDHash.find_opt tl_tbl (Ty.def ty) with
+    let def = Ty.def ty in
+    match VDHash.find_opt tl_tbl def with
       Some n -> n
     | None ->
       let n = { id = !cpt; graph = [] } in
-      VDHash.add tl_tbl (Ty.def ty) n;
+      VDHash.add tl_tbl def n;
       incr cpt;
       n.graph <-try_graph ty;
       n

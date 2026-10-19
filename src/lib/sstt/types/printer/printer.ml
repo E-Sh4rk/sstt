@@ -23,7 +23,7 @@ end
 module VD = VDescr
 module D = Descr
 module NISet = Set.Make(NodeId)
-module VDHash = Hashtbl.Make(VD)
+module TyHash = Hashtbl.Make(Ty)
 module TagMap = Map.Make(Tag)
 
 type builtin =
@@ -66,7 +66,7 @@ type extension_builder = ctx -> TagComp.t -> extension_node option
 and extensions = (Tag.t * extension_builder) list
 and params = { aliases : aliases ; extensions : extensions }
 and ctx = {
-  nodes : NodeId.t VDHash.t ;
+  nodes : NodeId.t TyHash.t ;
   aliases : (Ty.t * op) list ;
   extensions : extension_builder TagMap.t
 }
@@ -301,18 +301,17 @@ let merge_params l = List.fold_left (fun acc p ->
        extensions = acc.extensions @ p.extensions }) empty_params l
 
 let node ctx ty =
-  let def = Ty.def ty in
-  match VDHash.find_opt ctx.nodes def  with
+  match TyHash.find_opt ctx.nodes ty  with
   | Some nid -> { op = Node nid ; ty }
   | None ->
     let nid = NodeId.mk () in
-    VDHash.add ctx.nodes def nid  ;
+    TyHash.add ctx.nodes ty nid  ;
     { op = Node nid ; ty }
 
 let build_ctx params =
   let aliases = params.aliases |> List.map (fun (ty, s) -> (ty, Alias s)) in
   let extensions = params.extensions |> TagMap.of_list in
-  { nodes=VDHash.create 16 ; aliases ; extensions }
+  { nodes=TyHash.create 16 ; aliases ; extensions }
 
 (* Step 2 : Resolve missing definitions (and recognize Ext type aliases) *)
 
@@ -488,14 +487,14 @@ let resolve_def ctx def =
   | Some d -> d
 
 let rec resolve_missing_defs ctx defs =
-  let used_defs = ctx.nodes |> VDHash.to_seq |> List.of_seq in
+  let used_defs = ctx.nodes |> TyHash.to_seq |> List.of_seq in
   let to_define = used_defs |> List.find_opt (fun (_,nid) ->
       defs |> List.exists (fun (nid',_) -> NodeId.equal nid nid') |> not
     ) in
   match to_define with
   | None -> defs
   | Some (def,nid) ->
-    let descr = resolve_def ctx def in
+    let descr = resolve_def ctx (Ty.def def) in
     resolve_missing_defs ctx ((nid,descr)::defs)
 
 (* Step 3 : Inline nodes when relevant, remove unused nodes *)
@@ -706,6 +705,8 @@ let get' ?(factorize=false) customs tys =
   let t = if factorize then inline_mid map_m t else inline_max map_m t in
   let t = simplify map_m t in
   rename_nodes map_m t; t
+let get' ?(factorize=false) customs tys =
+  Ty.with_shared_cache (get' ~factorize customs) tys
 
 let get ?(factorize=false) customs ty =
   match get' ~factorize customs [ty] with
@@ -721,6 +722,8 @@ let get_field' ?(factorize=false) customs ftys =
   let t = if factorize then inline_mid map_m t else inline_max map_m t in
   let t = simplify map_m t in
   rename_nodes map_m t; t
+let get_field' ?(factorize=false) customs tys =
+  Ty.with_shared_cache (get_field' ~factorize customs) tys
 
 let get_field ?(factorize=false) customs fty =
   match get_field' ~factorize customs [fty] with
