@@ -1,25 +1,25 @@
 open Core
 open Sstt_utils
 
-module VDHash = Hashtbl.Make(Ty)
+module TyHash = Hashtbl.Make(Ty)
 
 type ctx = {
-  cache : Var.t VDHash.t ;
+  cache : Var.t TyHash.t ;
   mutable eqs : (Var.t * Ty.t) list
 }
 
 let transform f t =
   let ctx = {
-    cache = VDHash.create 8 ;
+    cache = TyHash.create 8 ;
     eqs = []
   } in
   let rec aux t =
     let vd = Ty.def t in
-    match VDHash.find_opt ctx.cache t with
+    match TyHash.find_opt ctx.cache t with
     | Some v -> v
     | None ->
       let v = Var.mk "" in
-      VDHash.add ctx.cache t v ;
+      TyHash.add ctx.cache t v ;
       let vd = f vd |> VDescr.map_nodes aux_ty in
       ctx.eqs <- (v, Ty.of_def vd)::ctx.eqs ;
       v
