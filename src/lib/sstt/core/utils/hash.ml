@@ -33,53 +33,76 @@ sig
 end
 
 module List(X : Comparable) : sig
-  type t = (X.t * int) list
+  type t
   include Comparable with type t := t
   val ($::) : X.t -> t -> t
+  val empty : t
   val of_list : X.t list -> t
   val map : (X.t -> X.t) -> t -> t
   val to_list : t -> X.t list
   val filter : (X.t -> bool) -> t -> t
   val for_all : (X.t -> bool) -> t -> bool
   val length : t -> int
+  val uncons : t -> (X.t * t) option
 end = struct
 
-  type t = (X.t * int) list
+  type t = X.t list * int list
+  let empty = [], []
+  let uncons l = 
+    match l with
+      ([], []) -> None
+    | (x :: l), (_ ::h) -> Some (x, (l,h))
+    | _ -> assert false
 
-  let compare_hash (x1, h1) (x2, h2) =
-    let c = Int.compare h1 h2 in
-    if c <> 0 then c else X.compare x1 x2
 
-  let equal_hash (x1, h1) (x2, h2) =
-    Int.equal h1 h2 && X.equal x1 x2
-  let compare = List.compare compare_hash
-  let equal = List.equal equal_hash
+  let rec compare l1 l2 =
+    match l1, l2 with
+      ([],[]), ([],[]) -> 0
+    | _, ([], []) -> 1
+    | ([],[]), _ -> -1
+    | (e1::ll1, h1::hh1), (e2::ll2, h2::hh2) ->
+      let c = Int.compare h1 h2 in
+      if c <> 0 then c else 
+        let c = X.compare e1 e2 in
+        if c <> 0 then c
+        else compare (ll1, hh1) (ll2, hh2)
+    | _ -> assert false
+
+  let equal l1 l2 = (compare l1 l2) = 0
 
   let[@inline always] hash = function
-      [] -> const0
-    | (_, h) :: _ -> h
+      [],[] -> const0
+    | _::_, h::_ -> h
+    | _ -> assert false
 
-  let[@inline always] ($::) x l = (x, mix (hash l) (X.hash x))::l
+  let[@inline always] ($::) x ((l,h) as t) = 
+    x :: l, (mix (hash t) (X.hash x)) :: h
 
-  let of_list l = List.fold_left (fun acc e -> e $:: acc) [] (List.rev l)
+  let of_list l = List.fold_left (fun acc e -> e $:: acc) empty (List.rev l)
+
   let map f l =
     let rec loop l =
       match l with
-        [] -> []
-      | (e, _) :: ll -> (f e) $:: loop ll
+        [],[] -> l
+      | (e :: ll), (_::hh) -> (f e) $:: loop (ll,hh)
+      | _ -> assert false
     in loop l
 
-  let to_list = List.map fst
+  let to_list = fst
 
-  let rec filter f = function
-    | [] -> []
-    | (e, _) :: ll -> if f e then e $:: filter f ll else filter f ll
+  let rec filter f l =
+    match l with
+      [],[] ->  l
+    | (e :: ll), (_::hh) -> 
+      if (f e) then e $:: filter f (ll,hh)
+      else filter f (ll, hh)
+    | _ -> assert false
 
-  let rec for_all f = function
-    | [] -> true
-    | (e, _) :: ll -> (f e) && for_all f ll
 
-  let length = List.length
+  let for_all f l = List.for_all f (fst l)
+
+
+  let length l = List.length (fst l)
 end
 
 
@@ -249,52 +272,57 @@ struct
     type elt = X.t
     include List(X)
     let elements = to_list
-    let empty = []
+
     let rec mem x l =
-      match l with
-        [] -> false
-      | (y, _) :: ll ->
+      match uncons l with
+        None -> false
+      | Some (y, ll) ->
         let c = X.compare y x in
         if c < 0 then mem x ll
         else c = 0
 
     let rec add x l =
-      match l with
-        []  -> x $:: []
-      | (y, _) :: ll ->
+      match uncons l with
+        None  -> x $:: empty
+      | Some (y, ll) ->
         let c = X.compare x y in
         if c < 0 then x $:: l
         else if c = 0 then l
         else y $:: add x ll
 
     let of_list l = Stdlib.List.fold_left (fun acc x -> add x acc) empty l
+
     let rec union l1 l2 =
-      match l1, l2 with
-        ([], l) | (l, []) -> l
-      | (x1, _) :: ll1, (x2, _) :: ll2 ->
+      match uncons l1, uncons l2 with
+        (None, _) -> l2
+      | (_, None) -> l1
+      | Some(x1, ll1), Some (x2,  ll2) ->
         let c = X.compare x1 x2 in
         if c < 0 then x1 $:: union ll1 l2
         else if c = 0 then x1 $:: union ll1 ll2
         else x2 $:: union l1 ll2
+
     let rec inter l1 l2 =
-      match l1, l2 with
-        ([], _) | (_, []) -> []
-      | (x1, _) :: ll1, (x2, _) :: ll2 ->
+      match uncons l1, uncons l2 with
+        (None, _) | (_, None) -> empty
+      | Some(x1, ll1), Some (x2,  ll2) ->
         let c = X.compare x1 x2 in
         if c < 0 then inter ll1 l2
         else if c = 0 then x1 $:: inter ll1 ll2
         else inter l1 ll2
+
     let rec diff l1 l2 =
-      match l1, l2 with
-        ([], _) -> []
-      | (l, []) -> l
-      | (x1, _) :: ll1, (x2, _) :: ll2 ->
+      match uncons l1, uncons l2 with
+        (None, _) -> empty
+      | (_, None) -> l1
+      | Some(x1, ll1), Some (x2,  ll2) ->
         let c = X.compare x1 x2 in
         if c < 0 then x1 $:: diff ll1 l2
         else if c = 0 then diff ll1 ll2
         else diff l1 ll2
-    let cardinal t = Stdlib.List.length t
-    let is_empty = Stdlib.List.is_empty
+
+    let cardinal t = length t
+    let is_empty l = match uncons l with None -> true | _ -> false
     let subset t1 t2 = diff t1 t2 |> is_empty
   end
 
@@ -312,26 +340,24 @@ struct
     let[@inline always] hash (lk, lv) =
       mix (Set.hash lk) (VL.hash lv)
 
-    let[@inline always] uncons = function
-      | [] -> assert false
-      | e::l -> e, l
-
     let add k v (lk, lv) =
       let rec loop lk lv =
-        match lk with
-          [] -> Set.(k $:: []), VL.(v $:: [])
-        | (k',_) :: llk ->
+        match Set.uncons lk with
+          None -> Set.(k $:: empty), VL.(v $:: empty)
+        | Some (k', llk) ->
           let c = K.compare k k' in
           if c < 0 then  Set.(k $:: lk), VL.(v $:: lv)
           else
-            let (v', _), llv = uncons lv in
-            if c = 0 then lk, VL.(v $:: llv)
-            else
-              let rk, rv = loop llk llv in
-              Set.(k' $:: rk), VL.(v' $:: rv)
+            match VL.uncons lv with
+              None -> assert false
+            | Some (v', llv) ->
+              if c = 0 then lk, VL.(v $:: llv)
+              else
+                let rk, rv = loop llk llv in
+                Set.(k' $:: rk), VL.(v' $:: rv)
       in loop lk lv
 
-    let bindings (lk, lv) = Stdlib.List.map2 (fun (k, _) (v, _) -> (k, v)) lk lv
+    let bindings (lk, lv) = Stdlib.List.map2 (fun k v -> (k, v)) (Set.to_list lk) (VL.to_list lv)
 
     let compare (lk1, lv1) (lk2, lv2) =
       let c = Set.compare lk1 lk2 in
@@ -340,22 +366,24 @@ struct
     let equal ((lk1, lv1) as m1) ((lk2, lv2) as m2) =
       m1 == m2 || (Set.equal lk1 lk2 && VL.equal lv1 lv2)
 
-    let empty = [], []
+    let empty = Set.empty, VL.empty
 
     let exists f (lk, lv) =
-      Stdlib.List.exists2 (fun (k,_) (v, _) -> f k v) lk lv
+      Stdlib.List.exists2 (fun k v -> f k v) (Set.to_list lk) (VL.to_list lv)
 
     let filter f (lk, lv) =
       let rec loop lk lv =
-        match lk with
-        | [] -> empty
-        | (k, _)::llk ->
-          let (v, _), llv = uncons lv in
-          if f k v then
-            let rk, rv = loop  llk llv in
-            Set.(k $:: rk), VL.(v $:: rv)
-          else
-            loop llk llv
+        match Set.uncons lk with
+        | None -> empty
+        | Some (k, llk) ->
+          match VL.uncons lv with
+            None -> assert false
+          | Some (v, llv) ->
+            if f k v then
+              let rk, rv = loop  llk llv in
+              Set.(k $:: rk), VL.(v $:: rv)
+            else
+              loop llk llv
       in
       loop lk lv
 
@@ -363,15 +391,17 @@ struct
 
     let find_opt k (lk, lv) =
       let rec loop lk lv =
-        match lk with
-          [] -> None
-        | (k', _) :: llk ->
+        match Set.uncons lk with
+          None -> None
+        | Some (k', llk) ->
           let c = K.compare k k' in
           if c < 0 then None
           else
-            let (v, _), llv = uncons lv in
-            if c = 0 then Some v
-            else loop llk llv
+            match VL.uncons lv with
+              None -> assert false
+            | Some (v, llv) ->
+              if c = 0 then Some v
+              else loop llk llv
       in
       loop lk lv
 
@@ -385,15 +415,17 @@ struct
 
     let filter_map f (lk, lv) =
       let rec loop lk lv =
-        match lk with
-          [] -> empty
-        | (k, _)::llk ->
-          let (v, _), llv = uncons lv in
-          match f k v with
-            None -> loop llk llv
-          | Some v' ->
-            let rk, rv = loop llk llv in
-            Set.(k $:: rk), VL.(v' $:: rv)
+        match Set.uncons lk with
+          None -> empty
+        | Some (k, llk) ->
+          match VL.uncons lv with
+            None -> assert false
+          | Some (v, llv) ->
+            match f k v with
+              None -> loop llk llv
+            | Some v' ->
+              let rk, rv = loop llk llv in
+              Set.(k $:: rk), VL.(v' $:: rv)
       in loop lk lv
 
     let cons_opt k vo ((lk, lv) as m) =
@@ -403,26 +435,27 @@ struct
 
     let merge f (lk1, lv1) (lk2, lv2) =
       let rec loop lk1 lv1 lk2 lv2 =
-        match lk1 with
-          [] -> filter_map (fun k v -> f k None (Some v)) (lk2, lv2)
-        | (k1, _)::llk1 ->
-          match lk2 with
-            [] -> filter_map (fun k v -> f k (Some v) None) (lk1, lv1)
-          | (k2, _)::llk2 ->
-            let (v1, _), llv1 = uncons lv1 in
-            let (v2, _), llv2 = uncons lv2 in
-            let c = K.compare k1 k2 in
-            if c < 0 then
-              let ov1 = f k1 (Some v1) None in
-              let r = loop llk1 llv1 lk2 lv2 in
-              cons_opt k1 ov1 r
-            else if c = 0 then
-              let ov = f k1 (Some v1) (Some v2) in
-              let r = loop llk1 llv1 llk2 llv2 in
-              cons_opt k1 ov r
-            else let ov2 = f k2 None (Some v2) in
-              let r = loop lk1 lv1 llk2 llv2  in
-              cons_opt k2 ov2 r
+        match Set.uncons lk1 with
+          None -> filter_map (fun k v -> f k None (Some v)) (lk2, lv2)
+        | Some (k1, llk1) ->
+          match Set.uncons lk2 with
+            None -> filter_map (fun k v -> f k (Some v) None) (lk1, lv1)
+          | Some(k2, llk2) ->
+            match VL.uncons lv1, VL.uncons lv2 with
+              None, _ | _, None -> assert false
+            | Some (v1, llv1), Some (v2, llv2) ->
+              let c = K.compare k1 k2 in
+              if c < 0 then
+                let ov1 = f k1 (Some v1) None in
+                let r = loop llk1 llv1 lk2 lv2 in
+                cons_opt k1 ov1 r
+              else if c = 0 then
+                let ov = f k1 (Some v1) (Some v2) in
+                let r = loop llk1 llv1 llk2 llv2 in
+                cons_opt k1 ov r
+              else let ov2 = f k2 None (Some v2) in
+                let r = loop lk1 lv1 llk2 llv2  in
+                cons_opt k2 ov2 r
       in
       loop lk1 lv1 lk2 lv2
 
@@ -430,33 +463,37 @@ struct
 
     let values_for_domain s def (lk, lv)=
       let rec loop s lk lv =
-        match s with
-          []  -> VL.to_list lv
-        | (x, _) :: ss ->
-          match lk with
-          | [] -> Stdlib.List.map (fun _ -> def) s
-          | (k, _)::llk ->
+        match Set.uncons s with
+          None  -> VL.to_list lv
+        | Some (x, ss) ->
+          match Set.uncons lk with
+          | None -> Stdlib.List.map (fun _ -> def) (Set.to_list s)
+          | Some (k, llk) ->
             let c = K.compare x k in
             if c < 0 then def :: loop ss lk lv
             else
-              let (v, _), llv = uncons lv in
-              if c > 0 then
-                v :: loop s llk llv
-              else
-                v :: loop ss llk llv
+              match VL.uncons lv with
+                None -> assert false
+              | Some (v, llv) ->
+                if c > 0 then
+                  v :: loop s llk llv
+                else
+                  v :: loop ss llk llv
       in
       loop s lk lv
 
     let constant dom def =
-      (dom, Stdlib.List.fold_left (fun acc _ -> VL.(def $:: acc)) [] dom)
+      (dom, Stdlib.List.fold_left (fun acc _ -> VL.(def $:: acc)) VL.empty (Set.to_list dom))
 
     let fold f acc (lk, lv) =
-      Stdlib.List.fold_left2 (fun acc (k, _) (v, _) -> f acc k v) acc lk lv
+      Stdlib.List.fold_left2 (fun acc k v -> f acc k v) acc (Set.to_list lk) (VL.to_list lv)
 
     let is_singleton_opt (lk, lv) =
-      match lk with
-        (k, _) :: [] -> let (v, _), _ = uncons lv in Some (k, v)
-      | _ -> None
+      match Set.uncons lk with
+      | None -> None
+      | Some (k, _) -> match VL.uncons lv with
+          None -> assert false
+        | Some (v, _) -> Some (k, v)
 
     let combine dom values =
       if (Set.cardinal dom <> Stdlib.List.length values) then invalid_arg "Map.combine";
