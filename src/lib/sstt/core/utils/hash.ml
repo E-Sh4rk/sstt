@@ -38,9 +38,8 @@ module List (X : Comparable) = struct
   let empty = [], []
   let is_empty = function ([], _) -> true | _ -> false
   let uncons = function
-      [], [] -> None
+      [], _ | _, [] -> None
     | x::l, _::h -> Some (x, (l, h))
-    | _ -> assert false
 
   let rec compare4 l1 h1 l2 h2 =
     match h1, h2 with
@@ -59,13 +58,18 @@ module List (X : Comparable) = struct
   let compare (l1, h1) (l2, h2) = compare4 l1 h1 l2 h2
 
   let rec equal4 l1 h1 l2 h2 =
-    match l1, h1, l2, h2 with
-      [], _, [], _ -> true
-    | x1::ll1, i1::hh1, x2::ll2, i2::hh2 ->
-      i1 == i2 && X.equal x1 x2 && equal4 ll1 hh1 ll2 hh2
-    | _ -> false
+    l1 == l2 ||
+    match h1, h2 with
+      [], [] -> true
+    | ([], _) | (_, []) -> false
+    |i1 :: hh1, i2 :: hh2 ->
+      i1 == i2 && match l1, l2 with
+        x1::ll1, x2::ll2 ->
+        X.equal x1 x2 && equal4 ll1 hh1 ll2 hh2
+      | _ -> false
 
-  let equal (l1, h1) (l2, h2) = equal4 l1 h1 l2 h2
+  let equal ((l1, h1) as m1) ((l2, h2) as m2) =
+    m1 == m2 || equal4 l1 h1 l2 h2
 
   let[@inline always] get_hash = function
       [] -> const0
@@ -142,7 +146,7 @@ sig
   val exists : (key -> value -> bool) -> t -> bool
   val filter : (key -> value -> bool) -> t -> t
   val find_opt : key -> t -> value option
-  val map : (value -> value) -> t -> t
+  val map : (key -> value -> value) -> t -> t
   val filter_map : (key -> value -> value option) -> t -> t
   val of_list : (key * value) list -> t
   val singleton : key -> value -> t
@@ -152,9 +156,12 @@ sig
   val values_for_domain : Set.t -> value -> t -> value list
   val values : t -> value list
   val constant : Set.t -> value -> t
+  val init : Set.t -> (key -> value) -> t
   val fold : ('a -> key -> value -> 'a) -> 'a -> t -> 'a
   val is_singleton_opt : t -> (key * value) option
   val combine : Set.t -> value list -> t
+  val remove : t -> Set.t -> t
+  val for_all : (key -> value -> bool) -> t -> bool
 end
 
 
@@ -188,6 +195,7 @@ struct
   let add x (l, h) = add2 x l h
 
   let of_list l =
+    let l = Stdlib.List.sort_uniq X.compare l in
     Stdlib.List.fold_left (fun acc x -> add x acc) empty l
 
   let map f (l,_) =
@@ -207,41 +215,39 @@ struct
           else if c = 0 then x1 $:: union4 ll1 hh1 ll2 hh2
           else x2 $:: union4 l1 h1 ll2 hh2
         | _ -> assert false
+
   let union (l1, h1) (l2, h2) = union4 l1 h1 l2 h2
 
-  let rec inter4 l1 h1 l2 h2 =
+  let rec inter2 l1 l2 =
     match l1 with
       [] -> empty
     | x1 :: ll1 ->
       match l2 with
         [] -> empty
       | x2 :: ll2 ->
-        match h1, h2 with
-          (_ :: hh1, _ :: hh2) ->
-          let c = X.compare x1 x2 in
-          if c < 0 then inter4 ll1 hh1 l2 h2
-          else if c = 0 then x1 $:: inter4 ll1 hh1 ll2 hh2
-          else inter4 l1 h1 ll2 hh2
-        | _ -> assert false
+        let c = X.compare x1 x2 in
+        if c < 0 then inter2 ll1 l2
+        else if c = 0 then x1 $:: inter2 ll1 ll2
+        else inter2 l1 ll2
 
-  let inter (l1, h1) (l2, h2) = inter4 l1 h1 l2 h2
+  let inter (l1, _) (l2, _) = inter2 l1 l2
 
-  let rec diff4 l1 h1 l2 h2 =
+  let rec diff3 l1 h1 l2 =
     match l1 with
       [] -> empty
     | x1 :: ll1 ->
       match l2 with
         [] -> (l1, h1)
       | x2 :: ll2 ->
-        match h1, h2 with
-          (_ :: hh1, _ :: hh2) ->
+        match h1 with
+          _ :: hh1 ->
           let c = X.compare x1 x2 in
-          if c < 0 then x1 $:: diff4 ll1 hh1 l2 h2
-          else if c = 0 then diff4 ll1 hh1 ll2 hh2
-          else diff4 l1 h1 ll2 hh2
+          if c < 0 then x1 $:: diff3 ll1 hh1 l2
+          else if c = 0 then diff3 ll1 hh1 ll2
+          else diff3 l1 h1 ll2
         | _ -> assert false
 
-  let diff (l1, h1) (l2, h2) = diff4 l1 h1 l2 h2
+  let diff (l1, h1) (l2, _) = diff3 l1 h1 l2
 
   let cardinal (l, _) = Stdlib.List.length l
   let subset l1 l2 = diff l1 l2 |> is_empty
@@ -297,11 +303,11 @@ struct
   let empty = Keys.empty, Values.empty
 
   let exists f ((lk,_), (lv,_)) =
-    Stdlib.List.exists2 (fun k v -> f k v) lk lv
+    Stdlib.List.exists2 f lk lv
 
   let rec filter2 f lk lv =
     match lk with
-    | [] -> Keys.empty, Values.empty
+    | [] -> empty
     | k::llk ->
       match lv with
         [] -> assert false
@@ -314,7 +320,9 @@ struct
 
   let filter f ((lk, _),(lv, _)) = filter2 f lk lv
 
-  let map f (lk, lv) = (lk, Values.map f lv)
+  let map f ((lk, _) as k, (lv,_) ) =
+    (k,
+     Stdlib.List.map2 f lk lv |> Values.of_list)
 
   let rec find_opt2 k lk lv =
     match lk with
@@ -341,7 +349,7 @@ struct
 
   let rec filter_map2 f lk lv =
     match lk with
-      [] -> Keys.empty, Values.empty
+      [] -> empty
     | k::llk ->
       match lv with
         [] -> assert false
@@ -408,6 +416,9 @@ struct
   let values_for_domain (ls, _) def ((lk, _),(lv, _)) =
     values_for_domain3 def ls lk lv
 
+  let init ((l, _) as dom) f =
+    (dom, Stdlib.List.map f l |> Values.of_list)
+
   let constant ((l, _) as dom) def =
     (dom, Stdlib.List.fold_left (fun acc _ -> Values.(def $:: acc)) Values.empty l)
 
@@ -425,4 +436,24 @@ struct
   let combine ((l, _) as dom) values =
     if Stdlib.List.compare_lengths l values <> 0 then invalid_arg "Map.combine";
     dom, Values.of_list values
+
+  let rec remove5 lk hk lv hv ls =
+    match lk with
+      [] -> empty
+    | k :: llk ->
+      match ls with
+        [] -> (lk,hk), (lv, hv)
+      | s :: lls ->
+        let c = K.compare k s in
+        match hk, lv, hv with
+          _::hhk, v :: llv, _ :: hhv ->
+          if c < 0 then 
+            let rk, rv = remove5 llk hhk llv hhv ls in
+            Keys.(k $:: rk), Values.(v $:: rv)
+          else if c = 0 then remove5 llk hhk llv hhv lls
+          else remove5 lk hk lv hv lls
+        | _ -> assert false
+
+  let remove ((lk, hk), (lv, hv)) (ls, _) = remove5 lk hk lv hv ls
+  let for_all f ((lk, _), (lv, _)) = Stdlib.List.for_all2 f lk lv
 end

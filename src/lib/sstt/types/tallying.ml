@@ -549,9 +549,11 @@ module Make(VS:VarSettings) = struct
     let tys = TagComp.line_emptiness_checks tag line in
     CSS.map_disj (norm memo) tys
   and norm_record memo (ps, ns) =
-    let (tl,p), ns = Records.dnf_line_to_types (ps, ns) in
+    let tl, get_p_ns = Records.dnf_line_to_types_lazy (ps, ns) in
     CSS.cup_lazy (norm_field memo tl)
-      (fun () -> norm_record_tests memo (tl,p) [] ns)
+      (fun () -> 
+         let p, ns = get_p_ns () in
+         norm_record_tests memo (tl,p) [] ns)
   and norm_record_tests memo (tl,p) ns ns' =
     match ns' with
     | [] -> norm_record_bindings memo p ns

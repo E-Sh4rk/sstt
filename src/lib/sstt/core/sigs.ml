@@ -283,8 +283,8 @@ module type OAtom = sig
 
   type t = node * bool
   (** Whenever the boolean component is [true], it means that the type contains the
-    undefined element {m \bot}. Otherwise, when the boolean component is [false],
-    the type is equivalent to a plain {!Ty.t} type. *)
+      undefined element {m \bot}. Otherwise, when the boolean component is [false],
+      the type is equivalent to a plain {!Ty.t} type. *)
 
   include Comparable with type t := t
   val map_nodes : (node -> node) -> t -> t
@@ -315,46 +315,46 @@ module type OAtom = sig
 end
 
 module type OTy = sig
-    (** Optional types are subsets of {%html: <span style='font-size:large'>𝟙</span>%}{m \cup\bot}. They are used for the type of
-        record fields, to denote the fact that a field may be absent.
-    *)
-    
-    type t
-    (** The type of types optional types. *)
+  (** Optional types are subsets of {%html: <span style='font-size:large'>𝟙</span>%}{m \cup\bot}. They are used for the type of
+      record fields, to denote the fact that a field may be absent.
+  *)
 
-    type node
+  type t
+  (** The type of types optional types. *)
 
-    (**@inline*)
-    include ComponentBase with type t := t
-                          and type node := node
-                          and module type Atom := (OAtom with type node := node)
+  type node
 
-    (**@inline*)
-    include ConstrComponentOps with type t := t
-                                and type node := node
-                                and type atom := Atom.t
+  (**@inline*)
+  include ComponentBase with type t := t
+                         and type node := node
+                         and module type Atom := (OAtom with type node := node)
 
-    (** @inline *)
-    include SetTheoretic with type t := t
+  (**@inline*)
+  include ConstrComponentOps with type t := t
+                              and type node := node
+                              and type atom := Atom.t
 
-    val get : t -> Atom.t
-    (** [get t] over-approximates [t] by a single atom (the union of the atoms
-        of its DNF). *)
+  (** @inline *)
+  include SetTheoretic with type t := t
 
-    val present : t
-    (** [present] is a shortcut for [mk Atom.present]. *)
+  val get : t -> Atom.t
+  (** [get t] over-approximates [t] by a single atom (the union of the atoms
+      of its DNF). *)
 
-    val absent : t
-    (** [absent] is a shortcut for [mk Atom.absent]. *)
+  val present : t
+  (** [present] is a shortcut for [mk Atom.present]. *)
 
-    val required : node -> t
-    (** [required t] is a shortcut for [mk (Atom.required t)]. *)
+  val absent : t
+  (** [absent] is a shortcut for [mk Atom.absent]. *)
 
-    val optional : node -> t
-    (** [optional t] is a shortcut for [mk (Atom.optional t)]. *)
+  val required : node -> t
+  (** [required t] is a shortcut for [mk (Atom.required t)]. *)
 
-    (**@inline*)
-    include SetTheoreticOps with type t := t
+  val optional : node -> t
+  (** [optional t] is a shortcut for [mk (Atom.optional t)]. *)
+
+  (**@inline*)
+  include SetTheoreticOps with type t := t
 end
 module type OTy' = sig
 
@@ -415,17 +415,17 @@ module type Polymorphic = sig
 
   val strengthen : (t * t) VarMap.t -> t -> t
   (** [strengthen b t] strengthens [t] by substituting its (top-level)
-  type variables according to the bounds in [b].
-  For instance, if the variable [v] is associated to [(int, int|bool)],
-  its positive occurrences will be substituted by [v & (int|bool)]
-  and its negative occurrences by [v | int]. *)
+      type variables according to the bounds in [b].
+      For instance, if the variable [v] is associated to [(int, int|bool)],
+      its positive occurrences will be substituted by [v & (int|bool)]
+      and its negative occurrences by [v | int]. *)
 
   val weaken : (t * t) VarMap.t -> t -> t
   (** [weaken b t] weakens [t] by substituting its (top-level)
-  type variables according to the bounds in [b].
-  For instance, if the variable [v] is associated to [(int, int|bool)],
-  its positive occurrences will be substituted by [v | int]
-  and its negative occurrences by [v & (int|bool)]. *)
+      type variables according to the bounds in [b].
+      For instance, if the variable [v] is associated to [(int, int|bool)],
+      its positive occurrences will be substituted by [v | int]
+      and its negative occurrences by [v & (int|bool)]. *)
 
 end
 
@@ -452,9 +452,9 @@ module type FTy = sig
 
   (**@inline*)
   include Polymorphic with type t := t and type node := node
-    and type leaf := o and type var := RowVar.t
-    and module VarSet := RowVarSet
-    and module VarMap := RowVarMap
+                                       and type leaf := o and type var := RowVar.t
+                                                          and module VarSet := RowVarSet
+                                                          and module VarMap := RowVarMap
 
   (**@inline*)
   include SetTheoreticOps with type t := t
@@ -466,7 +466,7 @@ module type FTy' = sig
 
   (**@inline*)
   include FTy with type o := OTy.t and type node := node
-  
+
   val simplify : t -> t
 end
 
@@ -538,7 +538,7 @@ module type IntervalAtom = sig
 
   val extract_singl : t -> Z.t option
   (** [extract_singl t] extracts the singleton represented by [t],
-  or [None] if [t] is not a singleton. *)
+      or [None] if [t] is not a singleton. *)
 
   val lb : t -> Z.t option
   (** [lb t] extracts the lower-bound of [t], or [None] if [t] has no lower-bound. *)
@@ -591,15 +591,15 @@ module type Intervals = sig
 
   val extract_singl : t -> Z.t option
   (** [extract_singl t] extracts the singleton represented by [t],
-  or [None] if [t] is not a singleton. *)
+      or [None] if [t] is not a singleton. *)
 
   val lb : t -> Z.t option
   (** [lb t] extracts the lower-bound of [t], or [None] if [t] has no lower-bound.
-    @raise Invalid_argument if [t] is empty. *)
+      @raise Invalid_argument if [t] is empty. *)
 
   val ub : t -> Z.t option
   (** [ub t] extracts the upper-bound of [t], or [None] if [t] has no upper-bound.
-    @raise Invalid_argument if [t] is empty. *)
+      @raise Invalid_argument if [t] is empty. *)
 
 end
 
@@ -747,8 +747,14 @@ module type Records = sig
 
   val dnf_line_to_types : (Atom.t list * Atom.t list) -> (FTy.t * FTy.t list) * (FTy.t * FTy.t list) list
   (** [dnf_line_to_types (ps, ns)] converts a line of a [Record] DNF to a tuple ([p'], [ns']),
-  where [p'] is a pair composed of the tail and field types of the positive side,
-  and [ns] is a list pair composed of the tail and field types of the negative side. *)
+      where [p'] is a pair composed of the tail and field types of the positive side,
+      and [ns] is a list pair composed of the tail and field types of the negative side. *)
+
+  val dnf_line_to_types_lazy : (Atom.t list * Atom.t list) -> 
+    FTy.t * (unit -> FTy.t list * (FTy.t * FTy.t list) list)
+  (** [dnf_line_to_types_lazy (ps, ns)] is the same as [dnf_line_to_types] returns
+      first the tail of the [p'] part and a closure to compute the positive side and negative side. *)
+
 
   (** @inline
 
@@ -1099,8 +1105,8 @@ module type VDescr = sig
 
   (**@inline*)
   include Polymorphic with type t := t and type node := node
-    and type leaf := Descr.t and type var := Var.t
-    and module VarSet := VarSet and module VarMap := VarMap
+                                       and type leaf := Descr.t and type var := Var.t
+                                                                and module VarSet := VarSet and module VarMap := VarMap
 end
 
 module type VDescr' = sig
@@ -1109,8 +1115,8 @@ module type VDescr' = sig
   type t
   module Descr : Descr with type node := node
   include Polymorphic' with type t := t and type node := node
-    and type leaf := Descr.t and type var := Var.t
-    and module VarSet := VarSet and module VarMap := VarMap
+                                        and type leaf := Descr.t and type var := Var.t
+                                                                 and module VarSet := VarSet and module VarMap := VarMap
 
   val substitute : (t, Descr.Records.Atom.t) MixVarMap.t -> t -> t
   val direct_row_vars : t -> RowVarSet.t

@@ -16,8 +16,7 @@ let empty = Pos HSet.empty
 let ($::) = HSet.add
 let mk e = Pos (e $:: HSet.empty)
 let construct (n,es) =
-  let es = List.sort_uniq (fun a b -> Atom.compare b a) es in
-  let es = List.fold_left (fun acc e -> e $:: acc) HSet.empty es in
+  let es = HSet.of_list es in
   if n then Pos es else Neg es
 
 let destruct t = match t with

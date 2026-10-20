@@ -40,23 +40,28 @@ let cartesian_product l1 l2 =
     cartesian_products lst |> cartesian_product e
     |> List.map (fun (e1, e2) -> e1::e2) *)
 
-let rec map_split f l =
-  match l with
-    [] -> [], []
-  | e :: ll -> let a, b = f e in
-    let lla, llb = map_split f ll in
-    a::lla, b :: llb
+let rec heads = function
+  | [] -> []
+  | (e :: _) :: ll -> e :: heads ll
+  | [] :: _ -> assert false
+
+let rec tails = function
+  | [] -> []
+  | (_ :: l) :: ll -> l :: tails ll
+  | [] :: _ -> assert false
 
 let mapn default f lst =
-  let rec aux f lst =
+  let rec aux lst =
     match lst with
-    | []::_ -> []
+    | [] :: _ -> []
     | _ ->
-      let hds, tls = map_split (function (e::l) -> e, l | _ -> assert false) lst in
-      (f hds)::(aux f tls)
+      let hds = heads lst in
+      let tls = tails lst in
+      let rh = f hds in
+      let rt = aux tls in
+      rh :: rt
   in
-  if List.is_empty lst then default () else aux f lst
-
+  if List.is_empty lst then default () else aux lst
 (*
   fold_distribute_comb f comb acc [x1;x2;...;xn] [y1;y2;...;yn]
   computes

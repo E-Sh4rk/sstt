@@ -47,7 +47,7 @@ module Make(C : IdxComp) = struct
       let map = of_comp_list cs in
       { map ; others=false }
     else
-      let map = of_comp_list cs |> HList.to_list |> List.map C.neg |> HList.of_list in
+      let map = of_comp_list cs |> HList.map C.neg in
       { map ; others=true }
 
   let any = { map = HList.empty ; others = true }

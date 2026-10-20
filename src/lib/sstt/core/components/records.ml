@@ -2,22 +2,18 @@ open Base
 open Sigs
 open Sstt_utils
 
-module MakeLabelMap
-  (FTy:Polymorphic' with type var = RowVar.t and module VarMap = RowVarMap and module VarSet = RowVarSet)
-  (N:Node) = Hash.MapList(Label)(FTy)
-
 module Atom
-  (FTy:Polymorphic' with type var = RowVar.t and module VarMap = RowVarMap and module VarSet = RowVarSet)
-  (N:Node) = struct
+    (FTy:Polymorphic' with type var = RowVar.t and module VarMap = RowVarMap and module VarSet = RowVarSet)
+    (N:Node) = struct
 
-  module LabelMap = MakeLabelMap(FTy)(N)
+  module LabelMap = Hash.MapList(Label)(FTy)
   type node = N.t
   type t = { bindings : LabelMap.t ; tail : FTy.t }
 
   let hash t =
     Hash.(mix (FTy.hash t.tail) (LabelMap.hash t.bindings))
   let map f t =
-    { bindings = LabelMap.map f t.bindings ;
+    { bindings = LabelMap.map (fun _ v -> f v) t.bindings ;
       tail = f t.tail }
   let map_nodes f t = map (FTy.map_nodes f) t
   let direct_nodes t =
@@ -34,30 +30,34 @@ module Atom
   let to_tuple dom t = LabelMap.values_for_domain dom t.tail t.bindings
 
   module LabelSet = LabelMap.Set
+  let merge_disjoint =
+    LabelMap.merge (fun _ o1 o2 ->
+        match o1, o2 with
+          (Some v, None) | (None, Some v) -> Some v
+        | _ -> assert false)
   let substitute s t =
     let tail = FTy.substitute (RowVarMap.map (fun r -> r.tail) s) t.tail in
-    let b1 = LabelMap.bindings t.bindings |> List.map (fun (lbl, f) ->
-      lbl, FTy.substitute (RowVarMap.map (find lbl) s) f
+    let b1 = t.bindings |> LabelMap.map (fun lbl f ->
+        FTy.substitute (RowVarMap.map (find lbl) s) f
       ) in
-    let l = RowVarMap.bindings s |>
-      List.fold_left (fun acc (_,r) -> LabelSet.union acc (dom r)) LabelSet.empty in
+    let l = RowVarMap.fold (fun  _ r acc -> LabelSet.union acc (dom r)) s LabelSet.empty in
     let l = LabelSet.diff l (dom t) in
-    let b2 = LabelSet.elements l |> List.map (fun lbl ->
-      lbl, FTy.substitute (RowVarMap.map (find lbl) s) t.tail
+    let b2 = LabelMap.init l (fun lbl ->
+        FTy.substitute (RowVarMap.map (find lbl) s) t.tail
       ) in
-    { bindings = LabelMap.of_list (b1@b2) ; tail }
+    { bindings = merge_disjoint b1 b2 ; tail }
 
   let vars_toplevel t =
-    t.bindings |> LabelMap.bindings |> List.fold_left (fun acc (_,f) ->
-      RowVarSet.union acc (FTy.direct_vars f)) (FTy.direct_vars t.tail)
+    t.bindings |> LabelMap.fold (fun acc _ f ->
+        RowVarSet.union acc (FTy.direct_vars f)) (FTy.direct_vars t.tail)
 
   let simplify t =
     let is_default = FTy.equiv t.tail in
     let bindings = t.bindings |> LabelMap.filter_map
-      (fun _ f -> if is_default f then None else Some (FTy.simplify f)) in
+        (fun _ f -> if is_default f then None else Some (FTy.simplify f)) in
     let tail = FTy.simplify t.tail in
     if bindings == t.bindings && tail == t.tail then t else { bindings ; tail }
-    
+
   let equal t1 t2 =
     FTy.equal t1.tail t2.tail &&
     LabelMap.equal t1.bindings t2.bindings
@@ -67,10 +67,10 @@ module Atom
 end
 
 module Atom'
-  (FTy:Polymorphic' with type var = RowVar.t and module VarMap = RowVarMap and module VarSet = RowVarSet)
-  (N:Node) = struct
+    (FTy:Polymorphic' with type var = RowVar.t and module VarMap = RowVarMap and module VarSet = RowVarSet)
+    (N:Node) = struct
 
-  module LabelMap = MakeLabelMap(FTy)(N)
+  module LabelMap = Hash.MapList(Label)(FTy)
   module LabelSet = LabelMap.Set
   type node = N.t
   type t = { bindings : LabelMap.t ; tail : FTy.t ;
@@ -78,8 +78,8 @@ module Atom'
 
   let hash t =
     Hash.(mix3 (FTy.hash t.tail) (LabelMap.hash t.bindings)
-    (Hash.list (fun (ls,f) -> Hash.mix
-      (LabelSet.elements ls |> Hash.list Label.hash) (FTy.hash f)) t.exists))
+            (Hash.list (fun (ls,f) -> Hash.mix
+                           (LabelSet.hash ls) (FTy.hash f)) t.exists))
 
   let dom t = LabelMap.dom t.bindings
 
@@ -92,33 +92,33 @@ module Atom'
   let simplify t =
     let is_default = FTy.equiv t.tail in
     let bindings = t.bindings |> LabelMap.filter_map
-      (fun _ f -> if is_default f then None else Some (FTy.simplify f)) in
+        (fun _ f -> if is_default f then None else Some (FTy.simplify f)) in
     let tail = FTy.simplify t.tail in
     let dom = dom t in
     let exists = t.exists
       |> List.filter (fun (ls,f) -> not
-        (LabelSet.diff dom ls |> LabelSet.elements |> List.exists
-          (fun l -> FTy.leq (find l t) f)
-        || FTy.leq t.tail f))
+                         (LabelSet.diff dom ls |> LabelSet.elements |> List.exists
+                            (fun l -> FTy.leq (find l t) f)
+                          || FTy.leq t.tail f))
       |> List.map (fun (ls,f) ->
-        let ls = ls |> LabelSet.filter (fun l -> FTy.disjoint (find l t) f |> not) in
-        (ls, FTy.simplify f)
-      )
+          let ls = ls |> LabelSet.filter (fun l -> FTy.disjoint (find l t) f |> not) in
+          (ls, FTy.simplify f)
+        )
       |> merge_when_possible (fun (ls1,f1) (ls2,f2) ->
-        if LabelSet.subset ls2 ls1 && FTy.leq f1 f2 then Some (ls1,f1)
-        else if LabelSet.subset ls1 ls2 && FTy.leq f2 f1
-        then Some (ls2,f2) else None)
+          if LabelSet.subset ls2 ls1 && FTy.leq f1 f2 then Some (ls1,f1)
+          else if LabelSet.subset ls1 ls2 && FTy.leq f2 f1
+          then Some (ls2,f2) else None)
     in
     if bindings == t.bindings && tail == t.tail && exists == t.exists
     then t else { bindings ; tail ; exists }
 
   let is_empty t =
     let is_empty_binding _ f = FTy.is_empty f in
-    let dom = dom t in
     let is_empty_exist (ls,f) =
       FTy.disjoint t.tail f &&
-      LabelSet.diff dom ls |> LabelSet.elements |> List.for_all
-        (fun l -> FTy.disjoint (find l t) f)
+      LabelMap.remove t.bindings ls
+      |> LabelMap.values
+      |> List.for_all (FTy.disjoint f)
     in
     t.exists |> List.exists is_empty_exist ||
     LabelMap.exists is_empty_binding t.bindings ||
@@ -132,9 +132,9 @@ module Atom'
   let compare t1 t2 =
     FTy.compare t1.tail t2.tail |> ccmp
       (List.compare (fun (ls1,f1) (ls2,f2) ->
-        LabelSet.compare ls1 ls2 |> ccmp FTy.compare f1 f2))
+           LabelSet.compare ls1 ls2 |> ccmp FTy.compare f1 f2))
       t1.exists t2.exists |> ccmp
-        LabelMap.compare t1.bindings t2.bindings
+      LabelMap.compare t1.bindings t2.bindings
 end
 
 module Make(N:Node) = struct
@@ -163,19 +163,24 @@ module Make(N:Node) = struct
   let disj n ps =
     let init = fun () -> List.init n (fun _ -> FTy.empty) in
     mapn init FTy.disj ps
-  let dnf_line_to_types (ps, ns) =
+
+  let dnf_line_to_types_lazy (ps, ns) =
     let open Atom in
-     let line_dom line acc =
+    let line_dom line acc =
       List.fold_left
-        (fun acc a -> LabelMap.Set.union acc (dom a))
+        (fun acc a -> LabelSet.union acc (dom a))
         acc line
     in
-    let dom = line_dom ns (line_dom ps LabelMap.Set.empty) in
-    let p = ps |> List.map (Atom.to_tuple dom) |> conj (LabelSet.cardinal dom) in
+    let dom = line_dom ns (line_dom ps LabelSet.empty) in
     let tl = ps |> List.map (fun r -> r.Atom.tail) |> FTy.conj in
-    let tests = ns |> List.map (fun r -> r.Atom.tail, Atom.to_tuple dom r) in
+    tl, (fun () ->
+        let p = ps |> List.map (Atom.to_tuple dom) |> conj (LabelSet.cardinal dom) in
+        let tests = ns |> List.map (fun r -> r.Atom.tail, Atom.to_tuple dom r) in
+        (p, tests))
+  let dnf_line_to_types l =
+    let tl, f = dnf_line_to_types_lazy l in
+    let p, tests = f () in
     (tl, p), tests
-
   (* If a component of [ss] is disjoint from the corresponding component of
      [tt], then the line of the general case associated to this component
      implies all the other ones, so that it is the only one to consider.
@@ -201,10 +206,11 @@ module Make(N:Node) = struct
         fold_distribute_comb (fun acc ss -> acc && psi acc ss ts) FTy.diff acc ss tt
   let is_clause_empty (ps,ns,b) =
     if b then
-      let (tl,p), ns = dnf_line_to_types (ps, ns) in
+      let tl, get_p_ns = dnf_line_to_types_lazy (ps, ns) in
       FTy.is_empty tl ||
+      let p, ns = get_p_ns () in
       let ns = ns |> List.filter_map
-        (fun (tl',n) -> if FTy.leq tl tl' then Some n else None) in
+          (fun (tl',n) -> if FTy.leq tl tl' then Some n else None) in
       psi true p ns
     else true
   let is_empty t = t |> Bdd.for_all_lines is_clause_empty
@@ -223,8 +229,8 @@ module Make(N:Node) = struct
     let to_atom a' =
       let open Atom' in
       let ns = a'.exists |> List.map (fun (ls,f) ->
-        let bindings = LabelMap.constant ls FTy.any in
-        {Atom.bindings=bindings ; Atom.tail=FTy.neg f})
+          let bindings = LabelMap.constant ls FTy.any in
+          {Atom.bindings=bindings ; Atom.tail=FTy.neg f})
       in
       let ps = [{Atom.bindings=a'.bindings ; Atom.tail=a'.tail}] in
       ps, ns
@@ -240,7 +246,7 @@ module Make(N:Node) = struct
         in
         let res = LabelMap.fold not_binding [] a.Atom.bindings in
         let tl = { bindings=LabelMap.empty ; tail=FTy.any ;
-                  exists=[Atom.dom a, FTy.neg a.Atom.tail] } in
+                   exists=[Atom.dom a, FTy.neg a.Atom.tail] } in
         tl::res
     let to_atom' (a,b) =
       to_atom' (a,b) |> List.filter (fun a -> Atom'.is_empty a |> not)
@@ -266,7 +272,7 @@ module Make(N:Node) = struct
   let map_nodes f t = Bdd.map_nodes (Atom.map_nodes f) t
   let map f t = Bdd.map_nodes f t
   let direct_row_vars t = Bdd.atoms t |> List.fold_left
-    (fun acc a -> RowVarSet.union acc (Atom.vars_toplevel a)) RowVarSet.empty
+      (fun acc a -> RowVarSet.union acc (Atom.vars_toplevel a)) RowVarSet.empty
 
   let simplify t = Bdd.simplify equiv t
   let substitute s t = Bdd.map_nodes (Atom.substitute s) t

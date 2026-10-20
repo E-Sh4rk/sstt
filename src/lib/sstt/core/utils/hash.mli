@@ -116,7 +116,7 @@ module type Set = sig
   (** Filtering, [filter f s] is the set of elements of [s] for which [f] returns [true]. *)
 
   val map : (elt -> elt) -> t -> t
-  
+
   val mem : elt -> t -> bool
   (** Membership test. *)
 
@@ -189,7 +189,7 @@ module type Map = sig
   val find_opt : key -> t -> value option
   (** Find a value in the map. Runs in linear time in the number of bindings. *)
 
-  val map : (value -> value) -> t -> t
+  val map : (key -> value -> value) -> t -> t
   (** Return a map with the same keys and updated values *)
 
   val filter_map : (key -> value -> value option) -> t -> t
@@ -221,7 +221,10 @@ module type Map = sig
   (** Return the values of a map. *)
 
   val constant : Set.t -> value -> t
-  (** Return a constant map with from the given domain. *)
+  (** Return a constant map from the given domain. *)
+
+  val init : Set.t -> (key -> value) -> t
+  (** Initializes a map with from the given domain. *)
 
   val fold : ('a -> key -> value -> 'a) -> 'a -> t -> 'a
   (** Folding over the bindings of the map. *)
@@ -237,6 +240,10 @@ module type Map = sig
       @raise Invalid_argument if the domain and list of values do not
       have the same length.
   *)
+
+  val remove : t -> Set.t -> t
+
+  val for_all : (key -> value -> bool) -> t -> bool
 end
 
 module SetList (X : Comparable) : Set with type elt = X.t
