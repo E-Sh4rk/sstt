@@ -95,25 +95,30 @@ type node
    [(a,b)] and [(c,d)] satisfy [succ b < c], so that they cannot be merged into
    a single one). In particular, the representation of a set is unique, and the
    empty set is the empty list. *)
-include Hash.List(Interval)
+module L = Hash.List(Interval)
+type t = L.t
+let empty = L.empty
+let hash = L.hash
+let compare = L.compare
+let equal = L.equal
+let is_empty = L.is_empty
+let any = L.(Interval.any $:: empty)
+let mk i = L.(i $:: empty)
 
-let any = Interval.any $:: empty
-let mk i = i $:: empty
-
-let destruct t = to_list t
+let destruct t = L.to_list t
 
 let lb t =
-  match to_list t with
+  match L.to_list t with
   | [] -> invalid_arg "Empty intervals."
   | i::_ -> Interval.lb i
 
 let ub t =
-  match to_list t |> List.rev with
+  match L.to_list t |> List.rev with
   | [] -> invalid_arg "Empty intervals."
   | i::_ -> Interval.ub i
 
 let extract_singl t =
-  match to_list t with
+  match L.to_list t with
   | [i] -> Interval.extract_singl i
   | _ -> None
 
@@ -127,65 +132,70 @@ let extract_singl t =
    are adjacent to it are merged with it, so that the result is normalized. *)
 let rec ( @:: ) (a, b) l =
   let open Number in
-  match uncons l with
-  | None -> (a,b) $:: empty
-  | Some ((c, d), ll) ->
-    if b = PosInf then (a,b) $:: empty
+  match l with
+  | [] -> [ (a,b) ]
+  | (c, d) :: ll ->
+    if b = PosInf then [(a,b)]
     else if c <= b then (a, max b d) @:: ll (* overlapping *)
     else if succ b = c then (a, d) @:: ll (* adjacent *)
-    else  (a,b) $:: l
+    else (a,b) :: l
 
 
 let rec cup_rec i1 i2 =
   let open Number in
-  match uncons i1 with
-    None -> i2
-  | Some ((a1, b1) as c1,ii1) ->
-    match uncons i2 with
-      None -> i1
-    | Some ((a2, b2) as c2,ii2) ->
-      if a1 > b2 then c2 @:: cup i1 ii2
-      else if a2 > b1 then c1 @:: cup ii1 i2
-      else
-        let u = min a1 a2 in
-        if b1 < b2 then cup ii1 ((u, b2) @:: ii2)
-        else if b1 = b2 then (u, b1) @:: cup ii1 ii2
-        else cup ((u, b1) @:: ii1) ii2
-and cup t1 t2 = fcup ~empty ~any ~cup:cup_rec t1 t2
+  match i1, i2 with
+    ([], l) | (l, []) -> l
+  | ((a1, b1) as c1) :: ii1, ((a2, b2) as c2) :: ii2 ->
+    if a1 > b2 then c2 :: cup_rec i1 ii2
+    else if a2 > b1 then c1 @:: cup_rec ii1 i2
+    else
+      let u = min a1 a2 in
+      if b1 < b2 then cup_rec ii1 ((u, b2) @:: ii2)
+      else if b1 = b2 then (u, b1) @:: cup_rec ii1 ii2
+      else cup_rec ((u, b1) @:: ii1) ii2
+
+let cup_aux t1 t2 =
+  let open L in
+  let l = cup_rec (to_list t1) (to_list t2) in
+  of_list l
+let cup = fcup ~empty ~any ~cup:cup_aux
 
 let rec cap_rec i1 i2 =
   let open Number in
-  match uncons i1 with
-    None -> empty
-  | Some ((a1, b1), ii1) ->
-    match uncons i2 with
-      None -> empty
-    | Some ((a2, b2), ii2) ->
-      if a1 > b2 then cap i1 ii2
-      else if a2 > b1 then cap ii1 i2
-      else
-        let u = max a1 a2 in
-        if b1 < b2 then (u, b1) @:: cap ii1 ((succ b1, b2) @:: ii2)
-        else if b1 = b2 then (u, b1) @:: cap ii1 ii2
-        else (u, b2) @:: cap ((succ b2, b1) @:: ii1) ii2
-and cap t1 t2 = fcap ~empty ~any ~cap:cap_rec t1 t2
+  match i1, i2 with
+    ([],_) | (_, []) -> []
+  | (a1, b1) :: ii1, (a2, b2) :: ii2 ->
+    if a1 > b2 then cap_rec i1 ii2
+    else if a2 > b1 then cap_rec ii1 i2
+    else
+      let u = max a1 a2 in
+      if b1 < b2 then (u, b1) @:: cap_rec ii1 ((succ b1, b2) @:: ii2)
+      else if b1 = b2 then (u, b1) @:: cap_rec ii1 ii2
+      else (u, b2) @:: cap_rec ((succ b2, b1) @:: ii1) ii2
+let cap_aux t1 t2 = 
+  let open L in
+  let l = cap_rec (to_list t1) (to_list t2) in
+  of_list l
+let cap =  fcap ~empty ~any ~cap:cap_aux 
 
 let rec diff_rec i1 i2 =
   let open Number in
-  match uncons i1 with
-    None -> empty
-  | Some ((a1, b1) as c1, ii1) ->
-    match uncons i2 with
-      None -> i1
-    | Some ((a2, b2), ii2) ->
-      if b1 < a2 then c1 @:: diff ii1 i2
-      else if b2 < a1 then diff i1 ii2
-      else if a2 <= a1 then
-        if b2 < b1 then diff ((succ b2, b1) @:: ii1) ii2 else diff ii1 i2
-      else if (* a1 < a2 *)
-        b2 >= b1 then diff ((a1, pred a2) @:: ii1) i2
-      else diff ((a1, pred a2) @:: (succ b2, b1) @:: ii1) ii2
-and diff t1 t2 = fdiff ~empty ~any ~diff:diff_rec t1 t2
+  match i1, i2 with
+    [], _ | _, [] -> i1
+  | ((a1, b1) as c1) :: ii1, (a2, b2) :: ii2 ->
+    if b1 < a2 then c1 @:: diff_rec ii1 i2
+    else if b2 < a1 then diff_rec i1 ii2
+    else if a2 <= a1 then
+      if b2 < b1 then diff_rec ((succ b2, b1) @:: ii1) ii2 else diff_rec ii1 i2
+    else if (* a1 < a2 *)
+      b2 >= b1 then diff_rec ((a1, pred a2) @:: ii1) i2
+    else diff_rec ((a1, pred a2) @:: (succ b2, b1) @:: ii1) ii2
+
+let diff_aux t1 t2 = 
+  let open L in
+  let l = diff_rec (to_list t1) (to_list t2) in
+  of_list l
+let diff = fdiff ~empty ~any ~diff:diff_aux
 
 let neg i = diff any i
 let neg = fneg ~empty ~any ~neg
@@ -194,7 +204,8 @@ let of_list l =
   (* To avoid a quadratic behaviour if building from
      the smallest interval to the largest *)
   l |> List.sort (fun x y -> - Interval.compare x y)
-  |> List.fold_left (fun acc a -> a@::acc) empty
+  |> List.fold_left (fun acc a -> a@::acc) []
+  |> L.of_list
 
 let construct = of_list
 

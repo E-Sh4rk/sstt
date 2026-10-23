@@ -63,27 +63,28 @@ module Make(C : IdxComp) = struct
   let [@inline always] (@?) o l =
     match o with
       None -> l
-    | Some e -> e $:: l
+    | Some e -> e :: l
 
   let[@inline always] op empty1 empty2 missing1 missing2 comb12 combo t1 t2 =
     let rec loop l1 l2 =
-      match HList.uncons l1 with
-        None -> empty1 l2
-      | Some (a1, ll1) ->
-        match HList.uncons l2 with
-          None -> empty2 l1
-        | Some (a2, ll2) ->
+      match l1 with
+        [] -> empty1 l2
+      | a1 ::ll1 ->
+        match l2 with
+          [] -> empty2 l1
+        | a2 :: ll2 ->
           let e1 = C.index a1 in
           let e2 = C.index a2 in
           let c = C.Index.compare e1 e2 in
           if c < 0 then (missing2 a1) @? loop ll1 l2
           else if c > 0 then (missing1 a2) @? loop l1 ll2
-          else (comb12 a1 a2)$::loop ll1 ll2
+          else (comb12 a1 a2) ::loop ll1 ll2
     in
     let others = combo t1.others t2.others in
-    { map = loop t1.map t2.map; others }
+    let map = HList.(of_list (loop (to_list t1.map) (to_list t2.map))) in
+    { map = map; others }
 
-  let cst_nil _ = HList.empty
+  let cst_nil _ = []
   let cst_none _ = None
   let cap t1 t2 =
     op
@@ -105,7 +106,7 @@ module Make(C : IdxComp) = struct
   let cup = fcup  ~empty ~any ~cup
   let diff t1 t2 =
     op
-      (if t1.others then HList.map C.neg else cst_nil)
+      (if t1.others then List.map C.neg else cst_nil)
       (if not t2.others then Fun.id else cst_nil)
       (if t1.others then (fun x -> Some (C.neg x)) else cst_none)
       (if not t2.others then Option.some else cst_none)
