@@ -146,7 +146,7 @@ let rec cup_rec i1 i2 =
   match i1, i2 with
     ([], l) | (l, []) -> l
   | ((a1, b1) as c1) :: ii1, ((a2, b2) as c2) :: ii2 ->
-    if a1 > b2 then c2 :: cup_rec i1 ii2
+    if a1 > b2 then c2 @:: cup_rec i1 ii2
     else if a2 > b1 then c1 @:: cup_rec ii1 i2
     else
       let u = min a1 a2 in

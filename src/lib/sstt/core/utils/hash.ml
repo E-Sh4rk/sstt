@@ -82,7 +82,8 @@ sig
   val filter_map : (key -> value -> value option) -> t -> t
   val of_list : (key * value) list -> t
   val singleton : key -> value -> t
-  val to_list : t -> (key * value) list
+  val to_list : t -> (key list * value list)
+  val merge_disjoint : t -> t -> t
   val merge :
     (key -> value option -> value option -> value option) -> t -> t -> t
   val values_for_domain : Set.t -> value -> t -> value list
@@ -97,7 +98,7 @@ sig
 end
 
 module List (X : Comparable) : sig
-  type t
+  type t = private { hash : int; lst : X.t list } 
 
   include Comparable with type t := t
 
@@ -115,10 +116,11 @@ module List (X : Comparable) : sig
   type 's hd = private X.t
   type 's lst = private X.t list
   type 's view = [] | (::) of 's hd * 's lst
-  type 'r op = { op : 's. 's hash -> 's lst -> 'r }
+  type 'r cop = { cop : 's. 's hash -> 'r } [@@unboxed]
+  type 'r uop = { uop : 's. 's hash -> 's lst -> 'r } [@@unboxed]
 
-  val create : 'r op -> 'r
-  val update : t -> 'r op -> 'r
+  val create : 'r cop -> 'r
+  val update : t -> 'r uop -> 'r
 
   val view : 's lst -> 's view
   val empty_lst : 's lst
@@ -137,7 +139,8 @@ end = struct
   type 's hash = int ref
   type 's view =  [] | (::) of 's hd * 's lst
 
-  type 'r op = { op : 's. 's hash -> 's lst -> 'r }
+  type 'r cop = { cop : 's. 's hash -> 'r } [@@unboxed]
+  type 'r uop = { uop : 's. 's hash -> 's lst -> 'r } [@@unboxed]
 
   let empty = { hash = const0; lst = [] }
 
@@ -149,18 +152,20 @@ end = struct
 
   let empty_lst = List.[]
 
-  let hash s = s.hash land 0x3fffffff
-  let[@inline] add_sum sum x = sum + mix_hash (X.hash x)
-  let[@inline] rem_sum sum x = sum - mix_hash (X.hash x)
+  let[@inline always] hash s = s.hash land 0x3fffffff
+  let[@inline always] add_sum sum x = sum + mix_hash (X.hash x)
+  let[@inline always] rem_sum sum x = sum - mix_hash (X.hash x)
 
   (* unsafe *)
   let upd h x = h := add_sum !h x
 
-  let update { hash; lst } { op } =
+  let update { hash; lst } { uop } =
     let h = ref hash in
-    op h lst 
+    uop h lst 
 
-  let create op = update empty op
+  let create {cop} = 
+    let h = ref empty.hash in
+    cop h
 
   let equal l1 l2 = 
     l1 == l2 ||
@@ -182,7 +187,7 @@ end = struct
     | x :: ll -> h := rem_sum !h x; ll
 
   let (@::) x l = List.(x :: l)
-  let ($::) x l = update l { op = fun h e -> cons h x e |> make h }
+  let ($::) x l = update l { uop = fun h e -> cons h x e |> make h }
 
   let to_lst (type s) (h : s hash) (l : X.t list) : s lst =
     List.iter (upd h) l;
@@ -196,21 +201,21 @@ end = struct
     let lst = to_lst h l in
     { hash = !h; lst }
 
-  let map_aux h empty f (l: X.t list) =
+  let map_aux h f (l: X.t list) =
     let rec loop l = match view l with
-        [] -> empty
+        [] -> empty_lst
       | x :: ll -> cons h (f x) (loop ll)
     in
     let lst = loop l in make h lst
 
   let map f l =
-    create { op = (let f h empty = map_aux h empty f l.lst in f) }
+    create { cop = (let f h = map_aux h f l.lst in f) }
 
   let to_list l = l.lst
 
-  let filter_aux h empty f l =
+  let filter_aux h f l =
     let rec loop l = match view l with
-        [] -> empty
+        [] -> empty_lst
       | x :: ll -> 
         if f x then cons h x (loop ll) else loop ll
     in 
@@ -218,7 +223,7 @@ end = struct
     make h lst
 
   let filter f l =
-    create { op = (let f h empty = filter_aux h empty f l.lst in f)}
+    create { cop = (let f h = filter_aux h f l.lst in f)}
 
   let for_all f l = List.for_all f l.lst
 
@@ -255,7 +260,7 @@ struct
       else y @:: add_aux h x ll
 
   let add x l =
-    update l { op = fun h l -> let lst = add_aux h x l in make h lst  }
+    update l { uop = fun h l -> let lst = add_aux h x l in make h lst  }
 
   let of_list l =
     let l = Stdlib.List.sort_uniq X.compare l in
@@ -274,11 +279,11 @@ struct
       else cons h x2 (union_aux h l1 ll2)
 
   let union l1 l2 =
-    let op h _empty : t =  
+    let cop h =  
       let lst = union_aux h (to_list l1) (to_list l2) in
       make h lst 
     in
-    create { op }
+    create { cop }
 
   let rec inter_aux h  l1 l2 =
     match l1, l2 with
@@ -290,11 +295,11 @@ struct
       else inter_aux h l1 ll2
 
   let inter l1 l2 = 
-    let op h _ : t =  
+    let cop h =  
       let lst = inter_aux h (to_list l1) (to_list l2) in
       make h lst 
     in
-    create { op }
+    create { cop }
 
   let rec diff_aux h l1 l2 =
     match l1, l2 with
@@ -306,11 +311,11 @@ struct
       else diff_aux h l1 ll2
 
   let diff l1 l2 =     
-    let op h _empty : t =  
+    let cop h : t =  
       let lst = diff_aux h (to_list l1) (to_list l2) in
       make h lst 
     in
-    create { op }
+    create { cop }
 
 
 
@@ -362,9 +367,9 @@ struct
         Keys.make hk rk,
         Values.make hv rv
       in
-      Values.update lv { op=opv}
+      Values.update lv {uop=opv}
     in
-    Keys.update lk {op=opk}
+    Keys.update lk {uop=opk}
 
 
   let bindings (lk, lv) =
@@ -396,8 +401,8 @@ struct
 
 
   let filter f (lk, lv) =
-    let opk hk _ =
-      let opv hv _ = 
+    let opk hk =
+      let opv hv = 
         let rk, rv = 
           filter_aux f 
             hk (Keys.to_list lk) 
@@ -405,9 +410,9 @@ struct
         Keys.make hk rk,
         Values.make hv rv
       in
-      Values.create { op=opv}
+      Values.create {cop=opv}
     in
-    Keys.create {op=opk}
+    Keys.create {cop=opk}
 
   let map f (lk, lv) =
     (lk,
@@ -433,7 +438,7 @@ struct
 
   let singleton k v = add k v empty
 
-  let to_list = bindings
+  let to_list (lk, lv) = Keys.to_list lk, Values.to_list lv
 
   let dom (lk, _) = lk
 
@@ -450,8 +455,8 @@ struct
     | _ -> assert false
 
   let filter_map f (lk, lv) =
-    let opk hk _ =
-      let opv hv _ = 
+    let opk hk =
+      let opv hv = 
         let rk, rv = 
           filter_map_aux f 
             hk (Keys.to_list lk) 
@@ -459,9 +464,9 @@ struct
         Keys.make hk rk,
         Values.make hv rv
       in
-      Values.create {op=opv}
+      Values.create {cop=opv}
     in
-    Keys.create {op=opk}
+    Keys.create {cop=opk}
 
   let cons_opt k vo hk lk hv lv =
     match vo with
@@ -492,8 +497,8 @@ struct
       | _ -> assert false
 
   let merge f (lk1, lv1) (lk2, lv2) =
-    let opk hk _ =
-      let opv hv _ = 
+    let opk hk =
+      let opv hv = 
         let rk, rv = 
           merge_aux f 
             hk  hv 
@@ -505,11 +510,15 @@ struct
         Keys.make hk rk,
         Values.make hv rv
       in
-      Values.create {op=opv}
+      Values.create {cop=opv}
     in
-    Keys.create {op=opk}
+    Keys.create {cop=opk}
 
-
+  let merge_disjoint t1 t2 =
+    merge (fun _ o1 o2 ->
+        match o1, o2 with
+          ((Some _) as v, None)| (None, (Some _ as v)) -> v
+        | _ -> failwith "Non disjoint maps") t1 t2
   let values (_, lv) = Values.to_list lv
 
   let rec values_for_domain_aux def ls lk lv =
@@ -570,13 +579,13 @@ struct
       | _ -> assert false
 
   let remove (lk, lv) ls =
-    let op hk lk =
-      let op hv lv =
+    let uop hk lk =
+      let uop hv lv =
         let rk, rv = remove_aux hk lk hv lv (Keys.to_list ls) in
         Keys.make hk rk, Values.make hv rv
       in
-      Values.update lv {op}
-    in Keys.update lk {op}
+      Values.update lv {uop}
+    in Keys.update lk {uop}
 
   let for_all f (lk, lv) = 
     Stdlib.List.for_all2 f 

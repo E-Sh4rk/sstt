@@ -35,9 +35,11 @@ module List (X : Comparable) : sig
   type 's hd = private X.t
   type 's lst = private X.t list
   type 's view = [] | (::) of 's hd * 's lst
-  type 'r op = { op : 's. 's hash -> 's lst -> 'r; }
-  val create : 'r op -> 'r
-  val update : t -> 'r op -> 'r
+  type 'r cop = { cop : 's. 's hash -> 'r } [@@unboxed]
+  type 'r uop = { uop : 's. 's hash -> 's lst -> 'r } [@@unboxed]
+
+  val create : 'r cop -> 'r
+  val update : t -> 'r uop -> 'r
   val view : 's lst -> 's view
   val empty_lst : 's lst
   val to_lst : 's hash -> X.t list -> 's lst
@@ -90,7 +92,8 @@ sig
   val filter_map : (key -> value -> value option) -> t -> t
   val of_list : (key * value) list -> t
   val singleton : key -> value -> t
-  val to_list : t -> (key * value) list
+  val to_list : t -> key list * value list
+  val merge_disjoint : t -> t -> t
   val merge :
     (key -> value option -> value option -> value option) -> t -> t -> t
   val values_for_domain : Set.t -> value -> t -> value list

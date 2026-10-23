@@ -30,11 +30,7 @@ module Atom
   let to_tuple dom t = LabelMap.values_for_domain dom t.tail t.bindings
 
   module LabelSet = LabelMap.Set
-  let merge_disjoint =
-    LabelMap.merge (fun _ o1 o2 ->
-        match o1, o2 with
-          (Some v, None) | (None, Some v) -> Some v
-        | _ -> assert false)
+  
   let substitute s t =
     let tail = FTy.substitute (RowVarMap.map (fun r -> r.tail) s) t.tail in
     let b1 = t.bindings |> LabelMap.map (fun lbl f ->
@@ -45,7 +41,7 @@ module Atom
     let b2 = LabelMap.init l (fun lbl ->
         FTy.substitute (RowVarMap.map (find lbl) s) t.tail
       ) in
-    { bindings = merge_disjoint b1 b2 ; tail }
+    { bindings = LabelMap.merge_disjoint b1 b2 ; tail }
 
   let vars_toplevel t =
     t.bindings |> LabelMap.fold (fun acc _ f ->
@@ -72,14 +68,15 @@ module Atom'
 
   module LabelMap = Hash.MapList(Label)(FTy)
   module LabelSet = LabelMap.Set
+  module ExistsMap = Hash.MapList(LabelSet)(FTy)
   type node = N.t
   type t = { bindings : LabelMap.t ; tail : FTy.t ;
-             exists : (LabelSet.t * FTy.t) list }
+             exists : ExistsMap.t }
 
   let hash t =
-    Hash.(mix3 (FTy.hash t.tail) (LabelMap.hash t.bindings)
-            (Hash.list (fun (ls,f) -> Hash.mix
-                           (LabelSet.hash ls) (FTy.hash f)) t.exists))
+    Hash.(mix3 (FTy.hash t.tail) 
+            (LabelMap.hash t.bindings)
+            (ExistsMap.hash t.exists))
 
   let dom t = LabelMap.dom t.bindings
 
@@ -96,44 +93,44 @@ module Atom'
     let tail = FTy.simplify t.tail in
     let dom = dom t in
     let exists = t.exists
-      |> List.filter (fun (ls,f) -> not
-                         (LabelSet.diff dom ls |> LabelSet.elements |> List.exists
-                            (fun l -> FTy.leq (find l t) f)
-                          || FTy.leq t.tail f))
-      |> List.map (fun (ls,f) ->
-          let ls = ls |> LabelSet.filter (fun l -> FTy.disjoint (find l t) f |> not) in
-          (ls, FTy.simplify f)
-        )
+      |> ExistsMap.fold 
+        (fun acc ls f ->
+           if (not
+                 (LabelSet.diff dom ls |> LabelSet.elements |> List.exists
+                    (fun l -> FTy.leq (find l t) f)
+                  || FTy.leq t.tail f))
+           then 
+             let ls = ls |> LabelSet.filter (fun l -> FTy.disjoint (find l t) f |> not) in
+             (ls, FTy.simplify f)::acc
+           else acc
+        ) []
       |> merge_when_possible (fun (ls1,f1) (ls2,f2) ->
           if LabelSet.subset ls2 ls1 && FTy.leq f1 f2 then Some (ls1,f1)
           else if LabelSet.subset ls1 ls2 && FTy.leq f2 f1
-          then Some (ls2,f2) else None)
+          then Some (ls2,f2) else None) |> ExistsMap.of_list
     in
     if bindings == t.bindings && tail == t.tail && exists == t.exists
     then t else { bindings ; tail ; exists }
 
   let is_empty t =
     let is_empty_binding _ f = FTy.is_empty f in
-    let is_empty_exist (ls,f) =
+    let is_empty_exist ls f =
       FTy.disjoint t.tail f &&
       LabelMap.remove t.bindings ls
       |> LabelMap.values
       |> List.for_all (FTy.disjoint f)
     in
-    t.exists |> List.exists is_empty_exist ||
+    t.exists |> ExistsMap.exists is_empty_exist ||
     LabelMap.exists is_empty_binding t.bindings ||
     FTy.is_empty t.tail
 
   let equal t1 t2 =
     FTy.equal t1.tail t2.tail &&
-    List.equal (fun (ls1,f1) (ls2,f2) -> LabelSet.equal ls1 ls2 && FTy.equal f1 f2)
-      t1.exists t2.exists &&
+    ExistsMap.equal t1.exists t2.exists &&
     LabelMap.equal t1.bindings t2.bindings
   let compare t1 t2 =
     FTy.compare t1.tail t2.tail |> ccmp
-      (List.compare (fun (ls1,f1) (ls2,f2) ->
-           LabelSet.compare ls1 ls2 |> ccmp FTy.compare f1 f2))
-      t1.exists t2.exists |> ccmp
+      ExistsMap.compare t1.exists t2.exists |> ccmp
       LabelMap.compare t1.bindings t2.bindings
 end
 
@@ -224,29 +221,32 @@ module Make(N:Node) = struct
 
     let atom_is_valid _ = true
     let leq t1 t2 = leq (Bdd.of_dnf t1) (Bdd.of_dnf t2)
-    let any' = { Atom'.bindings=Atom'.LabelMap.empty ; tail=FTy.any ; exists=[] }
+    let any' = { Atom'.bindings=Atom'.LabelMap.empty ; tail=FTy.any ; exists=Atom'.ExistsMap.empty }
 
     let to_atom a' =
       let open Atom' in
-      let ns = a'.exists |> List.map (fun (ls,f) ->
-          let bindings = LabelMap.constant ls FTy.any in
-          {Atom.bindings=bindings ; Atom.tail=FTy.neg f})
+      let ns = 
+        let lss, fs = a'.exists |> ExistsMap.to_list in
+        List.map2 (fun ls f ->
+            let bindings = LabelMap.constant ls FTy.any in
+            {Atom.bindings=bindings ; Atom.tail=FTy.neg f})
+          lss fs
       in
       let ps = [{Atom.bindings=a'.bindings ; Atom.tail=a'.tail}] in
       ps, ns
     let to_atom' (a, b) =
       let open Atom' in
       if b then
-        [ { bindings=a.Atom.bindings ; tail=a.Atom.tail ; exists=[] } ]
+        [ { bindings=a.Atom.bindings ; tail=a.Atom.tail ; exists=ExistsMap.empty } ]
       else
         let not_binding acc l f =
           { bindings=LabelMap.singleton l (FTy.neg f) ;
             tail=FTy.any ;
-            exists=[] } :: acc
+            exists=ExistsMap.empty } :: acc
         in
         let res = LabelMap.fold not_binding [] a.Atom.bindings in
         let tl = { bindings=LabelMap.empty ; tail=FTy.any ;
-                   exists=[Atom.dom a, FTy.neg a.Atom.tail] } in
+                   exists=ExistsMap.singleton (Atom.dom a) (FTy.neg a.Atom.tail) } in
         tl::res
     let to_atom' (a,b) =
       to_atom' (a,b) |> List.filter (fun a -> Atom'.is_empty a |> not)
@@ -258,7 +258,10 @@ module Make(N:Node) = struct
         ) s1.bindings s2.bindings
       in
       let tail = FTy.cap s1.tail s2.tail in
-      let exists = s1.exists@s2.exists in
+      let exists = ExistsMap.merge (fun _ o1 o2 ->
+          match o1, o2 with
+            Some v, None | None, Some v -> Some v
+          | _ -> assert false) s1.exists s2.exists in
       let res = { bindings ; tail ; exists } in
       if is_empty res then None else Some (simplify res)
   end

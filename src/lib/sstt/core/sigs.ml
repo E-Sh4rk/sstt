@@ -694,9 +694,10 @@ module type RecordAtom' = sig
   type node
   type field
   module LabelMap : Hash.Map with type key = Label.t and type value = field
+  module ExistsMap : Hash.Map with type key = LabelMap.Set.t and type value = field
 
   type t = { bindings : LabelMap.t ; tail : field ;
-             exists : (LabelMap.Set.t * field) list }
+             exists : ExistsMap.t }
   (** A compact representation for record types.
       The [bindings] and [tail] fields have the same meaning as in {!Records.Atom.t}. *)
 
