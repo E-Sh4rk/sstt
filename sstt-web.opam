@@ -12,8 +12,8 @@ depends: [
   "sstt-repl"
   "js_of_ocaml"
   "js_of_ocaml-ppx"
-  "js_of_ocaml-compiler" {= "6.3.2"}
-  "wasm_of_ocaml-compiler" {= "6.3.2"}
+  "js_of_ocaml-compiler" {>= "6.5.0"}
+  "wasm_of_ocaml-compiler" {>= "6.5.0"}
   "odoc" {with-doc}
 ]
 build: [
