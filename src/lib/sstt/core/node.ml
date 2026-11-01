@@ -392,15 +392,18 @@ include (struct
 
     (** Systems of contractive equations. [factorize_many] must be called on the result (done in Core) *)
     let of_eqs eqs =
+      let def_vars = eqs |> List.map fst |> VarSet.of_list in
+      (* Optimisation: reuse nodes if possible *)
+      let unchanged n = VarSet.disjoint (vars n) def_vars in
       let deps = eqs
-        |> List.fold_left (fun acc (_, t) -> NSet.union (dependencies t) acc) NSet.empty in
+        |> List.fold_left (fun acc (_, t) -> NSet.union (dependencies t) acc) NSet.empty
+        |> NSet.filter (fun n -> unchanged n |> not) in
       let copies = NH.create 10 in
       let () = NSet.iter (fun n -> NH.add copies n (mk ())) deps in
-      let def_vars = eqs |> List.map fst |> VarSet.of_list in
       let new_node n =
-        if VarSet.disjoint (vars n) def_vars
-        then n (* Optimisation: avoid introducing a useless node *)
-        else NH.find copies n
+        match NH.find_opt copies n with
+        | Some n -> n
+        | None -> n
       in
       let rec define_all deps =
         if NSet.is_empty deps |> not then
@@ -413,16 +416,13 @@ include (struct
           match deps |> NSet.to_seq |> Seq.find_map deps_ok with
           | None -> invalid_arg "Set of equations is not contractive."
           | Some n ->
-            let nn = new_node n in
-            if has_def nn |> not then begin
-              let s = eqs |> List.filter_map (fun (v,n) ->
-                  let nn = new_node n in
-                  if has_def nn then Some (v, def nn) else None
-                ) in
-              let d = def n |> VDescr.map_nodes new_node
-                |> VDescr.substitute (MixVarMap.of_list1 s) in
-              define nn d
-            end ;
+            let s = eqs |> List.filter_map (fun (v,n) ->
+                let nn = new_node n in
+                if has_def nn then Some (v, def nn) else None
+              ) in
+            let d = def n |> VDescr.map_nodes new_node
+              |> VDescr.substitute (MixVarMap.of_list1 s) in
+            define (new_node n) d ;
             define_all (NSet.remove n deps)
       in
       define_all deps ;
