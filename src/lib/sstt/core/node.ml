@@ -461,7 +461,7 @@ include (struct
         | Some n -> n
         | None ->
           begin match List.find_opt (fun (t', _) -> equiv t t') !nodes with
-            | Some (_, n) -> n
+            | Some (_, n) -> NH.add cache t n ; n
             | None ->
               let n = mk () in
               NH.add cache t n;
