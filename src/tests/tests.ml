@@ -301,6 +301,7 @@ let%expect_test "tests_ext" =
       list_union: [ (42 | 43 42) any* ]
       list_regexp: [ ('b | 'a)* ]
       list_with_vars: 42::('a & [ int* ])
+      list_star_paren: [ ( int any* )? ]
       char_any: char
       char_union: ('\000'..'1') | ('e'..'\255')
       char_singl: '*'

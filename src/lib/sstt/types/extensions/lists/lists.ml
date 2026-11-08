@@ -197,13 +197,32 @@ let prec_option = 2
 let prec_concat = 1
 let prec_union = 0
 
+let rec ends_with_star prec regexp =
+  let prec' = match regexp with
+    | Concat _ -> prec_concat
+    | Union _ -> prec_union
+    | Star _ | Plus _ | Option _ -> prec_star
+    | Epsilon | Symbol _ -> max_int
+  in
+  prec' > prec && body_ends_with_star regexp
+and body_ends_with_star = function
+  | Star _ -> true
+  | Concat lst -> last_ends_with_star prec_concat lst
+  | Union lst -> last_ends_with_star prec_union lst
+  | Epsilon | Symbol _ | Plus _ | Option _ -> false
+and last_ends_with_star prec lst =
+  match List.rev lst with
+  | [] -> false
+  | r :: _ -> ends_with_star prec r
+
 let rec print_r prec fmt regexp =
-  let need_paren = ref false in
+  let close = ref None in
   let paren prec' =
     if prec' <= prec
     then begin
-      need_paren := true ;
-      Format.fprintf fmt "("
+      let spaced = body_ends_with_star regexp in
+      close := Some (if spaced then " )" else ")") ;
+      Format.fprintf fmt "%s" (if spaced then "( " else "(")
     end
   in
   let () = match regexp with
@@ -225,7 +244,7 @@ let rec print_r prec fmt regexp =
       paren prec_option ;
       Format.fprintf fmt "%a?" (print_r prec_option) r
   in
-  if !need_paren then Format.fprintf fmt ")"
+  Option.iter (Format.fprintf fmt "%s") !close
 
 open Prec
 
