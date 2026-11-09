@@ -20,6 +20,10 @@ type t = bool * string list
 (** A string type, given by a list of literals and a boolean telling whether
     the type contains them ([true]) or every string but them ([false]). *)
 
+val destruct : Ty.t -> t
+(** [destruct ty] returns the string type encoded by [ty].
+    @raise Invalid_argument if [ty] is not a valid encoding of a string type. *)
+
 val to_t : Printer.build_ctx -> TagComp.t -> t option
 (** Recognizes a string type (see {!Sstt.Extensions}). *)
 

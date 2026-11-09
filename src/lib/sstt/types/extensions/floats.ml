@@ -3,6 +3,8 @@ open Core
 let tag = Tag.mk "flt"
 
 let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
+let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
+                  |> Op.TagComp.as_atom |> snd
 
 type k = Ninf | Neg | Nzero | Pzero | Pos | Pinf | Nan
 
@@ -52,15 +54,14 @@ let components { ninf ; neg ; nzero ; pzero ; pos ; pinf ; nan } =
     nan, Nan
   ] |> List.filter_map (fun (b,k) -> if b then Some k else None)
 
-let to_t _ comp =
-  let (_, pty) = Op.TagComp.as_atom comp in
+let extract pty =
   let (pos, enums') = pty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
   if pos && Ty.leq pty any_p && (Ty.vars_toplevel pty |> VarSet.is_empty) then
     let has k =
       let enum = List.assoc k enums in
       List.mem enum enums'
     in
-    Some {
+    {
       ninf = has Ninf ;
       neg = has Neg ;
       nzero = has Nzero ;
@@ -69,7 +70,13 @@ let to_t _ comp =
       pinf = has Pinf ;
       nan = has Nan
     }
-  else None
+  else invalid_arg "Malformed float type"
+
+let destruct ty = Ty.cap (proj_tag ty) any_p |> extract
+
+let to_t _ comp =
+  try Some (Op.TagComp.as_atom comp |> snd |> extract)
+  with Invalid_argument _ -> None
 open Prec
 
 let map _ _ v = v

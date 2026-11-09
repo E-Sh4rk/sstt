@@ -3,6 +3,8 @@ open Core
 let tag = Tag.mk "str"
 
 let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
+let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
+                  |> Op.TagComp.as_atom |> snd
 
 let enums = Hashtbl.create 256
 let strings = Hashtbl.create 256
@@ -22,16 +24,21 @@ let any = add_tag any_p
 
 type t = bool * string list
 
-let to_t _ comp =
-  try
-    let (_, pty) = Op.TagComp.as_atom comp in
-    if Ty.leq pty any_p && (Ty.vars_toplevel pty |> VarSet.is_empty) then
-      let (pos, enums) = pty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
+let extract pty =
+  if Ty.leq pty any_p && (Ty.vars_toplevel pty |> VarSet.is_empty) then
+    let (pos, enums) = pty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
+    try
       let strs = enums |> List.map (Hashtbl.find strings) in
-      Some (pos, strs)
-    else
-      None
-    with Not_found -> None
+      (pos, strs)
+    with Not_found -> invalid_arg "Malformed string type"
+  else
+    invalid_arg "Malformed string type"
+
+let destruct ty = Ty.cap (proj_tag ty) any_p |> extract
+
+let to_t _ comp =
+  try Some (Op.TagComp.as_atom comp |> snd |> extract)
+  with Invalid_argument _ -> None
 let map _ _ v = v
 
 open Prec

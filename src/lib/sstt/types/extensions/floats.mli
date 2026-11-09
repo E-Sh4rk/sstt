@@ -20,6 +20,10 @@ val any : Ty.t
 type t = { ninf : bool ; neg : bool ; nzero : bool ; pzero : bool ; pos : bool ; pinf : bool ; nan : bool }
 (** A float type, given by the kinds it contains. *)
 
+val destruct : Ty.t -> t
+(** [destruct ty] returns the float type encoded by [ty].
+    @raise Invalid_argument if [ty] is not a valid encoding of a float type. *)
+
 val to_t : Printer.build_ctx -> TagComp.t -> t option
 (** Recognizes a float type (see {!Sstt.Extensions}). *)
 

@@ -23,6 +23,10 @@ val any : Ty.t
 type t = interval list
 (** A character type, given as a union of ranges. *)
 
+val destruct : Ty.t -> t
+(** [destruct ty] returns the character type encoded by [ty].
+    @raise Invalid_argument if [ty] is not a valid encoding of a character type. *)
+
 val to_t : Printer.build_ctx -> TagComp.t -> t option
 (** Recognizes a character type (see {!Sstt.Extensions}). *)
 

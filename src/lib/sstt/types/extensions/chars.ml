@@ -3,6 +3,8 @@ open Core
 let tag = Tag.mk "chr"
 
 let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
+let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
+                  |> Op.TagComp.as_atom |> snd
 
 type interval = char * char
 
@@ -22,15 +24,20 @@ let any = add_tag any_p
 
 type t = interval list
 
-let to_t _ comp =
-  let (_, pty) = Op.TagComp.as_atom comp in
+let extract pty =
   if Ty.leq pty any_p && Ty.vars_toplevel pty |> VarSet.is_empty
   then
-    Some (pty |> Ty.get_descr |> Descr.get_intervals |> Intervals.destruct
-          |> List.map (fun a-> match Intervals.Atom.get a with
-                Some z1, Some z2 -> Z.(to_int z1 |> Char.chr, to_int z2 |> Char.chr)
-              | _ -> assert false))
-  else None
+    pty |> Ty.get_descr |> Descr.get_intervals |> Intervals.destruct
+    |> List.map (fun a-> match Intervals.Atom.get a with
+          Some z1, Some z2 -> Z.(to_int z1 |> Char.chr, to_int z2 |> Char.chr)
+        | _ -> assert false)
+  else invalid_arg "Malformed char type"
+
+let destruct ty = Ty.cap (proj_tag ty) any_p |> extract
+
+let to_t _ comp =
+  try Some (Op.TagComp.as_atom comp |> snd |> extract)
+  with Invalid_argument _ -> None
 
 let any_t = [(Char.chr 0, Char.chr 255)]
 

@@ -49,12 +49,12 @@ type t = line list
 and line = L of Node.t * t
 
 let any_enum = Enums.any |> Descr.mk_enums |> Ty.mk_descr
-let to_t h _ cmp =
-  let (_, pty) = Op.TagComp.as_atom cmp in
+let extract h pty =
   if Ty.leq pty any_enum && (Ty.vars_toplevel pty |> VarSet.is_empty)
   then
     let (pos, enums) = pty |> Ty.get_descr |> Descr.get_enums |> Enums.destruct in
-    if not (pos && List.for_all (EHT.mem h.atoms) enums) then None
+    if not (pos && List.for_all (EHT.mem h.atoms) enums)
+    then invalid_arg "Malformed hierarchy type"
     else
       let enums = ESet.of_list enums in
       let rec aux pos n =
@@ -64,8 +64,20 @@ let to_t h _ cmp =
         then [L (n, List.concat_map (aux (not pos)) sub)]
         else List.concat_map (aux pos) sub
       in
-      Some (h.top_nodes |> NSet.to_list |> List.concat_map (aux true))
-  else None
+      h.top_nodes |> NSet.to_list |> List.concat_map (aux true)
+  else invalid_arg "Malformed hierarchy type"
+
+let any_p h =
+  let atoms = h.atoms |> EHT.to_seq_keys |> List.of_seq in
+  Enums.construct (true, atoms) |> Descr.mk_enums |> Ty.mk_descr
+
+let destruct h ty =
+  ty |> Ty.get_descr |> Descr.get_tags |> Tags.get h.tag
+  |> Op.TagComp.as_atom |> snd |> Ty.cap (any_p h) |> extract h
+
+let to_t h _ cmp =
+  try Some (Op.TagComp.as_atom cmp |> snd |> extract h)
+  with Invalid_argument _ -> None
 
 open Prec
 

@@ -36,6 +36,10 @@ and line = L of Node.t * t
 (** [L (n, excluded)] denotes the node [n] deprived of the types [excluded]
     (which are built from its subnodes). *)
 
+val destruct : hierarchy -> Ty.t -> t
+(** [destruct h ty] returns the type of the hierarchy [h] encoded by [ty].
+    @raise Invalid_argument if [ty] is not a valid encoding of a type of [h]. *)
+
 val to_t : hierarchy -> Printer.build_ctx -> TagComp.t -> t option
 (** Recognizes a type of the given hierarchy (see {!Sstt.Extensions}). *)
 

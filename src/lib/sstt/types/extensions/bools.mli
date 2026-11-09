@@ -21,6 +21,10 @@ val any : Ty.t
 type t = { t : bool ; f : bool }
 (** A boolean type, given by the constants it contains. *)
 
+val destruct : Ty.t -> t
+(** [destruct ty] returns the boolean type encoded by [ty].
+    @raise Invalid_argument if [ty] is not a valid encoding of a boolean type. *)
+
 val to_t : Printer.build_ctx -> TagComp.t -> t option
 (** Recognizes a boolean type (see {!Sstt.Extensions}). *)
 

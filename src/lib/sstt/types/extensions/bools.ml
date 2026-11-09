@@ -3,6 +3,8 @@ open Core
 let tag = Tag.mk "bool"
 
 let add_tag ty = (tag, ty) |> Descr.mk_tag |> Ty.mk_descr
+let proj_tag ty = ty |> Ty.get_descr |> Descr.get_tags |> Tags.get tag
+                  |> Op.TagComp.as_atom |> snd
 
 let tt_p = Enum.mk "true" |> Descr.mk_enum |> Ty.mk_descr
 let ff_p = Enum.mk "false" |> Descr.mk_enum |> Ty.mk_descr
@@ -25,14 +27,19 @@ let components { t ; f } =
     f, false
   ] |> List.filter_map (fun (b,k) -> if b then Some k else None)
 
-let to_t _ comp =
-  let (_, pty) = Op.TagComp.as_atom comp in
+let extract pty =
   if Ty.leq pty any_p && (Ty.vars_toplevel pty |> VarSet.is_empty)
   then
     let t = Ty.leq tt_p pty in
     let f = Ty.leq ff_p pty in
-    Some { t; f }
-  else None
+    { t; f }
+  else invalid_arg "Malformed bool type"
+
+let destruct ty = Ty.cap (proj_tag ty) any_p |> extract
+
+let to_t _ comp =
+  try Some (Op.TagComp.as_atom comp |> snd |> extract)
+  with Invalid_argument _ -> None
 
 let map _f _ff v = v
 let print _ _ fmt {t; f} =
