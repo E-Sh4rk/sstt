@@ -1,32 +1,6 @@
 open Core
 open Sstt_utils
 
-(* Applies a (core) substitution to a field type. The row variables of the
-   field type must be mapped to rows without explicit bindings (as the result
-   could not be represented by a field type otherwise). *)
-let substitute_field s f = Row.all_fields f |> Row.substitute s |> Row.tail
-
-let solve_rectype v ty =
-  Ty.of_eqs [v, ty] |> List.hd |> snd
-
-(* [recfield_eqs rv f] abstracts every node of [f] by a fresh type variable.
-   It returns the resulting field type [f'] (which does not contain any node)
-   together with the equations defining the fresh variables, where [rv] has
-   been replaced by [f'] (so that solving them solves the equation [rv=f]). *)
-let recfield_eqs rv f =
-  let nodes = ref [] in
-  let f = f |> Ty.F.map_nodes (fun n ->
-      let v = Var.mk "" in
-      nodes := (v, n)::!nodes ; Ty.mk_var v
-    ) in
-  let s = Subst.singleton2 rv (Row.all_fields f) in
-  f, List.map (fun (v, n) -> v, Subst.apply s n) !nodes
-
-let solve_recfield rv f =
-  let f, eqs = recfield_eqs rv f in
-  let s = Ty.of_eqs eqs |> MixVarMap.of_list1 in
-  substitute_field s f
-
 (* =============== Tallying algorithm =============== *)
 
 type constr = Ty.t * Ty.t
@@ -632,7 +606,21 @@ module Make(VS:VarSettings) = struct
     in
     aux CS'.any cs
 
+  (* [recfield_eqs rv f] abstracts every node of [f] by a fresh type variable.
+    It returns the resulting field type [f'] (which does not contain any node)
+    together with the equations defining the fresh variables, where [rv] has
+    been replaced by [f'] (so that solving them solves the equation [rv=f]). *)
+  let recfield_eqs rv f =
+    let nodes = ref [] in
+    let f = f |> Ty.F.map_nodes (fun n ->
+        let v = Var.mk "" in
+        nodes := (v, n)::!nodes ; Ty.mk_var v
+      ) in
+    let s = Subst.singleton2 rv (Row.all_fields f) in
+    f, List.map (fun (v, n) -> v, Subst.apply s n) !nodes
+
   let solve (cs, cs' : VCS.t * FCS.t) =
+    let substitute_field s f = Row.all_fields f |> Row.substitute s |> Row.tail in
     (* NOTE: intermediate substitutions are core substitutions (Ty.subst)
        rather than Subst.t, because the latter normalizes its bindings using
        equivalence checks, which is costly. *)

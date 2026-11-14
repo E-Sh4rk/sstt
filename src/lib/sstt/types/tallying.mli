@@ -2,14 +2,6 @@
 
 open Core
 
-val solve_rectype : Var.t -> Ty.t -> Ty.t
-(** [solve_rectype v t] returns the type captured by [v] in the equation [v=t]
-    (where [v] may appear in [t] under a constructor). *)
-
-val solve_recfield : RowVar.t -> Ty.F.t -> Ty.F.t
-(** [solve_recfield rv fty] returns the field type captured by [rv] in the equation [rv=fty]
-    (where [rv] may appear in [fty] under a constructor). *)
-
 type constr = Ty.t * Ty.t
 (** The type of a tallying constraint. A constraint [(s, t)] means
     that we want to find all substitutions for variables of [s] and [t] 
