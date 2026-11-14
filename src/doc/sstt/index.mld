@@ -88,11 +88,11 @@ We can now build and solve the system of equations:
 {@ocaml[
 # let solved = Ty.of_eqs [ (vx, int_x_ty);  (vy, bool_x_tx_nil) ] ;;
 val solved : (VarSet.elt * Ty.t) list =
-  [('x, x1 where x1 = int, nil | (true | false, x1));
-   ('y, x1 where x1 = nil | (true | false, (int, x1)))]
+  [('x, int, x1 where x1 = nil | (true | false, (int, x1)));
+   ('y, nil | (true | false, x1) where x1 = int, nil | (true | false, x1))]
 
 # let int_bool_list = solved |> VarMap.of_list |> VarMap.find vx ;;
-val int_bool_list : Ty.t = x1 where x1 = int, nil | (true | false, x1)
+val int_bool_list : Ty.t = int, x1 where x1 = nil | (true | false, (int, x1))
 ]}
 The type [int_bool_list] is now the recursive type encoding non empty lists (as nested pairs)
 of even length with integers at even positions and booleans at odd positions.
@@ -109,7 +109,8 @@ The subtyping test is [Ty.leq]. Continuing or example with lists:
     let ty_x_v = Descr.mk_tuple [ty; tv] |> Ty.mk_descr in
     let ty_x_v_nil = Ty.cup nil ty_x_v in
     [v, ty_x_v_nil ]
-    |> Ty.of_eqs |> List.hd |> snd ;;
+    |> Ty.of_eqs |> List.hd |> snd
+    |> Ty.factorize (* merge equivalent nodes *) ;;
 val mk_list : Ty.t -> Ty.t = <fun>
 
 # let any_list = mk_list Ty.any ;;

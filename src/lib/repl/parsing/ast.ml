@@ -228,7 +228,8 @@ let rec build_ty env t =
         env := env' ;
         (StrMap.find name vars, ty)
       ) in
-    let tys = Ty.of_eqs eqs |> VarMap.of_list in
+    let vars', tys = Ty.of_eqs eqs |> List.split in
+    let tys = List.combine vars' (Ty.factorize_many tys) |> VarMap.of_list in
     List.iter (fun (name, _) ->
         let ty = VarMap.find (StrMap.find name vars) tys in
         let tenv = StrMap.add name ty !env.tenv in

@@ -1268,6 +1268,7 @@ module type Ty = sig
   val of_eqs : (Var.t * t) list -> (Var.t * t) list
   (** [of_eqs [(x1,t1);...;(xn,tn)]] returns the types [x1], ..., [xn]
       satisfying the system of equations [x1=t1], ..., [xn=tn].
+      The resulting types are not factorized (see {!factorize_many}).
       @raise Invalid_argument if the set of equations is not contractive. *)
 
   type row = VDescr.Descr.Records.Atom.t

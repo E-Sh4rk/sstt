@@ -120,10 +120,7 @@ module Ty : Ty = struct
   let factorize t = N.factorize t |> simpl
   let factorize_many ts = N.factorize_many ts |> List.map simpl
   let of_eqs eqs =
-    let res = N.of_eqs eqs in
-    let vars, tys = List.split res in
-    let tys = factorize_many tys in
-    List.combine vars tys
+    N.of_eqs eqs |> List.map (fun (v, t) -> v, simpl t)
 
   let is_empty t = N.is_empty t
   let leq t1 t2 = N.equal t1 t2 || N.leq t1 t2

@@ -12,7 +12,7 @@ let nil = [] |> Descr.mk_tuple |> Ty.mk_descr |> add_tag
 let any =
   let v = Var.mk "" in
   let def = Ty.cup nil (cons Ty.any (Ty.mk_var v)) in
-  Ty.of_eqs [(v,def)] |> List.hd |> snd |> Transform.simplify
+  Ty.of_eqs [(v,def)] |> List.hd |> snd |> Transform.simplify |> Ty.factorize
 
 let any_non_empty = cons Ty.any any
 let cons a b = cons a (Ty.cap any b)
@@ -282,7 +282,7 @@ let build r =
     | Star r ->
       let v = Var.mk "" in
       let ty = Ty.cup (aux r (Ty.mk_var v)) next in
-      Ty.of_eqs [(v,ty)] |> List.hd |> snd
+      Ty.of_eqs [(v,ty)] |> List.hd |> snd |> Ty.factorize
     | Plus r -> aux r (aux (Star r) next)
     | Option r -> Ty.cup (aux r next) next
   in
