@@ -1,21 +1,31 @@
 open Core
 open Sstt_utils
 
+(* Applies a (core) substitution to a field type. The row variables of the
+   field type must be mapped to rows without explicit bindings (as the result
+   could not be represented by a field type otherwise). *)
+let substitute_field s f = Row.all_fields f |> Row.substitute s |> Row.tail
+
 let solve_rectype v ty =
   Ty.of_eqs [v, ty] |> List.hd |> snd
-let solve_recfield v f =
-  let module VHT = Hashtbl.Make(Var) in
-  let nodes = VHT.create 10 in
+
+(* [recfield_eqs rv f] abstracts every node of [f] by a fresh type variable.
+   It returns the resulting field type [f'] (which does not contain any node)
+   together with the equations defining the fresh variables, where [rv] has
+   been replaced by [f'] (so that solving them solves the equation [rv=f]). *)
+let recfield_eqs rv f =
+  let nodes = ref [] in
   let f = f |> Ty.F.map_nodes (fun n ->
       let v = Var.mk "" in
-      VHT.add nodes v n ; Ty.mk_var v
-    )
-  in
-  let eqs = VHT.to_seq nodes |> List.of_seq |> List.map (fun (v',ty') ->
-      v', Subst.apply (Subst.singleton2 v (Row.all_fields f)) ty'
+      nodes := (v, n)::!nodes ; Ty.mk_var v
     ) in
-  let s = Ty.of_eqs eqs |> Subst.of_list1 in
-  f |> Ty.F.map_nodes (fun n -> Subst.apply s n)
+  let s = Subst.singleton2 rv (Row.all_fields f) in
+  f, List.map (fun (v, n) -> v, Subst.apply s n) !nodes
+
+let solve_recfield rv f =
+  let f, eqs = recfield_eqs rv f in
+  let s = Ty.of_eqs eqs |> MixVarMap.of_list1 in
+  substitute_field s f
 
 (* =============== Tallying algorithm =============== *)
 
@@ -623,42 +633,47 @@ module Make(VS:VarSettings) = struct
     aux CS'.any cs
 
   let solve (cs, cs' : VCS.t * FCS.t) =
-    let renaming = ref Subst.identity in
-    let to_eq c =
-      let (ty1, v, ty2) = VC.destruct c in
-      let v' = Var.mk (Var.name v) in
-      renaming := Subst.add1 v' (Ty.mk_var v) !renaming ;
-      (v, Ty.cap (Ty.cup ty1 (Ty.mk_var v')) ty2)
-    in
-    let to_eq' c =
-      let (f1, v, f2) = FC.destruct c in
-      let v' = RowVar.mk (RowVar.name v) in
-      renaming := Subst.add2 v' (Row.id_for v) !renaming ;
-      (v, Ty.F.cap (Ty.F.cup f1 (Ty.F.mk_var v')) f2)
-    in
-    let rec unify eqs1 eqs2 =
-      match eqs1, eqs2 with
-      | [], [] -> Subst.identity
-      | (v,ty)::eqs1, eqs2 ->
-        let ty' = solve_rectype v ty in
-        let s = Subst.singleton1 v ty' in
-        let eqs1' = eqs1 |> List.map (fun (v,eq) -> (v, Subst.apply s eq)) in
-        let eqs2' = eqs2 |> List.map (fun (v,eq) -> (v, Row.tail (Subst.apply_to_row s (Row.all_fields eq)))) in
-        let res = unify eqs1' eqs2' in
-        Subst.add1 v (Subst.apply res ty') res
-      | [], (v,f)::eqs2 ->
-        let f' = solve_recfield v f |> Row.all_fields in
-        let s = Subst.singleton2 v f' in
-        let eqs1' = eqs1 |> List.map (fun (v,eq) -> (v, Subst.apply s eq)) in
-        let eqs2' = eqs2 |> List.map (fun (v,eq) -> (v, Row.tail (Subst.apply_to_row s (Row.all_fields eq)))) in
-        let res = unify eqs1' eqs2' in
-        Subst.add2 v (Subst.apply_to_row res f') res
-    in
-    let eqs1 = VCS.to_list_map to_eq cs in
-    let eqs2 = FCS.to_list_map to_eq' cs' in
-    unify eqs1 eqs2
-    |> Subst.map1 (Subst.apply !renaming)
-    |> Subst.map2 (Subst.apply_to_row !renaming)
+    (* NOTE: intermediate substitutions are core substitutions (Ty.subst)
+       rather than Subst.t, because the latter normalizes its bindings using
+       equivalence checks, which is costly. *)
+    let cs = VCS.to_list_map VC.destruct cs in
+    let cs' = FCS.to_list_map FC.destruct cs' in
+    (* The variable [v] of an equation [v=t] is renamed into a fresh variable [v']
+       (including its recursive occurrences), so that [v] can be used in [t]
+       as the free variable of the solution. *)
+    let cs = cs |> List.map (fun (ty1, v, ty2) -> ty1, (v, Var.mk (Var.name v)), ty2) in
+    let cs' = cs' |> List.map (fun (f1, v, f2) -> f1, (v, RowVar.mk (RowVar.name v)), f2) in
+    let renaming = MixVarMap.of_list
+        (cs |> List.map (fun (_, (v, v'), _) -> v, Ty.mk_var v'))
+        (cs' |> List.map (fun (_, (v, v'), _) -> v, Row.id_for v' |> Row.to_record_atom)) in
+    let rename, rename_f = Ty.substitute renaming, substitute_field renaming in
+    let tys = cs |> List.map (fun (ty1, (v, v'), ty2) ->
+        (v, v'), Ty.cap (Ty.cup (rename ty1) (Ty.mk_var v)) (rename ty2)) in
+    (* Abstract the nodes of the field equations into fresh type variables *)
+    let fields, eqs = cs' |> List.map (fun (f1, (v, v'), f2) ->
+        let f = Ty.F.cap (Ty.F.cup (rename_f f1) (Ty.F.mk_var v)) (rename_f f2) in
+        let f, eqs = recfield_eqs v' f in
+        ((v, v'), f), eqs
+      ) |> List.split in
+    let eqs = List.map (fun ((_, v'), ty) -> v', ty) tys @ List.concat eqs in
+    (* Field equations do not contain any node anymore. Moreover, the tallying
+       algorithm ensures that a constraint on a variable only features, at
+       toplevel, variables that are strictly larger (constraints being sorted
+       by variable). Thus, field equations are solved from the last one to the
+       first one, substituting in each the solutions already computed. *)
+    let to_subst fields =
+      fields |> List.map (fun ((_, v'), f) -> v', Row.all_fields f |> Row.to_record_atom)
+      |> MixVarMap.of_list2 in
+    let fields = List.fold_right (fun (v, f) fields ->
+        (v, substitute_field (to_subst fields) f)::fields
+      ) fields [] in
+    (* Solve all type equations at once *)
+    let rs = to_subst fields in
+    let eqs = eqs |> List.map (fun (v, ty) -> v, Ty.substitute rs ty) in
+    let ts = Ty.of_eqs eqs |> MixVarMap.of_list1 in
+    let tys = tys |> List.map (fun ((v, v'), _) -> v, MixVarMap.find1 v' ts) in
+    let rows = fields |> List.map (fun ((v, _), f) -> v, Row.all_fields f |> Row.substitute ts) in
+    Subst.of_list tys rows
 
   let tally cs =
     let ncss = cs |> CSS.map_conj (fun (s,t) -> norm (Ty.diff s t)) in
