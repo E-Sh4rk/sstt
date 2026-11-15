@@ -51,12 +51,13 @@ module Make(V:Comparable)(L:Leaf) = struct
     map (L.map_nodes f)
 
   let substitute s t =
-    let f v =
-      match VarMap.find_opt v s with
-      | None -> Bdd.singleton v
-      | Some t -> t
-    in
-    Bdd.substitute f t
+    if VarMap.is_empty s then t else
+      let f v =
+        match VarMap.find_opt v s with
+        | None -> Bdd.singleton v
+        | Some t -> t
+      in
+      Bdd.substitute f t
 
   let strengthen s t =
     let fp v =

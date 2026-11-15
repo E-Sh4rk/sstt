@@ -226,8 +226,6 @@ include (struct
     type row = VDescr.Descr.Records.Atom.t
     type subst = (t, row) MixVarMap.t
 
-
-    let has_def t = Option.is_some t.def
     let def t = t.def |> Option.get
 
     let hash = AnyEmpty.hash
@@ -391,42 +389,84 @@ include (struct
 
 
     (** Systems of contractive equations. [factorize_many] must be called on the result (done in Core) *)
+    (*
+      For a given system [ ('a1, n1); … ; ('ak, nk) ], the algorithm has two
+      phases:
+      - Phase 1:
+       a. For each ni, create a fresh node ni' and it's definition di'
+       b. Create the substitution subst { 'a1 → n1', …, 'ak → nk' }
+      - Phase 2: For every node m in (dependencies ni) create m' if it does not
+         already exists as m' = subst(def m)
+
+    Phase one must follow a topological order between the ni (if ni has toplevel
+    variable 'aj, then the node nj' must be defined before).
+
+    For phase two, we don't actually call dependencies explicitely, rather, each
+    time we apply the substitution, we call VDescr.map_nodes. For each node, we
+    record when we create a new image in a todo list and process it until
+    everything is done.
+    *)
+    type dfs = NotSeen | Opened | Finished
     let of_eqs eqs =
       let def_vars = eqs |> List.map fst |> VarSet.of_list in
       (* Optimisation: reuse nodes if possible *)
       let unchanged n = VarSet.disjoint (vars n) def_vars in
-      let deps = eqs
-        |> List.fold_left (fun acc (_, t) -> NSet.union (dependencies t) acc) NSet.empty
-        |> NSet.filter (fun n -> unchanged n |> not) in
-      let copies = NH.create 10 in
-      let () = NSet.iter (fun n -> NH.add copies n (mk ())) deps in
+      let node_map = NH.create 10 in
+      let todo = ref [] in
       let new_node n =
-        match NH.find_opt copies n with
-        | Some n -> n
-        | None -> n
-      in
-      let rec define_all deps =
-        if NSet.is_empty deps |> not then
-          let deps_ok n =
-            let vs = vars_toplevel n in
-            if eqs |> List.for_all (fun (v,n) ->
-                VarSet.mem v vs |> not || new_node n |> has_def
-              ) then Some n else None
+        match NH.find_opt node_map n with
+          Some nn -> nn
+        | None ->
+          let nn = (* when creating a new node, remember to visit it later *)
+            if unchanged n then n else (todo := n :: !todo; mk ())
           in
-          match deps |> NSet.to_seq |> Seq.find_map deps_ok with
-          | None -> invalid_arg "Set of equations is not contractive."
-          | Some n ->
-            let s = eqs |> List.filter_map (fun (v,n) ->
-                let nn = new_node n in
-                if has_def nn then Some (v, def nn) else None
-              ) in
-            let d = def n |> VDescr.map_nodes new_node
-              |> VDescr.substitute (MixVarMap.of_list1 s) in
-            define (new_node n) d ;
-            define_all (NSet.remove n deps)
+          NH.add node_map n nn; nn
       in
-      define_all deps ;
-      eqs |> List.map (fun (v,n) -> v,new_node n)
+      let new_descr s d = d |> VDescr.map_nodes new_node
+        |> VDescr.substitute s
+      in
+      let subst, temp_eqs =
+        List.fold_left (fun (a_sub, a_tmp) (v, n) ->
+            let nn = new_node n in
+            match nn.def with
+              Some d -> MixVarMap.add1 v d a_sub, a_tmp
+            | None ->
+              a_sub, ((v,ref NotSeen), n, nn)::a_tmp) (MixVarMap.empty,[]) eqs in
+      let subst = ref subst in
+      let rec visit ((v,opened),n, nn) = (* dfs *)
+        let d =
+          match nn.def with
+            Some d -> d
+          | None ->
+            if !opened = Opened then
+              invalid_arg "Set of equations is not contractive."
+            else
+              let () = opened := Opened in
+              let vs = vars_toplevel n in
+              (* to process the def of n, it toplevel variables
+                 that are in the 'ai must have been processed already *)
+              temp_eqs |> List.iter (fun (((v',o) ,_,_) as x) ->
+                  if !o <> Finished && VarSet.mem v' vs then visit x);
+              opened := Finished;
+              let d = new_descr !subst (def n) in
+              define nn d;
+              d
+        in
+        subst := MixVarMap.add1 v d !subst;
+      in
+      (* Phase 1 *)
+      List.iter visit temp_eqs;
+      let subst = !subst in
+      (* Phase 2, process todo can grow because of new_node *)
+      while match !todo with
+          [] -> false
+        | n :: t ->  todo:= t;
+          let nn = new_node n in
+          let d = new_descr subst (def n) in
+          define nn d; true
+      do () done;
+      List.map (fun (v, n) -> (v, new_node n)) eqs
+
 
     (** Variable substitution. [simplify] above must be called on the result (done in Core) *)
     let substitute s t =

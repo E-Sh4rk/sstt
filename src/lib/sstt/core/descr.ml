@@ -104,7 +104,7 @@ module Make(N:Node) = struct
     then t
     else
       { enums; tags; tuples; arrows; records; intervals; others }
-      
+
   let binop fato ftag ftup farr frec fint fo t1 t2 = {
     enums = fato t1.enums t2.enums ;
     tags = ftag t1.tags t2.tags ;
@@ -118,7 +118,7 @@ module Make(N:Node) = struct
   let cap = fcap ~empty ~any ~cap:(binop Enums.cap Tags.cap Tuples.cap Arrows.cap Records.cap Intervals.cap (&&))
   let cup = fcup ~empty ~any ~cup:(binop Enums.cup Tags.cup Tuples.cup Arrows.cup Records.cup Intervals.cup (||))
   let diff = fdiff ~empty ~any ~diff:(binop Enums.diff Tags.diff Tuples.diff Arrows.diff Records.diff Intervals.diff
-                                            (fun a b -> a && not b))
+                                        (fun a b -> a && not b))
   let neg = fneg ~empty ~any ~neg:(unop Enums.neg Tags.neg Tuples.neg Arrows.neg Records.neg Intervals.neg not)
   let is_empty t = t == empty ||
                    not t.others &&
@@ -146,14 +146,15 @@ module Make(N:Node) = struct
   let destruct t =
     let pos, t = not t.others, if t.others then neg t else t in
     (pos, components t |> fst)
-  
+
   let simplify = unop Enums.simplify Tags.simplify Tuples.simplify
       Arrows.simplify Records.simplify Intervals.simplify Fun.id
   let map_nodes f = unop (Enums.map_nodes f) (Tags.map_nodes f) (Tuples.map_nodes f)
       (Arrows.map_nodes f) (Records.map_nodes f) (Intervals.map_nodes f) Fun.id
   let substitute s t =
-    let records = Records.substitute s t.records in
-    if records == t.records then t else { t with records }
+    if Base.RowVarMap.is_empty s then t else
+      let records = Records.substitute s t.records in
+      if records == t.records then t else { t with records }
 
   let compare t1 t2 =
     Bool.compare t1.others t2.others |> ccmp
