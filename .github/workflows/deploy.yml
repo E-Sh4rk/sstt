@@ -39,10 +39,8 @@ jobs:
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
           opam-pin: false
-      # TODO: binaryen-bin dependency
       - name: Install OCaml dependencies
         run: |
-          opam install binaryen-bin
           eval $(opam env)
           make deps
           make test-deps
